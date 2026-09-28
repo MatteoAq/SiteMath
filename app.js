@@ -81,7 +81,7 @@
   function matrixHTML(m){
     if(!M.isMatrix(m)) return `<span class="result-scalar">${escapeHtml(M.fmt(m))}</span>`;
     const cells=m.flat().map(v=>`<span>${escapeHtml(M.fmt(v))}</span>`).join('');
-    return `<div class="render-matrix" style="--cols:${m[0].length}">${cells}</div>`;
+    return `<div class="matrix-scroll"><div class="render-matrix" style="--cols:${m[0].length}">${cells}</div></div>`;
   }
   function stringMatrixHTML(m){
     const cells=m.flat().map(v=>`<span>${escapeHtml(String(v))}</span>`).join('');
@@ -93,6 +93,113 @@
 
   createSizeControls('#sizeA','A'); createSizeControls('#sizeB','B'); createSizeControls('#sizeDet','Det'); createSizeControls('#sizeRank','Rank');
   renderEditor('A');renderEditor('B');renderEditor('Det');renderEditor('Rank');renderX();
+
+  // Главная учебная задача с листа: пользователь решает сам по шагам.
+  const teacherTask = {
+    A:[[2,3],[-1,4]],
+    B:[[3,-5],[2,-1]],
+    answers:{
+      '2A':[[4,6],[-2,8]],
+      '3B':[[9,-15],[6,-3]],
+      'AB':[[12,-13],[5,1]],
+      'C':[[7,8],[-3,12]]
+    },
+    user:{}
+  };
+
+  function renderStaticMatrices(){
+    $('.matrix-static').forEach(el=>{
+      const raw=(el.dataset.matrix||'').split(';').map(r=>r.split(',').map(Number));
+      el.innerHTML=matrixHTML(raw);
+    });
+  }
+
+  function createWorkAnswer(containerId,key){
+    const answer=teacherTask.answers[key];
+    const box=$(containerId); if(!box)return;
+    box.innerHTML='';
+    const grid=document.createElement('div');
+    grid.className='answer-matrix work-grid';
+    grid.style.gridTemplateColumns=`repeat(${answer[0].length},minmax(54px,64px))`;
+    teacherTask.user[key]=Array.from({length:answer.length},()=>Array(answer[0].length).fill(''));
+    for(let i=0;i<answer.length;i++)for(let j=0;j<answer[0].length;j++){
+      const inp=document.createElement('input');
+      inp.inputMode='decimal';
+      inp.placeholder='?';
+      inp.setAttribute('aria-label',`${key}: строка ${i+1}, столбец ${j+1}`);
+      inp.addEventListener('input',()=>{
+        teacherTask.user[key][i][j]=inp.value;
+        inp.classList.remove('cell-ok','cell-bad');
+        const feedback=$(`#feedback${key}`);
+        feedback?.classList.add('hidden');
+      });
+      grid.append(inp);
+    }
+    box.append(grid);
+  }
+
+  function initTeacherWorkspace(){
+    renderStaticMatrices();
+    createWorkAnswer('#work2A','2A');
+    createWorkAnswer('#work3B','3B');
+    createWorkAnswer('#workAB','AB');
+    createWorkAnswer('#workC','C');
+  }
+
+  function checkTeacherStep(key){
+    const card=$(`[data-work-step="${key}"]`);
+    const inputs=card?Array.from(card.querySelectorAll('.work-grid input')):[];
+    const target=teacherTask.answers[key];
+    let allFilled=true, allCorrect=true, pos=0;
+    for(let i=0;i<target.length;i++)for(let j=0;j<target[0].length;j++){
+      const inp=inputs[pos++]; const raw=teacherTask.user[key][i][j];
+      let ok=false;
+      if(String(raw).trim()===''){allFilled=false;}
+      else { try{ ok=M.approxEqual(M.parseNumber(raw),target[i][j]); }catch{} }
+      inp?.classList.toggle('cell-ok',ok);
+      inp?.classList.toggle('cell-bad',String(raw).trim()!==''&&!ok);
+      if(!ok)allCorrect=false;
+    }
+    const feedback=$(`#feedback${key}`);
+    feedback.className=`message ${allCorrect?'success':'error'}`;
+    feedback.textContent=allCorrect ? (key==='C'?'Верно. Итоговая матрица C найдена правильно.':'Верно. Этот шаг готов.') : (!allFilled?'Заполни все клетки, затем проверь ещё раз.':'Есть ошибка. Красным отмечены клетки, которые нужно пересчитать.');
+    feedback.classList.remove('hidden');
+    card?.classList.toggle('step-complete',allCorrect);
+    return allCorrect;
+  }
+
+  $('.check-work').forEach(btn=>btn.addEventListener('click',()=>checkTeacherStep(btn.dataset.step)));
+  $('.hint-work').forEach(btn=>btn.addEventListener('click',()=>{
+    const h=$(`#hint${btn.dataset.step}`); h?.classList.toggle('hidden');
+  }));
+  $('#resetTeacherTask')?.addEventListener('click',()=>{
+    initTeacherWorkspace();
+    $('.work-step').forEach(c=>c.classList.remove('step-complete'));
+    ['2A','3B','AB','C'].forEach(k=>{const f=$(`#feedback${k}`);f?.classList.add('hidden')});
+  });
+  $('#showTeacherTaskSolution')?.addEventListener('click',()=>{
+    const out=$('#teacherTaskSolution');
+    out.innerHTML=`<div class="solution-steps">
+      <div><b>1. 2A</b>${matrixHTML(teacherTask.answers['2A'])}</div>
+      <div><b>2. 3B</b>${matrixHTML(teacherTask.answers['3B'])}</div>
+      <div><b>3. AB</b>${matrixHTML(teacherTask.answers['AB'])}<p class="muted">Например: c₁₁ = 2·3 + 3·2 = 12; c₁₂ = 2·(−5) + 3·(−1) = −13.</p></div>
+      <div><b>4. C = 2A − 3B + AB</b>${matrixHTML(teacherTask.answers['C'])}</div>
+    </div>`;
+    out.classList.toggle('hidden');
+    $('#showTeacherTaskSolution').textContent=out.classList.contains('hidden')?'Показать полное решение':'Скрыть полное решение';
+  });
+
+  let sheetScale=1;
+  function applySheetScale(){
+    const img=$('#teacherSheetImage'); if(!img)return;
+    img.style.width=`${Math.round(sheetScale*100)}%`;
+    $('#sheetZoomReset').textContent=`${Math.round(sheetScale*100)}%`;
+  }
+  $('#sheetZoomIn')?.addEventListener('click',()=>{sheetScale=Math.min(3,sheetScale+.25);applySheetScale()});
+  $('#sheetZoomOut')?.addEventListener('click',()=>{sheetScale=Math.max(.5,sheetScale-.25);applySheetScale()});
+  $('#sheetZoomReset')?.addEventListener('click',()=>{sheetScale=1;applySheetScale()});
+
+  initTeacherWorkspace();
 
   $$('.chip[data-expr]').forEach(b=>b.addEventListener('click',()=>$('#expressionInput').value=b.dataset.expr));
   $('#solveExpression').addEventListener('click',solveExpression);
