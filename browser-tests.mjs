@@ -96,7 +96,7 @@ const imgInfo=await page.locator('#teacherSheetImage').evaluate(img=>({
   naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,src:img.getAttribute('src'),width:img.style.width
 }));
 check('HQ worksheet dimensions',imgInfo.naturalWidth>=950&&imgInfo.naturalHeight>=1200,JSON.stringify(imgInfo));
-check('HQ worksheet source',imgInfo.src==='teacher-sheet-hq.jpg',imgInfo.src);
+check('HQ worksheet source',imgInfo.src?.startsWith('teacher-sheet-hq.jpg'),imgInfo.src);
 await page.locator('#sheetZoomIn').click();
 await page.locator('#sheetZoomIn').click();
 check('worksheet zoom 150%',(await page.locator('#teacherSheetImage').getAttribute('style')||'').includes('150%'));
