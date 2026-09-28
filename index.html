@@ -24,7 +24,7 @@
       <button class="nav-btn active" data-section="start">Решать с листа</button>
       <button class="nav-btn" data-section="sheet">Лист преподавателя</button>
       <button class="nav-btn" data-section="basics">База</button>
-      <button class="nav-btn" data-section="calc">Калькулятор</button>
+      <button class="nav-btn" data-section="calc">Проверка</button>
       <button class="nav-btn" data-section="det">Определители</button>
       <button class="nav-btn" data-section="rank">Ранг</button>
       <button class="nav-btn" data-section="practice">Тренажёр</button>
@@ -138,7 +138,7 @@
       <section id="basics" class="section">
         <div class="section-head">
           <div><div class="eyebrow">Уровень 1</div><h1>База</h1></div>
-          <button class="secondary" data-go="calc">Сразу к калькулятору</button>
+          <button class="secondary" data-go="calc">Открыть проверку</button>
         </div>
 
         <div class="grid-2">
@@ -182,7 +182,7 @@
 
       <section id="calc" class="section">
         <div class="section-head">
-          <div><div class="eyebrow">Главный инструмент</div><h1>Калькулятор матриц</h1></div>
+          <div><div class="eyebrow">Дополнительный инструмент</div><h1>Проверка вычислений</h1></div>
           <div class="badge">A, B до 6×6</div>
         </div>
 
@@ -199,7 +199,7 @@
 
         <article class="card top-gap">
           <h2>Выражение</h2>
-          <p class="muted">Можно считать не только AB, но и целую строку из задания: <code>2A-3B+AB</code>, <code>A^2+B</code>, <code>4A-5B+(AB)^2</code>, <code>B^T A^T</code>. Для единичной матрицы используйте <code>I</code>.</p>
+          <p class="muted">Используй этот раздел после самостоятельного решения, чтобы проверить себя. Можно считать не только AB, но и целую строку из задания: <code>2A-3B+AB</code>, <code>A^2+B</code>, <code>4A-5B+(AB)^2</code>, <code>B^T A^T</code>. Для единичной матрицы используйте <code>I</code>.</p>
           <div class="quick-row">
             <button class="chip" data-expr="A+B">A+B</button><button class="chip" data-expr="A-B">A−B</button><button class="chip" data-expr="A*B">AB</button><button class="chip" data-expr="B*A">BA</button><button class="chip" data-expr="T(A)">Aᵀ</button><button class="chip" data-expr="A^2">A²</button><button class="chip" data-expr="A^2+2*A-4*I">f(A)</button>
           </div>
@@ -313,7 +313,7 @@
         <div class="section-head"><div><div class="eyebrow">По фотографии</div><h1>Примеры преподавателя</h1></div></div>
         <div class="teacher-list">
           <article class="card task-card">
-            <div class="task-num">1</div><div><h3>Составное выражение</h3><p>A = [[2,3],[−1,4]], B = [[3,−5],[2,−1]]. Найти C = 2A − 3B + AB.</p><button class="secondary teacher-load" data-preset="expr1">Открыть в калькуляторе</button></div>
+            <div class="task-num">1</div><div><h3>Составное выражение</h3><p>A = [[2,3],[−1,4]], B = [[3,−5],[2,−1]]. Найти C = 2A − 3B + AB.</p><button class="secondary" data-go="start">Решать пошагово</button></div>
           </article>
           <article class="card task-card">
             <div class="task-num">2</div><div><h3>Проверка A² − B² = (A−B)(A+B)</h3><p>Для матриц эта школьная формула не обязана работать, потому что AB и BA могут отличаться. Сайт посчитает обе части отдельно.</p><button class="secondary teacher-load" data-preset="identity">Проверить на данных с листка</button></div>
