@@ -27,7 +27,8 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p _site
-          tar -xzf SiteMath-pages.tar.gz -C _site
+          cp index.html styles.css app.js _site/
+          cat matrix-core.part1 matrix-core.part2 matrix-core.part3 matrix-core.part4 > _site/matrix-core.js
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
