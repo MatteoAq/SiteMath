@@ -21,7 +21,8 @@
 
   <div class="layout">
     <aside class="sidebar" aria-label="Разделы">
-      <button class="nav-btn active" data-section="start">Начать</button>
+      <button class="nav-btn active" data-section="start">Решать с листа</button>
+      <button class="nav-btn" data-section="sheet">Лист преподавателя</button>
       <button class="nav-btn" data-section="basics">База</button>
       <button class="nav-btn" data-section="calc">Калькулятор</button>
       <button class="nav-btn" data-section="det">Определители</button>
@@ -33,38 +34,105 @@
 
     <main class="content">
       <section id="start" class="section active">
-        <div class="hero card">
-          <div class="eyebrow">От простого к контрольной</div>
-          <h1>Матрицы без тетради</h1>
-          <p class="lead">Здесь можно вспомнить правило, сразу подставить свои матрицы и увидеть не только ответ, но и промежуточные действия.</p>
-          <div class="hero-actions">
-            <button class="primary" data-go="basics">Начать с базы</button>
-            <button class="secondary" data-go="calc">Ввести свои матрицы</button>
+        <div class="section-head start-head">
+          <div>
+            <div class="eyebrow">Начинаем сразу с листа</div>
+            <h1>Задание 1. C = 2A − 3B + AB</h1>
+            <p class="lead compact-lead">Решай прямо здесь. В каждую клетку вписывай один элемент матрицы. Сайт не показывает ответ заранее – только проверяет твои шаги.</p>
           </div>
+          <button class="secondary" data-go="sheet">Открыть фото листа</button>
         </div>
 
-        <div class="grid-3 top-gap">
-          <article class="card mini-card">
-            <div class="mini-num">1</div><h3>Сначала размер</h3>
-            <p>Перед любым действием смотри на число строк и столбцов: m×n.</p>
+        <div class="card given-card">
+          <div class="given-title">Дано</div>
+          <div class="given-matrices">
+            <div><b>A =</b><div class="matrix-static" data-matrix="2,3;-1,4"></div></div>
+            <div><b>B =</b><div class="matrix-static" data-matrix="3,-5;2,-1"></div></div>
+            <div class="target-expression"><b>Найти:</b><span>C = 2A − 3B + AB</span></div>
+          </div>
+          <div class="hint">Порядок удобный такой: отдельно найди 2A, 3B и AB, а уже потом собери C. Для умножения AB используется «строка A × столбец B».</div>
+        </div>
+
+        <div class="workspace top-gap" id="teacherTaskWorkspace">
+          <article class="card work-step" data-work-step="2A">
+            <div class="work-step-head"><div><span class="step-badge">1</span><h2>Найди 2A</h2></div><span class="muted">Умножь каждый элемент A на 2</span></div>
+            <div class="work-answer" id="work2A"></div>
+            <div class="quick-row top-gap-small">
+              <button class="primary check-work" data-step="2A">Проверить</button>
+              <button class="ghost hint-work" data-step="2A">Подсказка</button>
+            </div>
+            <div class="hint hidden" id="hint2A">Например, верхний левый элемент: 2 · 2 = 4. Так же умножь остальные три элемента.</div>
+            <div class="message hidden" id="feedback2A"></div>
           </article>
-          <article class="card mini-card">
-            <div class="mini-num">2</div><h3>Потом правило</h3>
-            <p>Сайт подсказывает, когда можно складывать, умножать, искать det и ранг.</p>
+
+          <article class="card work-step" data-work-step="3B">
+            <div class="work-step-head"><div><span class="step-badge">2</span><h2>Найди 3B</h2></div><span class="muted">Умножь каждый элемент B на 3</span></div>
+            <div class="work-answer" id="work3B"></div>
+            <div class="quick-row top-gap-small">
+              <button class="primary check-work" data-step="3B">Проверить</button>
+              <button class="ghost hint-work" data-step="3B">Подсказка</button>
+            </div>
+            <div class="hint hidden" id="hint3B">Знак сохраняется: например, 3 · (−5) = −15.</div>
+            <div class="message hidden" id="feedback3B"></div>
           </article>
-          <article class="card mini-card">
-            <div class="mini-num">3</div><h3>Потом расчёт</h3>
-            <p>Можно решить самому, проверить ответ или раскрыть вычисления по шагам.</p>
+
+          <article class="card work-step" data-work-step="AB">
+            <div class="work-step-head"><div><span class="step-badge">3</span><h2>Найди AB</h2></div><span class="muted">Строка A × столбец B</span></div>
+            <div class="work-answer" id="workAB"></div>
+            <div class="quick-row top-gap-small">
+              <button class="primary check-work" data-step="AB">Проверить</button>
+              <button class="ghost hint-work" data-step="AB">Подсказка</button>
+            </div>
+            <div class="hint hidden" id="hintAB">Первый элемент: c₁₁ = 2·3 + 3·2. Для c₁₂ бери первую строку A и второй столбец B.</div>
+            <div class="message hidden" id="feedbackAB"></div>
+          </article>
+
+          <article class="card work-step final-step" data-work-step="C">
+            <div class="work-step-head"><div><span class="step-badge">4</span><h2>Собери C</h2></div><span class="muted">C = 2A − 3B + AB</span></div>
+            <div class="work-answer" id="workC"></div>
+            <div class="quick-row top-gap-small">
+              <button class="primary check-work" data-step="C">Проверить C</button>
+              <button class="ghost hint-work" data-step="C">Подсказка</button>
+              <button class="ghost" id="resetTeacherTask">Очистить поля</button>
+            </div>
+            <div class="hint hidden" id="hintC">Теперь действия идут поэлементно. Например, c₁₁ = (2A)₁₁ − (3B)₁₁ + (AB)₁₁.</div>
+            <div class="message hidden" id="feedbackC"></div>
           </article>
         </div>
 
-        <div class="card top-gap">
-          <h2>Что видно по вашему листку</h2>
-          <div class="topic-strip">
-            <span>Действия над матрицами</span><span>AB и BA</span><span>Транспонирование</span><span>Степени и f(A)</span><span>Ранг</span><span>det 2×2</span><span>det 3×3</span><span>det-уравнения</span><span>det-неравенства</span>
+        <article class="card top-gap solution-gate">
+          <div>
+            <h2>Если застрял</h2>
+            <p class="muted">Сначала попробуй подсказки у конкретного шага. Полное решение открой только когда действительно нужно.</p>
           </div>
-          <p class="muted">Поэтому сайт построен именно вокруг этих типов задач. Символьные примеры с параметрами разобраны как правила, а числовые и задачи с x можно считать прямо здесь.</p>
+          <button class="secondary" id="showTeacherTaskSolution">Показать полное решение</button>
+          <div id="teacherTaskSolution" class="hidden full-width top-gap-small"></div>
+        </article>
+
+        <div class="next-study top-gap">
+          <button class="secondary" data-go="basics">Не понимаю правило – открыть базу</button>
+          <button class="secondary" data-go="teacher">Перейти к другим примерам с листа</button>
         </div>
+      </section>
+
+      <section id="sheet" class="section">
+        <div class="section-head">
+          <div><div class="eyebrow">Исходник заданий</div><h1>Лист преподавателя</h1><p class="muted">Это то самое фото, по которому подобраны задания на сайте.</p></div>
+          <button class="secondary" data-go="start">Вернуться к решению</button>
+        </div>
+        <article class="card sheet-card">
+          <div class="sheet-toolbar">
+            <span class="muted">На телефоне можно прокручивать увеличенное изображение.</span>
+            <div class="quick-row">
+              <button class="ghost compact" id="sheetZoomOut">−</button>
+              <button class="ghost compact" id="sheetZoomReset">100%</button>
+              <button class="ghost compact" id="sheetZoomIn">+</button>
+            </div>
+          </div>
+          <div class="sheet-viewport" id="sheetViewport">
+            <img id="teacherSheetImage" src="teacher-sheet.jpg" alt="Фотография листа преподавателя с заданиями по матрицам и определителям">
+          </div>
+        </article>
       </section>
 
       <section id="basics" class="section">
