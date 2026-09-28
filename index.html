@@ -251,7 +251,7 @@
             <div class="task-num">2</div><div><h3>Проверка A² − B² = (A−B)(A+B)</h3><p>Для матриц эта школьная формула не обязана работать, потому что AB и BA могут отличаться. Сайт посчитает обе части отдельно.</p><button class="secondary teacher-load" data-preset="identity">Проверить на данных с листка</button></div>
           </article>
           <article class="card task-card">
-            <div class="task-num">3</div><div><h3>AB и BA по размерам</h3><p>A имеет размер 3×4, B – 4×2. AB существует и имеет размер 3×2. BA не существует: 2 ≠ 3.</p><button class="secondary teacher-load" data-preset="dims">Загрузить A и B</button></div>
+            <div class="task-num">3</div><div><h3>AB, BA и транспонирование</h3><p>A имеет размер 3×4, B – 4×2. AB существует и имеет размер 3×2. BA не существует: 2 ≠ 3. После загрузки можно также ввести <code>A*T(B)</code>, <code>(A*B)^T</code> или <code>T(B)*T(A)</code>.</p><button class="secondary teacher-load" data-preset="dims">Загрузить A и B</button></div>
           </article>
           <article class="card task-card">
             <div class="task-num">4</div><div><h3>Функция от матрицы</h3><p>f(x)=x²+2x−4. При A=[[3,−1],[−2,2]] нужно считать f(A)=A²+2A−4I.</p><button class="secondary teacher-load" data-preset="poly">Решить в калькуляторе</button></div>
@@ -261,6 +261,12 @@
           </article>
           <article class="card task-card">
             <div class="task-num">6</div><div><h3>Определитель 2×2 с sin и cos</h3><p>| sin α &nbsp; cos α; −cos α &nbsp; sin α | = sin²α + cos²α = 1.</p><div class="hint">Здесь главное не вычислять угол: после формулы ad−bc получается основное тригонометрическое тождество.</div></div>
+          </article>
+          <article class="card task-card">
+            <div class="task-num">6а</div><div><h3>Символьный det 2×2 с листка</h3><p>Для матрицы [[a+1, b−c], [a²+a, ab−ac]] вторая строка равна a·(первая строка). Значит строки пропорциональны и определитель сразу равен 0.</p><div class="formula-box">(a+1)·a(b−c) − (b−c)·a(a+1) = 0</div><div class="hint">Полезная проверка: если одна строка или один столбец является числовым множителем другого, det = 0.</div></div>
+          </article>
+          <article class="card task-card">
+            <div class="task-num">6б</div><div><h3>Определители 3×3 с листка</h3><p>Первый отмеченный пример уже стоит по умолчанию в разделе «Определители». Второй: [[1,2,0],[0,1,3],[5,0,−1]], его det = 29.</p><div class="quick-row"><button class="secondary" id="teacherDet1Button">Открыть пример №1</button><button class="secondary" id="teacherDet2Button">Открыть пример №2</button></div></div>
           </article>
           <article class="card task-card">
             <div class="task-num">7</div><div><h3>Уравнение det = 0</h3><p>det[[1,3,x],[4,5,−1],[2,−1,5]]=0. Сайт получает −14x−42=0, поэтому x=−3.</p><button class="secondary" id="teacherEqButton">Открыть решатель</button></div>
@@ -280,6 +286,7 @@
           <article class="card"><h3>Aᵀ</h3><div class="formula-box">(Aᵀ)ᵢⱼ = aⱼᵢ</div><p><b>Как:</b> строки становятся столбцами.</p></article>
           <article class="card"><h3>det 2×2</h3><div class="formula-box">|a b; c d| = ad−bc</div><p><b>Запомнить:</b> главная диагональ минус побочная.</p></article>
           <article class="card"><h3>det 3×3</h3><div class="formula-box">aei+bfg+cdh−ceg−bdi−afh</div><p><b>Как:</b> правило Саррюса.</p></article>
+          <article class="card"><h3>Когда det = 0</h3><div class="formula-box">Rᵢ = kRⱼ ⇒ det(A)=0</div><p><b>Быстрая проверка:</b> пропорциональные строки или столбцы делают определитель нулём.</p></article>
           <article class="card"><h3>Ранг</h3><div class="formula-box">rank A = число ведущих элементов</div><p><b>Как:</b> методом Гаусса получить ступенчатый вид.</p></article>
           <article class="card"><h3>f(A)</h3><div class="formula-box">x²+2x−4 → A²+2A−4I</div><p><b>Важно:</b> число без A превращается в число·I.</p></article>
           <article class="card"><h3>(AB)ᵀ</h3><div class="formula-box">(AB)ᵀ = BᵀAᵀ</div><p><b>Важно:</b> порядок меняется.</p></article>
