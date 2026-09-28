@@ -194,8 +194,9 @@
     const loading=$('#sheetLoading');
     if(!img)return;
     try{
+      const sheetParts=['00a','00b','01','02','03','04','05','06'];
       const parts=await Promise.all(
-        Array.from({length:7},(_,i)=>fetch(`assets/teacher-sheet-${String(i).padStart(2,'0')}.b64`).then(r=>{
+        sheetParts.map(id=>fetch(`assets/teacher-sheet-${id}.b64`).then(r=>{
           if(!r.ok)throw new Error(`HTTP ${r.status}`);
           return r.text();
         }))
