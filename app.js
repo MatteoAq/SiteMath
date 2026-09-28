@@ -233,44 +233,13 @@
     $('#showTeacherTaskSolution').textContent=out.classList.contains('hidden')?'Показать полное решение':'Скрыть полное решение';
   });
 
-  async function loadTeacherSheet(){
+  function loadTeacherSheet(){
     const img=$('#teacherSheetImage');
     const loading=$('#sheetLoading');
     if(!img)return;
-    try{
-      const sheetParts=['00a','00b','01','02','03','04','05','06'];
-      const parts=await Promise.all(
-        sheetParts.map(id=>fetch(`assets/teacher-sheet-${id}.b64`).then(r=>{
-          if(!r.ok)throw new Error(`HTTP ${r.status}`);
-          return r.text();
-        }))
-      );
-      img.src='data:image/jpeg;base64,'+parts.join('');
-      await new Promise((resolve,reject)=>{
-        if(img.complete && img.naturalWidth){resolve();return;}
-        img.addEventListener('load',resolve,{once:true});
-        img.addEventListener('error',reject,{once:true});
-      });
-      loading?.classList.add('hidden');
-      img.classList.remove('hidden');
-    }catch(e){
-      // Резервный файл нужен, чтобы лист оставался доступен даже при проблеме
-      // с загрузкой составного JPEG.
-      try{
-        img.src='teacher-sheet.png';
-        await new Promise((resolve,reject)=>{
-          img.addEventListener('load',resolve,{once:true});
-          img.addEventListener('error',reject,{once:true});
-        });
-        loading?.classList.add('hidden');
-        img.classList.remove('hidden');
-      }catch{
-        if(loading){
-          loading.textContent='Не удалось загрузить фото листа. Обнови страницу.';
-          loading.classList.add('error');
-        }
-      }
-    }
+    img.src='teacher-sheet-hq.jpg';
+    img.addEventListener('load',()=>{loading?.classList.add('hidden');img.classList.remove('hidden')},{once:true});
+    img.addEventListener('error',()=>{if(loading){loading.textContent='Не удалось загрузить фото листа. Обнови страницу.';loading.classList.remove('hidden');loading.classList.add('error')}},{once:true});
   }
   loadTeacherSheet();
 
