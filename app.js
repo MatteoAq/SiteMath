@@ -270,7 +270,7 @@
     const img=$('#teacherSheetImage');
     const loading=$('#sheetLoading');
     if(!img)return;
-    img.src='teacher-sheet-hq.jpg';
+    img.src='teacher-sheet-hq.jpg?v=20260929f';
     img.addEventListener('load',()=>{loading?.classList.add('hidden');img.classList.remove('hidden')},{once:true});
     img.addEventListener('error',()=>{if(loading){loading.textContent='Не удалось загрузить фото листа. Обнови страницу.';loading.classList.remove('hidden');loading.classList.add('error')}},{once:true});
   }
