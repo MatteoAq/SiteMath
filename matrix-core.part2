@@ -1,0 +1,127 @@
+  steps: [
+          `Плюс: ${fmtProduct([a11,a22,a33])} + ${fmtProduct([a12,a23,a31])} + ${fmtProduct([a13,a21,a32])} = ${fmt(pos.reduce((s,v)=>s+v,0))}`,
+          `Минус: ${fmtProduct([a13,a22,a31])} + ${fmtProduct([a12,a21,a33])} + ${fmtProduct([a11,a23,a32])} = ${fmt(neg.reduce((s,v)=>s+v,0))}`,
+          `det(A) = ${fmt(pos.reduce((s,v)=>s+v,0))} − ${fmt(neg.reduce((s,v)=>s+v,0))} = ${fmt(value)}`
+        ]
+      };
+    }
+    const m = cloneMatrix(a);
+    const steps = ['Для порядка выше 3 используем приведение к верхнетреугольному виду.'];
+    let sign = 1;
+    for (let col = 0; col < n; col++) {
+      let pivot = col;
+      for (let row = col + 1; row < n; row++) if (Math.abs(m[row][col]) > Math.abs(m[pivot][col])) pivot = row;
+      if (Math.abs(m[pivot][col]) < EPS) {
+        steps.push(`В столбце ${col+1} нет ненулевого ведущего элемента ⇒ det = 0.`);
+        return { value: 0, formula: 'После элементарных преобразований.', steps };
+      }
+      if (pivot !== col) {
+        [m[pivot],m[col]]=[m[col],m[pivot]]; sign *= -1;
+        steps.push(`R${col+1} ↔ R${pivot+1}; знак определителя меняется.`);
+      }
+      for (let row = col + 1; row < n; row++) {
+        const f = m[row][col]/m[col][col];
+        if (Math.abs(f) > EPS) {
+          for (let j = col; j < n; j++) m[row][j] -= f*m[col][j];
+          steps.push(`R${row+1} ← R${row+1} − (${fmt(f)})R${col+1}`);
+        }
+      }
+    }
+    const diag = m.map((r,i)=>r[i]);
+    const value = roundNumber(sign*diag.reduce((p,v)=>p*v,1));
+    steps.push(`det = ${sign < 0 ? '−' : ''}${diag.map(fmt).join('·')} = ${fmt(value)}`);
+    return { value, formula: 'После приведения к треугольному виду det равен произведению диагональных элементов с учётом перестановок строк.', steps, echelon: cleanMatrix(m) };
+  }
+
+  function rankWithSteps(a) {
+    assertNumericMatrix(a);
+    const m = cloneMatrix(a).map(r => r.map(Number));
+    const [rows, cols] = shape(m);
+    const steps = [];
+    let row = 0;
+    const pivots = [];
+    for (let col = 0; col < cols && row < rows; col++) {
+      let pivot = row;
+      for (let r = row + 1; r < rows; r++) if (Math.abs(m[r][col]) > Math.abs(m[pivot][col])) pivot = r;
+      if (Math.abs(m[pivot][col]) < EPS) continue;
+      if (pivot !== row) {
+        [m[pivot],m[row]]=[m[row],m[pivot]];
+        steps.push({ text: `R${row+1} ↔ R${pivot+1}`, matrix: cleanMatrix(cloneMatrix(m)) });
+      }
+      const p = m[row][col];
+      if (Math.abs(p - 1) > EPS) {
+        for (let j = col; j < cols; j++) m[row][j] /= p;
+        steps.push({ text: `R${row+1} ← R${row+1} / ${fmt(p)}`, matrix: cleanMatrix(cloneMatrix(m)) });
+      }
+      for (let r = 0; r < rows; r++) {
+        if (r === row) continue;
+        const f = m[r][col];
+        if (Math.abs(f) < EPS) continue;
+        for (let j = col; j < cols; j++) m[r][j] -= f*m[row][j];
+        steps.push({ text: `R${r+1} ← R${r+1} − (${fmt(f)})R${row+1}`, matrix: cleanMatrix(cloneMatrix(m)) });
+      }
+      pivots.push([row,col]);
+      row++;
+    }
+    return { rank: pivots.length, rref: cleanMatrix(m), pivots, steps };
+  }
+
+  function rank(a) { return rankWithSteps(a).rank; }
+
+  function approxEqual(a,b,eps=1e-8) {
+    if (isMatrix(a) !== isMatrix(b)) return false;
+    if (!isMatrix(a)) return Math.abs(a-b) <= eps;
+    if (!sameShape(a,b)) return false;
+    for (let i=0;i<a.length;i++) for (let j=0;j<a[0].length;j++) if (Math.abs(a[i][j]-b[i][j])>eps) return false;
+    return true;
+  }
+
+  function fmt(n) {
+    n = roundNumber(Number(n));
+    if (Number.isInteger(n)) return String(n);
+    return String(n).replace('.', ',');
+  }
+
+  function fmtProduct(nums) {
+    return nums.map(v => v < 0 ? `(${fmt(v)})` : fmt(v)).join('·');
+  }
+
+  function parseNumber(raw) {
+    if (typeof raw === 'number') return raw;
+    let s = String(raw ?? '').trim();
+    if (!s) throw new Error('Пустая ячейка.');
+    s = s.replace(/,/g,'.').replace(/π/g,'pi').replace(/√\s*([0-9.]+)/g,'sqrt($1)').replace(/\^/g,'**');
+    const words = s.match(/[A-Za-z_]+/g) || [];
+    const allowed = new Set(['sqrt','sin','cos','tan','abs','pi','e']);
+    if (words.some(w => !allowed.has(w.toLowerCase()))) throw new Error(`Неизвестное обозначение в числе: ${raw}`);
+    if (!/^[0-9+\-*/().\sA-Za-z_*]+$/.test(s)) throw new Error(`Недопустимые символы в числе: ${raw}`);
+    s = s.replace(/\bpi\b/gi,'Math.PI').replace(/\be\b/g,'Math.E')
+         .replace(/\bsqrt\b/gi,'Math.sqrt').replace(/\bsin\b/gi,'Math.sin')
+         .replace(/\bcos\b/gi,'Math.cos').replace(/\btan\b/gi,'Math.tan').replace(/\babs\b/gi,'Math.abs');
+    let v;
+    try { v = Function(`"use strict"; return (${s});`)(); } catch { throw new Error(`Не удалось прочитать число: ${raw}`); }
+    if (typeof v !== 'number' || !Number.isFinite(v)) throw new Error(`Некорректное число: ${raw}`);
+    return roundNumber(v);
+  }
+
+  // --- Matrix expression parser: A, B, I, T(...), + - * ^ and numbers ---
+  function tokenizeExpression(src) {
+    const s = String(src || '').replace(/·/g,'*').replace(/²/g,'^2').replace(/³/g,'^3').replace(/ᵀ/g,'^T');
+    const tokens = [];
+    let i=0;
+    while (i<s.length) {
+      const ch=s[i];
+      if (/\s/.test(ch)) { i++; continue; }
+      if (/[0-9.,]/.test(ch)) {
+        let j=i+1;
+        while (j<s.length && /[0-9.,]/.test(s[j])) j++;
+        const raw=s.slice(i,j).replace(',','.');
+        if (!/^\d*\.?\d+$/.test(raw)) throw new Error(`Некорректное число «${s.slice(i,j)}».`);
+        tokens.push({type:'num',value:Number(raw)}); i=j; continue;
+      }
+      if (/[A-Za-zА-Яа-я]/.test(ch)) {
+        // Matrix notation is intentionally single-letter: AB means A·B.
+        tokens.push({type:'id',value:ch.toUpperCase()}); i++; continue;
+      }
+      if ('+-*^()'.includes(ch)) { tokens.push({type:ch,value:ch}); i++; continue; }
+      throw new Error(`Неизвестный символ «${ch}» в выражении.`);
