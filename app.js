@@ -189,6 +189,34 @@
     $('#showTeacherTaskSolution').textContent=out.classList.contains('hidden')?'Показать полное решение':'Скрыть полное решение';
   });
 
+  async function loadTeacherSheet(){
+    const img=$('#teacherSheetImage');
+    const loading=$('#sheetLoading');
+    if(!img)return;
+    try{
+      const parts=await Promise.all(
+        Array.from({length:7},(_,i)=>fetch(`assets/teacher-sheet-${String(i).padStart(2,'0')}.b64`).then(r=>{
+          if(!r.ok)throw new Error(`HTTP ${r.status}`);
+          return r.text();
+        }))
+      );
+      img.src='data:image/jpeg;base64,'+parts.join('');
+      await new Promise((resolve,reject)=>{
+        if(img.complete && img.naturalWidth){resolve();return;}
+        img.addEventListener('load',resolve,{once:true});
+        img.addEventListener('error',reject,{once:true});
+      });
+      loading?.classList.add('hidden');
+      img.classList.remove('hidden');
+    }catch(e){
+      if(loading){
+        loading.textContent='Не удалось загрузить фото листа. Обнови страницу.';
+        loading.classList.add('error');
+      }
+    }
+  }
+  loadTeacherSheet();
+
   let sheetScale=1;
   function applySheetScale(){
     const img=$('#teacherSheetImage'); if(!img)return;
