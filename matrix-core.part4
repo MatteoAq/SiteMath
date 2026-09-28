@@ -1,0 +1,127 @@
+ function parseAffine(raw) {
+    let s=String(raw??'').trim().replace(/\s+/g,'').replace(/,/g,'.').replace(/−/g,'-');
+    if (!s) throw new Error('Пустая ячейка в матрице с x.');
+    if (!s.includes('x')&&!s.includes('X')) return [parseNumber(s)];
+    s=s.toLowerCase();
+    if (!/^[+\-0-9.x*]+$/.test(s)) throw new Error(`В режиме x поддерживаются только выражения вида x, -x, 2x, 3*x+2. Ошибка: ${raw}`);
+    s=s.replace(/\*/g,'');
+    // Normalize terms by turning subtraction into +-
+    if (s[0]!=='-'&&s[0]!=='+') s='+'+s;
+    const terms=s.match(/[+-][^+-]+/g)||[];
+    let c=0,k=0;
+    for(const t of terms){
+      const sign=t[0]==='-'?-1:1, body=t.slice(1);
+      if(body.includes('x')){
+        if(body.replace('x','').includes('x')) throw new Error('В одной ячейке допускается только линейное выражение по x.');
+        const coef=body.replace('x','');
+        k += sign*(coef===''?1:Number(coef));
+        if(!Number.isFinite(k)) throw new Error(`Не удалось прочитать коэффициент при x: ${raw}`);
+      } else {
+        const v=Number(body); if(!Number.isFinite(v)) throw new Error(`Не удалось прочитать число: ${raw}`); c+=sign*v;
+      }
+    }
+    return polyTrim([c,k]);
+  }
+  function determinantPoly(matrixStrings) {
+    const n=matrixStrings.length;
+    if(!n||!matrixStrings.every(r=>r.length===n)) throw new Error('Для det матрица должна быть квадратной.');
+    const m=matrixStrings.map(r=>r.map(parseAffine));
+    function rec(mat){
+      const size=mat.length;
+      if(size===1)return mat[0][0];
+      let out=[0];
+      for(let j=0;j<size;j++){
+        const minor=mat.slice(1).map(r=>r.filter((_,c)=>c!==j));
+        let term=polyMul(mat[0][j],rec(minor));
+        if(j%2)term=term.map(v=>-v);
+        out=polyAdd(out,term);
+      }
+      return polyTrim(out);
+    }
+    return rec(m);
+  }
+  function polyToString(p) {
+    p=polyTrim(p);
+    if(p.every(v=>Math.abs(v)<EPS)) return '0';
+    const terms=[];
+    for(let i=p.length-1;i>=0;i--){
+      const c=roundNumber(p[i]); if(Math.abs(c)<EPS)continue;
+      const abs=Math.abs(c); let body='';
+      if(i===0)body=fmt(abs);
+      else if(i===1)body=(Math.abs(abs-1)<EPS?'':fmt(abs))+'x';
+      else body=(Math.abs(abs-1)<EPS?'':fmt(abs))+`x^${i}`;
+      if(!terms.length)terms.push((c<0?'-':'')+body); else terms.push((c<0?' − ':' + ')+body);
+    }
+    return terms.join('');
+  }
+  function solvePolynomialEquation(p) {
+    p=polyTrim(p); const deg=p.length-1;
+    if(deg===0) return Math.abs(p[0])<EPS ? {type:'all',roots:[]} : {type:'none',roots:[]};
+    if(deg===1) return {type:'roots',roots:[roundNumber(-p[0]/p[1])]};
+    if(deg===2){
+      const [c,b,a]=p; const D=roundNumber(b*b-4*a*c);
+      if(D<-EPS)return {type:'roots',roots:[],discriminant:D};
+      if(Math.abs(D)<=EPS)return {type:'roots',roots:[roundNumber(-b/(2*a))],discriminant:0};
+      const s=Math.sqrt(D); return {type:'roots',roots:[roundNumber((-b-s)/(2*a)),roundNumber((-b+s)/(2*a))].sort((x,y)=>x-y),discriminant:D};
+    }
+    return {type:'unsupported',roots:[],degree:deg};
+  }
+  function signIntervals(p, relation) {
+    const eq=solvePolynomialEquation(p);
+    if(eq.type==='unsupported') return {type:'unsupported',text:`Получился многочлен степени ${eq.degree}; автоматическое решение не включено.`};
+    if(eq.type==='all') {
+      const trueFor = relation==='>='||relation==='<='||relation==='=';
+      return {type:'interval',text:trueFor?'x ∈ ℝ':'∅'};
+    }
+    if(eq.type==='none') {
+      const val=p[0];
+      const ok = relation==='>'?val>0:relation==='<'?val<0:relation==='>='?val>=0:relation==='<='?val<=0:false;
+      return {type:'interval',text:ok?'x ∈ ℝ':'∅'};
+    }
+    const roots=eq.roots;
+    if(relation==='=') return {type:'interval',text:roots.length?roots.map(r=>`x = ${fmt(r)}`).join('; '):'∅',roots};
+    const points=[-Infinity,...roots,Infinity];
+    const intervals=[];
+    function evalP(x){return p.reduceRight((acc,c)=>acc*x+c,0);}
+    for(let i=0;i<points.length-1;i++){
+      const l=points[i],r=points[i+1]; let test;
+      if(!Number.isFinite(l))test=r-1; else if(!Number.isFinite(r))test=l+1; else test=(l+r)/2;
+      const v=evalP(test);
+      const ok=relation==='>'?v>EPS:relation==='<'?v<-EPS:relation==='>='?v>=-EPS:v<=EPS;
+      if(ok) intervals.push({l,r,closedL:false,closedR:false});
+    }
+    if(relation==='>='||relation==='<='){
+      for(const rt of roots) intervals.push({point:rt});
+    }
+    // Format union; for non-strict merge point endpoints conceptually
+    if(relation==='>='||relation==='<='){
+      const goodIntervals=[];
+      for(let i=0;i<points.length-1;i++){
+        const l=points[i],r=points[i+1]; let test=!Number.isFinite(l)?r-1:!Number.isFinite(r)?l+1:(l+r)/2;
+        const v=evalP(test); const ok=relation==='>='?v>=-EPS:v<=EPS;
+        if(ok) goodIntervals.push({l,r,closedL:Number.isFinite(l),closedR:Number.isFinite(r)});
+      }
+      for(const rt of roots){
+        if(!goodIntervals.some(it=>(it.l===rt||it.r===rt))) goodIntervals.push({point:rt});
+      }
+      return {type:'interval',text:formatIntervals(goodIntervals),roots};
+    }
+    return {type:'interval',text:formatIntervals(intervals),roots};
+  }
+  function formatIntervals(intervals){
+    if(!intervals.length)return '∅';
+    const parts=intervals.map(it=>{
+      if('point'in it)return `{${fmt(it.point)}}`;
+      const l=it.l===-Infinity?'−∞':fmt(it.l), r=it.r===Infinity?'+∞':fmt(it.r);
+      return `${it.closedL?'[':'('}${l}; ${r}${it.closedR?']':')'}`;
+    });
+    return parts.join(' ∪ ');
+  }
+
+  return {
+    EPS, roundNumber, cleanMatrix, isMatrix, cloneMatrix, shape, identity, zero,
+    add, sub, scale, transpose, multiply, power, determinant, determinantSteps,
+    rank, rankWithSteps, approxEqual, fmt, parseNumber, parseMatrixExpression,
+    parseAffine, determinantPoly, polyToString, solvePolynomialEquation, signIntervals
+  };
+});
