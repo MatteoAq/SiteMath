@@ -132,7 +132,12 @@
       'C':[[7,8],[-3,12]],
       'A2':[[1,18],[-6,13]],
       'B2':[[-1,-10],[4,-9]],
-      'K':[[0,8],[-2,4]]
+      'K':[[0,8],[-2,4]],
+      'T3AB':[[1,-7],[-7,-3],[25,0]],
+      'FA2':[[11,-5],[-10,6]],
+      'F2A':[[6,-2],[-4,4]],
+      'F4I':[[4,0],[0,4]],
+      'F':[[13,-7],[-14,6]]
     },
     user:{}
   };
@@ -178,6 +183,11 @@
     createWorkAnswer('#workA2','A2');
     createWorkAnswer('#workB2','B2');
     createWorkAnswer('#workK','K');
+    createWorkAnswer('#workT3AB','T3AB');
+    createWorkAnswer('#workFA2','FA2');
+    createWorkAnswer('#workF2A','F2A');
+    createWorkAnswer('#workF4I','F4I');
+    createWorkAnswer('#workF','F');
   }
 
   function checkTeacherStep(key){
@@ -203,6 +213,10 @@
       : (!allFilled?'Заполни все клетки, затем проверь ещё раз.':'Есть ошибка. Красным отмечены клетки, которые нужно пересчитать.');
     feedback.classList.remove('hidden');
     card?.classList.toggle('step-complete',allCorrect);
+    if(key==='C' && allCorrect){
+      $('#teacherTask2')?.classList.remove('hidden');
+      if($('#toggleTask2'))$('#toggleTask2').textContent='Скрыть задание 2';
+    }
     return allCorrect;
   }
 
@@ -219,6 +233,25 @@
     const area=$('#teacherTask2'); if(!area)return;
     area.classList.toggle('hidden');
     $('#toggleTask2').textContent=area.classList.contains('hidden')?'Открыть задание 2':'Скрыть задание 2';
+  });
+
+  $('#toggleTeacherAB')?.addEventListener('click',()=>{
+    const area=$('#teacherABWorkspace'); if(!area)return;
+    area.classList.toggle('hidden');
+    $('#toggleTeacherAB').textContent=area.classList.contains('hidden')?'Решать самому':'Скрыть рабочее поле';
+  });
+  $('#checkBAExists')?.addEventListener('click',()=>{
+    const v=$('#baExistsGuess')?.value;
+    const f=$('#baExistsFeedback'); if(!f)return;
+    const ok=v==='no';
+    f.className=`message ${ok?'success':'error'}`;
+    f.textContent=ok?'Верно. BA не существует: B имеет 2 столбца, а A имеет 3 строки – внутренние размеры 2 и 3 не совпадают.':(v?'Нет. Сначала сравни столбцы B и строки A.':'Сначала выбери ответ.');
+    f.classList.remove('hidden');
+  });
+  $('#toggleFunctionTask')?.addEventListener('click',()=>{
+    const area=$('#functionTaskWorkspace'); if(!area)return;
+    area.classList.toggle('hidden');
+    $('#toggleFunctionTask').textContent=area.classList.contains('hidden')?'Решать пошагово':'Скрыть рабочее поле';
   });
   $('#showTeacherTaskSolution')?.addEventListener('click',()=>{
     const out=$('#teacherTaskSolution');
@@ -295,8 +328,55 @@
 
   $('#loadTeacherEquation').addEventListener('click',loadTeacherEquation); $('#teacherEqButton').addEventListener('click',()=>{go('det');loadTeacherEquation()});
   $('#loadTeacherIneq').addEventListener('click',loadTeacherIneq); $('#teacherIneqButton').addEventListener('click',()=>{go('det');loadTeacherIneq()});
-  function loadTeacherEquation(){state.values.X=[['1','3','x'],['4','5','-1'],['2','-1','5']];$('#relationSelect').value='=';renderX()}
-  function loadTeacherIneq(){state.values.X=[['2','x+2','-1'],['1','1','-2'],['5','-3','x']];$('#relationSelect').value='>';renderX()}
+  function clearVariablePractice(){if($('#varPolyGuess'))$('#varPolyGuess').value='';if($('#varAnswerGuess'))$('#varAnswerGuess').value='';$('#varPolyFeedback')?.classList.add('hidden');$('#varAnswerFeedback')?.classList.add('hidden');$('#varDetOutput')?.classList.add('hidden')}
+  function loadTeacherEquation(){state.values.X=[['1','3','x'],['4','5','-1'],['2','-1','5']];$('#relationSelect').value='=';renderX();clearVariablePractice()}
+  function loadTeacherIneq(){state.values.X=[['2','x+2','-1'],['1','1','-2'],['5','-3','x']];$('#relationSelect').value='>';renderX();clearVariablePractice()}
+  function normalizeMathText(v){
+    return String(v??'').toLowerCase().replace(/[−–—]/g,'-').replace(/\s+/g,'').replace(/\*/g,'').replace(/,/g,'.');
+  }
+  function normalizePolyGuess(v){
+    return normalizeMathText(v).replace(/x²/g,'x^2');
+  }
+  $('#showVarDetHint')?.addEventListener('click',()=>$('#varManualHint')?.classList.toggle('hidden'));
+  $('#checkVarPolyGuess')?.addEventListener('click',()=>{
+    const f=$('#varPolyFeedback');
+    try{
+      const p=M.determinantPoly(state.values.X);
+      const expected=normalizePolyGuess(M.polyToString(p));
+      const guess=normalizePolyGuess($('#varPolyGuess').value);
+      const ok=guess===expected || guess===`(${expected})`;
+      f.className=`message ${ok?'success':'error'}`;
+      f.textContent=ok?'Верно. det(A) получен правильно.':'Пока не совпадает. Проверь раскрытие определителя; конечный ответ сайт не показывает.';
+      f.classList.remove('hidden');
+    }catch(e){showError('#varDetError',e)}
+  });
+  $('#checkVarAnswerGuess')?.addEventListener('click',()=>{
+    const f=$('#varAnswerFeedback');
+    try{
+      const p=M.determinantPoly(state.values.X), relation=$('#relationSelect').value, sol=M.signIntervals(p,relation);
+      const raw=$('#varAnswerGuess').value;
+      let ok=false;
+      if(relation==='=' && sol.roots?.length===1){
+        const cleaned=normalizeMathText(raw).replace(/^x=/,'');
+        try{ok=M.approxEqual(M.parseNumber(cleaned),sol.roots[0])}catch{}
+      }else{
+        const expected=normalizeMathText(sol.text).replace(/^x∈/,'');
+        const cleaned=normalizeMathText(raw).replace(/^x∈/,'');
+        ok=cleaned===expected;
+        if(!ok && sol.roots?.length===2 && !expected.includes('∪')){
+          const m=cleaned.match(/^(-?\d+(?:\.\d+)?)<x<(-?\d+(?:\.\d+)?)$/);
+          if(m){
+            const a=Number(m[1]),b=Number(m[2]);
+            ok=M.approxEqual(a,sol.roots[0])&&M.approxEqual(b,sol.roots[1])&&relation==='>';
+          }
+        }
+      }
+      f.className=`message ${ok?'success':'error'}`;
+      f.textContent=ok?'Верно. Конечный ответ правильный.':'Не совпадает. Проверь корни, знаки и выбранные промежутки.';
+      f.classList.remove('hidden');
+    }catch(e){showError('#varDetError',e)}
+  });
+
   $('#solveVariableDet').addEventListener('click',()=>{
     clearError('#varDetError');
     try{
@@ -423,7 +503,8 @@
       setMatrix('A',[[2,-1,4,-3],[-2,3,0,1],[4,-2,5,-1]]);setMatrix('B',[[10,5],[3,2],[-1,-3],[4,1]]);go('calc');$('#expressionInput').value='A*B';solveExpression();
     }
     if(name==='poly'){
-      setMatrix('A',[[3,-1],[-2,2]]);setMatrix('B',[[0,0],[0,0]]);go('calc');$('#expressionInput').value='A^2+2A-4I';solveExpression();
+      go('teacher');$('#functionTaskWorkspace')?.classList.remove('hidden');
+      if($('#toggleFunctionTask'))$('#toggleFunctionTask').textContent='Скрыть рабочее поле';
     }
   }
   $$('.teacher-load').forEach(b=>b.addEventListener('click',()=>preset(b.dataset.preset)));
