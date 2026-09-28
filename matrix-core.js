@@ -240,8 +240,22 @@
 
   function fmt(n) {
     n = roundNumber(Number(n));
+    if (!Number.isFinite(n)) return String(n);
     if (Number.isInteger(n)) return String(n);
-    return String(n).replace('.', ',');
+
+    // Простые дроби читаются лучше длинных машинных десятичных хвостов.
+    const sign = n < 0 ? -1 : 1;
+    const x = Math.abs(n);
+    const tolerance = 1e-9 * Math.max(1, x);
+    for (let den = 2; den <= 64; den++) {
+      const num = Math.round(x * den);
+      if (Math.abs(x - num / den) <= tolerance) {
+        return `${sign * num}/${den}`;
+      }
+    }
+
+    const rounded = Math.round(n * 1e6) / 1e6;
+    return String(rounded).replace('.', ',');
   }
 
   function fmtProduct(nums) {
