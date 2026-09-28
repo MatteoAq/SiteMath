@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111827">
   <title>Матрицы – подготовка к контрольной</title>
-  <link rel="stylesheet" href="styles.css?v=20260929b">
+  <link rel="stylesheet" href="styles.css?v=20260929c">
 </head>
 <body>
   <header class="topbar">
@@ -33,6 +33,14 @@
     </aside>
 
     <main class="content">
+      <aside class="study-notes card" id="studyNotesCard">
+        <div class="study-notes-head">
+          <div><b>Мои заметки / черновик</b><span class="muted"> – пиши вычисления как в тетради, текст сохраняется на этом устройстве.</span></div>
+          <button class="ghost compact" id="toggleStudyNotes" type="button">Свернуть</button>
+        </div>
+        <textarea id="studyNotes" rows="4" placeholder="Например: c11 = 2·3 + 3·2 = 12&#10;R2 ← R2 + 5R1"></textarea>
+        <div class="notes-status muted" id="notesStatus">Сохраняется автоматически</div>
+      </aside>
       <section id="start" class="section active">
         <div class="section-head start-head">
           <div>
@@ -50,7 +58,7 @@
             <div><b>B =</b><div class="matrix-static" data-matrix="3,-5;2,-1"></div></div>
             <div class="target-expression"><b>Найти:</b><span>C = 2A − 3B + AB</span></div>
           </div>
-          <div class="hint">Порядок удобный такой: отдельно найди 2A, 3B и AB, а уже потом собери C. Для умножения AB используется «строка A × столбец B».</div>
+          <div class="hint">Порядок удобный такой: отдельно найди 2A, 3B и AB, затем D = 2A − 3B, и только после этого C = D + AB. Для умножения AB используется «строка A × столбец B».</div>
         </div>
 
         <div class="workspace top-gap" id="teacherTaskWorkspace">
@@ -87,15 +95,26 @@
             <div class="message hidden" id="feedbackAB"></div>
           </article>
 
+          <article class="card work-step" data-work-step="D">
+            <div class="work-step-head"><div><span class="step-badge">4</span><h2>Найди D = 2A − 3B</h2></div><span class="muted">Поэлементное вычитание</span></div>
+            <div class="work-answer" id="workD"></div>
+            <div class="quick-row top-gap-small">
+              <button class="primary check-work" data-step="D">Проверить D</button>
+              <button class="ghost hint-work" data-step="D">Подсказка</button>
+            </div>
+            <div class="hint hidden" id="hintD">Вычитай элементы на одинаковых местах. Например, d₁₁ = (2A)₁₁ − (3B)₁₁.</div>
+            <div class="message hidden" id="feedbackD"></div>
+          </article>
+
           <article class="card work-step final-step" data-work-step="C">
-            <div class="work-step-head"><div><span class="step-badge">4</span><h2>Собери C</h2></div><span class="muted">C = 2A − 3B + AB</span></div>
+            <div class="work-step-head"><div><span class="step-badge">5</span><h2>Собери C = D + AB</h2></div><span class="muted">Последнее поэлементное сложение</span></div>
             <div class="work-answer" id="workC"></div>
             <div class="quick-row top-gap-small">
               <button class="primary check-work" data-step="C">Проверить C</button>
               <button class="ghost hint-work" data-step="C">Подсказка</button>
               <button class="ghost" id="resetTeacherTask">Очистить поля</button>
             </div>
-            <div class="hint hidden" id="hintC">Теперь действия идут поэлементно. Например, c₁₁ = (2A)₁₁ − (3B)₁₁ + (AB)₁₁.</div>
+            <div class="hint hidden" id="hintC">Теперь cᵢⱼ = dᵢⱼ + (AB)ᵢⱼ. Нового правила здесь уже нет.</div>
             <div class="message hidden" id="feedbackC"></div>
           </article>
         </div>
@@ -107,6 +126,38 @@
           </div>
           <button class="secondary" id="showTeacherTaskSolution">Показать полное решение</button>
           <div id="teacherTaskSolution" class="hidden full-width top-gap-small"></div>
+        </article>
+
+        <article class="card top-gap next-task-card">
+          <div class="next-task-head">
+            <div><div class="eyebrow">Следующее задание с листа</div><h2>Задание 2. K = A² + B²</h2><p class="muted">Те же A и B. Сначала отдельно посчитай две степени, затем сложи результаты.</p></div>
+            <button class="secondary" id="toggleTask2">Открыть задание 2</button>
+          </div>
+          <div id="teacherTask2" class="hidden top-gap-small">
+            <div class="workspace">
+              <article class="work-step subcard" data-work-step="A2">
+                <div class="work-step-head"><div><span class="step-badge">1</span><h3>A² = A·A</h3></div></div>
+                <div class="work-answer" id="workA2"></div>
+                <div class="quick-row top-gap-small"><button class="primary check-work" data-step="A2">Проверить A²</button><button class="ghost hint-work" data-step="A2">Подсказка</button></div>
+                <div class="hint hidden" id="hintA2">A² – это произведение A·A, а не квадрат каждого элемента.</div>
+                <div class="message hidden" id="feedbackA2"></div>
+              </article>
+              <article class="work-step subcard" data-work-step="B2">
+                <div class="work-step-head"><div><span class="step-badge">2</span><h3>B² = B·B</h3></div></div>
+                <div class="work-answer" id="workB2"></div>
+                <div class="quick-row top-gap-small"><button class="primary check-work" data-step="B2">Проверить B²</button><button class="ghost hint-work" data-step="B2">Подсказка</button></div>
+                <div class="hint hidden" id="hintB2">Для каждого элемента снова используй «строка × столбец».</div>
+                <div class="message hidden" id="feedbackB2"></div>
+              </article>
+              <article class="work-step subcard final-step" data-work-step="K">
+                <div class="work-step-head"><div><span class="step-badge">3</span><h3>K = A² + B²</h3></div></div>
+                <div class="work-answer" id="workK"></div>
+                <div class="quick-row top-gap-small"><button class="primary check-work" data-step="K">Проверить K</button><button class="ghost hint-work" data-step="K">Подсказка</button></div>
+                <div class="hint hidden" id="hintK">Сложи A² и B² поэлементно.</div>
+                <div class="message hidden" id="feedbackK"></div>
+              </article>
+            </div>
+          </div>
         </article>
 
         <div class="next-study top-gap">
@@ -219,7 +270,16 @@
           <article class="card">
             <div class="matrix-title-row"><h2>Числовой det(A)</h2><div class="size-controls" id="sizeDet"></div></div>
             <div id="matrixDet" class="matrix-editor"></div>
-            <button id="solveDet" class="primary full top-gap-small">Посчитать с шагами</button>
+            <label class="manual-answer-label top-gap-small">Мой ответ det(A)
+              <input id="detGuess" class="answer-scalar" inputmode="decimal" placeholder="?">
+            </label>
+            <div class="quick-row top-gap-small">
+              <button id="checkDetGuess" class="primary">Проверить мой ответ</button>
+              <button id="showDetHint" class="ghost">Подсказка</button>
+              <button id="solveDet" class="secondary">Показать решение</button>
+            </div>
+            <div id="detManualHint" class="hint hidden">Для 3×3 на этом листе удобнее всего правило Саррюса. Сначала выпиши три произведения со знаком «+», затем три со знаком «−».</div>
+            <div id="detGuessFeedback" class="message hidden"></div>
             <div id="detError" class="message error hidden"></div>
           </article>
           <article class="card theory-card">
@@ -253,21 +313,58 @@
       </section>
 
       <section id="rank" class="section">
-        <div class="section-head"><div><div class="eyebrow">Уровень 3</div><h1>Ранг матрицы</h1></div></div>
+        <div class="section-head"><div><div class="eyebrow">Решай сам</div><h1>Ранг матрицы – метод Гаусса</h1><p class="muted">Здесь ты сам выполняешь преобразования строк. Сайт только применяет выбранную тобой операцию и в конце проверяет ранг.</p></div></div>
+
         <div class="grid-2">
           <article class="card">
-            <div class="matrix-title-row"><h2>Введите матрицу</h2><div class="size-controls" id="sizeRank"></div></div>
+            <div class="matrix-title-row"><h2>Исходная матрица</h2><div class="size-controls" id="sizeRank"></div></div>
             <div id="matrixRank" class="matrix-editor"></div>
-            <div class="quick-row top-gap-small"><button id="loadTeacherRank" class="secondary">Пример с листка</button><button id="solveRank" class="primary">Найти ранг</button></div>
-            <div id="rankError" class="message error hidden"></div>
+            <div class="quick-row top-gap-small">
+              <button id="loadTeacherRank" class="secondary">Загрузить пример с листка</button>
+              <button id="rankReset" class="ghost">Сбросить преобразования</button>
+            </div>
           </article>
           <article class="card">
-            <h2>Идея метода Гаусса</h2>
-            <p>Элементарными преобразованиями строк приводим матрицу к ступенчатому виду. Ранг – число ненулевых строк, или, что то же самое, число ведущих элементов.</p>
-            <div class="formula-box">Разрешено: Rᵢ ↔ Rⱼ; &nbsp; Rᵢ ← kRᵢ (k≠0); &nbsp; Rᵢ ← Rᵢ+kRⱼ</div>
-            <div class="hint">Эти операции не меняют ранг.</div>
+            <h2>Цель</h2>
+            <p>Получить ступенчатый вид. Ранг равен числу ненулевых строк после преобразований.</p>
+            <div class="formula-box">Rᵢ ↔ Rⱼ<br>Rᵢ ← kRᵢ, k ≠ 0<br>Rᵢ ← Rᵢ + kRⱼ</div>
+            <button id="showRankHint" class="ghost top-gap-small">Подсказка для первого шага</button>
+            <div id="rankManualHint" class="hint hidden">Для примера с листка удобно начать с зануления элементов под первым элементом: например R₂ ← R₂ + 5R₁ и R₃ ← R₃ + 4R₁.</div>
           </article>
         </div>
+
+        <article class="card top-gap">
+          <div class="work-step-head"><div><span class="step-badge">1</span><h2>Текущая матрица</h2></div><span class="muted">Она меняется только после твоей команды</span></div>
+          <div id="rankWorkingMatrix" class="rank-working top-gap-small"></div>
+
+          <div class="rank-operation-panel top-gap">
+            <label>Операция
+              <select id="rankOperation">
+                <option value="add">Rᵢ ← Rᵢ + kRⱼ</option>
+                <option value="swap">Rᵢ ↔ Rⱼ</option>
+                <option value="scale">Rᵢ ← kRᵢ</option>
+              </select>
+            </label>
+            <label>Rᵢ <select id="rankRowA"></select></label>
+            <label id="rankRowBLabel">Rⱼ <select id="rankRowB"></select></label>
+            <label id="rankFactorLabel">k <input id="rankFactor" value="1" inputmode="decimal"></label>
+            <button id="applyRankOperation" class="primary">Применить</button>
+            <button id="rankUndo" class="ghost">Отменить шаг</button>
+          </div>
+          <div id="rankOperationError" class="message error hidden"></div>
+          <div id="rankHistory" class="rank-history top-gap-small"></div>
+        </article>
+
+        <article class="card top-gap">
+          <div class="work-step-head"><div><span class="step-badge">2</span><h2>Какой ранг получился?</h2></div></div>
+          <div class="input-action-row">
+            <input id="rankGuess" class="answer-scalar" inputmode="numeric" placeholder="rank = ?">
+            <button id="checkRankGuess" class="primary">Проверить мой ответ</button>
+            <button id="solveRank" class="secondary">Показать готовое решение</button>
+          </div>
+          <div id="rankGuessFeedback" class="message hidden"></div>
+          <div id="rankError" class="message error hidden"></div>
+        </article>
         <div id="rankOutput" class="hidden top-gap"></div>
       </section>
 
@@ -365,7 +462,7 @@
   </div>
 
   <footer>Работает полностью в браузере, без отправки введённых матриц на сервер.</footer>
-  <script src="matrix-core.js?v=20260929b"></script>
-  <script src="app.js?v=20260929b"></script>
+  <script src="matrix-core.js?v=20260929c"></script>
+  <script src="app.js?v=20260929c"></script>
 </body>
 </html>
