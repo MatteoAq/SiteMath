@@ -34,6 +34,32 @@
   });
   if(storage.get('matrixTheme')==='dark') document.documentElement.classList.add('dark');
 
+  const notesEl=$('#studyNotes');
+  if(notesEl){
+    notesEl.value=storage.get('matrixStudyNotes')||'';
+    let notesTimer=null;
+    notesEl.addEventListener('input',()=>{
+      clearTimeout(notesTimer);
+      const status=$('#notesStatus');
+      if(status)status.textContent='Сохраняю…';
+      notesTimer=setTimeout(()=>{
+        storage.set('matrixStudyNotes',notesEl.value);
+        if(status)status.textContent='Сохранено';
+      },250);
+    });
+  }
+  $('#toggleStudyNotes')?.addEventListener('click',()=>{
+    const card=$('#studyNotesCard');
+    card?.classList.toggle('notes-collapsed');
+    const collapsed=card?.classList.contains('notes-collapsed');
+    $('#toggleStudyNotes').textContent=collapsed?'Развернуть':'Свернуть';
+    storage.set('matrixNotesCollapsed',collapsed?'1':'0');
+  });
+  if(storage.get('matrixNotesCollapsed')==='1'){
+    $('#studyNotesCard')?.classList.add('notes-collapsed');
+    if($('#toggleStudyNotes'))$('#toggleStudyNotes').textContent='Развернуть';
+  }
+
   function createSizeControls(containerId,key,max=6){
     const box=$(containerId); box.innerHTML='';
     const row=document.createElement('select'), col=document.createElement('select');
@@ -102,7 +128,11 @@
       '2A':[[4,6],[-2,8]],
       '3B':[[9,-15],[6,-3]],
       'AB':[[12,-13],[5,1]],
-      'C':[[7,8],[-3,12]]
+      'D':[[-5,21],[-8,11]],
+      'C':[[7,8],[-3,12]],
+      'A2':[[1,18],[-6,13]],
+      'B2':[[-1,-10],[4,-9]],
+      'K':[[0,8],[-2,4]]
     },
     user:{}
   };
@@ -143,7 +173,11 @@
     createWorkAnswer('#work2A','2A');
     createWorkAnswer('#work3B','3B');
     createWorkAnswer('#workAB','AB');
+    createWorkAnswer('#workD','D');
     createWorkAnswer('#workC','C');
+    createWorkAnswer('#workA2','A2');
+    createWorkAnswer('#workB2','B2');
+    createWorkAnswer('#workK','K');
   }
 
   function checkTeacherStep(key){
@@ -162,7 +196,11 @@
     }
     const feedback=$(`#feedback${key}`);
     feedback.className=`message ${allCorrect?'success':'error'}`;
-    feedback.textContent=allCorrect ? (key==='C'?'Верно. Итоговая матрица C найдена правильно.':'Верно. Этот шаг готов.') : (!allFilled?'Заполни все клетки, затем проверь ещё раз.':'Есть ошибка. Красным отмечены клетки, которые нужно пересчитать.');
+    feedback.textContent=allCorrect
+      ? (key==='C'?'Верно. Первое задание готово – ниже уже есть задание 2.'
+        :key==='K'?'Верно. Задание 2 готово. Дальше можно идти к другим примерам с листа.'
+        :'Верно. Этот шаг готов.')
+      : (!allFilled?'Заполни все клетки, затем проверь ещё раз.':'Есть ошибка. Красным отмечены клетки, которые нужно пересчитать.');
     feedback.classList.remove('hidden');
     card?.classList.toggle('step-complete',allCorrect);
     return allCorrect;
@@ -175,7 +213,12 @@
   $('#resetTeacherTask')?.addEventListener('click',()=>{
     initTeacherWorkspace();
     $$('.work-step').forEach(c=>c.classList.remove('step-complete'));
-    ['2A','3B','AB','C'].forEach(k=>{const f=$(`#feedback${k}`);f?.classList.add('hidden')});
+    ['2A','3B','AB','D','C','A2','B2','K'].forEach(k=>{const f=$(`#feedback${k}`);f?.classList.add('hidden')});
+  });
+  $('#toggleTask2')?.addEventListener('click',()=>{
+    const area=$('#teacherTask2'); if(!area)return;
+    area.classList.toggle('hidden');
+    $('#toggleTask2').textContent=area.classList.contains('hidden')?'Открыть задание 2':'Скрыть задание 2';
   });
   $('#showTeacherTaskSolution')?.addEventListener('click',()=>{
     const out=$('#teacherTaskSolution');
@@ -183,7 +226,8 @@
       <div><b>1. 2A</b>${matrixHTML(teacherTask.answers['2A'])}</div>
       <div><b>2. 3B</b>${matrixHTML(teacherTask.answers['3B'])}</div>
       <div><b>3. AB</b>${matrixHTML(teacherTask.answers['AB'])}<p class="muted">Например: c₁₁ = 2·3 + 3·2 = 12; c₁₂ = 2·(−5) + 3·(−1) = −13.</p></div>
-      <div><b>4. C = 2A − 3B + AB</b>${matrixHTML(teacherTask.answers['C'])}</div>
+      <div><b>4. D = 2A − 3B</b>${matrixHTML(teacherTask.answers['D'])}</div>
+      <div><b>5. C = D + AB</b>${matrixHTML(teacherTask.answers['C'])}</div>
     </div>`;
     out.classList.toggle('hidden');
     $('#showTeacherTaskSolution').textContent=out.classList.contains('hidden')?'Показать полное решение':'Скрыть полное решение';
@@ -257,6 +301,20 @@
     }catch(e){showError('#expressionError',e);$('#expressionOutput').classList.add('hidden')}
   }
 
+  $('#checkDetGuess')?.addEventListener('click',()=>{
+    clearError('#detError');
+    const feedback=$('#detGuessFeedback');
+    try{
+      const actual=M.determinant(getNumeric('Det'));
+      const guess=M.parseNumber($('#detGuess').value);
+      const ok=M.approxEqual(guess,actual);
+      feedback.className=`message ${ok?'success':'error'}`;
+      feedback.textContent=ok?'Верно. Определитель найден правильно.':'Не совпадает. Проверь правило и арифметику – готовое решение пока не раскрывается.';
+      feedback.classList.remove('hidden');
+    }catch(e){showError('#detError',e)}
+  });
+  $('#showDetHint')?.addEventListener('click',()=>$('#detManualHint')?.classList.toggle('hidden'));
+
   $('#solveDet').addEventListener('click',()=>{
     clearError('#detError');
     try{
@@ -286,8 +344,91 @@
 
   $('#teacherDet1Button')?.addEventListener('click',()=>{go('det');setMatrix('Det',[[3,-2,1],[-2,1,3],[2,0,-2]])});
   $('#teacherDet2Button')?.addEventListener('click',()=>{go('det');setMatrix('Det',[[1,2,0],[0,1,3],[5,0,-1]])});
+  let rankWorking=state.values.Rank.map(r=>r.map(Number));
+  let rankSnapshots=[];
+
+  function fillRankRowSelects(){
+    const rows=rankWorking.length;
+    for(const id of ['#rankRowA','#rankRowB']){
+      const el=$(id); if(!el)continue;
+      const prev=Number(el.value)||1;
+      el.innerHTML='';
+      for(let i=1;i<=rows;i++)el.add(new Option(`R${i}`,i));
+      el.value=String(Math.min(prev,rows));
+    }
+    if($('#rankRowB') && rows>1 && $('#rankRowB').value===$('#rankRowA')?.value)$('#rankRowB').value='2';
+  }
+  function renderRankWorking(){
+    const el=$('#rankWorkingMatrix'); if(!el)return;
+    el.innerHTML=matrixHTML(rankWorking);
+    fillRankRowSelects();
+    const history=$('#rankHistory');
+    if(history){
+      const labels=rankSnapshots.map((x,i)=>`<div class="history-line"><b>${i+1}.</b> ${escapeHtml(x.label)}</div>`).join('');
+      history.innerHTML=labels||'<span class="muted">Пока преобразований нет.</span>';
+    }
+  }
+  function resetRankWorking(){
+    try{rankWorking=getNumeric('Rank').map(r=>r.slice())}
+    catch{rankWorking=state.values.Rank.map(r=>r.map(Number))}
+    rankSnapshots=[];
+    renderRankWorking();
+    $('#rankOperationError')?.classList.add('hidden');
+    $('#rankGuessFeedback')?.classList.add('hidden');
+  }
+  function loadTeacherRank(){setMatrix('Rank',[[-1,2,-3],[5,6,-2],[4,-3,1]]);resetRankWorking()}
   $('#loadTeacherRank').addEventListener('click',loadTeacherRank); $('#teacherRankButton').addEventListener('click',()=>{go('rank');loadTeacherRank()});
-  function loadTeacherRank(){setMatrix('Rank',[[-1,2,-3],[5,6,-2],[4,-3,1]])}
+  $('#rankReset')?.addEventListener('click',resetRankWorking);
+  $('#rankUndo')?.addEventListener('click',()=>{
+    const snap=rankSnapshots.pop(); if(!snap)return;
+    rankWorking=snap.before.map(r=>r.slice());renderRankWorking();
+  });
+  $('#rankOperation')?.addEventListener('change',()=>{
+    const op=$('#rankOperation').value;
+    $('#rankRowBLabel')?.classList.toggle('hidden',op==='scale');
+    $('#rankFactorLabel')?.classList.toggle('hidden',op==='swap');
+  });
+  $('#showRankHint')?.addEventListener('click',()=>$('#rankManualHint')?.classList.toggle('hidden'));
+  $('#applyRankOperation')?.addEventListener('click',()=>{
+    const err=$('#rankOperationError');err?.classList.add('hidden');
+    try{
+      const op=$('#rankOperation').value;
+      const a=Number($('#rankRowA').value)-1;
+      const b=Number($('#rankRowB').value)-1;
+      const before=rankWorking.map(r=>r.slice());
+      let label='';
+      if(op==='swap'){
+        if(a===b)throw new Error('Выбери две разные строки.');
+        [rankWorking[a],rankWorking[b]]=[rankWorking[b],rankWorking[a]];
+        label=`R${a+1} ↔ R${b+1}`;
+      }else if(op==='scale'){
+        const k=M.parseNumber($('#rankFactor').value);
+        if(Math.abs(k)<M.EPS)throw new Error('Умножать строку на 0 нельзя – это меняет ранг.');
+        rankWorking[a]=rankWorking[a].map(v=>M.roundNumber(v*k));
+        label=`R${a+1} ← ${M.fmt(k)}R${a+1}`;
+      }else{
+        if(a===b)throw new Error('Rᵢ и Rⱼ должны быть разными строками.');
+        const k=M.parseNumber($('#rankFactor').value);
+        rankWorking[a]=rankWorking[a].map((v,j)=>M.roundNumber(v+k*rankWorking[b][j]));
+        label=`R${a+1} ← R${a+1} + (${M.fmt(k)})R${b+1}`;
+      }
+      rankSnapshots.push({before,label});
+      renderRankWorking();
+    }catch(e){if(err){err.textContent=e.message||String(e);err.classList.remove('hidden')}}
+  });
+  $('#checkRankGuess')?.addEventListener('click',()=>{
+    const f=$('#rankGuessFeedback');
+    try{
+      const guess=M.parseNumber($('#rankGuess').value);
+      const actual=M.rank(getNumeric('Rank'));
+      const ok=M.approxEqual(guess,actual);
+      f.className=`message ${ok?'success':'error'}`;
+      f.textContent=ok?'Верно. Ранг найден правильно.':'Нет. Посчитай число ненулевых строк в своём ступенчатом виде.';
+      f.classList.remove('hidden');
+    }catch(e){showError('#rankError',e)}
+  });
+  renderRankWorking();
+
   $('#solveRank').addEventListener('click',()=>{
     clearError('#rankError');
     try{
