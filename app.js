@@ -108,7 +108,7 @@
   };
 
   function renderStaticMatrices(){
-    $('.matrix-static').forEach(el=>{
+    $$('.matrix-static').forEach(el=>{
       const raw=(el.dataset.matrix||'').split(';').map(r=>r.split(',').map(Number));
       el.innerHTML=matrixHTML(raw);
     });
@@ -168,13 +168,13 @@
     return allCorrect;
   }
 
-  $('.check-work').forEach(btn=>btn.addEventListener('click',()=>checkTeacherStep(btn.dataset.step)));
-  $('.hint-work').forEach(btn=>btn.addEventListener('click',()=>{
+  $$('.check-work').forEach(btn=>btn.addEventListener('click',()=>checkTeacherStep(btn.dataset.step)));
+  $$('.hint-work').forEach(btn=>btn.addEventListener('click',()=>{
     const h=$(`#hint${btn.dataset.step}`); h?.classList.toggle('hidden');
   }));
   $('#resetTeacherTask')?.addEventListener('click',()=>{
     initTeacherWorkspace();
-    $('.work-step').forEach(c=>c.classList.remove('step-complete'));
+    $$('.work-step').forEach(c=>c.classList.remove('step-complete'));
     ['2A','3B','AB','C'].forEach(k=>{const f=$(`#feedback${k}`);f?.classList.add('hidden')});
   });
   $('#showTeacherTaskSolution')?.addEventListener('click',()=>{
@@ -210,9 +210,21 @@
       loading?.classList.add('hidden');
       img.classList.remove('hidden');
     }catch(e){
-      if(loading){
-        loading.textContent='Не удалось загрузить фото листа. Обнови страницу.';
-        loading.classList.add('error');
+      // Резервный файл нужен, чтобы лист оставался доступен даже при проблеме
+      // с загрузкой составного JPEG.
+      try{
+        img.src='teacher-sheet.png';
+        await new Promise((resolve,reject)=>{
+          img.addEventListener('load',resolve,{once:true});
+          img.addEventListener('error',reject,{once:true});
+        });
+        loading?.classList.add('hidden');
+        img.classList.remove('hidden');
+      }catch{
+        if(loading){
+          loading.textContent='Не удалось загрузить фото листа. Обнови страницу.';
+          loading.classList.add('error');
+        }
       }
     }
   }
