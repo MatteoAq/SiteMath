@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>Матрицы – подготовка к контрольной</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">M</div>
+      <div>
+        <div class="brand-title">Матрицы</div>
+        <div class="brand-subtitle">подготовка к контрольной</div>
+      </div>
+    </div>
+    <button class="ghost compact" id="themeToggle" type="button" aria-label="Переключить тему">Тема</button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Разделы">
+      <button class="nav-btn active" data-section="start">Начать</button>
+      <button class="nav-btn" data-section="basics">База</button>
+      <button class="nav-btn" data-section="calc">Калькулятор</button>
+      <button class="nav-btn" data-section="det">Определители</button>
+      <button class="nav-btn" data-section="rank">Ранг</button>
+      <button class="nav-btn" data-section="practice">Тренажёр</button>
+      <button class="nav-btn" data-section="teacher">Примеры преподавателя</button>
+      <button class="nav-btn" data-section="cheats">Шпаргалка</button>
+    </aside>
+
+    <main class="content">
+      <section id="start" class="section active">
+        <div class="hero card">
+          <div class="eyebrow">От простого к контрольной</div>
+          <h1>Матрицы без тетради</h1>
+          <p class="lead">Здесь можно вспомнить правило, сразу подставить свои матрицы и увидеть не только ответ, но и промежуточные действия.</p>
+          <div class="hero-actions">
+            <button class="primary" data-go="basics">Начать с базы</button>
+            <button class="secondary" data-go="calc">Ввести свои матрицы</button>
+          </div>
+        </div>
+
+        <div class="grid-3 top-gap">
+          <article class="card mini-card">
+            <div class="mini-num">1</div><h3>Сначала размер</h3>
+            <p>Перед любым действием смотри на число строк и столбцов: m×n.</p>
+          </article>
+          <article class="card mini-card">
+            <div class="mini-num">2</div><h3>Потом правило</h3>
+            <p>Сайт подсказывает, когда можно складывать, умножать, искать det и ранг.</p>
+          </article>
+          <article class="card mini-card">
+            <div class="mini-num">3</div><h3>Потом расчёт</h3>
+            <p>Можно решить самому, проверить ответ или раскрыть вычисления по шагам.</p>
+          </article>
+        </div>
+
+        <div class="card top-gap">
+          <h2>Что видно по вашему листку</h2>
+          <div class="topic-strip">
+            <span>Действия над матрицами</span><span>AB и BA</span><span>Транспонирование</span><span>Степени и f(A)</span><span>Ранг</span><span>det 2×2</span><span>det 3×3</span><span>det-уравнения</span><span>det-неравенства</span>
+          </div>
+          <p class="muted">Поэтому сайт построен именно вокруг этих типов задач. Символьные примеры с параметрами разобраны как правила, а числовые и задачи с x можно считать прямо здесь.</p>
+        </div>
+      </section>
+
+      <section id="basics" class="section">
+        <div class="section-head">
+          <div><div class="eyebrow">Уровень 1</div><h1>База</h1></div>
+          <button class="secondary" data-go="calc">Сразу к калькулятору</button>
+        </div>
+
+        <div class="grid-2">
+          <article class="card">
+            <h2>Что такое матрица</h2>
+            <p>Матрица – прямоугольная таблица чисел. Если строк m, а столбцов n, размер матрицы равен <b>m×n</b>.</p>
+            <div class="formula-box">A = [aᵢⱼ], &nbsp; i – номер строки, j – номер столбца</div>
+            <div class="example-line">Например, A = [[2, 3], [−1, 4]] имеет размер 2×2, а a₂₁ = −1.</div>
+          </article>
+          <article class="card">
+            <h2>Квадратная и единичная</h2>
+            <p>Если строк столько же, сколько столбцов, матрица квадратная. Только у квадратной матрицы есть определитель и обычная степень A², A³…</p>
+            <div class="formula-box">I₂ = [[1, 0], [0, 1]], &nbsp; A·I = I·A = A</div>
+          </article>
+        </div>
+
+        <div class="card top-gap">
+          <h2>Четыре проверки перед расчётом</h2>
+          <div class="rules-grid">
+            <div><b>A ± B</b><span>Размеры A и B должны совпадать.</span></div>
+            <div><b>A·B</b><span>Столбцы A = строкам B.</span></div>
+            <div><b>det(A)</b><span>A должна быть квадратной.</span></div>
+            <div><b>Aⁿ</b><span>A должна быть квадратной, n = 0,1,2…</span></div>
+          </div>
+        </div>
+
+        <div class="grid-2 top-gap">
+          <article class="card">
+            <h2>Сложение и число</h2>
+            <p>Складываем элементы на одинаковых местах. При умножении на число умножаем каждый элемент.</p>
+            <div class="formula-box">(A+B)ᵢⱼ = aᵢⱼ+bᵢⱼ<br>kA = [k·aᵢⱼ]</div>
+          </article>
+          <article class="card">
+            <h2>Умножение матриц</h2>
+            <p>Элемент результата берётся как скалярное произведение строки A на столбец B.</p>
+            <div class="formula-box">cᵢⱼ = aᵢ₁b₁ⱼ + aᵢ₂b₂ⱼ + … + aᵢₙbₙⱼ</div>
+            <div class="hint">Важно: обычно AB ≠ BA. Иногда BA вообще не существует по размерам.</div>
+          </article>
+        </div>
+      </section>
+
+      <section id="calc" class="section">
+        <div class="section-head">
+          <div><div class="eyebrow">Главный инструмент</div><h1>Калькулятор матриц</h1></div>
+          <div class="badge">A, B до 6×6</div>
+        </div>
+
+        <div class="matrix-pair">
+          <article class="card matrix-card">
+            <div class="matrix-title-row"><h2>Матрица A</h2><div class="size-controls" id="sizeA"></div></div>
+            <div id="matrixA" class="matrix-editor"></div>
+          </article>
+          <article class="card matrix-card">
+            <div class="matrix-title-row"><h2>Матрица B</h2><div class="size-controls" id="sizeB"></div></div>
+            <div id="matrixB" class="matrix-editor"></div>
+          </article>
+        </div>
+
+        <article class="card top-gap">
+          <h2>Выражение</h2>
+          <p class="muted">Можно считать не только AB, но и целую строку из задания: <code>2A-3B+AB</code>, <code>A^2+B</code>, <code>4A-5B+(AB)^2</code>, <code>B^T A^T</code>. Для единичной матрицы используйте <code>I</code>.</p>
+          <div class="quick-row">
+            <button class="chip" data-expr="A+B">A+B</button><button class="chip" data-expr="A-B">A−B</button><button class="chip" data-expr="A*B">AB</button><button class="chip" data-expr="B*A">BA</button><button class="chip" data-expr="T(A)">Aᵀ</button><button class="chip" data-expr="A^2">A²</button><button class="chip" data-expr="A^2+2*A-4*I">f(A)</button>
+          </div>
+          <div class="input-action-row">
+            <input id="expressionInput" class="wide-input" value="2A-3B+AB" aria-label="Матричное выражение">
+            <button id="solveExpression" class="primary">Решить</button>
+          </div>
+          <div id="expressionError" class="message error hidden"></div>
+        </article>
+
+        <div id="expressionOutput" class="hidden top-gap"></div>
+      </section>
+
+      <section id="det" class="section">
+        <div class="section-head"><div><div class="eyebrow">Уровень 2</div><h1>Определители</h1></div></div>
+        <div class="grid-2">
+          <article class="card">
+            <div class="matrix-title-row"><h2>Числовой det(A)</h2><div class="size-controls" id="sizeDet"></div></div>
+            <div id="matrixDet" class="matrix-editor"></div>
+            <button id="solveDet" class="primary full top-gap-small">Посчитать с шагами</button>
+            <div id="detError" class="message error hidden"></div>
+          </article>
+          <article class="card theory-card">
+            <h2>Какой способ использовать</h2>
+            <div class="decision"><b>2×2</b><span>ad − bc. Самая короткая формула.</span></div>
+            <div class="decision"><b>3×3</b><span>Правило Саррюса или разложение по строке/столбцу.</span></div>
+            <div class="decision"><b>4×4 и больше</b><span>Обычно удобнее занулять элементы строками и сводить к треугольной матрице.</span></div>
+            <div class="hint">Если строка или столбец содержит много нулей, разложение по ней может быть быстрее.</div>
+          </article>
+        </div>
+        <div id="detOutput" class="hidden top-gap"></div>
+
+        <article class="card top-gap">
+          <div class="section-head compact-head"><div><h2>Уравнение или неравенство с x</h2><p class="muted">Поддерживаются ячейки вида x, −x, 2x, x+2, 3x−5. Этого хватает для заданий с вашего листка.</p></div></div>
+          <div class="variable-layout">
+            <div><div id="matrixX" class="matrix-editor"></div></div>
+            <div class="var-side">
+              <label>Условие
+                <select id="relationSelect"><option value="=">det = 0</option><option value=">">det &gt; 0</option><option value="<">det &lt; 0</option><option value=">=">det ≥ 0</option><option value="<=">det ≤ 0</option></select>
+              </label>
+              <button id="solveVariableDet" class="primary full">Решить</button>
+              <div class="quick-row vertical">
+                <button class="secondary" id="loadTeacherEquation">Загрузить уравнение с листка</button>
+                <button class="secondary" id="loadTeacherIneq">Загрузить неравенство с листка</button>
+              </div>
+            </div>
+          </div>
+          <div id="varDetError" class="message error hidden"></div>
+          <div id="varDetOutput" class="hidden"></div>
+        </article>
+      </section>
+
+      <section id="rank" class="section">
+        <div class="section-head"><div><div class="eyebrow">Уровень 3</div><h1>Ранг матрицы</h1></div></div>
+        <div class="grid-2">
+          <article class="card">
+            <div class="matrix-title-row"><h2>Введите матрицу</h2><div class="size-controls" id="sizeRank"></div></div>
+            <div id="matrixRank" class="matrix-editor"></div>
+            <div class="quick-row top-gap-small"><button id="loadTeacherRank" class="secondary">Пример с листка</button><button id="solveRank" class="primary">Найти ранг</button></div>
+            <div id="rankError" class="message error hidden"></div>
+          </article>
+          <article class="card">
+            <h2>Идея метода Гаусса</h2>
+            <p>Элементарными преобразованиями строк приводим матрицу к ступенчатому виду. Ранг – число ненулевых строк, или, что то же самое, число ведущих элементов.</p>
+            <div class="formula-box">Разрешено: Rᵢ ↔ Rⱼ; &nbsp; Rᵢ ← kRᵢ (k≠0); &nbsp; Rᵢ ← Rᵢ+kRⱼ</div>
+            <div class="hint">Эти операции не меняют ранг.</div>
+          </article>
+        </div>
+        <div id="rankOutput" class="hidden top-gap"></div>
+      </section>
+
+      <section id="practice" class="section">
+        <div class="section-head"><div><div class="eyebrow">Решай сам</div><h1>Тренажёр</h1></div><div class="badge" id="practiceScore">0 решено</div></div>
+        <article class="card">
+          <div class="practice-toolbar">
+            <label>Тип задачи
+              <select id="practiceType">
+                <option value="add">Сложение 2×2</option>
+                <option value="mul">Умножение 2×2</option>
+                <option value="det2">Определитель 2×2</option>
+                <option value="det3">Определитель 3×3</option>
+                <option value="rank">Ранг 3×3</option>
+              </select>
+            </label>
+            <button id="newPractice" class="secondary">Новая задача</button>
+          </div>
+          <div id="practiceProblem" class="practice-problem"></div>
+          <div id="practiceAnswer"></div>
+          <div class="quick-row top-gap-small">
+            <button id="checkPractice" class="primary">Проверить</button>
+            <button id="showPracticeHint" class="ghost">Подсказка</button>
+            <button id="showPracticeSolution" class="ghost">Показать решение</button>
+          </div>
+          <div id="practiceFeedback" class="message hidden"></div>
+          <div id="practiceHint" class="hint hidden"></div>
+          <div id="practiceSolution" class="hidden"></div>
+        </article>
+
+        <article class="card top-gap">
+          <h2>Свои A и B – без показа ответа заранее</h2>
+          <p class="muted">Задайте матрицы в калькуляторе, затем вернитесь сюда. Сайт превратит их в задание и покажет поля для вашего ответа.</p>
+          <div class="input-action-row">
+            <select id="customPracticeExpr" class="wide-input"><option value="A+B">A+B</option><option value="A-B">A−B</option><option value="A*B">AB</option><option value="B*A">BA</option><option value="A^2">A²</option></select>
+            <button id="startCustomPractice" class="secondary">Взять A и B из калькулятора</button>
+          </div>
+          <div id="customPracticeArea" class="hidden top-gap-small"></div>
+        </article>
+      </section>
+
+      <section id="teacher" class="section">
+        <div class="section-head"><div><div class="eyebrow">По фотографии</div><h1>Примеры преподавателя</h1></div></div>
+        <div class="teacher-list">
+          <article class="card task-card">
+            <div class="task-num">1</div><div><h3>Составное выражение</h3><p>A = [[2,3],[−1,4]], B = [[3,−5],[2,−1]]. Найти C = 2A − 3B + AB.</p><button class="secondary teacher-load" data-preset="expr1">Открыть в калькуляторе</button></div>
+          </article>
+          <article class="card task-card">
+            <div class="task-num">2</div><div><h3>Проверка A² − B² = (A−B)(A+B)</h3><p>Для матриц эта школьная формула не обязана работать, потому что AB и BA могут отличаться. Сайт посчитает обе части отдельно.</p><button class="secondary teacher-load" data-preset="identity">Проверить на данных с листка</button></div>
+          </article>
+          <article class="card task-card">
+            <div class="task-num">3</div><div><h3>AB и BA по размерам</h3><p>A имеет размер 3×4, B – 4×2. AB существует и имеет размер 3×2. BA не существует: 2 ≠ 3.</p><button class="secondary teacher-load" data-preset="dims">Загрузить A и B</button></div>
+          </article>
+          <article class="card task-card">
+            <div class="task-num">4</div><div><h3>Функция от матрицы</h3><p>f(x)=x²+2x−4. При A=[[3,−1],[−2,2]] нужно считать f(A)=A²+2A−4I.</p><button class="secondary teacher-load" data-preset="poly">Решить в калькуляторе</button></div>
+          </article>
+          <article class="card task-card">
+            <div class="task-num">5</div><div><h3>Ранг</h3><p>Один из примеров на листке: [[−1,2,−3],[5,6,−2],[4,−3,1]].</p><button class="secondary" id="teacherRankButton">Открыть в ранге</button></div>
+          </article>
+          <article class="card task-card">
+            <div class="task-num">6</div><div><h3>Определитель 2×2 с sin и cos</h3><p>| sin α &nbsp; cos α; −cos α &nbsp; sin α | = sin²α + cos²α = 1.</p><div class="hint">Здесь главное не вычислять угол: после формулы ad−bc получается основное тригонометрическое тождество.</div></div>
+          </article>
+          <article class="card task-card">
+            <div class="task-num">7</div><div><h3>Уравнение det = 0</h3><p>det[[1,3,x],[4,5,−1],[2,−1,5]]=0. Сайт получает −14x−42=0, поэтому x=−3.</p><button class="secondary" id="teacherEqButton">Открыть решатель</button></div>
+          </article>
+          <article class="card task-card">
+            <div class="task-num">8</div><div><h3>Неравенство det &gt; 0</h3><p>det[[2,x+2,−1],[1,1,−2],[5,−3,x]]&gt;0. Получается −(x+4)(x+6)&gt;0, то есть −6&lt;x&lt;−4.</p><button class="secondary" id="teacherIneqButton">Открыть решатель</button></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="cheats" class="section">
+        <div class="section-head"><div><div class="eyebrow">Перед контрольной</div><h1>Шпаргалка</h1></div></div>
+        <div class="cheat-grid">
+          <article class="card"><h3>A+B</h3><div class="formula-box">cᵢⱼ = aᵢⱼ+bᵢⱼ</div><p><b>Когда:</b> размеры одинаковы.</p></article>
+          <article class="card"><h3>kA</h3><div class="formula-box">[kaᵢⱼ]</div><p><b>Как:</b> умножить каждую ячейку.</p></article>
+          <article class="card"><h3>AB</h3><div class="formula-box">cᵢⱼ = Σ aᵢₖbₖⱼ</div><p><b>Когда:</b> столбцы A = строкам B.</p></article>
+          <article class="card"><h3>Aᵀ</h3><div class="formula-box">(Aᵀ)ᵢⱼ = aⱼᵢ</div><p><b>Как:</b> строки становятся столбцами.</p></article>
+          <article class="card"><h3>det 2×2</h3><div class="formula-box">|a b; c d| = ad−bc</div><p><b>Запомнить:</b> главная диагональ минус побочная.</p></article>
+          <article class="card"><h3>det 3×3</h3><div class="formula-box">aei+bfg+cdh−ceg−bdi−afh</div><p><b>Как:</b> правило Саррюса.</p></article>
+          <article class="card"><h3>Ранг</h3><div class="formula-box">rank A = число ведущих элементов</div><p><b>Как:</b> методом Гаусса получить ступенчатый вид.</p></article>
+          <article class="card"><h3>f(A)</h3><div class="formula-box">x²+2x−4 → A²+2A−4I</div><p><b>Важно:</b> число без A превращается в число·I.</p></article>
+          <article class="card"><h3>(AB)ᵀ</h3><div class="formula-box">(AB)ᵀ = BᵀAᵀ</div><p><b>Важно:</b> порядок меняется.</p></article>
+          <article class="card"><h3>A²−B²</h3><div class="formula-box">(A−B)(A+B)=A²+AB−BA−B²</div><p><b>Вывод:</b> равно A²−B² только когда AB=BA.</p></article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer>Работает полностью в браузере, без отправки введённых матриц на сервер.</footer>
+  <script src="matrix-core.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
