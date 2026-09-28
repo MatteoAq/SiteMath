@@ -44,3 +44,41 @@ html,body{max-width:100%;overflow-x:hidden}.content,.section,.card,.result-card,
 @media(max-width:390px){
   .content{padding-left:8px;padding-right:8px}.card{padding:13px}.section-head h1{font-size:24px}.quick-row{display:grid;grid-template-columns:1fr}.quick-row button{width:100%}.given-matrices{gap:10px}.render-matrix{font-size:16px;padding-left:12px;padding-right:12px}.matrix-editor{max-width:100%;overflow-x:auto}.sheet-toolbar .quick-row{grid-template-columns:1fr 1fr 1fr}
 }
+
+
+/* Persistent notes and manual workspaces */
+.study-notes{position:sticky;top:84px;z-index:12;margin:0 auto 18px;max-width:1160px;padding:14px 16px;box-shadow:0 6px 20px rgba(31,42,68,.06)}
+.study-notes-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.study-notes-head>div{min-width:0}
+.study-notes textarea{display:block;width:100%;min-height:92px;margin-top:10px;resize:vertical;border:1px solid var(--line);border-radius:10px;background:var(--input);color:var(--text);padding:11px 12px;outline:none;font:inherit;line-height:1.45}
+.study-notes textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+.notes-status{font-size:12px;margin-top:5px}
+.study-notes.notes-collapsed textarea,.study-notes.notes-collapsed .notes-status{display:none}
+.next-task-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.next-task-head h2{margin:.2rem 0 .25rem}
+.subcard{box-shadow:none;background:var(--surface-2)}
+.manual-answer-label{display:grid;gap:7px;color:var(--muted);font-size:13px;font-weight:700}
+.manual-answer-label input{margin-top:2px}
+.rank-working{max-width:100%;overflow-x:auto}
+.rank-operation-panel{display:grid;grid-template-columns:minmax(220px,1.5fr) repeat(3,minmax(90px,.7fr)) auto auto;gap:10px;align-items:end}
+.rank-operation-panel label{display:grid;gap:6px;color:var(--muted);font-size:13px;font-weight:700;min-width:0}
+.rank-operation-panel select,.rank-operation-panel input{width:100%;min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;background:var(--input);color:var(--text)}
+.rank-history{display:grid;gap:6px}
+.history-line{padding:7px 10px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;font-family:"Cambria Math","Times New Roman",serif}
+.next-task-card{border-color:color-mix(in srgb,var(--accent) 24%,var(--line))}
+
+@media(max-width:900px){
+  .rank-operation-panel{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rank-operation-panel>button{width:100%}
+}
+@media(max-width:650px){
+  .study-notes{top:68px;margin-bottom:12px;padding:12px}
+  .study-notes-head{align-items:flex-start}
+  .study-notes-head .muted{display:block;margin-top:2px;font-size:12px}
+  .study-notes textarea{min-height:82px}
+  .next-task-head{display:block}
+  .next-task-head>button{width:100%;margin-top:10px}
+  .rank-operation-panel{grid-template-columns:1fr}
+  .rank-operation-panel label,.rank-operation-panel button{width:100%}
+  .rank-working .matrix-scroll{max-width:100%}
+}
