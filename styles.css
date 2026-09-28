@@ -72,7 +72,7 @@ html,body{max-width:100%;overflow-x:hidden}.content,.section,.card,.result-card,
   .rank-operation-panel>button{width:100%}
 }
 @media(max-width:650px){
-  .study-notes{top:68px;margin-bottom:12px;padding:12px}
+  .study-notes{position:relative;top:auto;margin-bottom:12px;padding:12px}
   .study-notes-head{align-items:flex-start}
   .study-notes-head .muted{display:block;margin-top:2px;font-size:12px}
   .study-notes textarea{min-height:82px}
