@@ -121,3 +121,29 @@ html,body{max-width:100%;overflow-x:hidden}.content,.section,.card,.result-card,
   .rank-minor-stage{grid-template-columns:1fr}
   .rank-minor-answer{grid-template-columns:1fr}
 }
+
+
+/* Rank staircase trainer */
+.rank-stair-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,420px);gap:26px;align-items:start}
+.rank-current-task{display:grid;gap:12px}
+.rank-current-task p{margin:.2rem 0 .6rem}
+.rank-current-task label{display:grid;gap:7px;color:var(--muted);font-size:13px;font-weight:700}
+#rankMultiplierArea,#rankRowArea{display:grid;gap:10px}
+#rankMultiplierArea .answer-scalar{width:100%}
+.rank-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;color:var(--muted);font-size:12px}
+.rank-legend span{display:flex;align-items:center;gap:6px}
+.rank-legend i{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid var(--line)}
+.pivot-swatch,.rank-render-matrix .pivot-cell{background:color-mix(in srgb,var(--ok) 28%,var(--surface))!important;border-radius:5px;font-weight:850}
+.target-swatch,.rank-render-matrix .target-cell{background:color-mix(in srgb,var(--accent) 25%,var(--surface))!important;border-radius:5px;font-weight:850}
+.rank-render-matrix .pivot-column-cell{color:var(--muted)}
+#rankRowAnswer{margin-top:0}
+#rankRowAnswer input.cell-ok{border-color:var(--ok);background:var(--ok-bg)}
+#rankRowAnswer input.cell-bad{border-color:var(--bad);background:var(--bad-bg)}
+#rankSwapArea button{width:100%}
+@media(max-width:820px){
+  .rank-stair-layout{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+  .rank-current-task .formula-box{font-size:15px}
+  #rankRowAnswer{overflow-x:auto;max-width:100%}
+}
