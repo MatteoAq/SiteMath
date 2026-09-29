@@ -54,6 +54,11 @@
   function compileExpr(raw,vars=['x']){
     let s=normalizeSimple(raw).replace(/\^/g,'**');
     for(const v of vars){
+      // Убираем JS-ограничение на запись -x**2: превращаем небольшие степени
+      // в обычное умножение, как это и записывает человек в тетради.
+      s=s.replace(new RegExp(v+'\\*\\*4','g'),`(${v}*${v}*${v}*${v})`);
+      s=s.replace(new RegExp(v+'\\*\\*3','g'),`(${v}*${v}*${v})`);
+      s=s.replace(new RegExp(v+'\\*\\*2','g'),`(${v}*${v})`);
       s=s.replace(new RegExp('([0-9]|[)])'+v,'g'),`$1*${v}`);
       s=s.replace(new RegExp(v+'([0-9]|[(])','g'),`${v}*$1`);
     }
