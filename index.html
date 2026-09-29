@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111827">
   <title>Матрицы – подготовка к контрольной</title>
-  <link rel="stylesheet" href="styles.css?v=20260929i">
+  <link rel="stylesheet" href="styles.css?v=20260929j">
 </head>
 <body>
   <header class="topbar">
@@ -331,41 +331,52 @@
       </section>
 
       <section id="practice" class="section">
-        <div class="section-head"><div><div class="eyebrow">Решай сам</div><h1>Тренажёр</h1></div><div class="badge" id="practiceScore">0 решено</div></div>
+        <div class="section-head">
+          <div><div class="eyebrow">Решай полностью</div><h1>Тренажёр</h1><p class="muted">Здесь тоже нет режима «впиши только конечный ответ» – пример раскладывается на обычные вычислительные строки.</p></div>
+        </div>
+
         <article class="card">
           <div class="practice-toolbar">
-            <label>Тип задачи
-              <select id="practiceType">
+            <label>Случайная задача
+              <select id="notebookPracticeType">
                 <option value="add">Сложение 2×2</option>
                 <option value="mul">Умножение 2×2</option>
                 <option value="det2">Определитель 2×2</option>
                 <option value="det3">Определитель 3×3</option>
-                <option value="rank">Ранг 3×3</option>
               </select>
             </label>
-            <button id="newPractice" class="secondary">Новая задача</button>
+            <button id="newNotebookPractice" class="secondary">Новая задача</button>
           </div>
-          <div id="practiceProblem" class="practice-problem"></div>
-          <div id="practiceAnswer"></div>
-          <div class="quick-row top-gap-small">
-            <button id="checkPractice" class="primary">Проверить</button>
-            <button id="showPracticeHint" class="ghost">Подсказка</button>
-            <button id="showPracticeSolution" class="ghost">Показать решение</button>
-          </div>
-          <div id="practiceFeedback" class="message hidden"></div>
-          <div id="practiceHint" class="hint hidden"></div>
-          <div id="practiceSolution" class="hidden"></div>
+          <div id="notebookPracticeGiven" class="top-gap-small"></div>
+          <div id="notebookPracticeArea" class="notebook top-gap-small"></div>
         </article>
 
         <article class="card top-gap">
-          <h2>Свои A и B – без показа ответа заранее</h2>
-          <p class="muted">Задайте матрицы в калькуляторе, затем вернитесь сюда. Сайт превратит их в задание и покажет поля для вашего ответа.</p>
+          <h2>Свои матрицы A и B</h2>
+          <p class="muted">Задай A и B в разделе «Проверка», затем выбери действие здесь. Сайт построит не ответ, а полный шаблон самостоятельного решения.</p>
           <div class="input-action-row">
-            <select id="customPracticeExpr" class="wide-input"><option value="A+B">A+B</option><option value="A-B">A−B</option><option value="A*B">AB</option><option value="B*A">BA</option><option value="A^2">A²</option></select>
-            <button id="startCustomPractice" class="secondary">Взять A и B из калькулятора</button>
+            <select id="customNotebookExpr" class="wide-input">
+              <option value="A+B">A+B</option>
+              <option value="A-B">A−B</option>
+              <option value="A*B">AB</option>
+              <option value="B*A">BA</option>
+              <option value="A^2">A²</option>
+              <option value="B^2">B²</option>
+            </select>
+            <button id="startCustomNotebook" class="primary">Создать решение по моим A и B</button>
+            <button class="secondary" data-go="calc">Изменить A и B</button>
           </div>
-          <div id="customPracticeArea" class="hidden top-gap-small"></div>
+          <div id="customNotebookGiven" class="top-gap-small"></div>
+          <div id="customNotebookArea" class="notebook top-gap-small"></div>
         </article>
+
+        <div class="hidden" aria-hidden="true">
+          <select id="practiceType"><option value="add">add</option></select>
+          <button id="newPractice"></button><div id="practiceProblem"></div><div id="practiceAnswer"></div>
+          <button id="checkPractice"></button><button id="showPracticeHint"></button><button id="showPracticeSolution"></button>
+          <div id="practiceFeedback"></div><div id="practiceHint"></div><div id="practiceSolution"></div><span id="practiceScore"></span>
+          <select id="customPracticeExpr"><option value="A+B">A+B</option></select><button id="startCustomPractice"></button><div id="customPracticeArea"></div>
+        </div>
       </section>
 
       <section id="teacher" class="section">
@@ -425,7 +436,7 @@
 
   <footer>Работает полностью в браузере, без отправки введённых матриц на сервер.</footer>
   <script src="matrix-core.js?v=20260929i"></script>
-  <script src="app.js?v=20260929i"></script>
-  <script src="workbook.js?v=20260929i"></script>
+  <script src="app.js?v=20260929j"></script>
+  <script src="workbook.js?v=20260929j"></script>
 </body>
 </html>
