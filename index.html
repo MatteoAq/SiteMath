@@ -329,7 +329,7 @@
           <div>
             <div class="eyebrow">Решай как в обычной записи</div>
             <h1>Ранг матрицы – через миноры</h1>
-            <p class="muted">Без R₁, R₂ и команд над строками. Здесь логика такая: ищем определитель самого большого возможного порядка. Если он не равен нулю – ранг найден.</p>
+            <p class="muted">Без служебных обозначений строк и команд над ними. Здесь логика такая: ищем определитель самого большого возможного порядка. Если он не равен нулю – ранг найден.</p>
           </div>
         </div>
 
@@ -509,7 +509,7 @@
           <article class="card"><h3>Aᵀ</h3><div class="formula-box">(Aᵀ)ᵢⱼ = aⱼᵢ</div><p><b>Как:</b> строки становятся столбцами.</p></article>
           <article class="card"><h3>det 2×2</h3><div class="formula-box">|a b; c d| = ad−bc</div><p><b>Запомнить:</b> главная диагональ минус побочная.</p></article>
           <article class="card"><h3>det 3×3</h3><div class="formula-box">aei+bfg+cdh−ceg−bdi−afh</div><p><b>Как:</b> правило Саррюса.</p></article>
-          <article class="card"><h3>Когда det = 0</h3><div class="formula-box">Rᵢ = kRⱼ ⇒ det(A)=0</div><p><b>Быстрая проверка:</b> пропорциональные строки или столбцы делают определитель нулём.</p></article>
+          <article class="card"><h3>Когда det = 0</h3><div class="formula-box">одна строка = k · другая строка ⇒ det(A)=0</div><p><b>Быстрая проверка:</b> пропорциональные строки или столбцы делают определитель нулём.</p></article>
           <article class="card"><h3>Ранг</h3><div class="formula-box">rank A = порядок наибольшего ненулевого минора</div><p><b>Для 3×3:</b> если det(A) ≠ 0, то rank(A)=3. Если det=0 – проверяем миноры 2×2.</p></article>
           <article class="card"><h3>f(A)</h3><div class="formula-box">x²+2x−4 → A²+2A−4I</div><p><b>Важно:</b> число без A превращается в число·I.</p></article>
           <article class="card"><h3>(AB)ᵀ</h3><div class="formula-box">(AB)ᵀ = BᵀAᵀ</div><p><b>Важно:</b> порядок меняется.</p></article>
