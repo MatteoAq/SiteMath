@@ -154,7 +154,7 @@ check('no desktop JS errors',pageErrors.length===0,pageErrors.join('\n'));
 await ctx.close();
 
 // Mobile: no page overlap/overflow, notebook lines remain usable.
-for(const width of [390,320]){
+for(const width of [390,360,320]){
   const mctx=await browser.newContext({viewport:{width,height:844}});
   const p=await mctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(String(e)));
   await p.goto('http://127.0.0.1:8000/',{waitUntil:'networkidle'});
@@ -168,6 +168,10 @@ for(const width of [390,320]){
   check('mobile '+width+' notes below nav',metrics.notesTop>=metrics.navBottom-1,JSON.stringify(metrics));
   check('mobile '+width+' notebook line fits',metrics.lineRight<=width+1,JSON.stringify(metrics));
   check('mobile '+width+' no JS errors',errs.length===0,errs.join('\n'));
+  if(width===360){
+    await p.locator('#task1Notebook .notebook-stage').first().scrollIntoViewIfNeeded();
+    await p.screenshot({path:'qa-mobile-360.png',fullPage:false});
+  }
   await mctx.close();
 }
 
