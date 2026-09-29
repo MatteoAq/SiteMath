@@ -257,6 +257,84 @@
     box.innerHTML='<div class="message error">Для подготовки по вашему листку пошаговый режим сейчас рассчитан на 2×2 и 3×3. Для больших матриц используй отдельный черновик.</div>';
   }
 
+  function detStagesFor(m){
+    if(m.length!==m[0].length)throw new Error('Определитель есть только у квадратной матрицы.');
+    if(m.length===2){
+      const p1=m[0][0]*m[1][1],p2=m[0][1]*m[1][0],det=p1-p2;
+      return [
+        {title:'1. Главная диагональ',lines:[{expr:`${signed(m[0][0])}·${signed(m[1][1])}`,expected:p1}]},
+        {title:'2. Побочная диагональ',lines:[{expr:`${signed(m[0][1])}·${signed(m[1][0])}`,expected:p2}]},
+        {title:'3. Вычитаем второе произведение из первого',lines:[{expr:`${signed(p1)} − ${signed(p2)}`,expected:det}]}
+      ];
+    }
+    if(m.length===3){
+      const p=detProducts3(m),plus=p.slice(0,3).map(x=>x.value),minus=p.slice(3).map(x=>x.value);
+      const ps=plus.reduce((a,b)=>a+b,0),ms=minus.reduce((a,b)=>a+b,0),det=ps-ms;
+      return [
+        {title:'1. Три произведения со знаком «+»',intro:'Правило Саррюса – сначала считаем каждую диагональ отдельно.',
+         lines:p.slice(0,3).map(x=>({expr:x.values.map(signed).join(' · '),expected:x.value}))},
+        {title:'2. Три произведения со знаком «−»',
+         lines:p.slice(3).map(x=>({expr:x.values.map(signed).join(' · '),expected:x.value}))},
+        {title:'3. Складываем три «плюса» и три «минуса» отдельно',
+         lines:[{expr:plus.map(signed).join(' + '),expected:ps},{expr:minus.map(signed).join(' + '),expected:ms}]},
+        {title:'4. Получаем det',lines:[{expr:`${signed(ps)} − ${signed(ms)}`,expected:det}]}
+      ];
+    }
+    throw new Error('Пошаговый тренажёр определителя рассчитан на 2×2 и 3×3.');
+  }
+
+  function randomInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+  function randomMatrix(rows,cols,min=-4,max=5){
+    return Array.from({length:rows},()=>Array.from({length:cols},()=>randomInt(min,max)));
+  }
+  function renderGivenMatrices(box,A,B=null){
+    if(!box)return;
+    box.innerHTML=`<div class="teacher-given-grid"><div><b>A</b>${matrixHTML(A)}</div>${B?`<div><b>B</b>${matrixHTML(B)}</div>`:''}</div>`;
+  }
+
+  function buildRandomPractice(){
+    const type=$('#notebookPracticeType')?.value||'add';
+    const area=$('#notebookPracticeArea'),given=$('#notebookPracticeGiven');
+    if(!area)return;
+    try{
+      if(type==='add'){
+        const A=randomMatrix(2,2),B=randomMatrix(2,2);
+        renderGivenMatrices(given,A,B);
+        sequentialNotebook(area,[combineStage('Складываем по одинаковым позициям',A,B,'+','C')]);
+      }else if(type==='mul'){
+        const A=randomMatrix(2,2,-3,4),B=randomMatrix(2,2,-3,4);
+        renderGivenMatrices(given,A,B);
+        sequentialNotebook(area,[multiplyStage('Считаем AB – четыре отдельных скалярных произведения',A,B,'C')]);
+      }else{
+        const n=type==='det2'?2:3,m=randomMatrix(n,n,-4,5);
+        renderGivenMatrices(given,m);
+        sequentialNotebook(area,detStagesFor(m));
+      }
+    }catch(e){area.innerHTML=`<div class="message error">${esc(e.message)}</div>`}
+  }
+
+  function buildCustomNotebook(){
+    const area=$('#customNotebookArea'),given=$('#customNotebookGiven');
+    if(!area)return;
+    try{
+      const A=readNumericMatrix('#matrixA'),B=readNumericMatrix('#matrixB');
+      renderGivenMatrices(given,A,B);
+      const expr=$('#customNotebookExpr').value;
+      let stages;
+      if(expr==='A+B')stages=[combineStage('A+B – считаем каждый элемент',A,B,'+','C')];
+      else if(expr==='A-B')stages=[combineStage('A−B – считаем каждый элемент',A,B,'−','C')];
+      else if(expr==='A*B')stages=[multiplyStage('AB – строка A × столбец B для каждого элемента',A,B,'C')];
+      else if(expr==='B*A')stages=[multiplyStage('BA – строка B × столбец A для каждого элемента',B,A,'C')];
+      else if(expr==='A^2')stages=[multiplyStage('A² = A·A',A,A,'A²')];
+      else if(expr==='B^2')stages=[multiplyStage('B² = B·B',B,B,'B²')];
+      else throw new Error('Неизвестная операция.');
+      sequentialNotebook(area,stages);
+    }catch(e){
+      given.innerHTML='';
+      area.innerHTML=`<div class="message error">${esc(e.message)}</div>`;
+    }
+  }
+
   function polyMul(a,b){const r=Array(a.length+b.length-1).fill(0);for(let i=0;i<a.length;i++)for(let j=0;j<b.length;j++)r[i+j]+=a[i]*b[j];return r}
   function polyAdd(a,b){const n=Math.max(a.length,b.length),r=Array(n).fill(0);for(let i=0;i<n;i++)r[i]=(a[i]||0)+(b[i]||0);return r}
   function polySub(a,b){return polyAdd(a,b.map(v=>-v))}
@@ -347,6 +425,10 @@
   }
 
   buildTask1();
+  buildRandomPractice();
+  $('#newNotebookPractice')?.addEventListener('click',buildRandomPractice);
+  $('#notebookPracticeType')?.addEventListener('change',buildRandomPractice);
+  $('#startCustomNotebook')?.addEventListener('click',buildCustomNotebook);
   $('#openTask2Notebook')?.addEventListener('click',()=>{
     const box=$('#task2Notebook');box.classList.toggle('hidden');
     if(!box.dataset.ready){buildTask2();box.dataset.ready='1'}
