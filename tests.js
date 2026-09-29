@@ -31,7 +31,7 @@ for(const id of [
 
 assert('notebook engine exists',workbook.includes('sequentialNotebook')&&workbook.includes('multiplyStage')&&workbook.includes('buildVariableDet'));
 assert('custom notebook builder',workbook.includes('buildCustomNotebook')&&workbook.includes('buildRandomPractice'));
-assert('task1 has natural arithmetic flow',workbook.includes("scalarStage('1. 2A = 2 · A'")&&workbook.includes("multiplyStage('3. AB – строка A × столбец B'")&&workbook.includes("combineThreeStage('4. C = 2A − 3B + AB'"));
+assert('task1 has natural arithmetic flow',workbook.includes("scalarStage('1. 2A = 2 · A'")&&workbook.includes("multiplyStage('3. AB = A · B'")&&workbook.includes("combineThreeStage('4. C = 2A − 3B + AB'"));
 assert('det has Sarrus stages',workbook.includes('Три произведения со знаком «+»')&&workbook.includes('Три произведения со знаком «−»'));
 assert('rank row arithmetic shown',app.includes("row.className='notebook-line'")&&app.includes('Посчитай каждый элемент новой'));
 assert('HQ worksheet source',html.includes('teacher-sheet-hq.jpg')&&app.includes('teacher-sheet-hq.jpg'));
