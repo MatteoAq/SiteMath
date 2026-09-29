@@ -54,6 +54,18 @@ await fillStage(page,'#task2Notebook',0,[1,18,-6,13]);
 await fillStage(page,'#task2Notebook',1,[-1,-10,4,-9]);
 await fillStage(page,'#task2Notebook',2,[0,8,-2,4]);
 
+// Custom and random practice use the same line-by-line model.
+await page.locator('.nav-btn[data-section="practice"]').click();
+check('random practice has notebook lines',(await page.locator('#notebookPracticeArea .notebook-line').count())>0);
+await page.locator('#notebookPracticeType').selectOption('mul');
+await page.locator('#newNotebookPractice').click();
+check('random multiplication has four calculations',(await page.locator('#notebookPracticeArea .notebook-line').count())===4);
+
+await page.locator('#customNotebookExpr').selectOption('A*B');
+await page.locator('#startCustomNotebook').click();
+check('custom matrices produce line-by-line AB',(await page.locator('#customNotebookArea .notebook-line').count())===4);
+await fillStage(page,'#customNotebookArea',0,[12,-13,5,1]);
+
 // Teacher examples: 3x4 · 4x2 and f(A).
 await page.locator('.nav-btn[data-section="teacher"]').click();
 await page.locator('#openTeacherABNotebook').click();
