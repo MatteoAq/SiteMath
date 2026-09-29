@@ -40,12 +40,11 @@ await page.reload({waitUntil:'networkidle'});
 check('notes persist',(await page.locator('#studyNotes').inputValue())==='черновик: 2·3 + 3·2 = 12');
 
 // Task 1 must contain every arithmetic line, not just final matrices.
-check('task1 has five notebook stages',(await page.locator('#task1Notebook .notebook-stage').count())===5);
+check('task1 has four notebook stages',(await page.locator('#task1Notebook .notebook-stage').count())===4);
 await fillStage(page,'#task1Notebook',0,[4,6,-2,8]);
 await fillStage(page,'#task1Notebook',1,[9,-15,6,-3]);
 await fillStage(page,'#task1Notebook',2,[12,-13,5,1]);
-await fillStage(page,'#task1Notebook',3,[-5,21,-8,11]);
-await fillStage(page,'#task1Notebook',4,[7,8,-3,12]);
+await fillStage(page,'#task1Notebook',3,[7,8,-3,12]);
 
 // Task 2: powers are expanded into four row×column calculations each.
 await page.locator('#openTask2Notebook').click();
