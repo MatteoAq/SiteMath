@@ -146,7 +146,7 @@
   function scalarStage(title,k,m,label){
     const lines=[],out=m.map(r=>r.map(v=>M.roundNumber(k*v)));
     for(let i=0;i<m.length;i++)for(let j=0;j<m[0].length;j++)
-      lines.push({html:`${cellLabel(label||'c',i,j)}: ${esc(fmt(k))} · ${esc(signed(m[i][j]))}`,expr:'',expected:out[i][j]});
+      lines.push({html:`${esc(fmt(k))} · ${esc(signed(m[i][j]))}`,expr:'',expected:out[i][j]});
     return {title,lines,resultMatrix:out};
   }
   function multiplyStage(title,A,B,label='c'){
@@ -165,16 +165,24 @@
     return {title,lines,resultMatrix:out};
   }
 
+  function combineThreeStage(title,A,B,C,label='C'){
+    const out=A.map((row,i)=>row.map((v,j)=>M.roundNumber(v-B[i][j]+C[i][j])));
+    const lines=[];
+    for(let i=0;i<A.length;i++)for(let j=0;j<A[0].length;j++)
+      lines.push({html:`${cellLabel(label,i,j)}: ${esc(signed(A[i][j]))} − ${esc(signed(B[i][j]))} + ${esc(signed(C[i][j]))}`,expr:'',expected:out[i][j]});
+    return {title,lines,resultMatrix:out};
+  }
+
+
   function buildTask1(){
     const box=$('#task1Notebook');if(!box)return;
     const A=[[2,3],[-1,4]],B=[[3,-5],[2,-1]];
-    const A2=M.scale(A,2),B3=M.scale(B,3),AB=M.multiply(A,B),D=M.sub(A2,B3),C=M.add(D,AB);
+    const A2=M.scale(A,2),B3=M.scale(B,3),AB=M.multiply(A,B);
     sequentialNotebook(box,[
-      scalarStage('1. Умножаем A на 2',2,A,'(2A)'),
-      scalarStage('2. Умножаем B на 3',3,B,'(3B)'),
-      multiplyStage('3. Считаем AB по каждому элементу',A,B,'(AB)'),
-      combineStage('4. Считаем D = 2A − 3B',A2,B3,'−','D'),
-      combineStage('5. Считаем C = D + AB',D,AB,'+','C')
+      scalarStage('1. 2A = 2 · A',2,A,'2A'),
+      scalarStage('2. 3B = 3 · B',3,B,'3B'),
+      multiplyStage('3. AB – строка A × столбец B',A,B,'c'),
+      combineThreeStage('4. C = 2A − 3B + AB',A2,B3,AB,'c')
     ]);
   }
 
