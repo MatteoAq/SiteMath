@@ -468,16 +468,26 @@
   }
 
   function createRankRowInputs(){
-    const box=$('#rankRowAnswer');if(!box)return;
-    box.innerHTML='';
-    box.style.gridTemplateColumns=`repeat(${rankStairState.matrix[0].length},minmax(54px,64px))`;
-    rankStairState.userRow=Array(rankStairState.matrix[0].length).fill('');
-    for(let j=0;j<rankStairState.matrix[0].length;j++){
-      const inp=document.createElement('input');
+    const st=rankStairState,box=$('#rankRowAnswer');if(!box)return;
+    box.innerHTML='';box.className='rank-arithmetic-lines';
+    rankStairState.userRow=Array(st.matrix[0].length).fill('');
+    const p=st.matrix[st.pivotRow][st.pivotCol];
+    const t=st.matrix[st.targetRow][st.pivotCol];
+    for(let j=0;j<st.matrix[0].length;j++){
+      const row=document.createElement('div');row.className='notebook-line';
+      const expr=document.createElement('div');expr.className='notebook-expression';
+      const lower=st.matrix[st.targetRow][j],upper=st.matrix[st.pivotRow][j];
+      if(st.mode==='add'){
+        expr.textContent=`${M.fmt(lower)} + (${M.fmt(st.k)}) · ${M.fmt(upper)}`;
+      }else{
+        expr.textContent=`${M.fmt(p)} · ${M.fmt(lower)} − ${M.fmt(t)} · ${M.fmt(upper)}`;
+      }
+      const eq=document.createElement('span');eq.className='notebook-equals';eq.textContent='=';
+      const inp=document.createElement('input');inp.className='notebook-input';
       inp.inputMode='decimal';inp.placeholder='?';
-      inp.setAttribute('aria-label',`Новая строка, элемент ${j+1}`);
+      inp.setAttribute('aria-label',`Новая ${ordinalRow(st.targetRow)}, элемент ${j+1}`);
       inp.addEventListener('input',()=>{rankStairState.userRow[j]=inp.value;inp.classList.remove('cell-ok','cell-bad')});
-      box.append(inp);
+      row.append(expr,eq,inp);box.append(row);
     }
   }
 
@@ -536,7 +546,7 @@
           feedback.classList.remove('hidden');
           if(ok){
             createRankRowInputs();
-            $('#rankRowPrompt').textContent=`Впиши новую ${ordinalRow(st.targetRow)} целиком`;
+            $('#rankRowPrompt').textContent=`Посчитай каждый элемент новой ${ordinalRow(st.targetRow)}`;
             $('#rankRowArea').classList.remove('hidden');
             $('#rankStepHint').textContent=`Для каждого столбца: элемент новой строки = элемент старой ${ordinalRow(st.targetRow)} + (${M.fmt(st.k)}) · соответствующий элемент ${ordinalRow(st.pivotRow)}.`;
           }
@@ -545,7 +555,7 @@
     }else{
       $('#rankInstruction').innerHTML=`<p>Опорный элемент – <b>${M.fmt(p)}</b>, а под ним стоит <b>${M.fmt(t)}</b>.</p><p>Если делать через обычный множитель, получится дробь. Чтобы считать как в тетради без дробей:</p><div class="formula-box">новая ${ordinalRow(st.targetRow)} = ${M.fmt(p)} · старая ${ordinalRow(st.targetRow)} − ${M.fmt(t)} · ${ordinalRow(st.pivotRow)}</div><p>В нужном столбце автоматически получится ${M.fmt(p)}·${M.fmt(t)} − ${M.fmt(t)}·${M.fmt(p)} = 0.</p>`;
       createRankRowInputs();
-      $('#rankRowPrompt').textContent=`Посчитай и впиши новую ${ordinalRow(st.targetRow)}`;
+      $('#rankRowPrompt').textContent=`Посчитай каждый элемент новой ${ordinalRow(st.targetRow)}`;
       $('#rankRowArea').classList.remove('hidden');
       $('#rankStepHint').textContent=`Считай каждый столбец отдельно по той же формуле: ${M.fmt(p)} · (элемент нижней строки) − ${M.fmt(t)} · (элемент опорной строки).`;
     }
