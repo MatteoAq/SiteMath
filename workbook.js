@@ -54,8 +54,8 @@
   function compileExpr(raw,vars=['x']){
     let s=normalizeSimple(raw).replace(/\^/g,'**');
     for(const v of vars){
-      s=s.replace(new RegExp('(\\d|\\))'+v,'g'),`$1*${v}`);
-      s=s.replace(new RegExp(v+'(\\d|\\()','g'),`${v}*$1`);
+      s=s.replace(new RegExp('(\\\\d|\\\\))'+v,'g'),`$1*${v}`);
+      s=s.replace(new RegExp(v+'(\\\\d|\\\\()','g'),`${v}*$1`);
     }
     s=s.replace(/\)(?=[a-z0-9(])/g,')*').replace(/([a-z0-9])\(/g,'$1*(');
     if(!/^[0-9a-z+\-*/().]*$/.test(s))throw new Error('Недопустимое выражение');
