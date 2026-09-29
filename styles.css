@@ -101,3 +101,23 @@ html,body{max-width:100%;overflow-x:hidden}.content,.section,.card,.result-card,
   .manual-choice button,.manual-choice select{width:100%}
   .task-card .workspace{grid-template-columns:1fr}
 }
+
+
+/* Rank through minors */
+.rank-explain p{margin-top:.35rem}
+.rank-human-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.rank-human-steps>div{display:flex;align-items:flex-start;gap:10px;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.rank-human-steps p{margin:0;color:var(--text)}
+.teacher-rank-shortcut .formula-box{margin-top:12px}
+.rank-minor-stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,320px);gap:24px;align-items:start;margin-top:16px}
+.rank-minor-answer{display:grid;gap:10px}
+.rank-minor-answer label{display:grid;gap:7px;color:var(--muted);font-size:13px;font-weight:700}
+.rank-minor-answer .answer-scalar{width:100%}
+.rank-minor-source{font-size:13px;margin-top:8px}
+#rankMinorMatrix .matrix-scroll{margin:0}
+#rankFinalCard .input-action-row{align-items:end}
+@media(max-width:780px){
+  .rank-human-steps{grid-template-columns:1fr}
+  .rank-minor-stage{grid-template-columns:1fr}
+  .rank-minor-answer{grid-template-columns:1fr}
+}
