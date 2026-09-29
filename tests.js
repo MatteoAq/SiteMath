@@ -26,10 +26,11 @@ for(const id of [
   'buildDetNotebook','detNotebook','buildVarDetNotebook','varDetNotebook',
   'rankStairMatrix','rankRowAnswer','rankGuess',
   'teacherABNotebook','functionNotebook','trigDetNotebook','symbolicDetNotebook',
-  'teacherSheetImage'
+  'notebookPracticeArea','customNotebookArea','startCustomNotebook','teacherSheetImage'
 ]) assert('HTML #'+id,html.includes('id="'+id+'"'));
 
 assert('notebook engine exists',workbook.includes('sequentialNotebook')&&workbook.includes('multiplyStage')&&workbook.includes('buildVariableDet'));
+assert('custom notebook builder',workbook.includes('buildCustomNotebook')&&workbook.includes('buildRandomPractice'));
 assert('task1 has line arithmetic',workbook.includes("scalarStage('1. Умножаем A на 2'")&&workbook.includes("multiplyStage('3. Считаем AB по каждому элементу'"));
 assert('det has Sarrus stages',workbook.includes('Три произведения со знаком «+»')&&workbook.includes('Три произведения со знаком «−»'));
 assert('rank row arithmetic shown',app.includes("row.className='notebook-line'")&&app.includes('Посчитай каждый элемент новой'));
