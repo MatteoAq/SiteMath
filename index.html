@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111827">
   <title>Матрицы – подготовка к контрольной</title>
-  <link rel="stylesheet" href="styles.css?v=20260929e">
+  <link rel="stylesheet" href="styles.css?v=20260929g">
 </head>
 <body>
   <header class="topbar">
@@ -38,7 +38,7 @@
           <div><b>Мои заметки / черновик</b><span class="muted"> – пиши вычисления как в тетради, текст сохраняется на этом устройстве.</span></div>
           <button class="ghost compact" id="toggleStudyNotes" type="button">Свернуть</button>
         </div>
-        <textarea id="studyNotes" rows="4" placeholder="Например: c11 = 2·3 + 3·2 = 12&#10;R2 ← R2 + 5R1"></textarea>
+        <textarea id="studyNotes" rows="4" placeholder="Например: c11 = 2·3 + 3·2 = 12&#10;det A = 91, значит rank A = 3"></textarea>
         <div class="notes-status muted" id="notesStatus">Сохраняется автоматически</div>
       </aside>
       <section id="start" class="section active">
@@ -325,59 +325,81 @@
       </section>
 
       <section id="rank" class="section">
-        <div class="section-head"><div><div class="eyebrow">Решай сам</div><h1>Ранг матрицы – метод Гаусса</h1><p class="muted">Здесь ты сам выполняешь преобразования строк. Сайт только применяет выбранную тобой операцию и в конце проверяет ранг.</p></div></div>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Решай как в обычной записи</div>
+            <h1>Ранг матрицы – через миноры</h1>
+            <p class="muted">Без R₁, R₂ и команд над строками. Здесь логика такая: ищем определитель самого большого возможного порядка. Если он не равен нулю – ранг найден.</p>
+          </div>
+        </div>
 
-        <div class="grid-2">
+        <article class="card rank-explain">
+          <h2>Что вообще ищем</h2>
+          <p><b>Ранг</b> – порядок самого большого ненулевого минора матрицы.</p>
+          <div class="rank-human-steps">
+            <div><span class="step-badge">1</span><p>Смотри на размер матрицы. Для 3×3 ранг не может быть больше 3.</p></div>
+            <div><span class="step-badge">2</span><p>Сначала проверяем минор максимально возможного порядка. У квадратной 3×3 это просто <b>det(A)</b>.</p></div>
+            <div><span class="step-badge">3</span><p>Если det ≠ 0 – всё, ранг равен 3. Если det = 0 – ищем ненулевой минор меньшего порядка.</p></div>
+          </div>
+          <div class="hint"><b>Минор порядка k</b> – это определитель квадратной таблицы k×k, которую берём из исходной матрицы.</div>
+        </article>
+
+        <div class="grid-2 top-gap">
           <article class="card">
             <div class="matrix-title-row"><h2>Исходная матрица</h2><div class="size-controls" id="sizeRank"></div></div>
             <div id="matrixRank" class="matrix-editor"></div>
             <div class="quick-row top-gap-small">
-              <button id="loadTeacherRank" class="secondary">Загрузить пример с листка</button>
-              <button id="rankReset" class="ghost">Сбросить преобразования</button>
+              <button id="loadTeacherRank" class="secondary">Пример №2 с листа</button>
+              <button id="rankStartMinor" class="primary">Начать с этой матрицей</button>
             </div>
           </article>
-          <article class="card">
-            <h2>Цель</h2>
-            <p>Получить ступенчатый вид. Ранг равен числу ненулевых строк после преобразований.</p>
-            <div class="formula-box">Rᵢ ↔ Rⱼ<br>Rᵢ ← kRᵢ, k ≠ 0<br>Rᵢ ← Rᵢ + kRⱼ</div>
-            <button id="showRankHint" class="ghost top-gap-small">Подсказка для первого шага</button>
-            <div id="rankManualHint" class="hint hidden">Для примера с листка удобно начать с зануления элементов под первым элементом: например R₂ ← R₂ + 5R₁ и R₃ ← R₃ + 4R₁.</div>
+
+          <article class="card teacher-rank-shortcut">
+            <div class="eyebrow">Для выделенного примера №2</div>
+            <h2>Почему здесь не нужен Гаусс</h2>
+            <p>Матрица квадратная 3×3. Значит сначала достаточно вычислить её обычный определитель третьего порядка.</p>
+            <div class="formula-box">det(A) ≠ 0 ⇒ rank(A) = 3</div>
+            <p class="muted">Само значение det сайт заранее не показывает – его вводишь ты ниже.</p>
           </article>
         </div>
 
-        <article class="card top-gap">
-          <div class="work-step-head"><div><span class="step-badge">1</span><h2>Текущая матрица</h2></div><span class="muted">Она меняется только после твоей команды</span></div>
-          <div id="rankWorkingMatrix" class="rank-working top-gap-small"></div>
-
-          <div class="rank-operation-panel top-gap">
-            <label>Операция
-              <select id="rankOperation">
-                <option value="add">Rᵢ ← Rᵢ + kRⱼ</option>
-                <option value="swap">Rᵢ ↔ Rⱼ</option>
-                <option value="scale">Rᵢ ← kRᵢ</option>
-              </select>
-            </label>
-            <label>Rᵢ <select id="rankRowA"></select></label>
-            <label id="rankRowBLabel">Rⱼ <select id="rankRowB"></select></label>
-            <label id="rankFactorLabel">k <input id="rankFactor" value="1" inputmode="decimal"></label>
-            <button id="applyRankOperation" class="primary">Применить</button>
-            <button id="rankUndo" class="ghost">Отменить шаг</button>
+        <article class="card top-gap" id="rankMinorCard">
+          <div class="work-step-head">
+            <div><span class="step-badge">1</span><h2 id="rankMinorTitle">Проверяем минор</h2></div>
+            <span class="badge" id="rankUpperBound"></span>
           </div>
-          <div id="rankOperationError" class="message error hidden"></div>
-          <div id="rankHistory" class="rank-history top-gap-small"></div>
+          <p class="muted" id="rankMinorExplain"></p>
+
+          <div class="rank-minor-stage">
+            <div>
+              <div class="given-title">Минор, который сейчас считаем</div>
+              <div id="rankMinorMatrix"></div>
+              <div class="muted rank-minor-source" id="rankMinorSource"></div>
+            </div>
+            <div class="rank-minor-answer">
+              <label>Мой определитель этого минора
+                <input id="rankMinorDetGuess" class="answer-scalar" inputmode="decimal" placeholder="?">
+              </label>
+              <button id="checkRankMinorDet" class="primary">Проверить det</button>
+              <button id="rankMinorHintButton" class="ghost">Подсказка по вычислению</button>
+            </div>
+          </div>
+
+          <div id="rankMinorHint" class="hint hidden"></div>
+          <div id="rankMinorFeedback" class="message hidden"></div>
+          <button id="rankNextMinor" class="secondary hidden top-gap-small">Следующий минор</button>
         </article>
 
-        <article class="card top-gap">
-          <div class="work-step-head"><div><span class="step-badge">2</span><h2>Какой ранг получился?</h2></div></div>
+        <article class="card top-gap" id="rankFinalCard">
+          <div class="work-step-head"><div><span class="step-badge">2</span><h2>Запиши ранг</h2></div></div>
+          <p class="muted" id="rankConclusionPrompt">Сначала проверь минор выше. После этого сайт попросит сделать вывод.</p>
           <div class="input-action-row">
-            <input id="rankGuess" class="answer-scalar" inputmode="numeric" placeholder="rank = ?">
+            <input id="rankGuess" class="answer-scalar" inputmode="numeric" placeholder="rank(A) = ?">
             <button id="checkRankGuess" class="primary">Проверить мой ответ</button>
-            <button id="solveRank" class="secondary">Показать готовое решение</button>
           </div>
           <div id="rankGuessFeedback" class="message hidden"></div>
           <div id="rankError" class="message error hidden"></div>
         </article>
-        <div id="rankOutput" class="hidden top-gap"></div>
       </section>
 
       <section id="practice" class="section">
@@ -488,7 +510,7 @@
           <article class="card"><h3>det 2×2</h3><div class="formula-box">|a b; c d| = ad−bc</div><p><b>Запомнить:</b> главная диагональ минус побочная.</p></article>
           <article class="card"><h3>det 3×3</h3><div class="formula-box">aei+bfg+cdh−ceg−bdi−afh</div><p><b>Как:</b> правило Саррюса.</p></article>
           <article class="card"><h3>Когда det = 0</h3><div class="formula-box">Rᵢ = kRⱼ ⇒ det(A)=0</div><p><b>Быстрая проверка:</b> пропорциональные строки или столбцы делают определитель нулём.</p></article>
-          <article class="card"><h3>Ранг</h3><div class="formula-box">rank A = число ведущих элементов</div><p><b>Как:</b> методом Гаусса получить ступенчатый вид.</p></article>
+          <article class="card"><h3>Ранг</h3><div class="formula-box">rank A = порядок наибольшего ненулевого минора</div><p><b>Для 3×3:</b> если det(A) ≠ 0, то rank(A)=3. Если det=0 – проверяем миноры 2×2.</p></article>
           <article class="card"><h3>f(A)</h3><div class="formula-box">x²+2x−4 → A²+2A−4I</div><p><b>Важно:</b> число без A превращается в число·I.</p></article>
           <article class="card"><h3>(AB)ᵀ</h3><div class="formula-box">(AB)ᵀ = BᵀAᵀ</div><p><b>Важно:</b> порядок меняется.</p></article>
           <article class="card"><h3>A²−B²</h3><div class="formula-box">(A−B)(A+B)=A²+AB−BA−B²</div><p><b>Вывод:</b> равно A²−B² только когда AB=BA.</p></article>
@@ -498,7 +520,7 @@
   </div>
 
   <footer>Работает полностью в браузере, без отправки введённых матриц на сервер.</footer>
-  <script src="matrix-core.js?v=20260929e"></script>
-  <script src="app.js?v=20260929e"></script>
+  <script src="matrix-core.js?v=20260929g"></script>
+  <script src="app.js?v=20260929g"></script>
 </body>
 </html>
