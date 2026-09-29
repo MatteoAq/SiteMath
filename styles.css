@@ -253,3 +253,5 @@ html,body{max-width:100%;overflow-x:hidden}.content,.section,.card,.result-card,
   .notebook-locked .notebook-stage-head h3{font-size:17px}
   .notebook-locked:after{margin-left:37px}
 }
+
+.notebook-locked .notebook-stage-head p{display:none!important}
