@@ -393,100 +393,172 @@
 
   $('#teacherDet1Button')?.addEventListener('click',()=>{go('det');setMatrix('Det',[[3,-2,1],[-2,1,3],[2,0,-2]])});
   $('#teacherDet2Button')?.addEventListener('click',()=>{go('det');setMatrix('Det',[[1,2,0],[0,1,3],[5,0,-1]])});
-  let rankWorking=state.values.Rank.map(r=>r.map(Number));
-  let rankSnapshots=[];
+  // Ранг через миноры. Это основной учебный способ в интерфейсе:
+  // пользователь сам считает det выбранного минора, сайт только проверяет.
+  const rankMinorState={matrix:null,k:0,minors:[],index:0,provenRank:null};
 
-  function fillRankRowSelects(){
-    const rows=rankWorking.length;
-    for(const id of ['#rankRowA','#rankRowB']){
-      const el=$(id); if(!el)continue;
-      const prev=Number(el.value)||1;
-      el.innerHTML='';
-      for(let i=1;i<=rows;i++)el.add(new Option(`R${i}`,i));
-      el.value=String(Math.min(prev,rows));
+  function combinations(n,k){
+    const out=[];
+    function rec(start,arr){
+      if(arr.length===k){out.push(arr.slice());return}
+      for(let i=start;i<=n-(k-arr.length);i++){arr.push(i);rec(i+1,arr);arr.pop()}
     }
-    if($('#rankRowB') && rows>1 && $('#rankRowB').value===$('#rankRowA')?.value)$('#rankRowB').value='2';
+    rec(0,[]);
+    return out;
   }
-  function renderRankWorking(){
-    const el=$('#rankWorkingMatrix'); if(!el)return;
-    el.innerHTML=matrixHTML(rankWorking);
-    fillRankRowSelects();
-    const history=$('#rankHistory');
-    if(history){
-      const labels=rankSnapshots.map((x,i)=>`<div class="history-line"><b>${i+1}.</b> ${escapeHtml(x.label)}</div>`).join('');
-      history.innerHTML=labels||'<span class="muted">Пока преобразований нет.</span>';
-    }
-  }
-  function resetRankWorking(){
-    try{rankWorking=getNumeric('Rank').map(r=>r.slice())}
-    catch{rankWorking=state.values.Rank.map(r=>r.map(Number))}
-    rankSnapshots=[];
-    renderRankWorking();
-    $('#rankOperationError')?.classList.add('hidden');
-    $('#rankGuessFeedback')?.classList.add('hidden');
-  }
-  function loadTeacherRank(){setMatrix('Rank',[[-1,2,-3],[5,6,-2],[4,-3,1]]);resetRankWorking()}
-  $('#loadTeacherRank').addEventListener('click',loadTeacherRank); $('#teacherRankButton').addEventListener('click',()=>{go('rank');loadTeacherRank()});
-  $('#rankReset')?.addEventListener('click',resetRankWorking);
-  $('#rankUndo')?.addEventListener('click',()=>{
-    const snap=rankSnapshots.pop(); if(!snap)return;
-    rankWorking=snap.before.map(r=>r.slice());renderRankWorking();
-  });
-  $('#rankOperation')?.addEventListener('change',()=>{
-    const op=$('#rankOperation').value;
-    $('#rankRowBLabel')?.classList.toggle('hidden',op==='scale');
-    $('#rankFactorLabel')?.classList.toggle('hidden',op==='swap');
-  });
-  $('#showRankHint')?.addEventListener('click',()=>$('#rankManualHint')?.classList.toggle('hidden'));
-  $('#applyRankOperation')?.addEventListener('click',()=>{
-    const err=$('#rankOperationError');err?.classList.add('hidden');
-    try{
-      const op=$('#rankOperation').value;
-      const a=Number($('#rankRowA').value)-1;
-      const b=Number($('#rankRowB').value)-1;
-      const before=rankWorking.map(r=>r.slice());
-      let label='';
-      if(op==='swap'){
-        if(a===b)throw new Error('Выбери две разные строки.');
-        [rankWorking[a],rankWorking[b]]=[rankWorking[b],rankWorking[a]];
-        label=`R${a+1} ↔ R${b+1}`;
-      }else if(op==='scale'){
-        const k=M.parseNumber($('#rankFactor').value);
-        if(Math.abs(k)<M.EPS)throw new Error('Умножать строку на 0 нельзя – это меняет ранг.');
-        rankWorking[a]=rankWorking[a].map(v=>M.roundNumber(v*k));
-        label=`R${a+1} ← ${M.fmt(k)}R${a+1}`;
-      }else{
-        if(a===b)throw new Error('Rᵢ и Rⱼ должны быть разными строками.');
-        const k=M.parseNumber($('#rankFactor').value);
-        rankWorking[a]=rankWorking[a].map((v,j)=>M.roundNumber(v+k*rankWorking[b][j]));
-        label=`R${a+1} ← R${a+1} + (${M.fmt(k)})R${b+1}`;
-      }
-      rankSnapshots.push({before,label});
-      renderRankWorking();
-    }catch(e){if(err){err.textContent=e.message||String(e);err.classList.remove('hidden')}}
-  });
-  $('#checkRankGuess')?.addEventListener('click',()=>{
-    const f=$('#rankGuessFeedback');
-    try{
-      const guess=M.parseNumber($('#rankGuess').value);
-      const actual=M.rank(getNumeric('Rank'));
-      const ok=M.approxEqual(guess,actual);
-      f.className=`message ${ok?'success':'error'}`;
-      f.textContent=ok?'Верно. Ранг найден правильно.':'Нет. Посчитай число ненулевых строк в своём ступенчатом виде.';
-      f.classList.remove('hidden');
-    }catch(e){showError('#rankError',e)}
-  });
-  renderRankWorking();
 
-  $('#solveRank').addEventListener('click',()=>{
+  function minorMatrix(matrix,rows,cols){
+    return rows.map(r=>cols.map(c=>matrix[r][c]));
+  }
+
+  function buildMinors(matrix,k){
+    const rowSets=combinations(matrix.length,k);
+    const colSets=combinations(matrix[0].length,k);
+    const out=[];
+    for(const rows of rowSets)for(const cols of colSets){
+      out.push({rows,cols,matrix:minorMatrix(matrix,rows,cols)});
+    }
+    return out;
+  }
+
+  function humanIndexList(list){
+    return list.map(x=>x+1).join(', ');
+  }
+
+  function rankHintForOrder(k){
+    if(k===1)return 'Минор 1×1 – это просто один выбранный элемент. Его определитель равен самому элементу.';
+    if(k===2)return 'Для 2×2 используй ad − bc: главная диагональ минус побочная.';
+    if(k===3)return 'Для 3×3 используй то же правило, что в разделе определителей: правило Саррюса – три произведения со знаком «+» и три со знаком «−».';
+    return 'Для минора '+k+'×'+k+' считай обычный определитель этого порядка. Если на занятии для 4×4 использовали специальный приём, можно вести вычисления в черновике сверху.';
+  }
+
+  function prepareRankOrder(k){
+    rankMinorState.k=k;
+    rankMinorState.minors=buildMinors(rankMinorState.matrix,k);
+    rankMinorState.index=0;
+    renderRankMinor();
+  }
+
+  function renderRankMinor(){
+    const m=rankMinorState.matrix;
+    if(!m)return;
+    const k=rankMinorState.k;
+    const item=rankMinorState.minors[rankMinorState.index];
+    $('#rankUpperBound').textContent=`rank(A) ≤ ${Math.min(m.length,m[0].length)}`;
+    $('#rankMinorTitle').textContent=`Проверяем минор ${k}-го порядка`;
+    $('#rankMinorExplain').textContent=k===Math.min(m.length,m[0].length)
+      ? `Начинаем с максимально возможного порядка: ${k}.`
+      : `Все проверенные миноры порядка ${k+1} оказались нулевыми, поэтому переходим к порядку ${k}.`;
+    $('#rankMinorMatrix').innerHTML=matrixHTML(item.matrix);
+    $('#rankMinorSource').textContent=`Берём строки ${humanIndexList(item.rows)} и столбцы ${humanIndexList(item.cols)} исходной матрицы. Минор ${rankMinorState.index+1} из ${rankMinorState.minors.length} этого порядка.`;
+    $('#rankMinorDetGuess').value='';
+    $('#rankMinorFeedback').classList.add('hidden');
+    $('#rankNextMinor').classList.add('hidden');
+    $('#rankMinorHint').classList.add('hidden');
+    $('#rankMinorHint').textContent=rankHintForOrder(k);
+    $('#rankConclusionPrompt').textContent='Сначала правильно вычисли определитель текущего минора.';
+    $('#rankGuessFeedback').classList.add('hidden');
+  }
+
+  function resetRankMinorTrainer(){
     clearError('#rankError');
     try{
-      const a=getNumeric('Rank'),r=M.rankWithSteps(a);
-      const shown=r.steps.slice(0,14);
-      $('#rankOutput').innerHTML=`<div class="result-card"><div class="result-main"><div><div class="result-label">Ранг</div><div class="result-scalar">${r.rank}</div></div><div><div class="result-label">Итоговый приведённый вид</div>${matrixHTML(r.rref)}</div></div><div class="rank-steps top-gap">${shown.map((s,i)=>`<div class="rank-step"><b>${i+1}. ${escapeHtml(s.text)}</b>${matrixHTML(s.matrix)}</div>`).join('')}${r.steps.length>shown.length?`<div class="muted">Промежуточных операций ещё ${r.steps.length-shown.length}; итоговая матрица показана выше.</div>`:''}</div></div>`;
-      $('#rankOutput').classList.remove('hidden');window.__lastRankResult=r.rank;
-    }catch(e){showError('#rankError',e);$('#rankOutput').classList.add('hidden')}
+      rankMinorState.matrix=getNumeric('Rank').map(r=>r.slice());
+      const [rows,cols]=M.shape(rankMinorState.matrix);
+      rankMinorState.provenRank=null;
+      $('#rankGuess').value='';
+      prepareRankOrder(Math.min(rows,cols));
+    }catch(e){showError('#rankError',e)}
+  }
+
+  function loadTeacherRank(){
+    setMatrix('Rank',[[-1,2,-3],[5,6,-2],[4,-3,1]]);
+    resetRankMinorTrainer();
+  }
+
+  $('#loadTeacherRank').addEventListener('click',loadTeacherRank);
+  $('#teacherRankButton').addEventListener('click',()=>{go('rank');loadTeacherRank()});
+  $('#rankStartMinor')?.addEventListener('click',resetRankMinorTrainer);
+  $('#rankMinorHintButton')?.addEventListener('click',()=>$('#rankMinorHint')?.classList.toggle('hidden'));
+
+  $('#checkRankMinorDet')?.addEventListener('click',()=>{
+    const feedback=$('#rankMinorFeedback');
+    try{
+      const item=rankMinorState.minors[rankMinorState.index];
+      const actual=M.determinant(item.matrix);
+      const guess=M.parseNumber($('#rankMinorDetGuess').value);
+      const ok=M.approxEqual(guess,actual);
+      feedback.className=`message ${ok?'success':'error'}`;
+      if(!ok){
+        feedback.textContent='Не совпадает. Пересчитай именно определитель показанного минора.';
+        feedback.classList.remove('hidden');
+        return;
+      }
+
+      if(Math.abs(actual)>M.EPS){
+        rankMinorState.provenRank=rankMinorState.k;
+        feedback.textContent=`Верно: det = ${M.fmt(actual)} ≠ 0. Значит существует ненулевой минор порядка ${rankMinorState.k}.`;
+        $('#rankConclusionPrompt').innerHTML=`Мы нашли ненулевой минор порядка <b>${rankMinorState.k}</b>. Более высокий порядок уже исключён, поэтому теперь сделай вывод и впиши rank(A).`;
+      }else{
+        feedback.textContent=`Верно: det = 0. Этот минор ранг ${rankMinorState.k} не доказывает.`;
+        $('#rankNextMinor').classList.remove('hidden');
+        const last=rankMinorState.index===rankMinorState.minors.length-1;
+        $('#rankNextMinor').textContent=last
+          ? (rankMinorState.k>1?`Все миноры ${rankMinorState.k}-го порядка проверены – перейти к ${rankMinorState.k-1}-му`:'Закончить проверку')
+          : 'Проверить следующий минор этого порядка';
+      }
+      feedback.classList.remove('hidden');
+    }catch(e){showError('#rankError',e)}
   });
+
+  $('#rankNextMinor')?.addEventListener('click',()=>{
+    const last=rankMinorState.index===rankMinorState.minors.length-1;
+    if(!last){
+      rankMinorState.index++;
+      renderRankMinor();
+      return;
+    }
+    if(rankMinorState.k>1){
+      prepareRankOrder(rankMinorState.k-1);
+      return;
+    }
+    rankMinorState.provenRank=0;
+    $('#rankConclusionPrompt').innerHTML='Все элементы равны нулю, значит <b>rank(A)=0</b>. Впиши это как итог.';
+    $('#rankNextMinor').classList.add('hidden');
+  });
+
+  $('#checkRankGuess')?.addEventListener('click',()=>{
+    const feedback=$('#rankGuessFeedback');
+    try{
+      if(rankMinorState.provenRank===null){
+        feedback.className='message error';
+        feedback.textContent='Сначала доведи проверку миноров до момента, когда найден ненулевой минор или доказано, что все элементы нулевые.';
+        feedback.classList.remove('hidden');
+        return;
+      }
+      const guess=M.parseNumber($('#rankGuess').value);
+      const ok=M.approxEqual(guess,rankMinorState.provenRank);
+      feedback.className=`message ${ok?'success':'error'}`;
+      feedback.textContent=ok
+        ? `Верно. rank(A) = ${rankMinorState.provenRank}.`
+        : 'Нет. Ранг равен порядку найденного ненулевого минора.';
+      feedback.classList.remove('hidden');
+    }catch(e){showError('#rankError',e)}
+  });
+
+  function findRankWitness(matrix){
+    const max=Math.min(matrix.length,matrix[0].length);
+    for(let k=max;k>=1;k--){
+      const minors=buildMinors(matrix,k);
+      for(const item of minors){
+        const det=M.determinant(item.matrix);
+        if(Math.abs(det)>M.EPS)return {rank:k,item,det};
+      }
+    }
+    return {rank:0,item:null,det:0};
+  }
+
+  resetRankMinorTrainer();
 
   function preset(name){
     if(name==='expr1'||name==='identity'){
@@ -517,7 +589,7 @@
     if(type==='mul'){p.A=randomMatrix(2,2,-3,4);p.B=randomMatrix(2,2,-3,4);p.answer=M.multiply(p.A,p.B);p.title='Найдите AB';p.hint='Каждый элемент результата – строка A × столбец B. Начни с c₁₁=a₁₁b₁₁+a₁₂b₂₁.'}
     if(type==='det2'){p.A=randomMatrix(2,2,-6,7);p.answer=M.determinant(p.A);p.title='Найдите det(A)';p.hint='Для 2×2: ad−bc.'}
     if(type==='det3'){p.A=randomMatrix(3,3,-3,4);p.answer=M.determinant(p.A);p.title='Найдите det(A)';p.hint='Для 3×3 используй Саррюса: три произведения со знаком + и три со знаком −.'}
-    if(type==='rank'){p.A=randomMatrix(3,3,-4,5);p.answer=M.rank(p.A);p.title='Найдите rank(A)';p.hint='Приводи строки методом Гаусса. Ранг равен числу ведущих элементов.'}
+    if(type==='rank'){p.A=randomMatrix(3,3,-4,5);p.answer=M.rank(p.A);p.title='Найдите rank(A)';p.hint='Для 3×3 сначала посчитай det(A). Если det ≠ 0, сразу rank=3. Если det=0, ищи ненулевой минор 2×2.'}
     state.practice=p;renderPractice();
   }
   function renderPractice(){
@@ -547,7 +619,14 @@
   $('#showPracticeSolution').addEventListener('click',()=>{
     const p=state.practice;if(!p)return;let html='';
     if(p.type==='det2'||p.type==='det3'){const r=M.determinantSteps(p.A);html=`<div class="result-card top-gap-small"><b>Решение:</b><div class="formula-box top-gap-small">${escapeHtml(r.formula)}</div>${r.steps.map(s=>`<div class="step">${escapeHtml(s)}</div>`).join('')}<div class="result-main top-gap-small"><b>Ответ:</b>${matrixHTML(r.value)}</div></div>`}
-    else if(p.type==='rank'){const r=M.rankWithSteps(p.A);html=`<div class="result-card top-gap-small"><b>После преобразований:</b>${matrixHTML(r.rref)}<div class="result-main top-gap-small">rank(A) = <b>${r.rank}</b></div></div>`}
+    else if(p.type==='rank'){
+      const w=findRankWitness(p.A);
+      if(w.rank===0){
+        html='<div class="result-card top-gap-small"><b>Все элементы равны 0.</b><div class="result-main top-gap-small">rank(A) = <b>0</b></div></div>';
+      }else{
+        html=`<div class="result-card top-gap-small"><b>Нашли ненулевой минор ${w.rank}-го порядка:</b>${matrixHTML(w.item.matrix)}<div class="formula-box top-gap-small">det = ${escapeHtml(M.fmt(w.det))} ≠ 0</div><div class="result-main top-gap-small">Значит rank(A) = <b>${w.rank}</b></div></div>`;
+      }
+    }
     else {html=`<div class="result-card top-gap-small"><b>Ответ:</b><div class="top-gap-small">${matrixHTML(p.answer)}</div></div>`}
     $('#practiceSolution').innerHTML=html;$('#practiceSolution').classList.remove('hidden');
   });
