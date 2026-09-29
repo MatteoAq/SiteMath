@@ -78,14 +78,34 @@ await expectSuccess(page,'#varAnswerFeedback','det(x) final answer');
 
 await page.locator('.nav-btn[data-section="rank"]').click();
 await page.locator('#loadTeacherRank').click();
-check('rank section uses minors',await page.locator('#rankMinorMatrix').isVisible());
-check('rank section has no row-operation controls',(await page.locator('#rankOperation').count())===0);
-const rankMinorCells=await page.locator('#rankMinorMatrix .render-matrix span').allTextContents();
-check('teacher rank minor is full 3x3',rankMinorCells.join(',')==='-1,2,-3,5,6,-2,4,-3,1',rankMinorCells.join(','));
-await page.locator('#rankMinorDetGuess').fill('91');
-await page.locator('#checkRankMinorDet').click();
-await expectSuccess(page,'#rankMinorFeedback','rank determinant check');
-check('rank conclusion explains nonzero minor',(await page.locator('#rankConclusionPrompt').textContent()).includes('ненулевой минор'));
+check('rank section teaches staircase',(await page.locator('#rankStageTitle').textContent()).includes('зануляем'));
+check('rank section explains pivot',(await page.locator('#rankInstruction').textContent()).includes('Опорный элемент'));
+
+await page.locator('#rankMultiplierGuess').fill('5');
+await page.locator('#checkRankMultiplier').click();
+await expectSuccess(page,'#rankMultiplierFeedback','rank first multiplier');
+await fillMatrix(page,'#rankRowAnswer',[0,16,-17]);
+await page.locator('#checkRankRow').click();
+await expectSuccess(page,'#rankRowFeedback','rank first row');
+await page.waitForTimeout(350);
+
+await page.locator('#rankMultiplierGuess').fill('4');
+await page.locator('#checkRankMultiplier').click();
+await expectSuccess(page,'#rankMultiplierFeedback','rank second multiplier');
+await fillMatrix(page,'#rankRowAnswer',[0,5,-11]);
+await page.locator('#checkRankRow').click();
+await expectSuccess(page,'#rankRowFeedback','rank second row');
+await page.waitForTimeout(350);
+
+check('fractionless rank step',(await page.locator('#rankInstruction').textContent()).includes('без дробей'));
+await fillMatrix(page,'#rankRowAnswer',[0,0,-91]);
+await page.locator('#checkRankRow').click();
+await expectSuccess(page,'#rankRowFeedback','rank third row');
+await page.waitForTimeout(350);
+
+check('rank staircase complete',(await page.locator('#rankStageTitle').textContent()).includes('готова'));
+const rankCells=await page.locator('#rankStairMatrix .render-matrix span').allTextContents();
+check('rank final staircase',rankCells.join(',')==='-1,2,-3,0,16,-17,0,0,-91',rankCells.join(','));
 await page.locator('#rankGuess').fill('3');
 await page.locator('#checkRankGuess').click();
 await expectSuccess(page,'#rankGuessFeedback','rank answer');
