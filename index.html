@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111827">
   <title>Матрицы – подготовка к контрольной</title>
-  <link rel="stylesheet" href="styles.css?v=20260929h">
+  <link rel="stylesheet" href="styles.css?v=20260929i">
 </head>
 <body>
   <header class="topbar">
@@ -44,11 +44,11 @@
       <section id="start" class="section active">
         <div class="section-head start-head">
           <div>
-            <div class="eyebrow">Начинаем сразу с листа</div>
+            <div class="eyebrow">Решение как в тетради</div>
             <h1>Задание 1. C = 2A − 3B + AB</h1>
-            <p class="lead compact-lead">Решай прямо здесь. В каждую клетку вписывай один элемент матрицы. Сайт не показывает ответ заранее – только проверяет твои шаги.</p>
+            <p class="lead compact-lead">Не вводи готовые матрицы целиком. Считай каждую строку решения по порядку – сайт проверяет именно промежуточные вычисления.</p>
           </div>
-          <button class="secondary" data-go="sheet">Открыть фото листа</button>
+          <button class="secondary" data-go="sheet">Открыть лист преподавателя</button>
         </div>
 
         <div class="card given-card">
@@ -58,111 +58,25 @@
             <div><b>B =</b><div class="matrix-static" data-matrix="3,-5;2,-1"></div></div>
             <div class="target-expression"><b>Найти:</b><span>C = 2A − 3B + AB</span></div>
           </div>
-          <div class="hint">Порядок удобный такой: отдельно найди 2A, 3B и AB, затем D = 2A − 3B, и только после этого C = D + AB. Для умножения AB используется «строка A × столбец B».</div>
         </div>
 
-        <div class="workspace top-gap" id="teacherTaskWorkspace">
-          <article class="card work-step" data-work-step="2A">
-            <div class="work-step-head"><div><span class="step-badge">1</span><h2>Найди 2A</h2></div><span class="muted">Умножь каждый элемент A на 2</span></div>
-            <div class="work-answer" id="work2A"></div>
-            <div class="quick-row top-gap-small">
-              <button class="primary check-work" data-step="2A">Проверить</button>
-              <button class="ghost hint-work" data-step="2A">Подсказка</button>
-            </div>
-            <div class="hint hidden" id="hint2A">Например, верхний левый элемент: 2 · 2 = 4. Так же умножь остальные три элемента.</div>
-            <div class="message hidden" id="feedback2A"></div>
-          </article>
-
-          <article class="card work-step" data-work-step="3B">
-            <div class="work-step-head"><div><span class="step-badge">2</span><h2>Найди 3B</h2></div><span class="muted">Умножь каждый элемент B на 3</span></div>
-            <div class="work-answer" id="work3B"></div>
-            <div class="quick-row top-gap-small">
-              <button class="primary check-work" data-step="3B">Проверить</button>
-              <button class="ghost hint-work" data-step="3B">Подсказка</button>
-            </div>
-            <div class="hint hidden" id="hint3B">Знак сохраняется: например, 3 · (−5) = −15.</div>
-            <div class="message hidden" id="feedback3B"></div>
-          </article>
-
-          <article class="card work-step" data-work-step="AB">
-            <div class="work-step-head"><div><span class="step-badge">3</span><h2>Найди AB</h2></div><span class="muted">Строка A × столбец B</span></div>
-            <div class="work-answer" id="workAB"></div>
-            <div class="quick-row top-gap-small">
-              <button class="primary check-work" data-step="AB">Проверить</button>
-              <button class="ghost hint-work" data-step="AB">Подсказка</button>
-            </div>
-            <div class="hint hidden" id="hintAB">Первый элемент: c₁₁ = 2·3 + 3·2. Для c₁₂ бери первую строку A и второй столбец B.</div>
-            <div class="message hidden" id="feedbackAB"></div>
-          </article>
-
-          <article class="card work-step" data-work-step="D">
-            <div class="work-step-head"><div><span class="step-badge">4</span><h2>Найди D = 2A − 3B</h2></div><span class="muted">Поэлементное вычитание</span></div>
-            <div class="work-answer" id="workD"></div>
-            <div class="quick-row top-gap-small">
-              <button class="primary check-work" data-step="D">Проверить D</button>
-              <button class="ghost hint-work" data-step="D">Подсказка</button>
-            </div>
-            <div class="hint hidden" id="hintD">Вычитай элементы на одинаковых местах. Например, d₁₁ = (2A)₁₁ − (3B)₁₁.</div>
-            <div class="message hidden" id="feedbackD"></div>
-          </article>
-
-          <article class="card work-step final-step" data-work-step="C">
-            <div class="work-step-head"><div><span class="step-badge">5</span><h2>Собери C = D + AB</h2></div><span class="muted">Последнее поэлементное сложение</span></div>
-            <div class="work-answer" id="workC"></div>
-            <div class="quick-row top-gap-small">
-              <button class="primary check-work" data-step="C">Проверить C</button>
-              <button class="ghost hint-work" data-step="C">Подсказка</button>
-              <button class="ghost" id="resetTeacherTask">Очистить поля</button>
-            </div>
-            <div class="hint hidden" id="hintC">Теперь cᵢⱼ = dᵢⱼ + (AB)ᵢⱼ. Нового правила здесь уже нет.</div>
-            <div class="message hidden" id="feedbackC"></div>
-          </article>
-        </div>
-
-        <article class="card top-gap solution-gate">
-          <div>
-            <h2>Если застрял</h2>
-            <p class="muted">Сначала попробуй подсказки у конкретного шага. Полное решение открой только когда действительно нужно.</p>
-          </div>
-          <button class="secondary" id="showTeacherTaskSolution">Показать полное решение</button>
-          <div id="teacherTaskSolution" class="hidden full-width top-gap-small"></div>
-        </article>
+        <div id="task1Notebook" class="notebook top-gap"></div>
 
         <article class="card top-gap next-task-card">
           <div class="next-task-head">
-            <div><div class="eyebrow">Следующее задание с листа</div><h2>Задание 2. K = A² + B²</h2><p class="muted">Те же A и B. Сначала отдельно посчитай две степени, затем сложи результаты.</p></div>
-            <button class="secondary" id="toggleTask2">Открыть задание 2</button>
-          </div>
-          <div id="teacherTask2" class="hidden top-gap-small">
-            <div class="workspace">
-              <article class="work-step subcard" data-work-step="A2">
-                <div class="work-step-head"><div><span class="step-badge">1</span><h3>A² = A·A</h3></div></div>
-                <div class="work-answer" id="workA2"></div>
-                <div class="quick-row top-gap-small"><button class="primary check-work" data-step="A2">Проверить A²</button><button class="ghost hint-work" data-step="A2">Подсказка</button></div>
-                <div class="hint hidden" id="hintA2">A² – это произведение A·A, а не квадрат каждого элемента.</div>
-                <div class="message hidden" id="feedbackA2"></div>
-              </article>
-              <article class="work-step subcard" data-work-step="B2">
-                <div class="work-step-head"><div><span class="step-badge">2</span><h3>B² = B·B</h3></div></div>
-                <div class="work-answer" id="workB2"></div>
-                <div class="quick-row top-gap-small"><button class="primary check-work" data-step="B2">Проверить B²</button><button class="ghost hint-work" data-step="B2">Подсказка</button></div>
-                <div class="hint hidden" id="hintB2">Для каждого элемента снова используй «строка × столбец».</div>
-                <div class="message hidden" id="feedbackB2"></div>
-              </article>
-              <article class="work-step subcard final-step" data-work-step="K">
-                <div class="work-step-head"><div><span class="step-badge">3</span><h3>K = A² + B²</h3></div></div>
-                <div class="work-answer" id="workK"></div>
-                <div class="quick-row top-gap-small"><button class="primary check-work" data-step="K">Проверить K</button><button class="ghost hint-work" data-step="K">Подсказка</button></div>
-                <div class="hint hidden" id="hintK">Сложи A² и B² поэлементно.</div>
-                <div class="message hidden" id="feedbackK"></div>
-              </article>
+            <div>
+              <div class="eyebrow">Следующее задание с того же листа</div>
+              <h2>Задание 2. K = A² + B²</h2>
+              <p class="muted">Здесь A² и B² тоже считаются поэлементно как произведения матриц, а не вводятся готовыми.</p>
             </div>
+            <button class="secondary" id="openTask2Notebook">Открыть задание 2</button>
           </div>
+          <div id="task2Notebook" class="notebook hidden top-gap-small"></div>
         </article>
 
         <div class="next-study top-gap">
-          <button class="secondary" data-go="basics">Не понимаю правило – открыть базу</button>
-          <button class="secondary" data-go="teacher">Перейти к другим примерам с листа</button>
+          <button class="secondary" data-go="basics">Открыть правила</button>
+          <button class="secondary" data-go="teacher">Другие задания с листа</button>
         </div>
       </section>
 
@@ -265,35 +179,39 @@
       </section>
 
       <section id="det" class="section">
-        <div class="section-head"><div><div class="eyebrow">Уровень 2</div><h1>Определители</h1></div></div>
+        <div class="section-head">
+          <div><div class="eyebrow">Полное решение</div><h1>Определители</h1><p class="muted">Сначала расписываешь произведения, потом суммы, и только затем det.</p></div>
+        </div>
+
         <div class="grid-2">
           <article class="card">
-            <div class="matrix-title-row"><h2>Числовой det(A)</h2><div class="size-controls" id="sizeDet"></div></div>
+            <div class="matrix-title-row"><h2>Числовой определитель</h2><div class="size-controls" id="sizeDet"></div></div>
             <div id="matrixDet" class="matrix-editor"></div>
-            <label class="manual-answer-label top-gap-small">Мой ответ det(A)
-              <input id="detGuess" class="answer-scalar" inputmode="decimal" placeholder="?">
-            </label>
             <div class="quick-row top-gap-small">
-              <button id="checkDetGuess" class="primary">Проверить мой ответ</button>
-              <button id="showDetHint" class="ghost">Подсказка</button>
-              <button id="solveDet" class="secondary">Показать решение</button>
+              <button id="buildDetNotebook" class="primary">Решать по шагам</button>
+              <button id="solveDet" class="secondary">Показать готовое решение</button>
             </div>
-            <div id="detManualHint" class="hint hidden">Для 3×3 на этом листе удобнее всего правило Саррюса. Сначала выпиши три произведения со знаком «+», затем три со знаком «−».</div>
-            <div id="detGuessFeedback" class="message hidden"></div>
+            <input id="detGuess" class="hidden" aria-hidden="true">
+            <button id="checkDetGuess" class="hidden" aria-hidden="true"></button>
+            <button id="showDetHint" class="hidden" aria-hidden="true"></button>
+            <div id="detManualHint" class="hidden"></div>
+            <div id="detGuessFeedback" class="hidden"></div>
             <div id="detError" class="message error hidden"></div>
           </article>
           <article class="card theory-card">
-            <h2>Какой способ использовать</h2>
-            <div class="decision"><b>2×2</b><span>ad − bc. Самая короткая формула.</span></div>
-            <div class="decision"><b>3×3</b><span>Правило Саррюса или разложение по строке/столбцу.</span></div>
-            <div class="decision"><b>4×4 и больше</b><span>Обычно удобнее занулять элементы строками и сводить к треугольной матрице.</span></div>
-            <div class="hint">Если строка или столбец содержит много нулей, разложение по ней может быть быстрее.</div>
+            <h2>Что реально пишут</h2>
+            <div class="decision"><b>2×2</b><span>Два произведения → разность.</span></div>
+            <div class="decision"><b>3×3</b><span>По Саррюсу: 3 произведения «плюс», 3 произведения «минус» → две суммы → разность.</span></div>
+            <div class="hint">Сайт ниже не подставляет конечный ответ вместо тебя – он даёт ровно те строки, которые обычно появляются в тетради.</div>
           </article>
         </div>
+        <div id="detNotebook" class="notebook top-gap"></div>
         <div id="detOutput" class="hidden top-gap"></div>
 
         <article class="card top-gap">
-          <div class="section-head compact-head"><div><h2>Уравнение или неравенство с x</h2><p class="muted">Поддерживаются ячейки вида x, −x, 2x, x+2, 3x−5. Этого хватает для заданий с вашего листка.</p></div></div>
+          <div class="section-head compact-head">
+            <div><h2>Уравнение или неравенство с det(A(x))</h2><p class="muted">Здесь тоже сначала полностью раскладываем определитель, а потом решаем получившееся уравнение или неравенство.</p></div>
+          </div>
           <div class="variable-layout">
             <div><div id="matrixX" class="matrix-editor"></div></div>
             <div class="var-side">
@@ -304,22 +222,20 @@
                 <button class="secondary" id="loadTeacherEquation">Загрузить уравнение с листка</button>
                 <button class="secondary" id="loadTeacherIneq">Загрузить неравенство с листка</button>
               </div>
-              <label>Мой det(A)
-                <input id="varPolyGuess" class="wide-input compact-input" placeholder="например: -14x-42">
-              </label>
-              <button id="checkVarPolyGuess" class="primary full">Проверить det(A)</button>
-              <label>Мой конечный ответ
-                <input id="varAnswerGuess" class="wide-input compact-input" placeholder="например: x=-3">
-              </label>
-              <button id="checkVarAnswerGuess" class="primary full">Проверить ответ</button>
-              <button id="showVarDetHint" class="ghost full">Подсказка</button>
+              <button id="buildVarDetNotebook" class="primary full">Решать по шагам</button>
               <button id="solveVariableDet" class="secondary full">Показать готовое решение</button>
+              <input id="varPolyGuess" class="hidden" aria-hidden="true">
+              <button id="checkVarPolyGuess" class="hidden" aria-hidden="true"></button>
+              <input id="varAnswerGuess" class="hidden" aria-hidden="true">
+              <button id="checkVarAnswerGuess" class="hidden" aria-hidden="true"></button>
+              <button id="showVarDetHint" class="hidden" aria-hidden="true"></button>
             </div>
           </div>
-          <div id="varManualHint" class="hint hidden">Сначала вычисли сам определитель как выражение от x. После этого решай обычное уравнение или неравенство. Для неравенства после нахождения корней используй метод интервалов.</div>
-          <div id="varPolyFeedback" class="message hidden"></div>
-          <div id="varAnswerFeedback" class="message hidden"></div>
+          <div id="varManualHint" class="hidden"></div>
+          <div id="varPolyFeedback" class="hidden"></div>
+          <div id="varAnswerFeedback" class="hidden"></div>
           <div id="varDetError" class="message error hidden"></div>
+          <div id="varDetNotebook" class="notebook top-gap-small"></div>
           <div id="varDetOutput" class="hidden"></div>
         </article>
       </section>
@@ -453,61 +369,37 @@
       </section>
 
       <section id="teacher" class="section">
-        <div class="section-head"><div><div class="eyebrow">По фотографии</div><h1>Примеры преподавателя</h1></div></div>
+        <div class="section-head"><div><div class="eyebrow">По фотографии</div><h1>Задания преподавателя</h1><p class="muted">Каждый пример открывается как полноценное решение с промежуточными вычислениями.</p></div></div>
         <div class="teacher-list">
           <article class="card task-card">
-            <div class="task-num">1</div><div><h3>Составное выражение</h3><p>A = [[2,3],[−1,4]], B = [[3,−5],[2,−1]]. Найти C = 2A − 3B + AB.</p><button class="secondary" data-go="start">Решать пошагово</button></div>
+            <div class="task-num">1</div><div><h3>C = 2A − 3B + AB</h3><p>Первое задание уже вынесено на главную.</p><button class="secondary" data-go="start">Открыть</button></div>
           </article>
           <article class="card task-card">
-            <div class="task-num">2</div><div><h3>Проверка A² − B² = (A−B)(A+B)</h3><p>Для матриц эта школьная формула не обязана работать, потому что AB и BA могут отличаться. Сайт посчитает обе части отдельно.</p><button class="secondary teacher-load" data-preset="identity">Проверить на данных с листка</button></div>
+            <div class="task-num">2</div><div><h3>K = A² + B²</h3><p>Сначала A² по четырём вычислениям, затем B², затем четыре сложения.</p><button class="secondary" id="teacherOpenTask2">Открыть на главной</button></div>
           </article>
           <article class="card task-card">
-            <div class="task-num">3</div><div><h3>AB и BA</h3><p>A имеет размер 3×4, B – 4×2. Сначала реши AB сам, затем ответь, существует ли BA.</p><button class="secondary" id="toggleTeacherAB">Решать самому</button>
-              <div id="teacherABWorkspace" class="hidden top-gap-small">
-                <div class="teacher-given-grid">
-                  <div><b>A</b><div class="matrix-static" data-matrix="2,-1,4,-3;-2,3,0,1;4,-2,5,-1"></div></div>
-                  <div><b>B</b><div class="matrix-static" data-matrix="10,5;3,2;-1,-3;4,1"></div></div>
-                </div>
-                <div class="work-step subcard top-gap-small" data-work-step="T3AB">
-                  <h4>1. Найди AB</h4><div class="work-answer" id="workT3AB"></div>
-                  <div class="quick-row top-gap-small"><button class="primary check-work" data-step="T3AB">Проверить AB</button><button class="ghost hint-work" data-step="T3AB">Подсказка</button></div>
-                  <div class="hint hidden" id="hintT3AB">Результат будет размера 3×2. Каждый элемент – строка A × столбец B.</div><div class="message hidden" id="feedbackT3AB"></div>
-                </div>
-                <div class="manual-choice top-gap-small"><label>2. Существует ли BA?
-                  <select id="baExistsGuess"><option value="">Выбери</option><option value="yes">Да</option><option value="no">Нет</option></select>
-                </label><button class="primary" id="checkBAExists">Проверить</button></div>
-                <div id="baExistsFeedback" class="message hidden"></div>
-              </div></div>
+            <div class="task-num">3</div><div><h3>AB и BA для матриц 3×4 и 4×2</h3><p>Шесть скалярных произведений для AB, затем отдельная проверка размеров для BA.</p><button class="secondary" id="openTeacherABNotebook">Решать</button><div id="teacherABNotebook" class="notebook hidden top-gap-small"></div></div>
           </article>
           <article class="card task-card">
-            <div class="task-num">4</div><div><h3>Функция от матрицы</h3><p>f(x)=x²+2x−4, A=[[3,−1],[−2,2]]. Здесь число −4 превращается в −4I.</p><button class="secondary" id="toggleFunctionTask">Решать пошагово</button>
-              <div id="functionTaskWorkspace" class="hidden top-gap-small">
-                <div class="teacher-given-grid"><div><b>A</b><div class="matrix-static" data-matrix="3,-1;-2,2"></div></div><div class="formula-box">f(A)=A²+2A−4I</div></div>
-                <div class="workspace top-gap-small">
-                  <article class="work-step subcard" data-work-step="FA2"><h4>1. A²</h4><div class="work-answer" id="workFA2"></div><div class="quick-row top-gap-small"><button class="primary check-work" data-step="FA2">Проверить</button><button class="ghost hint-work" data-step="FA2">Подсказка</button></div><div class="hint hidden" id="hintFA2">A² = A·A. Не возводи элементы отдельно в квадрат.</div><div class="message hidden" id="feedbackFA2"></div></article>
-                  <article class="work-step subcard" data-work-step="F2A"><h4>2. 2A</h4><div class="work-answer" id="workF2A"></div><div class="quick-row top-gap-small"><button class="primary check-work" data-step="F2A">Проверить</button></div><div class="message hidden" id="feedbackF2A"></div></article>
-                  <article class="work-step subcard" data-work-step="F4I"><h4>3. 4I</h4><div class="work-answer" id="workF4I"></div><div class="quick-row top-gap-small"><button class="primary check-work" data-step="F4I">Проверить</button><button class="ghost hint-work" data-step="F4I">Подсказка</button></div><div class="hint hidden" id="hintF4I">I₂=[[1,0],[0,1]], значит 4I₂=[[4,0],[0,4]].</div><div class="message hidden" id="feedbackF4I"></div></article>
-                  <article class="work-step subcard" data-work-step="F"><h4>4. f(A)=A²+2A−4I</h4><div class="work-answer" id="workF"></div><div class="quick-row top-gap-small"><button class="primary check-work" data-step="F">Проверить f(A)</button></div><div class="message hidden" id="feedbackF"></div></article>
-                </div>
-              </div></div>
+            <div class="task-num">4</div><div><h3>f(A)=A²+2A−4I</h3><p>Сначала полностью считаем A², потом 2A, 4I и только после этого собираем f(A) по каждому элементу.</p><button class="secondary" id="openFunctionNotebook">Решать</button><div id="functionNotebook" class="notebook hidden top-gap-small"></div></div>
           </article>
           <article class="card task-card">
-            <div class="task-num">5</div><div><h3>Ранг</h3><p>Один из примеров на листке: [[−1,2,−3],[5,6,−2],[4,−3,1]].</p><button class="secondary" id="teacherRankButton">Открыть в ранге</button></div>
+            <div class="task-num">5</div><div><h3>Ранг</h3><p>Строим лесенку с полным пересчётом каждого элемента новой строки.</p><button class="secondary" id="teacherRankButton">Открыть</button></div>
           </article>
           <article class="card task-card">
-            <div class="task-num">6</div><div><h3>Определитель 2×2 с sin и cos</h3><p>| sin α &nbsp; cos α; −cos α &nbsp; sin α | = sin²α + cos²α = 1.</p><div class="hint">Здесь главное не вычислять угол: после формулы ad−bc получается основное тригонометрическое тождество.</div></div>
+            <div class="task-num">6</div><div><h3>Определитель 2×2 с sin α и cos α</h3><p>Два произведения, вычитание и только затем тригонометрическое тождество.</p><button class="secondary" id="openTrigDetNotebook">Решать</button><div id="trigDetNotebook" class="notebook hidden top-gap-small"></div></div>
           </article>
           <article class="card task-card">
-            <div class="task-num">6а</div><div><h3>Символьный det 2×2 с листка</h3><p>Для матрицы [[a+1, b−c], [a²+a, ab−ac]] вторая строка равна a·(первая строка). Значит строки пропорциональны и определитель сразу равен 0.</p><div class="formula-box">(a+1)·a(b−c) − (b−c)·a(a+1) = 0</div><div class="hint">Полезная проверка: если одна строка или один столбец является числовым множителем другого, det = 0.</div></div>
+            <div class="task-num">6а</div><div><h3>Символьный det 2×2</h3><p>Раскрываем оба произведения и сокращаем их, а не показываем ноль сразу.</p><button class="secondary" id="openSymbolicDetNotebook">Решать</button><div id="symbolicDetNotebook" class="notebook hidden top-gap-small"></div></div>
           </article>
           <article class="card task-card">
-            <div class="task-num">6б</div><div><h3>Определители 3×3 с листка</h3><p>Первый отмеченный пример уже стоит по умолчанию в разделе «Определители». Второй: [[1,2,0],[0,1,3],[5,0,−1]], его det = 29.</p><div class="quick-row"><button class="secondary" id="teacherDet1Button">Открыть пример №1</button><button class="secondary" id="teacherDet2Button">Открыть пример №2</button></div></div>
+            <div class="task-num">6б</div><div><h3>Определители 3×3</h3><p>Загрузи один из примеров и распиши правило Саррюса строка за строкой.</p><div class="quick-row"><button class="secondary" id="teacherDet1Button">Пример №1</button><button class="secondary" id="teacherDet2Button">Пример №2</button></div></div>
           </article>
           <article class="card task-card">
-            <div class="task-num">7</div><div><h3>Уравнение det = 0</h3><p>det[[1,3,x],[4,5,−1],[2,−1,5]]=0. Вычисли det(A) и найди x самостоятельно.</p><button class="secondary" id="teacherEqButton">Открыть решатель</button></div>
+            <div class="task-num">7</div><div><h3>Уравнение det(A(x)) = 0</h3><p>Шесть произведений Саррюса → две суммы → det(A) → уравнение → x.</p><button class="secondary" id="teacherEqButton">Открыть</button></div>
           </article>
           <article class="card task-card">
-            <div class="task-num">8</div><div><h3>Неравенство det &gt; 0</h3><p>det[[2,x+2,−1],[1,1,−2],[5,−3,x]]&gt;0. Сначала найди det(A), затем реши неравенство методом интервалов.</p><button class="secondary" id="teacherIneqButton">Открыть решатель</button></div>
+            <div class="task-num">8</div><div><h3>Неравенство det(A(x)) &gt; 0</h3><p>Сначала полностью получаем квадратный многочлен, затем корни и метод интервалов.</p><button class="secondary" id="teacherIneqButton">Открыть</button></div>
           </article>
         </div>
       </section>
@@ -532,7 +424,8 @@
   </div>
 
   <footer>Работает полностью в браузере, без отправки введённых матриц на сервер.</footer>
-  <script src="matrix-core.js?v=20260929h"></script>
-  <script src="app.js?v=20260929h"></script>
+  <script src="matrix-core.js?v=20260929i"></script>
+  <script src="app.js?v=20260929i"></script>
+  <script src="workbook.js?v=20260929i"></script>
 </body>
 </html>
