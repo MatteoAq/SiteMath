@@ -238,3 +238,18 @@ html,body{max-width:100%;overflow-x:hidden}.content,.section,.card,.result-card,
   .notebook-input{width:62px;height:34px;min-height:34px;text-align:center}
   .notebook-expression{font-size:15px}
 }
+
+
+/* Keep future notebook steps compact instead of rendering a disabled full form */
+.notebook-locked{opacity:.6;pointer-events:none;filter:none;padding-top:12px;padding-bottom:12px}
+.notebook-locked .notebook-lines,
+.notebook-locked .quick-row,
+.notebook-locked .hint,
+.notebook-locked .message,
+.notebook-locked .notebook-stage-result{display:none!important}
+.notebook-locked:after{content:"После предыдущего этапа";display:block;margin:6px 0 0 40px;font-size:12px;color:var(--muted)}
+@media(max-width:650px){
+  .notebook-locked{padding:10px 12px}
+  .notebook-locked .notebook-stage-head h3{font-size:17px}
+  .notebook-locked:after{margin-left:37px}
+}
