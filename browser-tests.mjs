@@ -22,10 +22,10 @@ const page=await ctx.newPage();
 await page.goto('http://127.0.0.1:8000/',{waitUntil:'networkidle'});
 
 check('notes visible',await page.locator('#studyNotes').isVisible());
-await page.locator('#studyNotes').fill('R2 ← R2 + 5R1');
+await page.locator('#studyNotes').fill('det A = 91, значит rank A = 3');
 await page.waitForTimeout(350);
 await page.reload({waitUntil:'networkidle'});
-check('notes persist',(await page.locator('#studyNotes').inputValue())==='R2 ← R2 + 5R1');
+check('notes persist',(await page.locator('#studyNotes').inputValue())==='det A = 91, значит rank A = 3');
 
 const task1=[
   ['2A',[4,6,-2,8]],['3B',[9,-15,6,-3]],['AB',[12,-13,5,1]],
@@ -78,14 +78,14 @@ await expectSuccess(page,'#varAnswerFeedback','det(x) final answer');
 
 await page.locator('.nav-btn[data-section="rank"]').click();
 await page.locator('#loadTeacherRank').click();
-await page.locator('#rankOperation').selectOption('add');
-await page.locator('#rankRowA').selectOption('2');
-await page.locator('#rankRowB').selectOption('1');
-await page.locator('#rankFactor').fill('5');
-await page.locator('#applyRankOperation').click();
-const rankCells=await page.locator('#rankWorkingMatrix .render-matrix span').allTextContents();
-check('rank operation applied',rankCells.join(',')==='-1,2,-3,0,16,-17,4,-3,1',rankCells.join(','));
-check('rank history created',(await page.locator('#rankHistory .history-line').count())===1);
+check('rank section uses minors',await page.locator('#rankMinorMatrix').isVisible());
+check('rank section has no row-operation controls',(await page.locator('#rankOperation').count())===0);
+const rankMinorCells=await page.locator('#rankMinorMatrix .render-matrix span').allTextContents();
+check('teacher rank minor is full 3x3',rankMinorCells.join(',')==='-1,2,-3,5,6,-2,4,-3,1',rankMinorCells.join(','));
+await page.locator('#rankMinorDetGuess').fill('91');
+await page.locator('#checkRankMinorDet').click();
+await expectSuccess(page,'#rankMinorFeedback','rank determinant check');
+check('rank conclusion explains nonzero minor',(await page.locator('#rankConclusionPrompt').textContent()).includes('ненулевой минор'));
 await page.locator('#rankGuess').fill('3');
 await page.locator('#checkRankGuess').click();
 await expectSuccess(page,'#rankGuessFeedback','rank answer');
