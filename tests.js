@@ -31,10 +31,11 @@ assert('irrational rounding',M.fmt(Math.sqrt(2))==='1,414214',M.fmt(Math.sqrt(2)
 const html=fs.readFileSync('index.html','utf8');
 const app=fs.readFileSync('app.js','utf8');
 const css=fs.readFileSync('styles.css','utf8');
-const requiredIds=['studyNotes','workD','teacherTask2','workA2','workB2','workK','detGuess','varPolyGuess','varAnswerGuess','rankWorkingMatrix','rankOperation','rankGuess','teacherABWorkspace','workT3AB','functionTaskWorkspace','workFA2','workF','teacherSheetImage'];
+const requiredIds=['studyNotes','workD','teacherTask2','workA2','workB2','workK','detGuess','varPolyGuess','varAnswerGuess','rankMinorMatrix','rankMinorDetGuess','rankGuess','teacherABWorkspace','workT3AB','functionTaskWorkspace','workFA2','workF','teacherSheetImage'];
 for(const id of requiredIds)assert('HTML #'+id,html.includes('id="'+id+'"'));
 assert('HQ worksheet source',html.includes('teacher-sheet-hq.jpg')&&app.includes("teacher-sheet-hq.jpg"));
-assert('manual rank handler',app.includes('applyRankOperation')&&app.includes('checkRankGuess'));
+assert('minor-based rank handler',app.includes('buildMinors')&&app.includes('checkRankMinorDet')&&app.includes('checkRankGuess'));
+assert('rank UI does not teach R-row notation',!html.includes('Rᵢ ←')&&!html.includes('R₂ ←'));
 assert('manual x determinant handler',app.includes('checkVarPolyGuess')&&app.includes('checkVarAnswerGuess'));
 assert('manual teacher function handler',app.includes('toggleFunctionTask')&&app.includes('workFA2'));
 assert('manual teacher multiplication handler',app.includes('toggleTeacherAB')&&app.includes('checkBAExists'));
