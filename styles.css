@@ -181,3 +181,11 @@ html,body{max-width:100%;overflow-x:hidden}.content,.section,.card,.result-card,
   .notebook-equals{display:none}
   .notebook-input{text-align:left}
 }
+
+.rank-arithmetic-lines{display:grid;gap:8px;margin-top:8px}
+.rank-arithmetic-lines .notebook-line{grid-template-columns:minmax(0,1fr) auto minmax(90px,150px)}
+.rank-arithmetic-lines .notebook-input.cell-ok{border-color:var(--ok);background:var(--ok-bg)}
+.rank-arithmetic-lines .notebook-input.cell-bad{border-color:var(--bad);background:var(--bad-bg)}
+@media(max-width:650px){
+  .rank-arithmetic-lines .notebook-line{grid-template-columns:minmax(0,1fr) auto 84px}
+}
