@@ -393,172 +393,253 @@
 
   $('#teacherDet1Button')?.addEventListener('click',()=>{go('det');setMatrix('Det',[[3,-2,1],[-2,1,3],[2,0,-2]])});
   $('#teacherDet2Button')?.addEventListener('click',()=>{go('det');setMatrix('Det',[[1,2,0],[0,1,3],[5,0,-1]])});
-  // Ранг через миноры. Это основной учебный способ в интерфейсе:
-  // пользователь сам считает det выбранного минора, сайт только проверяет.
-  const rankMinorState={matrix:null,k:0,minors:[],index:0,provenRank:null};
+  // Ранг через ступенчатый вид – в той же логике, что обычно записывают в тетради.
+  const rankStairState={
+    matrix:null,pivotRow:0,pivotCol:0,rank:0,targetRow:null,swapRow:null,
+    mode:null,k:null,expectedRow:null,complete:false,stepNo:1
+  };
 
-  function combinations(n,k){
-    const out=[];
-    function rec(start,arr){
-      if(arr.length===k){out.push(arr.slice());return}
-      for(let i=start;i<=n-(k-arr.length);i++){arr.push(i);rec(i+1,arr);arr.pop()}
+  function ordinalRow(n){return `${n+1}-я строка`}
+  function isIntegerLike(x){return Math.abs(x-Math.round(x))<1e-9}
+
+  function rankMatrixHTML(m,pivotRow=-1,pivotCol=-1,targetRow=-1){
+    const cells=[];
+    for(let i=0;i<m.length;i++)for(let j=0;j<m[0].length;j++){
+      let cls='';
+      if(i===pivotRow&&j===pivotCol)cls='pivot-cell';
+      else if(i===targetRow&&j===pivotCol)cls='target-cell';
+      else if(j===pivotCol&&i>pivotRow)cls='pivot-column-cell';
+      cells.push(`<span class="${cls}">${escapeHtml(M.fmt(m[i][j]))}</span>`);
     }
-    rec(0,[]);
-    return out;
+    return `<div class="matrix-scroll"><div class="render-matrix rank-render-matrix" style="--cols:${m[0].length}">${cells.join('')}</div></div>`;
   }
 
-  function minorMatrix(matrix,rows,cols){
-    return rows.map(r=>cols.map(c=>matrix[r][c]));
+  function chooseConvenientPivot(matrix,startRow,col){
+    const candidates=[];
+    for(let r=startRow;r<matrix.length;r++)if(Math.abs(matrix[r][col])>M.EPS)candidates.push(r);
+    if(!candidates.length)return -1;
+    if(Math.abs(matrix[startRow][col])>M.EPS)return startRow;
+    const unit=candidates.find(r=>Math.abs(Math.abs(matrix[r][col])-1)<M.EPS);
+    return unit??candidates[0];
   }
 
-  function buildMinors(matrix,k){
-    const rowSets=combinations(matrix.length,k);
-    const colSets=combinations(matrix[0].length,k);
-    const out=[];
-    for(const rows of rowSets)for(const cols of colSets){
-      out.push({rows,cols,matrix:minorMatrix(matrix,rows,cols)});
+  function findNextRankSituation(){
+    const st=rankStairState,m=st.matrix;
+    const rows=m.length,cols=m[0].length;
+    st.targetRow=null;st.swapRow=null;st.mode=null;st.k=null;st.expectedRow=null;
+
+    while(st.pivotRow<rows&&st.pivotCol<cols){
+      const pivotCandidate=chooseConvenientPivot(m,st.pivotRow,st.pivotCol);
+      if(pivotCandidate<0){st.pivotCol++;continue}
+      if(pivotCandidate!==st.pivotRow){
+        st.swapRow=pivotCandidate;
+        renderRankSituation();
+        return;
+      }
+
+      const target=[];
+      for(let r=st.pivotRow+1;r<rows;r++)if(Math.abs(m[r][st.pivotCol])>M.EPS)target.push(r);
+      if(target.length){
+        st.targetRow=target[0];
+        const p=m[st.pivotRow][st.pivotCol],t=m[st.targetRow][st.pivotCol];
+        const k=-t/p;
+        if(isIntegerLike(k)){
+          st.mode='add';
+          st.k=M.roundNumber(k);
+          st.expectedRow=m[st.targetRow].map((v,j)=>M.roundNumber(v+st.k*m[st.pivotRow][j]));
+        }else{
+          // Без дробей: p·нижняя строка − t·опорная строка.
+          st.mode='cross';
+          st.expectedRow=m[st.targetRow].map((v,j)=>M.roundNumber(p*v-t*m[st.pivotRow][j]));
+        }
+        renderRankSituation();
+        return;
+      }
+
+      // Под текущим опорным элементом всё уже занулено – ступень готова.
+      st.rank++;
+      st.pivotRow++;
+      st.pivotCol++;
+      st.stepNo++;
     }
-    return out;
+
+    st.complete=true;
+    renderRankSituation();
   }
 
-  function humanIndexList(list){
-    return list.map(x=>x+1).join(', ');
+  function createRankRowInputs(){
+    const box=$('#rankRowAnswer');if(!box)return;
+    box.innerHTML='';
+    box.style.gridTemplateColumns=`repeat(${rankStairState.matrix[0].length},minmax(54px,64px))`;
+    rankStairState.userRow=Array(rankStairState.matrix[0].length).fill('');
+    for(let j=0;j<rankStairState.matrix[0].length;j++){
+      const inp=document.createElement('input');
+      inp.inputMode='decimal';inp.placeholder='?';
+      inp.setAttribute('aria-label',`Новая строка, элемент ${j+1}`);
+      inp.addEventListener('input',()=>{rankStairState.userRow[j]=inp.value;inp.classList.remove('cell-ok','cell-bad')});
+      box.append(inp);
+    }
   }
 
-  function rankHintForOrder(k){
-    if(k===1)return 'Минор 1×1 – это просто один выбранный элемент. Его определитель равен самому элементу.';
-    if(k===2)return 'Для 2×2 используй ad − bc: главная диагональ минус побочная.';
-    if(k===3)return 'Для 3×3 используй то же правило, что в разделе определителей: правило Саррюса – три произведения со знаком «+» и три со знаком «−».';
-    return 'Для минора '+k+'×'+k+' считай обычный определитель этого порядка. Если на занятии для 4×4 использовали специальный приём, можно вести вычисления в черновике сверху.';
+  function renderRankSituation(){
+    const st=rankStairState,m=st.matrix;if(!m)return;
+    $('#rankStepBadge').textContent=String(Math.min(st.stepNo,Math.min(m.length,m[0].length)));
+    $('#rankMultiplierFeedback')?.classList.add('hidden');
+    $('#rankRowFeedback')?.classList.add('hidden');
+    $('#rankStepHint')?.classList.add('hidden');
+    $('#rankMultiplierArea')?.classList.add('hidden');
+    $('#rankRowArea')?.classList.add('hidden');
+    $('#rankSwapArea')?.classList.add('hidden');
+
+    if(st.complete){
+      $('#rankStageTitle').textContent='Лесенка готова';
+      $('#rankPivotBadge').textContent='ступенчатый вид';
+      $('#rankStairMatrix').innerHTML=rankMatrixHTML(m);
+      $('#rankInstruction').innerHTML='<p><b>Готово.</b> Под каждым опорным элементом стоят нули. Теперь просто посчитай количество ненулевых строк.</p>';
+      $('#rankConclusionPrompt').innerHTML='Матрица приведена к ступенчатому виду. <b>Посчитай ненулевые строки</b> и впиши rank(A).';
+      return;
+    }
+
+    if(st.swapRow!==null){
+      $('#rankStageTitle').textContent=`Ступень ${st.stepNo}: нужен ненулевой элемент`;
+      $('#rankPivotBadge').textContent=`столбец ${st.pivotCol+1}`;
+      $('#rankStairMatrix').innerHTML=rankMatrixHTML(m,-1,st.pivotCol,st.swapRow);
+      $('#rankInstruction').innerHTML=`<p>На месте следующей ступени сейчас 0. Ниже в этом столбце есть ненулевое число, поэтому строки можно поменять местами.</p>`;
+      const area=$('#rankSwapArea');
+      area.innerHTML=`<button class="primary" id="applyRankSwap">Поменять местами ${ordinalRow(st.pivotRow)} и ${ordinalRow(st.swapRow)}</button>`;
+      area.classList.remove('hidden');
+      $('#applyRankSwap').addEventListener('click',()=>{
+        [st.matrix[st.pivotRow],st.matrix[st.swapRow]]=[st.matrix[st.swapRow],st.matrix[st.pivotRow]];
+        st.swapRow=null;findNextRankSituation();
+      });
+      return;
+    }
+
+    const p=m[st.pivotRow][st.pivotCol],t=m[st.targetRow][st.pivotCol];
+    $('#rankStageTitle').textContent=`Ступень ${st.stepNo}: зануляем столбец ${st.pivotCol+1}`;
+    $('#rankPivotBadge').textContent=`опорный: ${M.fmt(p)}`;
+    $('#rankStairMatrix').innerHTML=rankMatrixHTML(m,st.pivotRow,st.pivotCol,st.targetRow);
+
+    if(st.mode==='add'){
+      $('#rankInstruction').innerHTML=`<p>Опорный элемент – <b>${M.fmt(p)}</b>. Сейчас под ним стоит <b>${M.fmt(t)}</b> в ${ordinalRow(st.targetRow)}.</p><p>Нужно сделать: <b>новая ${ordinalRow(st.targetRow)} = старая ${ordinalRow(st.targetRow)} + k · ${ordinalRow(st.pivotRow)}</b>, чтобы число ${M.fmt(t)} превратилось в 0.</p>`;
+      $('#rankMultiplierLabel').innerHTML=`Какой множитель k нужен?<input id="rankMultiplierGuess" class="answer-scalar" inputmode="decimal" placeholder="?">`;
+      $('#rankMultiplierArea').classList.remove('hidden');
+      $('#checkRankMultiplier').onclick=()=>{
+        const feedback=$('#rankMultiplierFeedback');
+        try{
+          const guess=M.parseNumber($('#rankMultiplierGuess').value);
+          const ok=M.approxEqual(guess,st.k);
+          feedback.className=`message ${ok?'success':'error'}`;
+          feedback.textContent=ok
+            ? `Верно: ${M.fmt(t)} + (${M.fmt(st.k)})·${M.fmt(p)} = 0. Теперь посчитай всю новую строку.`
+            : 'Не подходит. Подставь k только в элемент этого столбца и добейся нуля.';
+          feedback.classList.remove('hidden');
+          if(ok){
+            createRankRowInputs();
+            $('#rankRowPrompt').textContent=`Впиши новую ${ordinalRow(st.targetRow)} целиком`;
+            $('#rankRowArea').classList.remove('hidden');
+            $('#rankStepHint').textContent=`Для каждого столбца: элемент новой строки = элемент старой ${ordinalRow(st.targetRow)} + (${M.fmt(st.k)}) · соответствующий элемент ${ordinalRow(st.pivotRow)}.`;
+          }
+        }catch(e){feedback.className='message error';feedback.textContent=e.message||String(e);feedback.classList.remove('hidden')}
+      };
+    }else{
+      $('#rankInstruction').innerHTML=`<p>Опорный элемент – <b>${M.fmt(p)}</b>, а под ним стоит <b>${M.fmt(t)}</b>.</p><p>Если делать через обычный множитель, получится дробь. Чтобы считать как в тетради без дробей:</p><div class="formula-box">новая ${ordinalRow(st.targetRow)} = ${M.fmt(p)} · старая ${ordinalRow(st.targetRow)} − ${M.fmt(t)} · ${ordinalRow(st.pivotRow)}</div><p>В нужном столбце автоматически получится ${M.fmt(p)}·${M.fmt(t)} − ${M.fmt(t)}·${M.fmt(p)} = 0.</p>`;
+      createRankRowInputs();
+      $('#rankRowPrompt').textContent=`Посчитай и впиши новую ${ordinalRow(st.targetRow)}`;
+      $('#rankRowArea').classList.remove('hidden');
+      $('#rankStepHint').textContent=`Считай каждый столбец отдельно по той же формуле: ${M.fmt(p)} · (элемент нижней строки) − ${M.fmt(t)} · (элемент опорной строки).`;
+    }
   }
 
-  function prepareRankOrder(k){
-    rankMinorState.k=k;
-    rankMinorState.minors=buildMinors(rankMinorState.matrix,k);
-    rankMinorState.index=0;
-    renderRankMinor();
+  function checkRankRow(){
+    const st=rankStairState,box=$('#rankRowAnswer');
+    const inputs=Array.from(box.querySelectorAll('input'));
+    let allFilled=true,allCorrect=true;
+    for(let j=0;j<st.expectedRow.length;j++){
+      let ok=false;const raw=st.userRow[j];
+      if(String(raw).trim()==='')allFilled=false;
+      else{try{ok=M.approxEqual(M.parseNumber(raw),st.expectedRow[j])}catch{}}
+      inputs[j]?.classList.toggle('cell-ok',ok);
+      inputs[j]?.classList.toggle('cell-bad',String(raw).trim()!==''&&!ok);
+      if(!ok)allCorrect=false;
+    }
+    const feedback=$('#rankRowFeedback');
+    feedback.className=`message ${allCorrect?'success':'error'}`;
+    feedback.textContent=allCorrect
+      ? 'Верно. Нужный элемент занулён, строка пересчитана правильно.'
+      : (!allFilled?'Заполни всю новую строку.':'Есть ошибка в отмеченных элементах строки.');
+    feedback.classList.remove('hidden');
+    if(allCorrect){
+      st.matrix[st.targetRow]=st.expectedRow.slice();
+      setTimeout(findNextRankSituation,250);
+    }
   }
 
-  function renderRankMinor(){
-    const m=rankMinorState.matrix;
-    if(!m)return;
-    const k=rankMinorState.k;
-    const item=rankMinorState.minors[rankMinorState.index];
-    $('#rankUpperBound').textContent=`rank(A) ≤ ${Math.min(m.length,m[0].length)}`;
-    $('#rankMinorTitle').textContent=`Проверяем минор ${k}-го порядка`;
-    $('#rankMinorExplain').textContent=k===Math.min(m.length,m[0].length)
-      ? `Начинаем с максимально возможного порядка: ${k}.`
-      : `Все проверенные миноры порядка ${k+1} оказались нулевыми, поэтому переходим к порядку ${k}.`;
-    $('#rankMinorMatrix').innerHTML=matrixHTML(item.matrix);
-    $('#rankMinorSource').textContent=`Берём строки ${humanIndexList(item.rows)} и столбцы ${humanIndexList(item.cols)} исходной матрицы. Минор ${rankMinorState.index+1} из ${rankMinorState.minors.length} этого порядка.`;
-    $('#rankMinorDetGuess').value='';
-    $('#rankMinorFeedback').classList.add('hidden');
-    $('#rankNextMinor').classList.add('hidden');
-    $('#rankMinorHint').classList.add('hidden');
-    $('#rankMinorHint').textContent=rankHintForOrder(k);
-    $('#rankConclusionPrompt').textContent='Сначала правильно вычисли определитель текущего минора.';
-    $('#rankGuessFeedback').classList.add('hidden');
-  }
+  $('#checkRankRow')?.addEventListener('click',checkRankRow);
+  $('#rankStepHintButton')?.addEventListener('click',()=>$('#rankStepHint')?.classList.toggle('hidden'));
 
-  function resetRankMinorTrainer(){
+  function resetRankStairTrainer(){
     clearError('#rankError');
     try{
-      rankMinorState.matrix=getNumeric('Rank').map(r=>r.slice());
-      const [rows,cols]=M.shape(rankMinorState.matrix);
-      rankMinorState.provenRank=null;
+      const m=getNumeric('Rank').map(r=>r.slice());
+      Object.assign(rankStairState,{matrix:m,pivotRow:0,pivotCol:0,rank:0,targetRow:null,swapRow:null,mode:null,k:null,expectedRow:null,complete:false,stepNo:1});
       $('#rankGuess').value='';
-      prepareRankOrder(Math.min(rows,cols));
+      $('#rankGuessFeedback').classList.add('hidden');
+      findNextRankSituation();
     }catch(e){showError('#rankError',e)}
   }
 
   function loadTeacherRank(){
     setMatrix('Rank',[[-1,2,-3],[5,6,-2],[4,-3,1]]);
-    resetRankMinorTrainer();
+    resetRankStairTrainer();
   }
 
   $('#loadTeacherRank').addEventListener('click',loadTeacherRank);
   $('#teacherRankButton').addEventListener('click',()=>{go('rank');loadTeacherRank()});
-  $('#rankStartMinor')?.addEventListener('click',resetRankMinorTrainer);
-  $('#rankMinorHintButton')?.addEventListener('click',()=>$('#rankMinorHint')?.classList.toggle('hidden'));
-
-  $('#checkRankMinorDet')?.addEventListener('click',()=>{
-    const feedback=$('#rankMinorFeedback');
-    try{
-      const item=rankMinorState.minors[rankMinorState.index];
-      const actual=M.determinant(item.matrix);
-      const guess=M.parseNumber($('#rankMinorDetGuess').value);
-      const ok=M.approxEqual(guess,actual);
-      feedback.className=`message ${ok?'success':'error'}`;
-      if(!ok){
-        feedback.textContent='Не совпадает. Пересчитай именно определитель показанного минора.';
-        feedback.classList.remove('hidden');
-        return;
-      }
-
-      if(Math.abs(actual)>M.EPS){
-        rankMinorState.provenRank=rankMinorState.k;
-        feedback.textContent=`Верно: det = ${M.fmt(actual)} ≠ 0. Значит существует ненулевой минор порядка ${rankMinorState.k}.`;
-        $('#rankConclusionPrompt').innerHTML=`Мы нашли ненулевой минор порядка <b>${rankMinorState.k}</b>. Более высокий порядок уже исключён, поэтому теперь сделай вывод и впиши rank(A).`;
-      }else{
-        feedback.textContent=`Верно: det = 0. Этот минор ранг ${rankMinorState.k} не доказывает.`;
-        $('#rankNextMinor').classList.remove('hidden');
-        const last=rankMinorState.index===rankMinorState.minors.length-1;
-        $('#rankNextMinor').textContent=last
-          ? (rankMinorState.k>1?`Все миноры ${rankMinorState.k}-го порядка проверены – перейти к ${rankMinorState.k-1}-му`:'Закончить проверку')
-          : 'Проверить следующий минор этого порядка';
-      }
-      feedback.classList.remove('hidden');
-    }catch(e){showError('#rankError',e)}
-  });
-
-  $('#rankNextMinor')?.addEventListener('click',()=>{
-    const last=rankMinorState.index===rankMinorState.minors.length-1;
-    if(!last){
-      rankMinorState.index++;
-      renderRankMinor();
-      return;
-    }
-    if(rankMinorState.k>1){
-      prepareRankOrder(rankMinorState.k-1);
-      return;
-    }
-    rankMinorState.provenRank=0;
-    $('#rankConclusionPrompt').innerHTML='Все элементы равны нулю, значит <b>rank(A)=0</b>. Впиши это как итог.';
-    $('#rankNextMinor').classList.add('hidden');
-  });
+  $('#rankStartStairs')?.addEventListener('click',resetRankStairTrainer);
 
   $('#checkRankGuess')?.addEventListener('click',()=>{
     const feedback=$('#rankGuessFeedback');
     try{
-      if(rankMinorState.provenRank===null){
+      if(!rankStairState.complete){
         feedback.className='message error';
-        feedback.textContent='Сначала доведи проверку миноров до момента, когда найден ненулевой минор или доказано, что все элементы нулевые.';
-        feedback.classList.remove('hidden');
-        return;
+        feedback.textContent='Сначала дострой лесенку: под каждым опорным элементом должны быть нули.';
+        feedback.classList.remove('hidden');return;
       }
       const guess=M.parseNumber($('#rankGuess').value);
-      const ok=M.approxEqual(guess,rankMinorState.provenRank);
+      const ok=M.approxEqual(guess,rankStairState.rank);
       feedback.className=`message ${ok?'success':'error'}`;
       feedback.textContent=ok
-        ? `Верно. rank(A) = ${rankMinorState.provenRank}.`
-        : 'Нет. Ранг равен порядку найденного ненулевого минора.';
+        ? `Верно. В ступенчатой матрице ${rankStairState.rank} ненулевых строк, поэтому rank(A)=${rankStairState.rank}.`
+        : 'Нет. Посчитай именно ненулевые строки готовой лесенки.';
       feedback.classList.remove('hidden');
     }catch(e){showError('#rankError',e)}
   });
 
-  function findRankWitness(matrix){
-    const max=Math.min(matrix.length,matrix[0].length);
-    for(let k=max;k>=1;k--){
-      const minors=buildMinors(matrix,k);
-      for(const item of minors){
-        const det=M.determinant(item.matrix);
-        if(Math.abs(det)>M.EPS)return {rank:k,item,det};
+  function humanEchelon(matrix){
+    const m=matrix.map(r=>r.slice()),steps=[];
+    let pr=0,rank=0;
+    for(let pc=0;pc<m[0].length&&pr<m.length;pc++){
+      let pivot=chooseConvenientPivot(m,pr,pc);
+      if(pivot<0)continue;
+      if(pivot!==pr){[m[pivot],m[pr]]=[m[pr],m[pivot]];steps.push(`Поменяли местами ${ordinalRow(pr)} и ${ordinalRow(pivot)}.`)}
+      for(let tr=pr+1;tr<m.length;tr++){
+        if(Math.abs(m[tr][pc])<M.EPS)continue;
+        const p=m[pr][pc],t=m[tr][pc],k=-t/p;
+        if(isIntegerLike(k)){
+          m[tr]=m[tr].map((v,j)=>M.roundNumber(v+k*m[pr][j]));
+          steps.push(`${ordinalRow(tr)} + (${M.fmt(k)})·${ordinalRow(pr)}.`);
+        }else{
+          m[tr]=m[tr].map((v,j)=>M.roundNumber(p*v-t*m[pr][j]));
+          steps.push(`${M.fmt(p)}·${ordinalRow(tr)} − ${M.fmt(t)}·${ordinalRow(pr)}.`);
+        }
       }
+      rank++;pr++;
     }
-    return {rank:0,item:null,det:0};
+    return {matrix:m,rank,steps};
   }
 
-  resetRankMinorTrainer();
+  resetRankStairTrainer();
 
   function preset(name){
     if(name==='expr1'||name==='identity'){
@@ -589,7 +670,7 @@
     if(type==='mul'){p.A=randomMatrix(2,2,-3,4);p.B=randomMatrix(2,2,-3,4);p.answer=M.multiply(p.A,p.B);p.title='Найдите AB';p.hint='Каждый элемент результата – строка A × столбец B. Начни с c₁₁=a₁₁b₁₁+a₁₂b₂₁.'}
     if(type==='det2'){p.A=randomMatrix(2,2,-6,7);p.answer=M.determinant(p.A);p.title='Найдите det(A)';p.hint='Для 2×2: ad−bc.'}
     if(type==='det3'){p.A=randomMatrix(3,3,-3,4);p.answer=M.determinant(p.A);p.title='Найдите det(A)';p.hint='Для 3×3 используй Саррюса: три произведения со знаком + и три со знаком −.'}
-    if(type==='rank'){p.A=randomMatrix(3,3,-4,5);p.answer=M.rank(p.A);p.title='Найдите rank(A)';p.hint='Для 3×3 сначала посчитай det(A). Если det ≠ 0, сразу rank=3. Если det=0, ищи ненулевой минор 2×2.'}
+    if(type==='rank'){p.A=randomMatrix(3,3,-4,5);p.answer=M.rank(p.A);p.title='Найдите rank(A)';p.hint='Строй лесенку: выбери опорный элемент, занули всё под ним, затем переходи ниже и правее. В конце посчитай ненулевые строки.'}
     state.practice=p;renderPractice();
   }
   function renderPractice(){
@@ -620,12 +701,8 @@
     const p=state.practice;if(!p)return;let html='';
     if(p.type==='det2'||p.type==='det3'){const r=M.determinantSteps(p.A);html=`<div class="result-card top-gap-small"><b>Решение:</b><div class="formula-box top-gap-small">${escapeHtml(r.formula)}</div>${r.steps.map(s=>`<div class="step">${escapeHtml(s)}</div>`).join('')}<div class="result-main top-gap-small"><b>Ответ:</b>${matrixHTML(r.value)}</div></div>`}
     else if(p.type==='rank'){
-      const w=findRankWitness(p.A);
-      if(w.rank===0){
-        html='<div class="result-card top-gap-small"><b>Все элементы равны 0.</b><div class="result-main top-gap-small">rank(A) = <b>0</b></div></div>';
-      }else{
-        html=`<div class="result-card top-gap-small"><b>Нашли ненулевой минор ${w.rank}-го порядка:</b>${matrixHTML(w.item.matrix)}<div class="formula-box top-gap-small">det = ${escapeHtml(M.fmt(w.det))} ≠ 0</div><div class="result-main top-gap-small">Значит rank(A) = <b>${w.rank}</b></div></div>`;
-      }
+      const r=humanEchelon(p.A);
+      html=`<div class="result-card top-gap-small"><b>Ступенчатый вид:</b>${matrixHTML(r.matrix)}<div class="steps">${r.steps.map((x,i)=>`<div class="step">${i+1}. ${escapeHtml(x)}</div>`).join('')}</div><div class="result-main top-gap-small">Ненулевых строк: <b>${r.rank}</b> → rank(A)=<b>${r.rank}</b></div></div>`;
     }
     else {html=`<div class="result-card top-gap-small"><b>Ответ:</b><div class="top-gap-small">${matrixHTML(p.answer)}</div></div>`}
     $('#practiceSolution').innerHTML=html;$('#practiceSolution').classList.remove('hidden');
