@@ -5,6 +5,7 @@
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
   function signed(v){return v<0?`(${fmt(v)})`:fmt(v)}
+  function cellLabel(symbol,i,j){return `<span class="cell-label">${esc(symbol)}<sub>${i+1}${j+1}</sub></span>`}
   function matrixHTML(m){
     const cells=m.flat().map(v=>`<span>${esc(fmt(v))}</span>`).join('');
     return `<div class="matrix-scroll"><div class="render-matrix" style="--cols:${m[0].length}">${cells}</div></div>`;
@@ -145,14 +146,14 @@
   function scalarStage(title,k,m,label){
     const lines=[],out=m.map(r=>r.map(v=>M.roundNumber(k*v)));
     for(let i=0;i<m.length;i++)for(let j=0;j<m[0].length;j++)
-      lines.push({expr:`${label}₍${i+1}${j+1}₎: ${fmt(k)} · ${signed(m[i][j])}`,expected:out[i][j]});
+      lines.push({html:`${cellLabel(label||'c',i,j)}: ${esc(fmt(k))} · ${esc(signed(m[i][j]))}`,expr:'',expected:out[i][j]});
     return {title,lines,resultMatrix:out};
   }
   function multiplyStage(title,A,B,label='c'){
     const out=M.multiply(A,B),lines=[];
     for(let i=0;i<A.length;i++)for(let j=0;j<B[0].length;j++){
       const terms=A[i].map((v,k)=>`${signed(v)}·${signed(B[k][j])}`);
-      lines.push({expr:`${label}₍${i+1}${j+1}₎: ${terms.join(' + ')}`,expected:out[i][j]});
+      lines.push({html:`${cellLabel(label||'c',i,j)}: ${terms.map(esc).join(' + ')}`,expr:'',expected:out[i][j]});
     }
     return {title,intro:'Каждый элемент – строка первой матрицы × столбец второй.',lines,resultMatrix:out,
       hint:'Не умножай элементы «по местам». Для каждого ответа бери целую строку слева и целый столбец справа.'};
@@ -160,7 +161,7 @@
   function combineStage(title,A,B,op,label){
     const out=op==='+'?M.add(A,B):M.sub(A,B),lines=[];
     for(let i=0;i<A.length;i++)for(let j=0;j<A[0].length;j++)
-      lines.push({expr:`${label}₍${i+1}${j+1}₎: ${signed(A[i][j])} ${op} ${signed(B[i][j])}`,expected:out[i][j]});
+      lines.push({html:`${cellLabel(label||'c',i,j)}: ${esc(signed(A[i][j]))} ${esc(op)} ${esc(signed(B[i][j]))}`,expr:'',expected:out[i][j]});
     return {title,lines,resultMatrix:out};
   }
 
