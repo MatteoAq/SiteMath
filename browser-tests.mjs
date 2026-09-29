@@ -1,155 +1,164 @@
 import { chromium } from 'playwright';
 
-const browser = await chromium.launch({headless:true});
-let failures=[];
+const browser=await chromium.launch({headless:true});
+const failures=[];
 const check=(name,cond,detail='')=>{
   if(!cond){failures.push(name+(detail?': '+detail:''));console.error('FAIL',name,detail)}
   else console.log('PASS',name);
 };
-async function fillMatrix(page,root,vals){
-  const inputs=page.locator(root+' input');
-  check(root+' input count',(await inputs.count())===vals.length,String(await inputs.count()));
-  for(let i=0;i<vals.length;i++) await inputs.nth(i).fill(String(vals[i]));
-}
-async function expectSuccess(page,sel,name){
-  const el=page.locator(sel);
-  await el.waitFor({state:'visible'});
+async function success(page,sel,name){
+  const el=page.locator(sel);await el.waitFor({state:'visible'});
   check(name,(await el.getAttribute('class')||'').includes('success'),await el.textContent());
+}
+async function fillStage(page,root,index,values){
+  const stage=page.locator(root+' .notebook-stage').nth(index);
+  await stage.waitFor({state:'visible'});
+  const inputs=stage.locator('.notebook-input');
+  check(root+' stage '+index+' field count',(await inputs.count())===values.length,String(await inputs.count()));
+  for(let i=0;i<values.length;i++)await inputs.nth(i).fill(String(values[i]));
+  await stage.locator('button.primary').click();
+  await success(page,root+' .notebook-stage:nth-child('+(index+1)+') .message',root+' stage '+(index+1));
+}
+async function fillRankRow(page,values){
+  const inputs=page.locator('#rankRowAnswer input');
+  check('rank row field count',(await inputs.count())===values.length,String(await inputs.count()));
+  for(let i=0;i<values.length;i++)await inputs.nth(i).fill(String(values[i]));
+  await page.locator('#checkRankRow').click();
+  await success(page,'#rankRowFeedback','rank row arithmetic');
 }
 
 const ctx=await browser.newContext({viewport:{width:1365,height:900}});
 const page=await ctx.newPage();
+const pageErrors=[];
+page.on('pageerror',e=>pageErrors.push(String(e)));
 await page.goto('http://127.0.0.1:8000/',{waitUntil:'networkidle'});
 
 check('notes visible',await page.locator('#studyNotes').isVisible());
-await page.locator('#studyNotes').fill('det A = 91, значит rank A = 3');
+await page.locator('#studyNotes').fill('черновик: 2·3 + 3·2 = 12');
 await page.waitForTimeout(350);
 await page.reload({waitUntil:'networkidle'});
-check('notes persist',(await page.locator('#studyNotes').inputValue())==='det A = 91, значит rank A = 3');
+check('notes persist',(await page.locator('#studyNotes').inputValue())==='черновик: 2·3 + 3·2 = 12');
 
-const task1=[
-  ['2A',[4,6,-2,8]],['3B',[9,-15,6,-3]],['AB',[12,-13,5,1]],
-  ['D',[-5,21,-8,11]],['C',[7,8,-3,12]]
-];
-for(const [key,vals] of task1){
-  await fillMatrix(page,'#work'+key,vals);
-  await page.locator('.check-work[data-step="'+key+'"]').click();
-  await expectSuccess(page,'#feedback'+key,'task1 '+key);
-}
-check('task2 auto opens',await page.locator('#teacherTask2').isVisible());
+// Task 1 must contain every arithmetic line, not just final matrices.
+check('task1 has five notebook stages',(await page.locator('#task1Notebook .notebook-stage').count())===5);
+await fillStage(page,'#task1Notebook',0,[4,6,-2,8]);
+await fillStage(page,'#task1Notebook',1,[9,-15,6,-3]);
+await fillStage(page,'#task1Notebook',2,[12,-13,5,1]);
+await fillStage(page,'#task1Notebook',3,[-5,21,-8,11]);
+await fillStage(page,'#task1Notebook',4,[7,8,-3,12]);
 
-for(const [key,vals] of [['A2',[1,18,-6,13]],['B2',[-1,-10,4,-9]],['K',[0,8,-2,4]]]){
-  await fillMatrix(page,'#work'+key,vals);
-  await page.locator('.check-work[data-step="'+key+'"]').click();
-  await expectSuccess(page,'#feedback'+key,'task2 '+key);
-}
+// Task 2: powers are expanded into four row×column calculations each.
+await page.locator('#openTask2Notebook').click();
+check('task2 visible',await page.locator('#task2Notebook').isVisible());
+await fillStage(page,'#task2Notebook',0,[1,18,-6,13]);
+await fillStage(page,'#task2Notebook',1,[-1,-10,4,-9]);
+await fillStage(page,'#task2Notebook',2,[0,8,-2,4]);
 
+// Teacher examples: 3x4 · 4x2 and f(A).
 await page.locator('.nav-btn[data-section="teacher"]').click();
-await page.locator('#toggleTeacherAB').click();
-await fillMatrix(page,'#workT3AB',[1,-7,-7,-3,25,0]);
-await page.locator('.check-work[data-step="T3AB"]').click();
-await expectSuccess(page,'#feedbackT3AB','teacher AB');
-await page.locator('#baExistsGuess').selectOption('no');
-await page.locator('#checkBAExists').click();
-await expectSuccess(page,'#baExistsFeedback','BA dimension check');
+await page.locator('#openTeacherABNotebook').click();
+await fillStage(page,'#teacherABNotebook',0,[1,-7,-7,-3,25,0]);
+await fillStage(page,'#teacherABNotebook',1,['не существует']);
 
-await page.locator('#toggleFunctionTask').click();
-for(const [key,vals] of [
-  ['FA2',[11,-5,-10,6]],['F2A',[6,-2,-4,4]],['F4I',[4,0,0,4]],['F',[13,-7,-14,6]]
-]){
-  await fillMatrix(page,'#work'+key,vals);
-  await page.locator('.check-work[data-step="'+key+'"]').click();
-  await expectSuccess(page,'#feedback'+key,'function '+key);
-}
+await page.locator('#openFunctionNotebook').click();
+await fillStage(page,'#functionNotebook',0,[11,-5,-10,6]);
+await fillStage(page,'#functionNotebook',1,[6,-2,-4,4]);
+await fillStage(page,'#functionNotebook',2,[4,0,0,4]);
+await fillStage(page,'#functionNotebook',3,[13,-7,-14,6]);
 
+// Symbolic 2x2 tasks.
+await page.locator('#openTrigDetNotebook').click();
+await fillStage(page,'#trigDetNotebook',0,['sin²α','-cos²α']);
+await fillStage(page,'#trigDetNotebook',1,['sin²α+cos²α']);
+await fillStage(page,'#trigDetNotebook',2,[1]);
+
+await page.locator('#openSymbolicDetNotebook').click();
+await fillStage(page,'#symbolicDetNotebook',0,['a*(a+1)*(b-c)']);
+await fillStage(page,'#symbolicDetNotebook',1,['a*(a+1)*(b-c)']);
+await fillStage(page,'#symbolicDetNotebook',2,[0]);
+
+// Numeric determinant – six Sarrus products, two sums, final difference.
 await page.locator('.nav-btn[data-section="det"]').click();
-const defaultDet=await page.evaluate(()=>window.MatrixCore.determinant([[3,-2,1],[-2,1,3],[2,0,-2]]));
-await page.locator('#detGuess').fill(String(defaultDet));
-await page.locator('#checkDetGuess').click();
-await expectSuccess(page,'#detGuessFeedback','det self-check');
+await page.locator('#buildDetNotebook').click();
+check('numeric det has four stages',(await page.locator('#detNotebook .notebook-stage').count())===4);
+await fillStage(page,'#detNotebook',0,[-6,-12,0]);
+await fillStage(page,'#detNotebook',1,[2,-8,0]);
+await fillStage(page,'#detNotebook',2,[-18,-6]);
+await fillStage(page,'#detNotebook',3,[-12]);
 
+// Equation from the sheet – all Sarrus algebra before x.
 await page.locator('#loadTeacherEquation').click();
-await page.locator('#varPolyGuess').fill('-14x-42');
-await page.locator('#checkVarPolyGuess').click();
-await expectSuccess(page,'#varPolyFeedback','det(x) polynomial check');
-await page.locator('#varAnswerGuess').fill('x=-3');
-await page.locator('#checkVarAnswerGuess').click();
-await expectSuccess(page,'#varAnswerFeedback','det(x) final answer');
+await page.locator('#buildVarDetNotebook').click();
+await fillStage(page,'#varDetNotebook',0,[25,-6,'-4x']);
+await fillStage(page,'#varDetNotebook',1,['10x',60,1]);
+await fillStage(page,'#varDetNotebook',2,['19-4x','10x+61']);
+await fillStage(page,'#varDetNotebook',3,['-14x-42']);
+await fillStage(page,'#varDetNotebook',4,[-3]);
 
+// Inequality – products, polynomial, roots, interval.
+await page.locator('#loadTeacherIneq').click();
+await page.locator('#buildVarDetNotebook').click();
+await fillStage(page,'#varDetNotebook',0,['2x','-10x-20',3]);
+await fillStage(page,'#varDetNotebook',1,[-5,'x^2+2x',12]);
+await fillStage(page,'#varDetNotebook',2,['-8x-17','x^2+2x+7']);
+await fillStage(page,'#varDetNotebook',3,['-x^2-10x-24']);
+await fillStage(page,'#varDetNotebook',4,[-6,-4]);
+await fillStage(page,'#varDetNotebook',5,['-6<x<-4']);
+
+// Rank – every element of every new row is a separate arithmetic line.
 await page.locator('.nav-btn[data-section="rank"]').click();
 await page.locator('#loadTeacherRank').click();
-check('rank section teaches staircase',(await page.locator('#rankStageTitle').textContent()).includes('зануляем'));
-check('rank section explains pivot',(await page.locator('#rankInstruction').textContent()).includes('Опорный элемент'));
-
 await page.locator('#rankMultiplierGuess').fill('5');
 await page.locator('#checkRankMultiplier').click();
-await expectSuccess(page,'#rankMultiplierFeedback','rank first multiplier');
-await fillMatrix(page,'#rankRowAnswer',[0,16,-17]);
-await page.locator('#checkRankRow').click();
-await expectSuccess(page,'#rankRowFeedback','rank first row');
+await success(page,'#rankMultiplierFeedback','rank multiplier 1');
+check('rank first row shows 3 arithmetic lines',(await page.locator('#rankRowAnswer .notebook-line').count())===3);
+await fillRankRow(page,[0,16,-17]);
 await page.waitForTimeout(350);
 
 await page.locator('#rankMultiplierGuess').fill('4');
 await page.locator('#checkRankMultiplier').click();
-await expectSuccess(page,'#rankMultiplierFeedback','rank second multiplier');
-await fillMatrix(page,'#rankRowAnswer',[0,5,-11]);
-await page.locator('#checkRankRow').click();
-await expectSuccess(page,'#rankRowFeedback','rank second row');
+await success(page,'#rankMultiplierFeedback','rank multiplier 2');
+await fillRankRow(page,[0,5,-11]);
 await page.waitForTimeout(350);
 
-check('fractionless rank step',(await page.locator('#rankInstruction').textContent()).includes('без дробей'));
-await fillMatrix(page,'#rankRowAnswer',[0,0,-91]);
-await page.locator('#checkRankRow').click();
-await expectSuccess(page,'#rankRowFeedback','rank third row');
+check('rank fractionless step visible',(await page.locator('#rankInstruction').textContent()).includes('без дробей'));
+check('rank cross step shows 3 arithmetic lines',(await page.locator('#rankRowAnswer .notebook-line').count())===3);
+await fillRankRow(page,[0,0,-91]);
 await page.waitForTimeout(350);
-
 check('rank staircase complete',(await page.locator('#rankStageTitle').textContent()).includes('готова'));
-const rankCells=await page.locator('#rankStairMatrix .render-matrix span').allTextContents();
-check('rank final staircase',rankCells.join(',')==='-1,2,-3,0,16,-17,0,0,-91',rankCells.join(','));
 await page.locator('#rankGuess').fill('3');
 await page.locator('#checkRankGuess').click();
-await expectSuccess(page,'#rankGuessFeedback','rank answer');
+await success(page,'#rankGuessFeedback','rank final');
 
+// Worksheet source quality and zoom.
 await page.locator('.nav-btn[data-section="sheet"]').click();
 await page.locator('#teacherSheetImage').waitFor({state:'visible'});
-const imgInfo=await page.locator('#teacherSheetImage').evaluate(img=>({
-  naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,src:img.getAttribute('src'),width:img.style.width
-}));
-check('HQ worksheet dimensions',imgInfo.naturalWidth>=950&&imgInfo.naturalHeight>=1200,JSON.stringify(imgInfo));
-check('HQ worksheet source',imgInfo.src?.startsWith('teacher-sheet-hq.jpg'),imgInfo.src);
-await page.locator('#sheetZoomIn').click();
-await page.locator('#sheetZoomIn').click();
-check('worksheet zoom 150%',(await page.locator('#teacherSheetImage').getAttribute('style')||'').includes('150%'));
+const img=await page.locator('#teacherSheetImage').evaluate(x=>({w:x.naturalWidth,h:x.naturalHeight,src:x.getAttribute('src')}));
+check('worksheet HQ',img.w>=950&&img.h>=1200,JSON.stringify(img));
+await page.locator('#sheetZoomIn').click();await page.locator('#sheetZoomIn').click();
+check('worksheet zoom',(await page.locator('#teacherSheetImage').getAttribute('style')||'').includes('150%'));
 
+check('no desktop JS errors',pageErrors.length===0,pageErrors.join('\n'));
 await ctx.close();
 
+// Mobile: no page overlap/overflow, notebook lines remain usable.
 for(const width of [390,320]){
   const mctx=await browser.newContext({viewport:{width,height:844}});
-  const p=await mctx.newPage();
+  const p=await mctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(String(e)));
   await p.goto('http://127.0.0.1:8000/',{waitUntil:'networkidle'});
-  const metrics=await p.evaluate(()=> {
+  const metrics=await p.evaluate(()=>{
     const nav=document.querySelector('.sidebar').getBoundingClientRect();
     const notes=document.querySelector('#studyNotesCard').getBoundingClientRect();
-    const work=document.querySelector('#teacherTaskWorkspace');
-    return {
-      viewport:innerWidth,
-      pageScrollWidth:document.documentElement.scrollWidth,
-      bodyScrollWidth:document.body.scrollWidth,
-      navBottom:nav.bottom,
-      notesTop:notes.top,
-      workClient:work.clientWidth,
-      workScroll:work.scrollWidth
-    };
+    const first=document.querySelector('#task1Notebook .notebook-line').getBoundingClientRect();
+    return {vw:innerWidth,doc:document.documentElement.scrollWidth,body:document.body.scrollWidth,navBottom:nav.bottom,notesTop:notes.top,lineRight:first.right};
   });
-  check('mobile '+width+' no page overflow',metrics.pageScrollWidth<=width+1&&metrics.bodyScrollWidth<=width+1,JSON.stringify(metrics));
+  check('mobile '+width+' no page overflow',metrics.doc<=width+1&&metrics.body<=width+1,JSON.stringify(metrics));
   check('mobile '+width+' notes below nav',metrics.notesTop>=metrics.navBottom-1,JSON.stringify(metrics));
-  check('mobile '+width+' workspace fits',metrics.workScroll<=metrics.workClient+2,JSON.stringify(metrics));
+  check('mobile '+width+' notebook line fits',metrics.lineRight<=width+1,JSON.stringify(metrics));
+  check('mobile '+width+' no JS errors',errs.length===0,errs.join('\n'));
   await mctx.close();
 }
 
 await browser.close();
-if(failures.length){
-  console.error('\nBrowser failures:',failures);
-  process.exit(1);
-}
-console.log('\nAll browser interaction checks passed.');
+if(failures.length){console.error('\nFailures:',failures);process.exit(1)}
+console.log('\nAll notebook interaction tests passed.');
