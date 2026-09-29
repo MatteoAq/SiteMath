@@ -155,7 +155,7 @@
       const terms=A[i].map((v,k)=>`${signed(v)}·${signed(B[k][j])}`);
       lines.push({html:`${cellLabel(label||'c',i,j)}: ${terms.map(esc).join(' + ')}`,expr:'',expected:out[i][j]});
     }
-    return {title,intro:'Каждый элемент – строка первой матрицы × столбец второй.',lines,resultMatrix:out,
+    return {title,intro:'Для каждого элемента: строка первой матрицы × столбец второй.',lines,resultMatrix:out,
       hint:'Не умножай элементы «по местам». Для каждого ответа бери целую строку слева и целый столбец справа.'};
   }
   function combineStage(title,A,B,op,label){
@@ -181,7 +181,7 @@
     sequentialNotebook(box,[
       scalarStage('1. 2A = 2 · A',2,A,'2A'),
       scalarStage('2. 3B = 3 · B',3,B,'3B'),
-      multiplyStage('3. AB – строка A × столбец B',A,B,'c'),
+      multiplyStage('3. AB = A · B',A,B,'c'),
       combineThreeStage('4. C = 2A − 3B + AB',A2,B3,AB,'c')
     ]);
   }
