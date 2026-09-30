@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4efe3">
+  <title>Начертательная геометрия – задание 3</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Интерактивный построитель</p>
+      <h1>Начертательная геометрия – задание 3</h1>
+      <p class="subtitle">Введи A, B и C. Сайт сам построит эпюр Монжа и покажет каждый шаг так, как его выполнять карандашом и линейкой.</p>
+    </div>
+    <a class="repo-link" href="https://github.com/MatteoAq/SiteMath" target="_blank" rel="noreferrer">GitHub</a>
+  </header>
+
+  <main class="layout">
+    <aside class="panel controls-panel">
+      <section class="task-card">
+        <div class="section-kicker">Точное условие</div>
+        <p>Через точку <b>C</b> провести прямую <b>ℓ</b>, пересекающую отрезок прямой <b>AB</b>, и прямую <b>a</b>, параллельную <b>AB</b>.</p>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Исходные данные</div>
+            <h2>Координаты, мм</h2>
+          </div>
+          <button id="presetBtn" class="ghost small" type="button">Вариант 12</button>
+        </div>
+
+        <div class="coord-table" role="group" aria-label="Координаты точек">
+          <div class="coord-header"></div><div>X</div><div>Y</div><div>Z</div>
+          <label>A</label>
+          <input id="Ax" type="number" step="1" value="0" aria-label="A X">
+          <input id="Ay" type="number" step="1" value="10" aria-label="A Y">
+          <input id="Az" type="number" step="1" value="50" aria-label="A Z">
+          <label>B</label>
+          <input id="Bx" type="number" step="1" value="30" aria-label="B X">
+          <input id="By" type="number" step="1" value="25" aria-label="B Y">
+          <input id="Bz" type="number" step="1" value="30" aria-label="B Z">
+          <label>C</label>
+          <input id="Cx" type="number" step="1" value="50" aria-label="C X">
+          <input id="Cy" type="number" step="1" value="25" aria-label="C Y">
+          <input id="Cz" type="number" step="1" value="60" aria-label="C Z">
+        </div>
+      </section>
+
+      <section class="choice-card">
+        <div class="section-head compact">
+          <div>
+            <div class="section-kicker">Свободный выбор в условии</div>
+            <h2>Где ℓ пересечёт AB</h2>
+          </div>
+          <output id="kOutput" for="kSlider">50%</output>
+        </div>
+        <input id="kSlider" type="range" min="15" max="85" value="50" step="1">
+        <p class="hint">Точка пересечения не задана, поэтому правильных прямых ℓ бесконечно много. Для наглядности выбираем точку K внутри AB. Это не допущение, а свобода, которую оставило условие.</p>
+      </section>
+
+      <section class="scale-card">
+        <div class="metric-row"><span>Масштаб</span><b>1:1</b></div>
+        <div class="metric-row"><span>1 клетка</span><b>5 мм = 0,5 см</b></div>
+        <div class="metric-row"><span>Проекции</span><b>П₁ + П₂</b></div>
+        <p class="hint">Координаты из задания считаются миллиметрами. На сетке каждые 5 мм – одна клетка.</p>
+      </section>
+
+      <div id="validation" class="validation" role="alert" hidden></div>
+
+      <div class="primary-actions">
+        <button id="buildBtn" class="primary" type="button">Построить заново</button>
+        <button id="printBtn" class="ghost" type="button">Печать / PDF</button>
+      </div>
+    </aside>
+
+    <section class="workspace">
+      <div class="panel stage-panel">
+        <div class="stage-toolbar">
+          <div>
+            <div class="section-kicker">Пошаговое построение</div>
+            <div class="step-counter"><span id="stepNumber">1</span> / <span id="stepTotal">1</span></div>
+          </div>
+          <div class="transport-controls">
+            <button id="prevBtn" class="icon-btn" type="button" aria-label="Предыдущий шаг">◀</button>
+            <button id="playBtn" class="icon-btn wide" type="button">▶ Авто</button>
+            <button id="nextBtn" class="icon-btn" type="button" aria-label="Следующий шаг">▶</button>
+          </div>
+        </div>
+
+        <div class="paper-wrap">
+          <svg id="drawing" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Пошаговый эпюр Монжа"></svg>
+        </div>
+
+        <div class="legend">
+          <span><i class="swatch construction"></i>тонкие построения</span>
+          <span><i class="swatch object"></i>AB и искомые прямые</span>
+          <span><i class="swatch active"></i>текущий шаг</span>
+        </div>
+      </div>
+
+      <article class="panel explanation-panel" aria-live="polite">
+        <div class="step-badge" id="stepBadge">Шаг 1</div>
+        <h2 id="stepTitle">Подготовка</h2>
+        <p id="stepAction" class="action-text"></p>
+        <div class="explain-grid">
+          <section>
+            <h3>Почему именно так</h3>
+            <p id="stepWhy"></p>
+          </section>
+          <section>
+            <h3>Что отмерить</h3>
+            <div id="stepMeasure"></div>
+          </section>
+          <section>
+            <h3>Самопроверка</h3>
+            <p id="stepCheck"></p>
+          </section>
+        </div>
+      </article>
+
+      <details class="panel source-panel">
+        <summary>На чём основан алгоритм</summary>
+        <div class="source-body">
+          <p>Алгоритм не подменяет начертательную геометрию «рисованием по картинке». Он использует свойства ортогонального проецирования и стандартные построения для пересекающихся и параллельных прямых.</p>
+          <ul>
+            <li><a href="https://lib.ulstu.ru/venec/disk/2013/Churbanov.pdf" target="_blank" rel="noreferrer">Учебное пособие УлГТУ</a> – пример: через C провести произвольную прямую, пересекающую AB, с переносом точки пересечения по линии связи.</li>
+            <li><a href="https://studfile.net/preview/11937576/" target="_blank" rel="noreferrer">Практикум по начертательной геометрии</a> – построение прямой через C, параллельной AB, по параллельности одноимённых проекций.</li>
+            <li><a href="https://www.youtube.com/watch?v=WRKr2xCGTTU" target="_blank" rel="noreferrer">Лекция «Проецирование прямой»</a> – пересекающиеся прямые с 16:21, параллельные с 17:06.</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
