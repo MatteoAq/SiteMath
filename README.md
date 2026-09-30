@@ -18,6 +18,6 @@ GitHub Pages: https://matteoaq.github.io/SiteMath/
 
 ## Основа алгоритма
 
-- Чурбанов И. В., учебное пособие по начертательной геометрии: пример построения через C произвольной прямой, пересекающей AB, с переносом точки пересечения по линии связи: https://lib.ulstu.ru/venec/disk/2013/Churbanov.pdf
-- Практикум: через C провести прямую, параллельную AB, по параллельности одноимённых проекций: https://studfile.net/preview/11937576/
-- Видеолекция «Проецирование прямой»: пересекающиеся прямые с 16:21, параллельные с 17:06: https://www.youtube.com/watch?v=WRKr2xCGTTU
+- Теория «Взаимное положение двух прямых»: https://nachert.ru/course/?id=22&lesson=4
+- Видео и текстовый урок «Взаимное положение прямых»: https://naploskosti.ru/nachertalka/vzaimnoe-polozhenie-pryamikh
+- Видео «Следы прямой. Взаимное положение двух прямых»: https://www.youtube.com/watch?v=q4d96d2IiCk
