@@ -278,3 +278,143 @@
       action:g.a2
         ? 'То же самое сделай на фронтальной проекции: a₂ через C₂ параллельно A₂B₂.'
         : 'A₂B₂ выродилась в точку: AB перпендикулярна П₂. Тогда a₂ тоже является точкой C₂.',
+      why:'Параллельность проверяется отдельно на одноимённых проекциях. Обе пары должны иметь одно направление.',
+      measure:[g.angleAB2 === null ? 'На П₂ проекция AB является точкой.' : 'Сохрани наклон ' + fmt(g.angleAB2,1) + '° к горизонтали.'],
+      check:g.a2 ? 'a₂ ∥ A₂B₂ и проходит через C₂.' : 'a₂ совпадает с C₂.'
+    }, a2Entities, g.a2 ? {kind:'line',a:g.a2.p1,b:g.a2.p2} : null);
+
+    if (g.cOnSegment) {
+      push({
+        title:'Точка пересечения K уже известна',
+        action:'C сама лежит на отрезке AB, поэтому бери K = C.',
+        why:'Любая отдельная прямая, проходящая через C, уже пересекает AB в этой точке. Дополнительный выбор точки K не нужен.',
+        measure:['K = C'],
+        check:'K₁ совпадает с C₁, K₂ совпадает с C₂.'
+      }, [pointEntity(steps.length,proj.K1,'K₁=C₁','answer-dot'), pointEntity(steps.length,proj.K2,'K₂=C₂','answer-dot')]);
+    } else {
+      const frac = Math.round(g.t*100);
+      push({
+        title:'Выбери K₁ на отрезке A₁B₁',
+        action:'Отложи на A₁B₁ точку K₁ на ' + frac + '% пути от A₁ к B₁. По умолчанию 50% – середина.',
+        why:'Условие не задаёт конкретную точку пересечения. Любая K внутри AB даёт корректную прямую ℓ = CK. Мы выбираем внутреннюю точку, чтобы построение было однозначным и удобным.',
+        measure:['Доля A₁K₁ / A₁B₁ = ' + frac + '%','A₁K₁ ≈ ' + fmt(dist2(proj.A1,proj.K1),1) + ' мм на проекции'],
+        check:'K₁ лежит именно на отрезке A₁B₁, не на его продолжении.'
+      }, [pointEntity(steps.length,proj.K1,'K₁','answer-dot'), dimEntity(steps.length,proj.A1,proj.K1,frac + '%')], {kind:'line',a:proj.A1,b:proj.K1});
+
+      push({
+        title:'Перенеси K₁ на фронтальную проекцию',
+        action:'Через K₁ проведи линию связи перпендикулярно x₁₂. В месте её пересечения с A₂B₂ отметь K₂.',
+        why:'K₁ и K₂ должны быть проекциями одной и той же пространственной точки K. Поэтому они обязаны лежать на одном перпендикуляре к оси x₁₂.',
+        measure:['Линия K₁K₂ строго перпендикулярна x₁₂'],
+        check:'K₂ одновременно лежит на A₂B₂ и на вертикали из K₁.'
+      }, [lineEntity(steps.length,proj.K1,proj.K2,'construction-line'), pointEntity(steps.length,proj.K2,'K₂','answer-dot')], {kind:'line',a:proj.K1,b:proj.K2});
+    }
+
+    push({
+      title:'Проведи ℓ₁ через C₁ и K₁',
+      action:'Приложи линейку к двум уже построенным точкам C₁ и K₁ и соедини их.',
+      why:'Угол ℓ₁ не задаётся и отдельно не вычисляется. Две точки C₁ и K₁ уже однозначно задают горизонтальную проекцию искомой прямой.',
+      measure:[angleText('Получившийся наклон ℓ₁',g.angleL1),'Отмерять угол транспортиром не требуется.'],
+      check:'ℓ₁ проходит через C₁ и пересекает A₁B₁ ровно в K₁.'
+    }, [lineEntity(steps.length,proj.C1,proj.K1,'answer-line')], {kind:'line',a:proj.C1,b:proj.K1});
+
+    push({
+      title:'Проведи ℓ₂ через C₂ и K₂',
+      action:'Соедини C₂ и K₂.',
+      why:'Теперь обе проекции ℓ проходят через проекции C и через согласованные проекции общей точки K. Значит, в пространстве ℓ действительно проходит через C и пересекает AB.',
+      measure:[angleText('Получившийся наклон ℓ₂',g.angleL2)],
+      check:'Точки пересечения ℓ₁ с A₁B₁ и ℓ₂ с A₂B₂ находятся на одной линии связи K₁K₂.'
+    }, [lineEntity(steps.length,proj.C2,proj.K2,'answer-line')], {kind:'line',a:proj.C2,b:proj.K2});
+
+    push({
+      title:'Финальная проверка',
+      action:'Проверь три независимых условия: проекции точек, параллельность a и пересечение ℓ с AB.',
+      why:'Так проверяется не внешний вид, а геометрическая корректность эпюра.',
+      measure:['A₁/A₂, B₁/B₂, C₁/C₂ – на вертикалях связи','a₁ ∥ A₁B₁ и a₂ ∥ A₂B₂','K₁ и K₂ – на одной линии связи'],
+      check:'Если все три проверки выполняются, задание построено корректно.'
+    });
+
+    return steps;
+  }
+
+  function render() {
+    const g = state.geometry;
+    svg.replaceChildren();
+    svg.setAttribute('viewBox', '0 0 ' + g.width + ' ' + g.height);
+    svg.setAttribute('width', g.width + 'mm');
+    svg.setAttribute('height', g.height + 'mm');
+    svg.style.width = g.width + 'mm';
+
+    drawGrid(g);
+    const allEntities = state.steps.flatMap((s,idx) => (s.entities || []).map(e => ({...e, stepIndex:idx})));
+    for (const entity of allEntities) {
+      if (entity.stepIndex <= state.step) drawEntity(entity, entity.stepIndex === state.step);
+    }
+
+    drawPermanentLabels(g);
+    animateCurrentStep();
+    updateExplanation();
+  }
+
+  function drawGrid(g) {
+    const defs = el('defs');
+    const minor = el('pattern',{id:'minorGrid',width:GRID,height:GRID,patternUnits:'userSpaceOnUse'});
+    minor.append(el('path',{d:'M ' + GRID + ' 0 L 0 0 0 ' + GRID,class:'grid-minor',fill:'none'}));
+    defs.append(minor);
+    const major = el('pattern',{id:'majorGrid',width:GRID*5,height:GRID*5,patternUnits:'userSpaceOnUse'});
+    major.append(el('rect',{width:GRID*5,height:GRID*5,fill:'url(#minorGrid)'}));
+    major.append(el('path',{d:'M ' + (GRID*5) + ' 0 L 0 0 0 ' + (GRID*5),class:'grid-major',fill:'none'}));
+    defs.append(major);
+    const marker = el('marker',{id:'axisArrow',viewBox:'0 0 10 10',refX:'8',refY:'5',markerWidth:'4',markerHeight:'4',orient:'auto-start-reverse'});
+    marker.append(el('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#37332e'}));
+    defs.append(marker);
+    svg.append(defs);
+    svg.append(el('rect',{x:0,y:0,width:g.width,height:g.height,fill:'url(#majorGrid)'}));
+  }
+
+  function drawPermanentLabels(g) {
+    if (state.step >= 1) {
+      svg.append(el('text',{x:9,y:g.axisY-2.5,class:'svg-label'},'+x'));
+      svg.append(el('text',{x:g.width-13,y:g.axisY-2.5,class:'svg-label'},'−x'));
+      svg.append(el('text',{x:g.width-20,y:g.axisY+5,class:'svg-note'},'x₁₂'));
+      svg.append(el('text',{x:g.width-25,y:7,class:'svg-note'},'П₂'));
+      svg.append(el('text',{x:g.width-25,y:g.height-5,class:'svg-note'},'П₁'));
+    }
+  }
+
+  function drawEntity(e, active) {
+    if (e.type === 'line') {
+      const line = el('line',{x1:e.a.x,y1:e.a.y,x2:e.b.x,y2:e.b.y,class:'draw-line ' + e.cls + (active?' active-line':''), 'data-active':active?'1':'0'});
+      if (e.arrow) line.setAttribute('marker-start','url(#axisArrow)');
+      svg.append(line);
+    } else if (e.type === 'point') {
+      const r = e.cls.includes('answer') ? 1.05 : .9;
+      svg.append(el('circle',{cx:e.p.x,cy:e.p.y,r:r,class:e.cls + (active?' active-dot':''),'data-active':active?'1':'0'}));
+      if (e.label) svg.append(el('text',{x:e.p.x+2.2,y:e.p.y-2.2,class:'svg-label','data-active':active?'1':'0'},e.label));
+    } else if (e.type === 'tick') {
+      svg.append(el('line',{x1:e.p.x,y1:e.p.y-2.2,x2:e.p.x,y2:e.p.y+2.2,class:'tick' + (active?' active-line':''),'data-active':active?'1':'0'}));
+      svg.append(el('text',{x:e.p.x+1.5,y:e.p.y+5,class:'svg-note','data-active':active?'1':'0'},e.label));
+    } else if (e.type === 'dim') {
+      drawDimension(e,active);
+    }
+  }
+
+  function drawDimension(e,active) {
+    const dx=e.b.x-e.a.x, dy=e.b.y-e.a.y, len=Math.hypot(dx,dy);
+    if (len < EPS) return;
+    const nx=-dy/len, ny=dx/len;
+    const off = 3.2;
+    const a={x:e.a.x+nx*off+(e.offset?.x||0),y:e.a.y+ny*off+(e.offset?.y||0)};
+    const b={x:e.b.x+nx*off+(e.offset?.x||0),y:e.b.y+ny*off+(e.offset?.y||0)};
+    const group=el('g',{'data-active':active?'1':'0'});
+    group.append(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'dimension' + (active?' active-line':'')}));
+    group.append(el('line',{x1:a.x-nx*1.5,y1:a.y-ny*1.5,x2:a.x+nx*1.5,y2:a.y+ny*1.5,class:'dimension'}));
+    group.append(el('line',{x1:b.x-nx*1.5,y1:b.y-ny*1.5,x2:b.x+nx*1.5,y2:b.y+ny*1.5,class:'dimension'}));
+    group.append(el('text',{x:(a.x+b.x)/2+nx*2,y:(a.y+b.y)/2+ny*2,class:'dimension-text','text-anchor':'middle'},e.label));
+    svg.append(group);
+  }
+
+  function animateCurrentStep() {
+    const step = state.steps[state.step];
+    const activeLines = [...svg.querySelectorAll('[data-active="1"].draw-line')];
+    activeLines.forEach((node, i) => {
