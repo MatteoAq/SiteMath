@@ -142,6 +142,17 @@
 
     const vAB1 = {x:proj.B1.x-proj.A1.x, y:proj.B1.y-proj.A1.y};
     const vAB2 = {x:proj.B2.x-proj.A2.x, y:proj.B2.y-proj.A2.y};
+    const AB3 = sub3(B,A);
+    let lTarget = K;
+    if (cOnSegment) {
+      let d = {x:1,y:1,z:1};
+      if (norm3(cross3(AB3,d)) <= EPS) d = {x:1,y:-1,z:1};
+      lTarget = add3(C, mul3(d,30));
+    }
+    const lTarget1 = p1(lTarget);
+    const lTarget2 = p2(lTarget);
+    const vL1 = {x:lTarget1.x-proj.C1.x, y:lTarget1.y-proj.C1.y};
+    const vL2 = {x:lTarget2.x-proj.C2.x, y:lTarget2.y-proj.C2.y};
     const ext = Math.max(width,height) * 0.65;
 
     function extendedLine(P, v) {
@@ -156,10 +167,13 @@
       width,height,originX,axisY,proj,
       a1: extendedLine(proj.C1, vAB1),
       a2: extendedLine(proj.C2, vAB2),
+      l1: extendedLine(proj.C1, vL1),
+      l2: extendedLine(proj.C2, vL2),
+      kBase: dist2(proj.A1,proj.B1) >= EPS ? 1 : 2,
       angleAB1: tiltAngle(proj.A1,proj.B1),
       angleAB2: tiltAngle(proj.A2,proj.B2),
-      angleL1: tiltAngle(proj.C1,proj.K1),
-      angleL2: tiltAngle(proj.C2,proj.K2)
+      angleL1: tiltAngle(proj.C1,lTarget1),
+      angleL2: tiltAngle(proj.C2,lTarget2)
     };
   }
 
@@ -286,12 +300,12 @@
     if (g.cOnSegment) {
       push({
         title:'Точка пересечения K уже известна',
-        action:'C сама лежит на отрезке AB, поэтому бери K = C.',
-        why:'Любая отдельная прямая, проходящая через C, уже пересекает AB в этой точке. Дополнительный выбор точки K не нужен.',
-        measure:['K = C'],
+        action:'C уже лежит на отрезке AB, поэтому точка пересечения K совпадает с C. Для ℓ достаточно выбрать любое направление, не совпадающее с AB.',
+        why:'Условие требует, чтобы ℓ проходила через C и пересекала AB. Если C принадлежит AB, пересечение уже обеспечено в самой точке C.',
+        measure:['K = C','Сайт выбирает вспомогательное непараллельное AB направление только для однозначного показа ℓ.'],
         check:'K₁ совпадает с C₁, K₂ совпадает с C₂.'
       }, [pointEntity(steps.length,proj.K1,'K₁=C₁','answer-dot'), pointEntity(steps.length,proj.K2,'K₂=C₂','answer-dot')]);
-    } else {
+    } else if (g.kBase === 1) {
       const frac = Math.round(g.t*100);
       push({
         title:'Выбери K₁ на отрезке A₁B₁',
@@ -308,23 +322,52 @@
         measure:['Линия K₁K₂ строго перпендикулярна x₁₂'],
         check:'K₂ одновременно лежит на A₂B₂ и на вертикали из K₁.'
       }, [lineEntity(steps.length,proj.K1,proj.K2,'construction-line'), pointEntity(steps.length,proj.K2,'K₂','answer-dot')], {kind:'line',a:proj.K1,b:proj.K2});
+    } else {
+      const frac = Math.round(g.t*100);
+      push({
+        title:'A₁B₁ выродилась в точку – выбери K₂',
+        action:'На фронтальной проекции A₂B₂ отложи K₂ на ' + frac + '% пути от A₂ к B₂.',
+        why:'Когда A₁ и B₁ совпадают, положение K невозможно определить на П₁. Поэтому ту же долю отрезка выбираем на невырожденной проекции П₂.',
+        measure:['Доля A₂K₂ / A₂B₂ = ' + frac + '%','A₂K₂ ≈ ' + fmt(dist2(proj.A2,proj.K2),1) + ' мм на проекции'],
+        check:'K₂ лежит на A₂B₂.'
+      }, [pointEntity(steps.length,proj.K2,'K₂','answer-dot'), dimEntity(steps.length,proj.A2,proj.K2,frac + '%')], {kind:'line',a:proj.A2,b:proj.K2});
+
+      push({
+        title:'Перенеси K₂ на горизонтальную проекцию',
+        action:'Проведи из K₂ линию связи перпендикулярно x₁₂. Она приходит в единственную точечную проекцию A₁ ≡ B₁ ≡ K₁.',
+        why:'AB перпендикулярна П₁, поэтому все её точки имеют одну и ту же горизонтальную проекцию.',
+        measure:['K₁ = A₁ = B₁'],
+        check:'K₁ находится на той же линии связи, что и K₂.'
+      }, [lineEntity(steps.length,proj.K2,proj.K1,'construction-line'), pointEntity(steps.length,proj.K1,'K₁','answer-dot')], {kind:'line',a:proj.K2,b:proj.K1});
     }
 
+    const l1Entities = g.l1
+      ? [lineEntity(steps.length,g.l1.p1,g.l1.p2,'answer-line')]
+      : [pointEntity(steps.length,proj.C1,'ℓ₁ ≡ C₁ ≡ K₁','answer-dot')];
     push({
       title:'Проведи ℓ₁ через C₁ и K₁',
-      action:'Приложи линейку к двум уже построенным точкам C₁ и K₁ и соедини их.',
-      why:'Угол ℓ₁ не задаётся и отдельно не вычисляется. Две точки C₁ и K₁ уже однозначно задают горизонтальную проекцию искомой прямой.',
+      action:g.cOnSegment
+        ? 'Проведи через C₁ выбранное сайтом направление ℓ₁ и продли линию в обе стороны.'
+        : (g.l1 ? 'Приложи линейку к C₁ и K₁, проведи через них прямую и продли её в обе стороны.' : 'C₁ и K₁ совпали: горизонтальная проекция ℓ вырождается в точку.'),
+      why:g.cOnSegment
+        ? 'Так как K = C уже лежит на AB, направление ℓ свободно. Важно лишь, чтобы ℓ не совпадала с AB.'
+        : 'Угол ℓ₁ отдельно не задаётся: две точки C₁ и K₁ определяют её проекцию. Если эти проекции совпали, это корректная вырожденная проекция прямой.',
       measure:[angleText('Получившийся наклон ℓ₁',g.angleL1),'Отмерять угол транспортиром не требуется.'],
-      check:'ℓ₁ проходит через C₁ и пересекает A₁B₁ ровно в K₁.'
-    }, [lineEntity(steps.length,proj.C1,proj.K1,'answer-line')], {kind:'line',a:proj.C1,b:proj.K1});
+      check:g.l1 ? 'ℓ₁ проходит через C₁ и через K₁.' : 'Точечная ℓ₁ совпадает с C₁ и K₁.'
+    }, l1Entities, g.l1 ? {kind:'line',a:g.l1.p1,b:g.l1.p2} : null);
 
+    const l2Entities = g.l2
+      ? [lineEntity(steps.length,g.l2.p1,g.l2.p2,'answer-line')]
+      : [pointEntity(steps.length,proj.C2,'ℓ₂ ≡ C₂ ≡ K₂','answer-dot')];
     push({
       title:'Проведи ℓ₂ через C₂ и K₂',
-      action:'Соедини C₂ и K₂.',
-      why:'Теперь обе проекции ℓ проходят через проекции C и через согласованные проекции общей точки K. Значит, в пространстве ℓ действительно проходит через C и пересекает AB.',
+      action:g.cOnSegment
+        ? 'На П₂ проведи вторую одноимённую проекцию ℓ₂ через C₂ в согласованном направлении.'
+        : (g.l2 ? 'Приложи линейку к C₂ и K₂, проведи через них прямую и продли её.' : 'C₂ и K₂ совпали: фронтальная проекция ℓ вырождается в точку.'),
+      why:'Обе одноимённые проекции должны описывать одну пространственную прямую ℓ. Для обычного случая они проходят через согласованные проекции C и K.',
       measure:[angleText('Получившийся наклон ℓ₂',g.angleL2)],
-      check:'Точки пересечения ℓ₁ с A₁B₁ и ℓ₂ с A₂B₂ находятся на одной линии связи K₁K₂.'
-    }, [lineEntity(steps.length,proj.C2,proj.K2,'answer-line')], {kind:'line',a:proj.C2,b:proj.K2});
+      check:g.cOnSegment ? 'ℓ проходит через C, а C принадлежит AB – условие пересечения выполнено.' : 'Точки пересечения ℓ с AB имеют проекции K₁ и K₂ на одной линии связи.'
+    }, l2Entities, g.l2 ? {kind:'line',a:g.l2.p1,b:g.l2.p2} : null);
 
     push({
       title:'Финальная проверка',
