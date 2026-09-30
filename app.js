@@ -418,3 +418,127 @@
     const step = state.steps[state.step];
     const activeLines = [...svg.querySelectorAll('[data-active="1"].draw-line')];
     activeLines.forEach((node, i) => {
+      const length = node.getTotalLength ? node.getTotalLength() : 0;
+      if (!length) return;
+      node.style.strokeDasharray = String(length);
+      node.style.strokeDashoffset = String(length);
+      node.style.transition = 'none';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          node.style.transition = 'stroke-dashoffset ' + (700 + i*180) + 'ms cubic-bezier(.2,.7,.2,1)';
+          node.style.strokeDashoffset = '0';
+        });
+      });
+    });
+
+    [...svg.querySelectorAll('[data-active="1"]')]
+      .filter(n=>!n.classList.contains('draw-line'))
+      .forEach(n => n.animate([{opacity:0},{opacity:1}],{duration:500,easing:'ease-out'}));
+
+    if (step.tool) drawToolOverlay(step.tool);
+  }
+
+  function drawToolOverlay(tool) {
+    if (!tool || tool.kind !== 'line') return;
+    const a=tool.a,b=tool.b;
+    const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);
+    if (len < EPS) return;
+    const angle=Math.atan2(dy,dx)*180/Math.PI;
+    const group=el('g',{class:'tool-overlay',transform:'translate(' + a.x + ' ' + a.y + ') rotate(' + angle + ')'});
+    const rulerLen=Math.max(20,Math.min(len,55));
+    group.append(el('rect',{x:0,y:2,width:rulerLen,height:5,rx:1,class:'ruler-body'}));
+    for(let i=0;i<=rulerLen;i+=5) {
+      group.append(el('line',{x1:i,y1:2,x2:i,y2:i%10===0?5.5:4.3,class:'ruler-tick'}));
+    }
+    const pencil=el('g',{transform:'translate(0 0) rotate(-8)'});
+    pencil.append(el('rect',{x:-1,y:-2,width:9,height:2.3,rx:.4,class:'pencil-body'}));
+    pencil.append(el('path',{d:'M 8 -2 L 11 -.85 L 8 .3 z',class:'pencil-tip'}));
+    group.append(pencil);
+    svg.append(group);
+
+    const anim=pencil.animate([
+      {transform:'translate(0px, 0px) rotate(-8deg)'},
+      {transform:'translate(' + Math.min(len,rulerLen) + 'px, 0px) rotate(-8deg)'}
+    ],{duration:950,easing:'ease-in-out',fill:'forwards'});
+    anim.onfinish=()=>group.animate([{opacity:1},{opacity:0}],{duration:350,fill:'forwards'});
+  }
+
+  function updateExplanation() {
+    const s=state.steps[state.step];
+    $('stepNumber').textContent=String(state.step+1);
+    $('stepTotal').textContent=String(state.steps.length);
+    $('stepBadge').textContent='Шаг ' + (state.step+1);
+    $('stepTitle').textContent=s.title;
+    $('stepAction').textContent=s.action;
+    $('stepWhy').textContent=s.why;
+    $('stepCheck').textContent=s.check;
+    $('stepMeasure').innerHTML='<ul class="measure-list">' + (s.measure||[]).map(m=>'<li>' + htmlEscape(m) + '</li>').join('') + '</ul>';
+    $('prevBtn').disabled=state.step===0;
+    $('nextBtn').disabled=state.step===state.steps.length-1;
+  }
+
+  function rebuild(resetStep=true) {
+    stopAuto();
+    $('kOutput').textContent=$('kSlider').value + '%';
+    const g=makeGeometry();
+    const validation=$('validation');
+    if (g.error) {
+      validation.hidden=false;
+      validation.textContent=g.error;
+      return;
+    }
+    validation.hidden=true;
+    state.geometry=g;
+    state.steps=buildSteps(g);
+    if (resetStep) state.step=0;
+    state.step=Math.max(0,Math.min(state.step,state.steps.length-1));
+    render();
+  }
+
+  function go(delta) {
+    const next=Math.max(0,Math.min(state.steps.length-1,state.step+delta));
+    if(next===state.step) return;
+    state.step=next;
+    render();
+  }
+
+  function stopAuto() {
+    state.playing=false;
+    if(state.timer) clearTimeout(state.timer);
+    state.timer=null;
+    if($('playBtn')) $('playBtn').textContent='▶ Авто';
+  }
+
+  function autoAdvance() {
+    if(!state.playing) return;
+    if(state.step>=state.steps.length-1){stopAuto();return;}
+    go(1);
+    state.timer=setTimeout(autoAdvance,2200);
+  }
+
+  function toggleAuto() {
+    if(state.playing){stopAuto();return;}
+    state.playing=true;
+    $('playBtn').textContent='Ⅱ Стоп';
+    state.timer=setTimeout(autoAdvance,500);
+  }
+
+  $('presetBtn').addEventListener('click',()=>{
+    for(const [name,p] of Object.entries(preset)){
+      $(name+'x').value=p.x;
+      $(name+'y').value=p.y;
+      $(name+'z').value=p.z;
+    }
+    $('kSlider').value='50';
+    rebuild(true);
+  });
+  $('buildBtn').addEventListener('click',()=>rebuild(true));
+  $('printBtn').addEventListener('click',()=>window.print());
+  $('prevBtn').addEventListener('click',()=>{stopAuto();go(-1);});
+  $('nextBtn').addEventListener('click',()=>{stopAuto();go(1);});
+  $('playBtn').addEventListener('click',toggleAuto);
+  $('kSlider').addEventListener('input',()=>{ $('kOutput').textContent=$('kSlider').value + '%'; rebuild(false); });
+  inputs.forEach(inp=>inp.addEventListener('change',()=>rebuild(true)));
+
+  rebuild(true);
+})();
