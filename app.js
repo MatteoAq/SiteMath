@@ -110,9 +110,12 @@
     const kUser = Number($('kSlider').value) / 100;
     const cOnSegment = onSegment3D(C,A,B);
     const t = cOnSegment ? null : kUser;
-    const K = cOnSegment ? {...C} : add3(A, mul3(sub3(B,A), t));
+    const AB3 = sub3(B,A);
+    const K = cOnSegment ? {...C} : add3(A, mul3(AB3, t));
+    const profileAB = Math.abs(AB3.x) < EPS;
+    const D = profileAB ? add3(C, mul3(AB3, 0.5)) : null;
 
-    const all = [A,B,C,K];
+    const all = D ? [A,B,C,K,D] : [A,B,C,K];
     const xs = all.map(p=>p.x), ys = all.map(p=>p.y), zs = all.map(p=>p.z);
     const maxX = Math.max(0, ...xs), minX = Math.min(0, ...xs);
     const maxY = Math.max(0, ...ys), minY = Math.min(0, ...ys);
@@ -137,12 +140,12 @@
       A1:p1(A), A2:p2(A), Ax:base(A),
       B1:p1(B), B2:p2(B), Bx:base(B),
       C1:p1(C), C2:p2(C), Cx:base(C),
-      K1:p1(K), K2:p2(K), Kx:base(K)
+      K1:p1(K), K2:p2(K), Kx:base(K),
+      D1:D ? p1(D) : null, D2:D ? p2(D) : null, Dx:D ? base(D) : null
     };
 
     const vAB1 = {x:proj.B1.x-proj.A1.x, y:proj.B1.y-proj.A1.y};
     const vAB2 = {x:proj.B2.x-proj.A2.x, y:proj.B2.y-proj.A2.y};
-    const AB3 = sub3(B,A);
     let lTarget = K;
     if (cOnSegment) {
       let d = {x:1,y:1,z:1};
@@ -163,7 +166,7 @@
     }
 
     return {
-      A,B,C,K,t,kUser,cOnSegment,
+      A,B,C,K,D,t,kUser,cOnSegment,profileAB,
       width,height,originX,axisY,proj,
       a1: extendedLine(proj.C1, vAB1),
       a2: extendedLine(proj.C2, vAB2),
@@ -269,6 +272,25 @@
       check:'A₁/A₂ и B₁/B₂ должны оставаться на своих общих вертикальных линиях связи.'
     }, [lineEntity(steps.length,proj.A2,proj.B2,'object-line')], {kind:'line',a:proj.A2,b:proj.B2});
 
+    if (g.profileAB) {
+      push({
+        title:'Особый случай: AB – профильная прямая',
+        action:'Так как xA = xB, одних условий a₁ ∥ A₁B₁ и a₂ ∥ A₂B₂ недостаточно. Построй вспомогательную точку D = C + 0,5·(B−A).',
+        why:'У профильной прямой обе основные проекции могут быть вертикальными и не показывать отношение приращений y и z. Одна согласованная пара D₁/D₂ фиксирует пространственное направление точно.',
+        measure:[
+          'D = (' + fmt(g.D.x,1) + '; ' + fmt(g.D.y,1) + '; ' + fmt(g.D.z,1) + ')',
+          'ΔCD = 0,5·ΔAB по каждой координате'
+        ],
+        check:'D₁ и D₂ лежат на одной линии связи; CD имеет тот же пространственный вектор направления, что и AB.'
+      }, [
+        tickEntity(steps.length,proj.Dx,'Dₓ'),
+        lineEntity(steps.length,proj.Dx,proj.D1,'construction-line'),
+        lineEntity(steps.length,proj.Dx,proj.D2,'construction-line'),
+        pointEntity(steps.length,proj.D1,'D₁'),
+        pointEntity(steps.length,proj.D2,'D₂')
+      ], {kind:'line',a:proj.D1,b:proj.D2});
+    }
+
     const a1Entities = g.a1
       ? [lineEntity(steps.length,g.a1.p1,g.a1.p2,'answer-line')]
       : [pointEntity(steps.length,proj.C1,'a₁ ≡ C₁','answer-dot')];
@@ -276,9 +298,11 @@
     push({
       title:'Через C₁ проведи a₁ ∥ A₁B₁',
       action:g.a1
-        ? 'Приложи линейку вдоль A₁B₁, не меняя её наклона перенеси к C₁ и проведи a₁.'
+        ? (g.profileAB ? 'Соедини C₁ с D₁ и продли линию – это a₁.' : 'Приложи линейку вдоль A₁B₁, не меняя её наклона перенеси к C₁ и проведи a₁.')
         : 'A₁B₁ выродилась в точку: AB перпендикулярна П₁. Тогда горизонтальная проекция любой параллельной ей прямой тоже вырождается в точку C₁.',
-      why:'Если пространственные прямые параллельны, их одноимённые проекции параллельны. Поэтому для a ∥ AB сохраняем направление A₁B₁ и A₂B₂.',
+      why:g.profileAB
+        ? 'Для профильной прямой используем согласованную точку D: вектор CD = 0,5·AB, поэтому a точно параллельна AB в пространстве.'
+        : 'Если пространственные прямые параллельны, их одноимённые проекции параллельны. Для прямой непрофильного положения двух основных проекций достаточно.',
       measure:[g.angleAB1 === null ? 'На П₁ угол не измеряется – проекция AB является точкой.' : 'Сохрани наклон ' + fmt(g.angleAB1,1) + '° к горизонтали. Транспортир не нужен: проще перенести направление линейкой.'],
       check:g.a1 ? 'a₁ проходит через C₁ и не меняет направление относительно A₁B₁.' : 'a₁ совпадает с C₁ как точечная проекция.'
     }, a1Entities, g.a1 ? {kind:'line',a:g.a1.p1,b:g.a1.p2} : null);
@@ -290,9 +314,11 @@
     push({
       title:'Через C₂ проведи a₂ ∥ A₂B₂',
       action:g.a2
-        ? 'То же самое сделай на фронтальной проекции: a₂ через C₂ параллельно A₂B₂.'
+        ? (g.profileAB ? 'Соедини C₂ с D₂ и продли линию – это a₂.' : 'То же самое сделай на фронтальной проекции: a₂ через C₂ параллельно A₂B₂.')
         : 'A₂B₂ выродилась в точку: AB перпендикулярна П₂. Тогда a₂ тоже является точкой C₂.',
-      why:'Параллельность проверяется отдельно на одноимённых проекциях. Обе пары должны иметь одно направление.',
+      why:g.profileAB
+        ? 'D₂ соответствует той же пространственной точке D, что и D₁. Поэтому две проекции задают одну конкретную профильную прямую a.'
+        : 'Параллельность проверяется отдельно на одноимённых проекциях. Обе пары должны иметь одно направление.',
       measure:[g.angleAB2 === null ? 'На П₂ проекция AB является точкой.' : 'Сохрани наклон ' + fmt(g.angleAB2,1) + '° к горизонтали.'],
       check:g.a2 ? 'a₂ ∥ A₂B₂ и проходит через C₂.' : 'a₂ совпадает с C₂.'
     }, a2Entities, g.a2 ? {kind:'line',a:g.a2.p1,b:g.a2.p2} : null);
