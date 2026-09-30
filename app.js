@@ -531,6 +531,9 @@
       return;
     }
     validation.hidden=true;
+    $('kSlider').disabled = g.cOnSegment;
+    $('kOutput').textContent = g.cOnSegment ? 'K=C' : $('kSlider').value + '%';
+    $('sheetSize').textContent = fmt(g.width,0) + ' × ' + fmt(g.height,0) + ' мм';
     state.geometry=g;
     state.steps=buildSteps(g);
     if (resetStep) state.step=0;
