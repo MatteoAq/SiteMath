@@ -108,6 +108,10 @@ for (const vp of viewports) {
       await tab.click();
       await page.waitForTimeout(30);
       await visibleOverflow(page,vp.name+' step-'+mode);
+      const clipped=await page.locator('#stepInfoPage').count()
+        ? await page.locator('#stepInfoPage').evaluate(el=>el.scrollHeight>el.clientHeight+1)
+        : await page.locator('.step-info-page').evaluate(el=>el.scrollHeight>el.clientHeight+1);
+      if(clipped) failures.push(vp.name+': step '+mode+' text is clipped inside fixed explanation area');
     } else {
       failures.push(vp.name+': missing step info tab '+mode);
     }
