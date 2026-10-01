@@ -161,6 +161,16 @@ for (const vp of viewports) {
       });
       if(coverage<.28) failures.push('source '+variant+'/'+task+': current construction too small after Fit ('+coverage.toFixed(2)+')');
 
+      const obscured=await page.evaluate(()=>{
+        const panel=document.querySelector('#stepSheet');
+        const nodes=[...document.querySelectorAll('#drawing line.object-line, #drawing line.construction-line, #drawing circle.point-dot, #drawing circle.answer-dot, #drawing circle.construction-dot')];
+        const boxes=nodes.map(n=>n.getBoundingClientRect()).filter(r=>r.width+r.height>0);
+        if(!panel||!boxes.length) return false;
+        const bottom=Math.max(...boxes.map(r=>r.bottom));
+        return bottom>panel.getBoundingClientRect().top-6;
+      });
+      if(obscured) failures.push('source '+variant+'/'+task+': fitted construction is hidden by the step panel');
+
       await page.screenshot({
         path:'mobile-screenshots/source-v'+String(Number(variant)).padStart(2,'0')+'-t'+task+'.png',
         fullPage:false
