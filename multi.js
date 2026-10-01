@@ -1804,7 +1804,7 @@
   function solveDiagramTask(task,stored){
     const schemeRoot=window.SITEMATH_SCHEMES||{};
     const variantSchemes=schemeRoot[state.variant]||{};
-    const scheme=variantSchemes['task'+task];
+    const scheme=state.variant==='custom' ? state.customSchemes[task] : variantSchemes['task'+task];
     if(task===4 && scheme) return solveTask4Scheme(scheme,stored);
     if(task===5 && scheme) return solveTask5Scheme(scheme,stored);
     if(task===6 && scheme) return solveTask6Scheme(scheme,stored);
