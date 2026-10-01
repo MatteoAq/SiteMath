@@ -391,6 +391,44 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('custom smoke: '+e.stack);
 }
 
+// Exact photographed-source invariants for variant 12 after re-tracing.
+try {
+  const s12=window.SITEMATH_SCHEMES?.['12'];
+  if(!s12?.task4?.junctions?.length) failures.push('variant12/task4: explicit source junction missing');
+  if(!s12?.task6?.planeB?.junctions?.length) failures.push('variant12/task6: explicit source junction missing');
+  for(const task of [4,5,6]){
+    if(window.SITEMATH_SCHEMES?.['12']?.['task'+task]?.sourceId!=='IMG_20260917_131638'){
+      failures.push('variant12/task'+task+': source photo id missing');
+    }
+  }
+} catch(e) {
+  failures.push('variant12 exact source metadata: '+e.stack);
+}
+
+// Coordinate tasks must expose x/y/z reference axes and visible construction guides.
+try {
+  $('variantSelect').value='10';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  for(const task of [1,2,3]){
+    $('taskSelect').value=String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+    const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+    if(!labels.some(x=>x==='x' || x==='x₁₂')) failures.push('axes '+task+': x missing');
+    if(!labels.some(x=>x==='y' || x==='y₁' || x==='y₃')) failures.push('axes '+task+': y missing');
+    if(!labels.some(x=>x==='z')) failures.push('axes '+task+': z missing');
+    if(window.document.querySelectorAll('#drawing .construction-line').length===0 && task>1){
+      // Step 1 is axes only; move one step forward and require guides there.
+      $('nextBtn').click();
+    }
+    if(task>1 && window.document.querySelectorAll('#drawing .construction-line').length===0){
+      failures.push('axes '+task+': construction guides missing');
+    }
+  }
+} catch(e) {
+  failures.push('axis/construction guide regression: '+e.stack);
+}
+
 fs.writeFileSync('runtime-results.json', JSON.stringify({failures}, null, 2));
 if (failures.length) {
   console.error('\nFAILURES\n'+failures.join('\n'));
