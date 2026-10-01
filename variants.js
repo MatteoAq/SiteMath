@@ -939,3 +939,49 @@ Object.assign(window.SITEMATH_SCHEMES, {
     }
   }
 });
+
+
+/* Variant 12 re-traced from the original photographed sheet.
+   Keep exact source topology: named points, projectors and line junctions. */
+Object.assign(window.SITEMATH_SCHEMES["12"], {
+  task4:{
+    planeType:"intersecting_lines",
+    planeLines:["a","b"],
+    lines:{
+      a:{p2:[[154,356],[343,242]],p1:[[112,440],[341,491]]},
+      b:{p2:[[127,269],[322,374]],p1:[[104,382],[324,520]]}
+    },
+    points:{D:{p2:[446,296],p1:[446,501]}},
+    junctions:[{p2:[232,330],p1:[230,468]}],
+    sourceVerified:true,
+    sourceId:"IMG_20260917_131638",
+    operation:{type:"line_intersects_named",through:"D",target:"a",resultPoint:"A",relation:"behind_line"}
+  },
+  task5:{
+    planeType:"ABC",
+    points:{
+      A:{p2:[269,181],p1:[264,458]},
+      B:{p2:[472,128],p1:[470,353]},
+      C:{p2:[529,231],p1:[523,463]}
+    },
+    lines:{
+      l:{p2:[[217,235],[557,161]],p1:[[226,354],[537,507]]}
+    },
+    givenLine:"l",
+    sourceVerified:true,
+    sourceId:"IMG_20260917_131638"
+  },
+  task6:{
+    planeA:{type:"parallel_lines",lines:{
+      a:{p2:[[22,227],[305,143]],p1:[[71,325],[337,404]]},
+      b:{p2:[[63,277],[352,193]],p1:[[20,377],[306,449]]}
+    }},
+    planeB:{type:"intersecting_lines",lines:{
+      h:{p2:[[367,232],[571,234]],p1:[[388,327],[569,439]]},
+      f:{p2:[[394,278],[575,149]],p1:[[365,365],[570,367]]}
+    },junctions:[{p2:[452,232],p1:[452,366]}]},
+    pointK:{p2:[196,116],p1:[199,465]},
+    sourceVerified:true,
+    sourceId:"IMG_20260917_131638"
+  }
+});
