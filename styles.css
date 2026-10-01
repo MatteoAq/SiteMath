@@ -2162,3 +2162,12 @@ body { color:var(--ui-text); }
     overflow:visible;
   }
 }
+
+
+/* Leave real scroll room under the SVG so Fit can move the construction
+   completely above the fixed step sheet instead of letting the sheet cover it. */
+@media (max-width:760px) {
+  #drawing {
+    margin-bottom:calc(var(--mobile-step-peek) + 18px);
+  }
+}
