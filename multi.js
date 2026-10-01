@@ -475,3 +475,202 @@
 
     return {width,height,O:q.O,steps};
   }
+
+  function collinear3(C,A,B){
+    const ab=sub3(B,A), ac=sub3(C,A);
+    return norm3(cross3(ab,ac)) <= 1e-6*Math.max(1,norm3(ab),norm3(ac));
+  }
+
+  function onSegment3(C,A,B){
+    if(!collinear3(C,A,B)) return false;
+    const ab=sub3(B,A), ac=sub3(C,A);
+    const d=dot3(ac,ab), l2=dot3(ab,ab);
+    return d>=-EPS && d<=l2+EPS;
+  }
+
+  function extendLine(P,Q,ext){
+    const u=unit2(vec2(P,Q));
+    if(norm2(u)<EPS) return null;
+    return {a:add2(P,mul2(u,-ext)),b:add2(P,mul2(u,ext))};
+  }
+
+  function solveTask3(coords){
+    const A=coords.A,B=coords.B,C=coords.C;
+    if(norm3(sub3(B,A))<EPS) return {error:'A и B совпадают – прямая AB не определена.'};
+    if(collinear3(C,A,B) && !onSegment3(C,A,B)) {
+      return {error:'C лежит на прямой AB вне отрезка. Через такую C нельзя провести другую прямую, пересекающую именно отрезок AB.'};
+    }
+    const k=Number($('kSlider').value)/100;
+    const cOn=onSegment3(C,A,B);
+    const K=cOn ? {...C} : lerp3(A,B,k);
+    const raw=[
+      {x:-A.x,y:A.y},{x:-A.x,y:-A.z},
+      {x:-B.x,y:B.y},{x:-B.x,y:-B.z},
+      {x:-C.x,y:C.y},{x:-C.x,y:-C.z},
+      {x:-K.x,y:K.y},{x:-K.x,y:-K.z},{x:0,y:0}
+    ];
+    const b0=bounds(raw,25), sx=-b0.minX, sy=-b0.minY;
+    const O={x:sx,y:sy};
+    const P1=p=>shiftPoint({x:-p.x,y:p.y},sx,sy);
+    const P2=p=>shiftPoint({x:-p.x,y:-p.z},sx,sy);
+    const AX=p=>shiftPoint({x:-p.x,y:0},sx,sy);
+    const q={
+      A1:P1(A),A2:P2(A),B1:P1(B),B2:P2(B),C1:P1(C),C2:P2(C),
+      K1:P1(K),K2:P2(K),Ax:AX(A),Bx:AX(B),Cx:AX(C)
+    };
+    const ext=Math.max(b0.width,b0.height)*.7;
+    const a1=extendLine(q.C1,add2(q.C1,vec2(q.A1,q.B1)),ext);
+    const a2=extendLine(q.C2,add2(q.C2,vec2(q.A2,q.B2)),ext);
+    let l1,l2;
+    if(cOn){
+      let d={x:1,y:1,z:1};
+      if(norm3(cross3(sub3(B,A),d))<1e-5) d={x:1,y:-1,z:1};
+      const T=add3(C,mul3(d,30));
+      l1=extendLine(q.C1,P1(T),ext);
+      l2=extendLine(q.C2,P2(T),ext);
+    } else {
+      l1=extendLine(q.C1,q.K1,ext);
+      l2=extendLine(q.C2,q.K2,ext);
+    }
+    const width=Math.max(180,b0.width),height=Math.max(150,b0.height);
+    const steps=[],push=(m,e,t)=>steps.push(Object.assign({},m,{entities:e||[],tool:t||null}));
+
+    let i=0;
+    push({
+      title:'Проведи ось x₁₂',
+      action:'Проведи горизонтальную ось x₁₂. Положительное x на таком эпюре откладываем влево от O.',
+      why:'На одной вертикальной линии связи будут находиться горизонтальная и фронтальная проекции каждой точки.',
+      measure:['1 клетка = 5 мм'],
+      check:'Ось x₁₂ горизонтальна.'
+    },[line(i,{x:8,y:O.y},{x:width-8,y:O.y},'axis'),point(i,O,'O')],{kind:'line',a:{x:8,y:O.y},b:{x:width-8,y:O.y}});
+
+    [['A',A,q.A1,q.A2,q.Ax],['B',B,q.B1,q.B2,q.Bx],['C',C,q.C1,q.C2,q.Cx]].forEach(row=>{
+      const name=row[0],p=row[1],p1=row[2],p2=row[3],px=row[4];
+      let j=steps.length;
+      push({
+        title:'Построй проекции точки '+name,
+        action:'От O отложи x'+name+' = '+p.x+' мм, затем по одной линии связи y'+name+' = '+p.y+' мм и z'+name+' = '+p.z+' мм.',
+        why:name+'₁=(x,y), '+name+'₂=(x,z).',
+        measure:['|x| '+Math.abs(p.x)+' мм','|y| '+Math.abs(p.y)+' мм','|z| '+Math.abs(p.z)+' мм'],
+        check:name+'₁ и '+name+'₂ находятся на одной вертикали.'
+      },[
+        line(j,p1,p2,'construction-line'),
+        point(j,p1,name+'₁'),
+        point(j,p2,name+'₂'),
+        dim(j,O,px,Math.abs(p.x)+' мм',{x:0,y:-3})
+      ],{kind:'line',a:p1,b:p2});
+    });
+
+    i=steps.length;
+    push({
+      title:'Построй отрезок AB',
+      action:'Соедини A₁ с B₁ и A₂ с B₂.',
+      why:'Так получаем две одноимённые проекции исходного отрезка AB.',
+      measure:[angleDeg(q.A1,q.B1)===null?'A₁B₁ вырождена': 'Наклон A₁B₁ ≈ '+fmt(angleDeg(q.A1,q.B1))+'°',
+               angleDeg(q.A2,q.B2)===null?'A₂B₂ вырождена': 'Наклон A₂B₂ ≈ '+fmt(angleDeg(q.A2,q.B2))+'°'],
+      check:'Проекции соединяют только одноимённые точки.'
+    },[line(i,q.A1,q.B1,'object-line'),line(i,q.A2,q.B2,'object-line')]);
+
+    i=steps.length;
+    const ae=[];
+    if(a1) ae.push(line(i,a1.a,a1.b,'answer-line'));
+    else ae.push(point(i,q.C1,'a₁≡C₁','answer-dot'));
+    push({
+      title:'Проведи a₁ через C₁ параллельно A₁B₁',
+      action:a1?'Перенеси направление A₁B₁ линейкой через C₁ и проведи a₁.':'A₁B₁ выродилась в точку – a₁ тоже является точечной проекцией C₁.',
+      why:'У параллельных пространственных прямых одноимённые проекции параллельны.',
+      measure:[a1?'a₁ ∥ A₁B₁':'точечная проекция'],
+      check:a1?'Наклоны a₁ и A₁B₁ одинаковы.':'a₁ совпадает с C₁.'
+    },ae,a1?{kind:'line',a:a1.a,b:a1.b}:null);
+
+    i=steps.length;
+    const ae2=[];
+    if(a2) ae2.push(line(i,a2.a,a2.b,'answer-line'));
+    else ae2.push(point(i,q.C2,'a₂≡C₂','answer-dot'));
+    push({
+      title:'Проведи a₂ через C₂ параллельно A₂B₂',
+      action:a2?'Повтори построение на Π₂: a₂ через C₂ параллельно A₂B₂.':'A₂B₂ выродилась в точку – a₂ совпадает с C₂.',
+      why:'Обе проекции вместе задают пространственную прямую a, параллельную AB.',
+      measure:[a2?'a₂ ∥ A₂B₂':'точечная проекция'],
+      check:'Параллельность проверена на обеих проекциях.'
+    },ae2,a2?{kind:'line',a:a2.a,b:a2.b}:null);
+
+    if(cOn){
+      i=steps.length;
+      push({
+        title:'C уже лежит на AB',
+        action:'В этом частном случае K=C. Выбери через C любое направление ℓ, не совпадающее с AB.',
+        why:'Пересечение ℓ с AB уже происходит в C.',
+        measure:['K=C'],
+        check:'ℓ не должна совпадать с AB.'
+      },[point(i,q.C1,'K₁=C₁','answer-dot'),point(i,q.C2,'K₂=C₂','answer-dot')]);
+    } else {
+      i=steps.length;
+      const frac=Math.round(k*100);
+      const base1=dist2(q.A1,q.B1);
+      if(base1>EPS){
+        push({
+          title:'Выбери точку K₁ на A₁B₁',
+          action:'Отложи K₁ на '+frac+'% пути от A₁ к B₁.',
+          why:'Условие не фиксирует точку пересечения. Любая внутренняя точка K отрезка AB даёт корректное решение.',
+          measure:['A₁K₁/A₁B₁ = '+frac+'%','A₁K₁ ≈ '+fmt(dist2(q.A1,q.K1))+' мм'],
+          check:'K₁ лежит внутри A₁B₁.'
+        },[point(i,q.K1,'K₁','answer-dot'),dim(i,q.A1,q.K1,frac+'%')]);
+        i=steps.length;
+        push({
+          title:'Перенеси K₁ на A₂B₂',
+          action:'Из K₁ проведи линию связи перпендикулярно x₁₂ до пересечения с A₂B₂. Получишь K₂.',
+          why:'K₁ и K₂ – проекции одной пространственной точки K.',
+          measure:['K₁K₂ ⟂ x₁₂'],
+          check:'K₂ одновременно лежит на A₂B₂ и на линии связи K₁.'
+        },[line(i,q.K1,q.K2,'construction-line'),point(i,q.K2,'K₂','answer-dot')],{kind:'line',a:q.K1,b:q.K2});
+      } else {
+        push({
+          title:'A₁B₁ выродилась – выбери K₂',
+          action:'Отложи K₂ на '+frac+'% пути от A₂ к B₂, затем перенеси её линией связи в K₁.',
+          why:'Когда горизонтальная проекция AB – точка, выбор доли выполняется на невырожденной фронтальной проекции.',
+          measure:['A₂K₂/A₂B₂ = '+frac+'%'],
+          check:'K₁=A₁=B₁.'
+        },[point(i,q.K2,'K₂','answer-dot'),line(i,q.K2,q.K1,'construction-line'),point(i,q.K1,'K₁','answer-dot')]);
+      }
+    }
+
+    i=steps.length;
+    const le1=l1?[line(i,l1.a,l1.b,'answer-line')]:[point(i,q.C1,'ℓ₁','answer-dot')];
+    push({
+      title:'Проведи ℓ₁',
+      action:cOn?'Через C₁ проведи выбранное непараллельное AB направление.':'Через C₁ и K₁ проведи прямую и продли её.',
+      why:'Две точки C и K задают искомую прямую ℓ; при K=C направление остаётся свободным.',
+      measure:[l1&&angleDeg(l1.a,l1.b)!==null?'Наклон ℓ₁ ≈ '+fmt(angleDeg(l1.a,l1.b))+'°':'точечная проекция'],
+      check:cOn?'ℓ₁ проходит через C₁.':'ℓ₁ проходит через C₁ и K₁.'
+    },le1,l1?{kind:'line',a:l1.a,b:l1.b}:null);
+
+    i=steps.length;
+    const le2=l2?[line(i,l2.a,l2.b,'answer-line')]:[point(i,q.C2,'ℓ₂','answer-dot')];
+    push({
+      title:'Проведи ℓ₂ и проверь пересечение',
+      action:cOn?'Через C₂ проведи согласованную вторую проекцию ℓ₂.':'Соедини C₂ и K₂ и продли прямую.',
+      why:'Точки пересечения ℓ₁ с A₁B₁ и ℓ₂ с A₂B₂ должны быть проекциями одной K.',
+      measure:['K₁ и K₂ на одной линии связи'],
+      check:'a ∥ AB, а ℓ проходит через C и пересекает AB.'
+    },le2,l2?{kind:'line',a:l2.a,b:l2.b}:null);
+
+    return {width,height,O,steps};
+  }
+
+  function solveDiagramTask(task,stored){
+    const steps=[];
+    const title = task===4 ? 'Схема варианта нужна как исходные данные' : task===5 ? 'Положение исходных линий задаётся рисунком' : 'Обе плоскости задаются графически';
+    steps.push({
+      title,
+      action:'У этой задачи нет таблицы координат: наклоны и взаимное положение линий на напечатанном листе являются частью условия.',
+      why:'Поэтому подставлять произвольную схему было бы математически неверно. Для присланных вариантов исходные рисунки будут оцифрованы как векторные данные, а не угаданы.',
+      measure:['Формулировка: '+((stored&&stored.statement)||DATA.tasks[task].short)],
+      check:'Сайт не должен менять исходные наклоны линий варианта.',
+      entities:[
+        textEntity(0,{x:18,y:35},'Задание '+task,'svg-big-note'),
+        textEntity(0,{x:18,y:48},'Исходная схема будет восстановлена с листа варианта','svg-note')
+      ]
+    });
+    return {width:190,height:120,O:{x:95,y:60},steps,diagramPending:true};
+  }
