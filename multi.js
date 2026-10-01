@@ -45,6 +45,11 @@
     return Number.isInteger(v) ? String(v) : v.toFixed(d).replace('.', ',');
   }
 
+  function signedCoord(n){
+    const v=Math.abs(n)<1e-9?0:n;
+    return v<0?'−'+fmt(Math.abs(v)):fmt(v);
+  }
+
   function esc(s) {
     return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   }
@@ -84,6 +89,25 @@
   }
   function arc(step,c,r,a0,a1,label){
     return {type:'arc',step,c,r,a0,a1,label};
+  }
+
+  function angleMark(step,c,a,b,r,label){
+    const va=unit2(vec2(c,a)), vb=unit2(vec2(c,b));
+    let a0=Math.atan2(va.y,va.x);
+    let delta=Math.atan2(va.x*vb.y-va.y*vb.x,va.x*vb.x+va.y*vb.y);
+    if(delta<0){
+      a0=Math.atan2(vb.y,vb.x);
+      delta=-delta;
+    }
+    const mid=a0+delta/2;
+    const textPos={
+      x:c.x+Math.cos(mid)*(r+5),
+      y:c.y+Math.sin(mid)*(r+5)
+    };
+    return [
+      arc(step,c,r,a0,a0+delta,''),
+      textEntity(step,textPos,label,'dimension-text')
+    ];
   }
 
   function angleDeg(a,b){
@@ -1135,8 +1159,8 @@
       },[
         line(i,q.yFoot,q.p1,'construction-line'),
         line(i,q.zFoot,q.p2,'construction-line'),
-        point(i,q.yFoot,name+'ᵧ','construction-dot'),
-        point(i,q.zFoot,name+'𝓏','construction-dot'),
+        point(i,q.yFoot,'y₁='+signedCoord(p.y),'construction-dot'),
+        point(i,q.zFoot,'z='+signedCoord(p.z),'construction-dot'),
         point(i,q.p1,name+'₁'),
         point(i,q.p2,name+'₂'),
         dim(i,q.xFoot,q.p1,Math.abs(p.y)+' мм',{x:3,y:0}),
@@ -1157,7 +1181,7 @@
         line(i,q.yFoot,q.y3Foot,'construction-line'),
         line(i,q.y3Foot,q.p3,'construction-line'),
         line(i,q.zFoot,q.p3,'construction-line'),
-        point(i,q.y3Foot,name+'ᵧ₃','construction-dot'),
+        point(i,q.y3Foot,'y₃='+signedCoord(p.y),'construction-dot'),
         point(i,q.p3,name+'₃','answer-dot')
       ],{kind:'line',a:q.zFoot,b:q.p3});
     });
@@ -1337,12 +1361,15 @@
 
     i=steps.length;
     push({
-      title:'Зафиксируй углы наклона',
-      action:'Угол между натуральной величиной и A₁B₁ – наклон к Π₁; угол между натуральной величиной и A₂B₂ – наклон к Π₂.',
-      why:'Проекция на соответствующую плоскость является прилежащим катетом прямоугольного треугольника.',
+      title:'Отметь углы наклона α и β',
+      action:'На первом прямоугольном треугольнике отметь α при B₁ между B₁A₁ и натуральной величиной B₁A₀. На втором отметь β при A₂ между A₂B₂ и натуральной величиной A₂B₀.',
+      why:'Проекция на соответствующую плоскость является прилежащим катетом прямоугольного треугольника, поэтому эти углы и есть углы наклона AB к Π₁ и Π₂.',
       measure:['α(AB,Π₁) = '+fmt(alpha)+'°','β(AB,Π₂) = '+fmt(beta)+'°','AB = '+fmt(L)+' мм'],
-      check:'Чем меньше соответствующая разность координат, тем меньше угол.'
-    },[]);
+      check:'Две гипотенузы дают одну и ту же натуральную величину AB = '+fmt(L)+' мм.'
+    },[
+      ...angleMark(i,q.B1,q.A1,q.A0,8,'α='+fmt(alpha)+'°'),
+      ...angleMark(i,q.A2,q.B2,q.B0,8,'β='+fmt(beta)+'°')
+    ]);
 
     return {width,height,O:q.O,steps};
   }
