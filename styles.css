@@ -2136,6 +2136,23 @@ body { color:var(--ui-text); }
   opacity: .9;
 }
 @media print {
+  .mobile-appbar,
+  .mobile-backdrop,
+  .first-run-picker,
+  .status-panel,
+  .mobile-step-nav {
+    display:none !important;
+  }
+  .paper-wrap {
+    padding:0 !important;
+    margin:0 !important;
+    overflow:visible !important;
+    background:#fff !important;
+  }
+  #drawing {
+    margin:0 !important;
+    box-shadow:none !important;
+  }
   .grid-minor,
   .grid-major {
     stroke:transparent !important;
