@@ -220,55 +220,84 @@
     let planeControls='';
     if(task===4 || task===5){
       planeControls=
-        '<label>Как задана плоскость Σ<select id="customPlaneType">'+
-        '<option value="ABC">тремя точками A, B, C</option>'+
-        '<option value="parallel_lines">двумя параллельными a ∥ b</option>'+
-        '<option value="intersecting_lines">двумя пересекающимися a ∩ b</option>'+
-        '<option value="line_point">прямой a и точкой A</option>'+
+        '<label>Как плоскость Σ задана в условии?'+
+        '<select id="customPlaneType">'+
+        '<option value="ABC">Σ(ABC) – тремя точками A, B, C</option>'+
+        '<option value="parallel_lines">Σ(a∥b) – двумя параллельными a и b</option>'+
+        '<option value="intersecting_lines">Σ(a∩b) – двумя пересекающимися a и b</option>'+
+        '<option value="line_point">Σ(A;a) – точкой A и прямой a</option>'+
         '</select></label>';
     } else {
       const opts=
         '<option value="parallel_lines">двумя параллельными прямыми</option>'+
         '<option value="intersecting_lines">двумя пересекающимися прямыми</option>'+
         '<option value="ABC">тремя точками</option>'+
-        '<option value="frontal_projecting">фронтально-проецирующая (задана проекцией ₂)</option>'+
-        '<option value="horizontal_projecting">горизонтально-проецирующая (задана проекцией ₁)</option>';
+        '<option value="frontal_projecting">фронтально-проецирующая – задана одной линией на Π₂</option>'+
+        '<option value="horizontal_projecting">горизонтально-проецирующая – задана одной линией на Π₁</option>';
       planeControls=
-        '<label>Плоскость Σ<select id="customPlaneAType">'+opts+'</select></label>'+
-        '<label>Плоскость Θ<select id="customPlaneBType">'+opts+'</select></label>';
+        '<label>Как задана плоскость Σ?<select id="customPlaneAType">'+opts+'</select></label>'+
+        '<label>Как задана плоскость Θ?<select id="customPlaneBType">'+opts+'</select></label>';
     }
 
     let opControls='';
     if(task===4){
       opControls=
-        '<label>Дополнительное построение<select id="customOperation">'+
+        '<label>Что написано после построения h, f и линии ската?'+
+        '<select id="customOperation">'+
         '<option value="line_parallel_plane">через точку провести ℓ ∥ Σ</option>'+
         '<option value="line_intersects_frontale">через точку провести ℓ, пересекающую фронталь</option>'+
-        '<option value="line_intersects_named">через точку провести ℓ, пересекающую a</option>'+
+        '<option value="line_intersects_named">через точку провести ℓ, пересекающую прямую a</option>'+
         '</select></label>'+
-        '<label>Заданная точка<input id="customThrough" value="D" maxlength="2"></label>'+
-        '<label>Новая точка<input id="customResult" value="E" maxlength="2"></label>'+
-        '<label>Положение новой точки<select id="customRelation">'+
+        '<div class="inline-fields">'+
+        '<label>Через точку<input id="customThrough" value="D" maxlength="2"></label>'+
+        '<label>Построить точку<input id="customResult" value="E" maxlength="2"></label>'+
+        '</div>'+
+        '<label>Где должна быть новая точка?'+
+        '<select id="customRelation">'+
         '<option value="above_line">над ℓ</option>'+
         '<option value="below_line">под ℓ</option>'+
         '<option value="behind_line">за ℓ</option>'+
         '<option value="below_plane">под Σ</option>'+
-        '<option value="">не требуется</option>'+
+        '<option value="">в условии новой точки нет</option>'+
         '</select></label>';
     }
 
     return '<div class="custom-editor">'+
-      '<p class="hint"><b>Для отсутствующего варианта:</b> загрузи фото всего листа или только задания. Сайт сам вырежет нужный квадрант, а ты один раз укажешь исходные линии/точки. Клики автоматически притягиваются к тёмному штриху. После этого работает тот же пошаговый решатель.</p>'+
+      '<div class="workflow-card">'+
+        '<b>Зачем здесь фото?</b>'+
+        '<p>В заданиях 4–6 исходные линии уже нарисованы на самом варианте и координат для них нет. Фото нужно только чтобы перенести <b>исходную схему</b> в сайт. После этого решение строится автоматически.</p>'+
+        '<ol>'+
+          '<li>Загрузи фото листа или самого задания №'+task+'.</li>'+
+          '<li>Выдели на фото только область задания №'+task+'.</li>'+
+          '<li>Сайт по очереди скажет, какие исходные точки/линии отметить.</li>'+
+          '<li>Нажми «Решить» – дальше появится обычное пошаговое построение.</li>'+
+        '</ol>'+
+      '</div>'+
       '<div class="custom-form">'+planeControls+opControls+
-      '<label>Фото<input id="schemeImage" type="file" accept="image/*"></label>'+
-      '<label>Фото содержит<select id="schemeCropMode"><option value="sheet">весь лист 2×3</option><option value="task">только выбранное задание</option></select></label>'+
+        '<label>Фото варианта<input id="schemeImage" type="file" accept="image/*"></label>'+
       '</div>'+
-      '<div class="calibrator-actions">'+
-      '<button id="startMarking" class="ghost small" type="button">Начать разметку</button>'+
-      '<button id="undoMark" class="ghost small" type="button">Отменить точку</button>'+
-      '<button id="finishMarking" class="primary small" type="button" disabled>Решить по разметке</button>'+
+      '<div id="cropControls" class="crop-controls" hidden>'+
+        '<div class="crop-title"><b>2. Выбери область задания №'+task+'</b><span id="cropStatus">не выбрана</span></div>'+
+        '<p class="hint">Если загружен весь лист 2×3, «Авто №'+task+'» поставит рамку примерно на нужный квадрант. Проверь её и при необходимости выдели область пальцем или мышью вручную.</p>'+
+        '<div class="calibrator-actions">'+
+          '<button id="autoCrop" class="ghost small" type="button">Авто №'+task+'</button>'+
+          '<button id="manualCrop" class="ghost small" type="button">Выбрать вручную</button>'+
+          '<button id="wholeCrop" class="ghost small" type="button">Всё изображение</button>'+
+          '<button id="applyCrop" class="primary small" type="button">Использовать область</button>'+
+        '</div>'+
       '</div>'+
-      '<p id="markPrompt" class="mark-prompt">Сначала выбери фото.</p>'+
+      '<div id="markControls" class="mark-controls" hidden>'+
+        '<div class="crop-title"><b>3. Отметь исходные данные</b><span id="markProgress"></span></div>'+
+        '<p class="hint">Это не решение. Ты только показываешь сайту, где на исходном фото находятся напечатанные линии и точки. Для линии нужно нажать две удалённые точки на её штрихе.</p>'+
+        '<div id="markChecklist" class="mark-checklist"></div>'+
+        '<div class="calibrator-actions">'+
+          '<button id="startMarking" class="ghost small" type="button">Начать разметку</button>'+
+          '<button id="undoMark" class="ghost small" type="button">Отменить последний клик</button>'+
+          '<button id="changeCrop" class="ghost small" type="button">Изменить область</button>'+
+          '<button id="finishMarking" class="primary small" type="button" disabled>Решить по разметке</button>'+
+        '</div>'+
+      '</div>'+
+      '<p id="markPrompt" class="mark-prompt">1. Сначала выбери фото.</p>'+
       '<div class="calibration-wrap"><canvas id="calibrationCanvas"></canvas></div>'+
       '</div>';
   }
