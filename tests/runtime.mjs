@@ -43,6 +43,44 @@ for (const variant of variants) {
   }
 }
 
+
+// Custom-data UI smoke test, including the profile-line special case in task 3.
+try {
+  $('variantSelect').value = 'custom';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+
+  for (let task=1; task<=6; task++) {
+    $('taskSelect').value = String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    if (task <= 3) {
+      const inputs = [...window.document.querySelectorAll('.coord-input')];
+      if (!inputs.length) failures.push('custom/'+task+': coordinate editor missing');
+    } else {
+      if (!$('schemeImage') || !$('startMarking') || !$('calibrationCanvas')) {
+        failures.push('custom/'+task+': photo calibration editor missing');
+      }
+    }
+  }
+
+  $('taskSelect').value = '3';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  const setCoord = (point,axis,value) => {
+    const el = window.document.querySelector('.coord-input[data-point="'+point+'"][data-axis="'+axis+'"]');
+    el.value = String(value);
+  };
+  setCoord('A','x',20); setCoord('A','y',10); setCoord('A','z',0);
+  setCoord('B','x',20); setCoord('B','y',50); setCoord('B','z',60);
+  setCoord('C','x',55); setCoord('C','y',20); setCoord('C','z',30);
+  $('buildBtn').click();
+  if (!$('validation').hidden) failures.push('custom/3 profile case: '+$('validation').textContent);
+  if (!$('stepTitle').textContent.includes('Проведи') && Number($('stepTotal').textContent) < 8) {
+    failures.push('custom/3 profile case: solver did not build expected steps');
+  }
+  console.log('OK custom editors and task 3 profile-line case');
+} catch (e) {
+  failures.push('custom smoke: '+e.stack);
+}
+
 if (failures.length) {
   console.error('\nFAILURES\n'+failures.join('\n'));
   process.exit(1);
