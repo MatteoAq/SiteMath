@@ -2205,9 +2205,8 @@ body { color:var(--ui-text); }
 /* Fixed-height mobile guidance: titles and text paginate instead of growing or scrolling. */
 @media (max-width:760px) {
   .explanation-panel > h2 {
-    display:-webkit-box;
-    -webkit-line-clamp:2;
-    -webkit-box-orient:vertical;
+    display:block;
+    max-height:38px;
     overflow:hidden;
   }
   .step-info-page {
