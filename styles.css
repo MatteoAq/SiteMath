@@ -2136,14 +2136,52 @@ body { color:var(--ui-text); }
   opacity: .9;
 }
 @media print {
-  .construction-line {
-    stroke:#777;
-    stroke-width:.24;
+  .grid-minor,
+  .grid-major {
+    stroke:transparent !important;
+  }
+  .tool-overlay {
+    display:none !important;
+  }
+  .axis {
+    stroke:#222 !important;
+    stroke-width:.55 !important;
+  }
+  .construction-line,
+  .construction-line.active-line {
+    stroke:#777 !important;
+    stroke-width:.24 !important;
     opacity:1;
   }
-  .aux-line {
-    stroke:#666;
-    stroke-width:.28;
+  .aux-line,
+  .aux-line.active-line {
+    stroke:#666 !important;
+    stroke-width:.28 !important;
+  }
+  .object-line,
+  .object-line.active-line,
+  .answer-line,
+  .answer-line.active-line,
+  .hidden-line,
+  .hidden-line.active-line {
+    stroke:#222 !important;
+  }
+  .object-line,
+  .object-line.active-line,
+  .answer-line,
+  .answer-line.active-line {
+    stroke-width:.55 !important;
+  }
+  .answer-dot,
+  .active-dot {
+    fill:#222 !important;
+  }
+  .dimension,
+  .dimension.active-line {
+    stroke:#555 !important;
+  }
+  .dimension-text {
+    fill:#333 !important;
   }
 }
 
