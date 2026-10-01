@@ -19,7 +19,8 @@
     customSchemes: {},
     calibrator: null,
     screenZoom: null,
-    canvasPointers: new Map()
+    canvasPointers: new Map(),
+    stepInfoMode: 'action'
   };
 
   const sources = {
@@ -151,6 +152,7 @@
   function loadSelection(){
     try {
       const saved=JSON.parse(localStorage.getItem('sitemath-selection')||'null');
+      if(saved && saved.variant==='photo-unknown') saved.variant='18';
       return validSelection(saved) ? {variant:saved.variant,task:Number(saved.task)} : null;
     } catch (_) { return null; }
   }
@@ -1051,6 +1053,7 @@
         p3:shiftPoint({x:p.y,y:-p.z},dx,dy),
         xFoot:shiftPoint({x:-p.x,y:0},dx,dy),
         yFoot:shiftPoint({x:0,y:p.y},dx,dy),
+        y3Foot:shiftPoint({x:p.y,y:0},dx,dy),
         zFoot:shiftPoint({x:0,y:-p.z},dx,dy)
       };
     });
@@ -1090,10 +1093,13 @@
     },[
       line(0,{x:8,y:O.y},{x:complexWidth-8,y:O.y},'axis',{arrow:true}),
       line(0,{x:O.x,y:8},{x:O.x,y:height-8},'axis'),
-      textEntity(0,{x:10,y:O.y-3},'+x'),
-      textEntity(0,{x:complexWidth-16,y:O.y-3},'+y'),
-      textEntity(0,{x:O.x+3,y:11},'+z'),
-      textEntity(0,{x:O.x+3,y:height-9},'−z / развёртка')
+      textEntity(0,{x:10,y:O.y-3},'x'),
+      textEntity(0,{x:complexWidth-18,y:O.y-3},'y₃'),
+      textEntity(0,{x:O.x+3,y:11},'z'),
+      textEntity(0,{x:O.x+3,y:height-9},'y₁'),
+      textEntity(0,{x:12,y:16},'Π₂','svg-note'),
+      textEntity(0,{x:12,y:height-12},'Π₁','svg-note'),
+      textEntity(0,{x:complexWidth-26,y:16},'Π₃','svg-note')
     ],{kind:'line',a:{x:8,y:O.y},b:{x:complexWidth-8,y:O.y}});
 
     names.forEach(name=>{
@@ -1138,8 +1144,12 @@
         ],
         check:name+'₂ и '+name+'₃ имеют одинаковую высоту z.'
       },[
+        line(i,q.p1,q.yFoot,'construction-line'),
+        line(i,q.yFoot,q.y3Foot,'construction-line'),
+        line(i,q.y3Foot,q.p3,'construction-line'),
         line(i,q.p2,q.p3,'construction-line'),
-        line(i,q.yFoot,q.p3,'construction-line'),
+        point(i,q.yFoot,name+'ᵧ₁','construction-dot'),
+        point(i,q.y3Foot,name+'ᵧ₃','construction-dot'),
         point(i,q.p3,name+'₃','answer-dot')
       ],{kind:'line',a:q.p2,b:q.p3});
     });
@@ -1216,7 +1226,15 @@
       why:'Задача решается в системе двух плоскостей проекций.',
       measure:['1 клетка = 5 мм'],
       check:'Π₂ находится над x₁₂, Π₁ – под ней для положительных z и y.'
-    },[line(i,{x:8,y:q.O.y},{x:width-8,y:q.O.y},'axis'),point(i,q.O,'O')],{kind:'line',a:{x:8,y:q.O.y},b:{x:width-8,y:q.O.y}});
+    },[
+      line(i,{x:8,y:q.O.y},{x:width-8,y:q.O.y},'axis'),
+      point(i,q.O,'O'),
+      textEntity(i,{x:10,y:q.O.y-3},'x₁₂','svg-label'),
+      textEntity(i,{x:q.O.x+3,y:12},'+z','svg-note'),
+      textEntity(i,{x:q.O.x+3,y:height-10},'+y','svg-note'),
+      textEntity(i,{x:width-24,y:15},'Π₂','svg-note'),
+      textEntity(i,{x:width-24,y:height-10},'Π₁','svg-note')
+    ],{kind:'line',a:{x:8,y:q.O.y},b:{x:width-8,y:q.O.y}});
 
     i=steps.length;
     push({
@@ -1225,7 +1243,13 @@
       why:'A₁=(xA,yA), A₂=(xA,zA).',
       measure:['xA = '+A.x+' мм','yA = '+A.y+' мм','zA = '+A.z+' мм'],
       check:'A₁ и A₂ лежат на одной линии связи.'
-    },[line(i,q.A1,q.A2,'construction-line'),point(i,q.A1,'A₁'),point(i,q.A2,'A₂')],{kind:'line',a:q.A1,b:q.A2});
+    },[
+      dim(i,q.O,q.Ax,Math.abs(A.x)+' мм',{x:0,y:-3}),
+      line(i,q.Ax,q.A1,'construction-line'),
+      line(i,q.Ax,q.A2,'construction-line'),
+      point(i,q.Ax,'Aₓ','construction-dot'),
+      point(i,q.A1,'A₁'),point(i,q.A2,'A₂')
+    ],{kind:'line',a:q.Ax,b:q.A1});
 
     i=steps.length;
     push({
@@ -1234,7 +1258,13 @@
       why:'B₁=(xB,yB), B₂=(xB,zB).',
       measure:['xB = '+B.x+' мм','yB = '+B.y+' мм','zB = '+B.z+' мм'],
       check:'B₁ и B₂ лежат на одной линии связи.'
-    },[line(i,q.B1,q.B2,'construction-line'),point(i,q.B1,'B₁'),point(i,q.B2,'B₂')],{kind:'line',a:q.B1,b:q.B2});
+    },[
+      dim(i,q.O,q.Bx,Math.abs(B.x)+' мм',{x:0,y:-3}),
+      line(i,q.Bx,q.B1,'construction-line'),
+      line(i,q.Bx,q.B2,'construction-line'),
+      point(i,q.Bx,'Bₓ','construction-dot'),
+      point(i,q.B1,'B₁'),point(i,q.B2,'B₂')
+    ],{kind:'line',a:q.Bx,b:q.B1});
 
     i=steps.length;
     push({
@@ -1359,7 +1389,15 @@
       why:'На одной вертикальной линии связи будут находиться горизонтальная и фронтальная проекции каждой точки.',
       measure:['1 клетка = 5 мм'],
       check:'Ось x₁₂ горизонтальна.'
-    },[line(i,{x:8,y:O.y},{x:width-8,y:O.y},'axis'),point(i,O,'O')],{kind:'line',a:{x:8,y:O.y},b:{x:width-8,y:O.y}});
+    },[
+      line(i,{x:8,y:O.y},{x:width-8,y:O.y},'axis'),
+      point(i,O,'O'),
+      textEntity(i,{x:10,y:O.y-3},'x₁₂','svg-label'),
+      textEntity(i,{x:O.x+3,y:12},'+z','svg-note'),
+      textEntity(i,{x:O.x+3,y:height-10},'+y','svg-note'),
+      textEntity(i,{x:width-24,y:15},'Π₂','svg-note'),
+      textEntity(i,{x:width-24,y:height-10},'Π₁','svg-note')
+    ],{kind:'line',a:{x:8,y:O.y},b:{x:width-8,y:O.y}});
 
     [['A',A,q.A1,q.A2,q.Ax],['B',B,q.B1,q.B2,q.Bx],['C',C,q.C1,q.C2,q.Cx]].forEach(row=>{
       const name=row[0],p=row[1],p1=row[2],p2=row[3],px=row[4];
@@ -1371,11 +1409,13 @@
         measure:['|x| '+Math.abs(p.x)+' мм','|y| '+Math.abs(p.y)+' мм','|z| '+Math.abs(p.z)+' мм'],
         check:name+'₁ и '+name+'₂ находятся на одной вертикали.'
       },[
-        line(j,p1,p2,'construction-line'),
+        dim(j,O,px,Math.abs(p.x)+' мм',{x:0,y:-3}),
+        line(j,px,p1,'construction-line'),
+        line(j,px,p2,'construction-line'),
+        point(j,px,name+'ₓ','construction-dot'),
         point(j,p1,name+'₁'),
-        point(j,p2,name+'₂'),
-        dim(j,O,px,Math.abs(p.x)+' мм',{x:0,y:-3})
-      ],{kind:'line',a:p1,b:p2});
+        point(j,p2,name+'₂')
+      ],{kind:'line',a:px,b:p1});
     });
 
     i=steps.length;
@@ -1595,6 +1635,20 @@
     };
   }
 
+  function appendIntersectingLineProjector(out,lines,names,step){
+    if(!lines || !names || names.length<2) return;
+    const A=lines[names[0]],B=lines[names[1]];
+    if(!A||!B) return;
+    const p2=lineIntersection2(toSeg(A.p2)[0],toSeg(A.p2)[1],toSeg(B.p2)[0],toSeg(B.p2)[1]);
+    const p1=lineIntersection2(toSeg(A.p1)[0],toSeg(A.p1)[1],toSeg(B.p1)[0],toSeg(B.p1)[1]);
+    if(!p1||!p2) return;
+    const x=(p1.x+p2.x)/2;
+    const q1={x:x,y:p1.y}, q2={x:x,y:p2.y};
+    out.push(line(step,q2,q1,'construction-line'));
+    out.push(point(step,q2,'','construction-dot'));
+    out.push(point(step,q1,'','construction-dot'));
+  }
+
   function starterEntitiesFromScheme(scheme,step){
     const out=[];
     Object.entries(scheme.lines||{}).forEach(([name,L])=>{
@@ -1604,10 +1658,15 @@
       out.push(textEntity(step,{x:L.p1[1][0]+4,y:L.p1[1][1]-2},name+'₁','svg-label'));
     });
     Object.entries(scheme.points||{}).forEach(([name,P])=>{
-      out.push(line(step,{x:P.p2[0],y:P.p2[1]},{x:P.p1[0],y:P.p1[1]},'construction-line'));
-      out.push(point(step,{x:P.p2[0],y:P.p2[1]},name+'₂'));
-      out.push(point(step,{x:P.p1[0],y:P.p1[1]},name+'₁'));
+      const x=(P.p1[0]+P.p2[0])/2;
+      const p2={x:x,y:P.p2[1]},p1={x:x,y:P.p1[1]};
+      out.push(line(step,p2,p1,'construction-line'));
+      out.push(point(step,p2,name+'₂'));
+      out.push(point(step,p1,name+'₁'));
     });
+    if(scheme.planeType==='intersecting_lines'){
+      appendIntersectingLineProjector(out,scheme.lines,scheme.planeLines,step);
+    }
     return out;
   }
 
@@ -2175,6 +2234,9 @@
         out.push(line(step,{x:L.p1[0][0],y:L.p1[0][1]},{x:L.p1[1][0],y:L.p1[1][1]},'object-line'));
         out.push(textEntity(step,{x:L.p1[1][0]+3,y:L.p1[1][1]-2},name+'₁','svg-label'));
       });
+      if(def.type==='intersecting_lines'){
+        appendIntersectingLineProjector(out,def.lines,Object.keys(def.lines).slice(0,2),step);
+      }
     } else if(def.line){
       const seg=toSeg(def.line);
       const idx=def.type==='frontal_projecting'?'₂':'₁';
@@ -2504,16 +2566,40 @@
     if(s && s.tool) drawTool(s.tool);
   }
 
+  function renderStepInfoPage(s){
+    const mode=state.stepInfoMode||'action';
+    document.querySelectorAll('.step-info-tab').forEach(btn=>{
+      const on=btn.dataset.stepMode===mode;
+      btn.classList.toggle('is-active',on);
+      btn.setAttribute('aria-selected',on?'true':'false');
+    });
+    const text=$('stepInfoText'),measure=$('stepInfoMeasure');
+    measure.innerHTML='';
+    if(mode==='action'){
+      text.textContent=s.action||'';
+    } else if(mode==='measure'){
+      text.textContent=(s.measure&&s.measure.length)?'Отмерь и проверь эти величины:':'На этом шаге ничего дополнительно отмерять не нужно.';
+      measure.innerHTML=(s.measure&&s.measure.length)
+        ? '<ul class="step-measure-list">'+s.measure.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>'
+        : '';
+    } else if(mode==='why'){
+      text.textContent=s.why||'';
+    } else {
+      text.textContent=s.check||'';
+    }
+  }
+
   function renderExplanation(){
-    const s=state.steps[state.step];
+    const st=state.steps[state.step];
     $('stepNumber').textContent=String(state.step+1);
     $('stepTotal').textContent=String(state.steps.length);
     $('stepBadge').textContent='Шаг '+(state.step+1);
-    $('stepTitle').textContent=s.title;
-    $('stepAction').textContent=s.action;
-    $('stepWhy').textContent=s.why;
-    $('stepCheck').textContent=s.check;
-    $('stepMeasure').innerHTML='<ul class="measure-list">'+(s.measure||[]).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';
+    $('stepTitle').textContent=st.title;
+    $('stepAction').textContent=st.action;
+    $('stepWhy').textContent=st.why;
+    $('stepCheck').textContent=st.check;
+    $('stepMeasure').innerHTML='<ul class="measure-list">'+(st.measure||[]).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';
+    renderStepInfoPage(st);
     $('prevBtn').disabled=state.step===0;
     $('firstBtn').disabled=state.step===0;
     $('nextBtn').disabled=state.step===state.steps.length-1;
@@ -2690,6 +2776,7 @@
   function moveTo(n){
     stopAuto();
     state.step=Math.max(0,Math.min(state.steps.length-1,n));
+    state.stepInfoMode='action';
     renderDrawing();
   }
 
@@ -2701,6 +2788,7 @@
       if(!state.playing) return;
       if(state.step>=state.steps.length-1){stopAuto();return;}
       state.step++;
+      state.stepInfoMode='action';
       renderDrawing();
       state.timer=setTimeout(tick,1900);
     };
@@ -2787,6 +2875,10 @@
   $('mobilePrevBtn').addEventListener('click',()=>moveTo(state.step-1));
   $('mobileNextBtn').addEventListener('click',()=>moveTo(state.step+1));
   $('mobilePlayBtn').addEventListener('click',toggleAuto);
+  document.querySelectorAll('.step-info-tab').forEach(btn=>btn.addEventListener('click',()=>{
+    state.stepInfoMode=btn.dataset.stepMode||'action';
+    renderStepInfoPage(state.steps[state.step]);
+  }));
   $('firstRunStart').addEventListener('click',finishFirstRun);
   window.addEventListener('resize',()=>{ if(state.screenZoom===null) applyDrawingZoom(); });
   $('kSlider').addEventListener('input',()=>{
