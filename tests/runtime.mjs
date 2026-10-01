@@ -174,6 +174,42 @@ try {
   failures.push('projection helpers / step pages: '+e.stack);
 }
 
+// Newly photographed variants 3/6/9 must preserve their source points and line labels.
+try {
+  const checks={
+    '03':{
+      4:['a₁','a₂','b₁','b₂','A₁','A₂'],
+      5:['a₁','a₂','f₁','f₂','l₁','l₂'],
+      6:['A₁','A₂','B₁','B₂','C₁','C₂','a₁','a₂','b₁','b₂','K₁','K₂']
+    },
+    '06':{
+      4:['m₁','m₂','n₁','n₂','D₁','D₂'],
+      5:['a₁','a₂','b₁','b₂','l₁','l₂'],
+      6:['a₁','a₂','b₁','b₂','A₁','A₂','B₁','B₂','C₁','C₂','K₁','K₂']
+    },
+    '09':{
+      4:['b₁','b₂','A₁','A₂','B₁','B₂'],
+      5:['a₁','a₂','b₁','b₂','l₁','l₂'],
+      6:['a₁','a₂','b₁','b₂','h₁','h₂','hp₁','hp₂','K₁','K₂']
+    }
+  };
+  for(const [variant,tasks] of Object.entries(checks)){
+    for(const [task,expected] of Object.entries(tasks)){
+      $('variantSelect').value=variant;
+      $('variantSelect').dispatchEvent(new window.Event('change'));
+      $('taskSelect').value=task;
+      $('taskSelect').dispatchEvent(new window.Event('change'));
+      $('firstBtn').click();
+      const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+      for(const label of expected){
+        if(!labels.includes(label)) failures.push('new source '+variant+'/'+task+': missing '+label);
+      }
+    }
+  }
+} catch(e) {
+  failures.push('new photographed variants: '+e.stack);
+}
+
 // Variant 12 regression: intersecting defining lines must include their common projector,
 // and original named points must remain visible.
 try {
@@ -206,7 +242,7 @@ try {
 // Every photographed graphical task must render the exact named source objects,
  // not anonymous substitute strips.
 if (!onlyVariant && !onlyTask) try {
-  const photographed=['04','05','07','08','10','11','12','13','14','15','17','18','19'];
+  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
 
   function expectedFromPlaneDef(def,out){
     if(!def) return;
@@ -263,10 +299,11 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('general source fidelity: '+e.stack);
 }
 
-// Temporary unnumbered sheet is exposed as provisional variant 18.
+// Variant 18 is now confirmed by a photographed sheet explicitly labeled "В. 18".
 try {
   const v18=window.SITEMATH_DATA.variants['18'];
-  if(!v18 || !v18.provisionalNumber) failures.push('variant18: provisional mapping missing');
+  if(!v18) failures.push('variant18: confirmed variant missing');
+  if(v18 && v18.provisionalNumber) failures.push('variant18: still incorrectly marked provisional');
   if(window.SITEMATH_DATA.variants['photo-unknown']) failures.push('variant18: old photo-unknown key still exists');
 } catch(e) {
   failures.push('variant18 mapping: '+e.stack);
