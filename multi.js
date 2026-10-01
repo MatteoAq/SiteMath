@@ -2726,7 +2726,9 @@
     const cssMm=96/25.4;
     const cs=getComputedStyle(wrap);
     const px=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0);
-    const py=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+    // Bottom padding is deliberate scroll reserve for the fixed step sheet,
+    // not usable drawing space, so do not subtract it twice here.
+    const py=(parseFloat(cs.paddingTop)||0)+8;
     const viewport=visibleDrawingViewport();
     const availableW=Math.max(120,viewport.width-px);
     const availableH=Math.max(120,viewport.height-py);
