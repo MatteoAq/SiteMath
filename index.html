@@ -184,25 +184,29 @@
         </button>
         <div class="step-badge" id="stepBadge">Шаг 1</div>
         <h2 id="stepTitle">Подготовка</h2>
-        <p id="stepAction" class="action-text"></p>
+
+        <div class="step-info-tabs" role="tablist" aria-label="Пояснение шага">
+          <button class="step-info-tab is-active" type="button" data-step-mode="action" role="tab" aria-selected="true">Делать</button>
+          <button class="step-info-tab" type="button" data-step-mode="measure" role="tab" aria-selected="false">Отмерить</button>
+          <button class="step-info-tab" type="button" data-step-mode="why" role="tab" aria-selected="false">Почему</button>
+          <button class="step-info-tab" type="button" data-step-mode="check" role="tab" aria-selected="false">Проверить</button>
+        </div>
+        <div class="step-info-page">
+          <p id="stepInfoText" class="step-info-text"></p>
+          <div id="stepInfoMeasure" class="step-info-measure"></div>
+        </div>
+
         <div class="mobile-step-nav">
           <button id="mobilePrevBtn" class="step-nav-btn secondary" type="button">← Назад</button>
           <button id="mobilePlayBtn" class="step-nav-btn secondary" type="button">▶ Авто</button>
           <button id="mobileNextBtn" class="step-nav-btn primary-step" type="button">Дальше →</button>
         </div>
-        <div class="explain-grid">
-          <section>
-            <h3>Почему именно так</h3>
-            <p id="stepWhy"></p>
-          </section>
-          <section>
-            <h3>Что отмерить</h3>
-            <div id="stepMeasure"></div>
-          </section>
-          <section>
-            <h3>Самопроверка</h3>
-            <p id="stepCheck"></p>
-          </section>
+
+        <div class="legacy-step-copy" aria-hidden="true">
+          <p id="stepAction"></p>
+          <p id="stepWhy"></p>
+          <div id="stepMeasure"></div>
+          <p id="stepCheck"></p>
         </div>
       </article>
 
