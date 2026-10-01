@@ -1658,15 +1658,24 @@
     };
   }
 
+  function appendSourceJunctions(out,junctions,step){
+    (junctions||[]).forEach(j=>{
+      if(!j||!j.p1||!j.p2) return;
+      const p2={x:+j.p2[0],y:+j.p2[1]},p1={x:+j.p1[0],y:+j.p1[1]};
+      out.push(line(step,p2,p1,'construction-line'));
+      out.push(point(step,p2,j.label2||'','construction-dot'));
+      out.push(point(step,p1,j.label1||'','construction-dot'));
+    });
+  }
+
   function appendIntersectingLineProjector(out,lines,names,step){
     if(!lines || !names || names.length<2) return;
     const A=lines[names[0]],B=lines[names[1]];
     if(!A||!B) return;
     const p2=lineIntersection2(toSeg(A.p2)[0],toSeg(A.p2)[1],toSeg(B.p2)[0],toSeg(B.p2)[1]);
     const p1=lineIntersection2(toSeg(A.p1)[0],toSeg(A.p1)[1],toSeg(B.p1)[0],toSeg(B.p1)[1]);
-    if(!p1||!p2) return;
-    const x=(p1.x+p2.x)/2;
-    const q1={x:x,y:p1.y}, q2={x:x,y:p2.y};
+    if(!p1 || !p2) return;
+    const q2={x:p2.x,y:p2.y}, q1={x:p1.x,y:p1.y};
     out.push(line(step,q2,q1,'construction-line'));
     out.push(point(step,q2,'','construction-dot'));
     out.push(point(step,q1,'','construction-dot'));
@@ -1690,7 +1699,9 @@
     if(scheme.planeType==='ABC'){
       appendABCPlaneEntities(out,scheme,step);
     }
-    if(scheme.planeType==='intersecting_lines'){
+    if(scheme.junctions&&scheme.junctions.length){
+      appendSourceJunctions(out,scheme.junctions,step);
+    } else if(scheme.planeType==='intersecting_lines'){
       appendIntersectingLineProjector(out,scheme.lines,scheme.planeLines,step);
     }
     return out;
@@ -2264,7 +2275,9 @@
         out.push(line(step,{x:L.p1[0][0],y:L.p1[0][1]},{x:L.p1[1][0],y:L.p1[1][1]},'object-line'));
         out.push(textEntity(step,{x:L.p1[1][0]+3,y:L.p1[1][1]-2},name+'₁','svg-label'));
       });
-      if(def.type==='intersecting_lines'){
+      if(def.junctions&&def.junctions.length){
+        appendSourceJunctions(out,def.junctions,step);
+      } else if(def.type==='intersecting_lines'){
         appendIntersectingLineProjector(out,def.lines,Object.keys(def.lines).slice(0,2),step);
       }
     } else if(def.line){
