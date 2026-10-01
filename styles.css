@@ -1917,3 +1917,127 @@ body { color:var(--ui-text); }
 .variant-chip.is-selected .own-label {
   color:#fff;
 }
+
+
+/* Step explanation is paged, not scrollable: one concise type of information at a time. */
+.legacy-step-copy { display:none !important; }
+
+.step-info-tabs {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:4px;
+  margin-top:7px;
+  padding:3px;
+  border-radius:11px;
+  background:#f3edf6;
+}
+
+.step-info-tab {
+  min-width:0;
+  min-height:32px;
+  padding:0 6px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:#7b7080;
+  font-size:11px;
+  font-weight:760;
+  white-space:nowrap;
+}
+
+.step-info-tab.is-active {
+  background:#fff;
+  color:#8b2e99;
+  box-shadow:0 1px 5px rgba(62,35,74,.10);
+}
+
+.step-info-page {
+  min-height:58px;
+  display:grid;
+  align-content:center;
+  padding:8px 2px 4px;
+}
+
+.step-info-text {
+  margin:0;
+  font-size:13px;
+  line-height:1.38;
+  color:var(--ui-text,#241c2a);
+}
+
+.step-info-measure {
+  margin-top:4px;
+}
+
+.step-measure-list {
+  margin:0;
+  padding-left:18px;
+  display:grid;
+  gap:2px;
+  font-size:12px;
+  line-height:1.35;
+  color:var(--ui-text,#241c2a);
+}
+
+@media (max-width:760px) {
+  :root { --mobile-step-peek: 190px; }
+
+  .step-sheet-toggle {
+    display:none !important;
+  }
+
+  .explanation-panel {
+    max-height:none;
+    overflow:visible;
+    padding:9px 11px 11px;
+  }
+
+  .explanation-panel.is-expanded {
+    max-height:none;
+    overflow:visible;
+  }
+
+  .step-badge {
+    margin-top:0;
+  }
+
+  .explanation-panel > h2 {
+    margin:4px 0 0;
+    font-size:16px;
+    line-height:1.18;
+  }
+
+  .step-info-tabs {
+    margin-top:6px;
+  }
+
+  .step-info-page {
+    min-height:54px;
+    padding-top:6px;
+    padding-bottom:3px;
+  }
+
+  .step-info-text {
+    font-size:12.5px;
+    line-height:1.32;
+  }
+
+  .step-measure-list {
+    font-size:11.5px;
+  }
+
+  .mobile-step-nav {
+    margin-top:5px;
+  }
+}
+
+@media (max-width:350px) {
+  .step-info-tab {
+    font-size:10px;
+    padding:0 3px;
+  }
+
+  .step-info-text {
+    font-size:12px;
+  }
+}
