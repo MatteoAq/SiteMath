@@ -21,6 +21,10 @@ const $ = id => window.document.getElementById(id);
 const variants = [...$('variantSelect').options].map(o=>o.value).filter(v=>v!=='custom');
 const failures = [];
 
+for (const id of ['zoomOutBtn','zoomFitBtn','zoom100Btn','zoomInBtn','zoomLabel']) {
+  if (!$(id)) failures.push('mobile zoom control missing: '+id);
+}
+
 for (const variant of variants) {
   $('variantSelect').value = variant;
   $('variantSelect').dispatchEvent(new window.Event('change'));
@@ -56,8 +60,8 @@ try {
       const inputs = [...window.document.querySelectorAll('.coord-input')];
       if (!inputs.length) failures.push('custom/'+task+': coordinate editor missing');
     } else {
-      if (!$('schemeImage') || !$('startMarking') || !$('calibrationCanvas')) {
-        failures.push('custom/'+task+': photo calibration editor missing');
+      for (const id of ['schemeImage','cropControls','autoCrop','manualCrop','wholeCrop','applyCrop','markControls','startMarking','undoMark','finishMarking','photoZoomOut','photoZoomFit','photoZoomIn','calibrationCanvas']) {
+        if (!$(id)) failures.push('custom/'+task+': control missing '+id);
       }
     }
   }
