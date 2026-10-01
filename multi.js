@@ -15,7 +15,9 @@
     steps: [],
     geometry: null,
     playing: false,
-    timer: null
+    timer: null,
+    customSchemes: {},
+    calibrator: null
   };
 
   const sources = {
@@ -190,15 +192,365 @@
       $('intersectionChoice').hidden=true;
       $('dataTitle').textContent='Исходная схема';
       const info = stored || {};
-      holder.innerHTML =
-        '<div class="diagram-info">' +
-        '<p><b>Тип данных:</b> графическая схема на листе, а не координаты.</p>' +
-        '<p>Для задач 4–6 нельзя восстановить точный ответ только по номеру варианта: положение исходных линий на листе является частью условия. Известные присланные схемы сейчас оцифровываются в векторный вид.</p>' +
-        '</div>';
-      $('solverMode').textContent='схема';
-      $('taskStatement').textContent = info.statement || DATA.tasks[task].short;
+      const schemes=window.SITEMATH_SCHEMES||{};
+      const knownScheme=state.variant!=='custom' && schemes[state.variant] && schemes[state.variant]['task'+task];
+
+      if(state.variant==='custom'){
+        holder.innerHTML = customEditorMarkup(task);
+        $('solverMode').textContent=state.customSchemes[task]?'своя схема готова':'разметка фото';
+        $('taskStatement').textContent = DATA.tasks[task].short;
+        setupCustomDiagramEditor(task);
+      } else {
+        holder.innerHTML =
+          '<div class="diagram-info">' +
+          '<p><b>Тип данных:</b> графическая схема на листе, а не координаты.</p>' +
+          (knownScheme
+            ? '<p><b>Статус:</b> исходный рисунок этого присланного варианта оцифрован. Сайт сохраняет его реальные наклоны и строит решение поверх него.</p>'
+            : '<p><b>Статус:</b> точного исходного рисунка пока нет. Сайт не подставляет выдуманную геометрию.</p>') +
+          '</div>';
+        $('solverMode').textContent=knownScheme?'точная схема':'нет схемы';
+        $('taskStatement').textContent = info.statement || DATA.tasks[task].short;
+      }
     }
-    holder.querySelectorAll('input').forEach(i=>i.addEventListener('change',()=>rebuild(true)));
+    holder.querySelectorAll('.coord-input').forEach(i=>i.addEventListener('change',()=>rebuild(true)));
+  }
+
+
+  function customEditorMarkup(task){
+    let planeControls='';
+    if(task===4 || task===5){
+      planeControls=
+        '<label>Как задана плоскость Σ<select id="customPlaneType">'+
+        '<option value="ABC">тремя точками A, B, C</option>'+
+        '<option value="parallel_lines">двумя параллельными a ∥ b</option>'+
+        '<option value="intersecting_lines">двумя пересекающимися a ∩ b</option>'+
+        '<option value="line_point">прямой a и точкой A</option>'+
+        '</select></label>';
+    } else {
+      const opts=
+        '<option value="parallel_lines">двумя параллельными прямыми</option>'+
+        '<option value="intersecting_lines">двумя пересекающимися прямыми</option>'+
+        '<option value="ABC">тремя точками</option>'+
+        '<option value="frontal_projecting">фронтально-проецирующая (задана проекцией ₂)</option>'+
+        '<option value="horizontal_projecting">горизонтально-проецирующая (задана проекцией ₁)</option>';
+      planeControls=
+        '<label>Плоскость Σ<select id="customPlaneAType">'+opts+'</select></label>'+
+        '<label>Плоскость Θ<select id="customPlaneBType">'+opts+'</select></label>';
+    }
+
+    let opControls='';
+    if(task===4){
+      opControls=
+        '<label>Дополнительное построение<select id="customOperation">'+
+        '<option value="line_parallel_plane">через точку провести ℓ ∥ Σ</option>'+
+        '<option value="line_intersects_frontale">через точку провести ℓ, пересекающую фронталь</option>'+
+        '<option value="line_intersects_named">через точку провести ℓ, пересекающую a</option>'+
+        '</select></label>'+
+        '<label>Заданная точка<input id="customThrough" value="D" maxlength="2"></label>'+
+        '<label>Новая точка<input id="customResult" value="E" maxlength="2"></label>'+
+        '<label>Положение новой точки<select id="customRelation">'+
+        '<option value="above_line">над ℓ</option>'+
+        '<option value="below_line">под ℓ</option>'+
+        '<option value="behind_line">за ℓ</option>'+
+        '<option value="below_plane">под Σ</option>'+
+        '<option value="">не требуется</option>'+
+        '</select></label>';
+    }
+
+    return '<div class="custom-editor">'+
+      '<p class="hint"><b>Для отсутствующего варианта:</b> загрузи фото всего листа или только задания. Сайт сам вырежет нужный квадрант, а ты один раз укажешь исходные линии/точки. Клики автоматически притягиваются к тёмному штриху. После этого работает тот же пошаговый решатель.</p>'+
+      '<div class="custom-form">'+planeControls+opControls+
+      '<label>Фото<input id="schemeImage" type="file" accept="image/*"></label>'+
+      '<label>Фото содержит<select id="schemeCropMode"><option value="sheet">весь лист 2×3</option><option value="task">только выбранное задание</option></select></label>'+
+      '</div>'+
+      '<div class="calibrator-actions">'+
+      '<button id="startMarking" class="ghost small" type="button">Начать разметку</button>'+
+      '<button id="undoMark" class="ghost small" type="button">Отменить точку</button>'+
+      '<button id="finishMarking" class="primary small" type="button" disabled>Решить по разметке</button>'+
+      '</div>'+
+      '<p id="markPrompt" class="mark-prompt">Сначала выбери фото.</p>'+
+      '<div class="calibration-wrap"><canvas id="calibrationCanvas"></canvas></div>'+
+      '</div>';
+  }
+
+  function pointClickItems(label){
+    return [
+      {kind:'point',key:label,proj:'p2',part:0,prompt:'Нажми центр '+label+'₂'},
+      {kind:'point',key:label,proj:'p1',part:0,prompt:'Нажми центр '+label+'₁'}
+    ];
+  }
+
+  function lineClickItems(label){
+    return [
+      {kind:'line',key:label,proj:'p2',part:0,prompt:'Прямая '+label+'₂: нажми первую точку на линии'},
+      {kind:'line',key:label,proj:'p2',part:1,prompt:'Прямая '+label+'₂: нажми вторую удалённую точку'},
+      {kind:'line',key:label,proj:'p1',part:0,prompt:'Прямая '+label+'₁: нажми первую точку на линии'},
+      {kind:'line',key:label,proj:'p1',part:1,prompt:'Прямая '+label+'₁: нажми вторую удалённую точку'}
+    ];
+  }
+
+  function projectingClickItems(label,proj){
+    const idx=proj==='p2'?'₂':'₁';
+    return [
+      {kind:'projecting',key:label,proj:proj,part:0,prompt:'Проекция '+label+idx+': нажми первую точку линии'},
+      {kind:'projecting',key:label,proj:proj,part:1,prompt:'Проекция '+label+idx+': нажми вторую удалённую точку'}
+    ];
+  }
+
+  function appendPlaneClickItems(sequence,type,names){
+    const lineNames=names && names.lines ? names.lines : ['a','b'];
+    const pointNames=names && names.points ? names.points : ['A','B','C'];
+    if(type==='ABC'){
+      pointNames.forEach(n=>sequence.push(...pointClickItems(n)));
+    } else if(type==='line_point'){
+      sequence.push(...lineClickItems(lineNames[0]||'a'));
+      sequence.push(...pointClickItems(pointNames[0]||'A'));
+    } else if(type==='parallel_lines' || type==='intersecting_lines'){
+      sequence.push(...lineClickItems(lineNames[0]||'a'));
+      sequence.push(...lineClickItems(lineNames[1]||'b'));
+    } else if(type==='frontal_projecting'){
+      sequence.push(...projectingClickItems((names&&names.projecting)||'Σ','p2'));
+    } else if(type==='horizontal_projecting'){
+      sequence.push(...projectingClickItems((names&&names.projecting)||'Σ','p1'));
+    }
+  }
+
+  function makeCustomSpec(task){
+    const sequence=[];
+    const meta={task:task};
+    if(task===4){
+      const planeType=$('customPlaneType').value;
+      const through=($('customThrough').value||'D').trim().toUpperCase();
+      const result=($('customResult').value||'E').trim().toUpperCase();
+      const op=$('customOperation').value;
+      meta.planeType=planeType;
+      meta.through=through;
+      meta.result=result;
+      meta.operation=op;
+      meta.relation=$('customRelation').value;
+      appendPlaneClickItems(sequence,planeType,{lines:['a','b'],points:['A','B','C']});
+      const planePointNames=planeType==='ABC'?['A','B','C']:(planeType==='line_point'?['A']:[]);
+      if(!planePointNames.includes(through)) sequence.push(...pointClickItems(through));
+    } else if(task===5){
+      const planeType=$('customPlaneType').value;
+      meta.planeType=planeType;
+      appendPlaneClickItems(sequence,planeType,{lines:['a','b'],points:['A','B','C']});
+      sequence.push(...lineClickItems('l'));
+    } else {
+      const typeA=$('customPlaneAType').value;
+      const typeB=$('customPlaneBType').value;
+      meta.typeA=typeA; meta.typeB=typeB;
+      appendPlaneClickItems(sequence,typeA,{lines:['a','b'],points:['A','B','C'],projecting:'Σ'});
+      appendPlaneClickItems(sequence,typeB,{lines:['c','d'],points:['D','E','F'],projecting:'Θ'});
+      sequence.push(...pointClickItems('K'));
+    }
+    return {sequence:sequence,meta:meta};
+  }
+
+  function taskCropRect(task,w,h){
+    if(task===4) return {x:w*.47,y:h*.27,w:w*.51,h:h*.39};
+    if(task===5) return {x:w*.02,y:h*.54,w:w*.50,h:h*.43};
+    if(task===6) return {x:w*.47,y:h*.54,w:w*.51,h:h*.43};
+    return {x:0,y:0,w:w,h:h};
+  }
+
+  function drawCalibrationBase(){
+    const c=state.calibrator;
+    if(!c || !c.image) return;
+    const canvas=$('calibrationCanvas');
+    if(!canvas) return;
+    const source=c.cropMode==='task'
+      ? {x:0,y:0,w:c.image.naturalWidth,h:c.image.naturalHeight}
+      : taskCropRect(state.task,c.image.naturalWidth,c.image.naturalHeight);
+    const maxW=760;
+    const scale=Math.min(1,maxW/source.w);
+    canvas.width=Math.max(1,Math.round(source.w*scale));
+    canvas.height=Math.max(1,Math.round(source.h*scale));
+    c.base=document.createElement('canvas');
+    c.base.width=canvas.width;c.base.height=canvas.height;
+    c.base.getContext('2d').drawImage(c.image,source.x,source.y,source.w,source.h,0,0,canvas.width,canvas.height);
+    drawCalibrationOverlay();
+  }
+
+  function drawCalibrationOverlay(){
+    const c=state.calibrator,canvas=$('calibrationCanvas');
+    if(!c || !canvas || !c.base) return;
+    const ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(c.base,0,0);
+    ctx.lineWidth=2;
+    ctx.font='13px system-ui';
+    c.clicks.forEach((p,i)=>{
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,5,0,Math.PI*2);
+      ctx.fillStyle='rgba(184,79,58,.92)';
+      ctx.fill();
+      ctx.strokeStyle='white';ctx.stroke();
+      ctx.fillStyle='rgba(120,30,20,.95)';
+      ctx.fillText(String(i+1),p.x+7,p.y-7);
+    });
+    for(let i=1;i<c.clicks.length;i+=2){
+      const prev=c.spec.sequence[i-1],cur=c.spec.sequence[i];
+      if(prev && cur && prev.kind!=='point' && prev.key===cur.key && prev.proj===cur.proj){
+        const a=c.clicks[i-1],b=c.clicks[i];
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle='rgba(40,95,120,.9)';ctx.lineWidth=2;ctx.stroke();
+      }
+    }
+  }
+
+  function snapDark(x,y){
+    const c=state.calibrator;
+    if(!c || !c.base) return {x:x,y:y};
+    const ctx=c.base.getContext('2d');
+    const r=9;
+    const x0=Math.max(0,Math.floor(x-r)),y0=Math.max(0,Math.floor(y-r));
+    const x1=Math.min(c.base.width-1,Math.ceil(x+r)),y1=Math.min(c.base.height-1,Math.ceil(y+r));
+    const img=ctx.getImageData(x0,y0,x1-x0+1,y1-y0+1);
+    let best={score:1e9,x:x,y:y};
+    for(let yy=0;yy<img.height;yy++){
+      for(let xx=0;xx<img.width;xx++){
+        const j=(yy*img.width+xx)*4;
+        const gray=.299*img.data[j]+.587*img.data[j+1]+.114*img.data[j+2];
+        const px=x0+xx,py=y0+yy;
+        const dist=Math.hypot(px-x,py-y);
+        const score=gray+dist*5.5;
+        if(score<best.score) best={score:score,x:px,y:py};
+      }
+    }
+    return {x:best.x,y:best.y};
+  }
+
+  function updateMarkPrompt(){
+    const c=state.calibrator;
+    const prompt=$('markPrompt');
+    if(!c || !prompt) return;
+    const n=c.clicks.length;
+    if(!c.image){ prompt.textContent='Сначала выбери фото.'; return; }
+    if(!c.spec){ prompt.textContent='Нажми «Начать разметку».'; return; }
+    if(n>=c.spec.sequence.length){
+      prompt.textContent='Разметка готова. Нажми «Решить по разметке».';
+      $('finishMarking').disabled=false;
+      return;
+    }
+    $('finishMarking').disabled=true;
+    prompt.textContent='Шаг разметки '+(n+1)+'/'+c.spec.sequence.length+': '+c.spec.sequence[n].prompt;
+  }
+
+  function buildSchemeFromClicks(task){
+    const c=state.calibrator,spec=c.spec,clicks=c.clicks;
+    if(!spec || clicks.length<spec.sequence.length) return null;
+    const points={},lines={},projecting={};
+    spec.sequence.forEach((item,i)=>{
+      const p=[clicks[i].x,clicks[i].y];
+      if(item.kind==='point'){
+        if(!points[item.key]) points[item.key]={};
+        points[item.key][item.proj]=p;
+      } else if(item.kind==='line'){
+        if(!lines[item.key]) lines[item.key]={p1:[null,null],p2:[null,null]};
+        lines[item.key][item.proj][item.part]=p;
+      } else {
+        if(!projecting[item.key]) projecting[item.key]={proj:item.proj,line:[null,null]};
+        projecting[item.key].line[item.part]=p;
+      }
+    });
+
+    if(task===4){
+      const m=spec.meta;
+      const scheme={planeType:m.planeType,points:points,lines:lines};
+      if(m.planeType==='line_point'){ scheme.planeLine='a';scheme.planePoint='A'; }
+      if(m.planeType==='parallel_lines'||m.planeType==='intersecting_lines') scheme.planeLines=['a','b'];
+      scheme.operation={
+        type:m.operation,through:m.through,resultPoint:m.result,
+        relation:m.relation,target:m.operation==='line_intersects_named'?'a':undefined
+      };
+      return scheme;
+    }
+    if(task===5){
+      const m=spec.meta;
+      const scheme={planeType:m.planeType,points:points,lines:lines,givenLine:'l'};
+      if(m.planeType==='line_point'){ scheme.planeLine='a';scheme.planePoint='A'; }
+      if(m.planeType==='parallel_lines'||m.planeType==='intersecting_lines') scheme.planeLines=['a','b'];
+      return scheme;
+    }
+
+    function planeDef(type,lineNames,pointNames,projectName){
+      if(type==='ABC'){
+        const ps={};
+        pointNames.forEach(n=>ps[n]=points[n]);
+        return {type:'ABC',points:ps};
+      }
+      if(type==='parallel_lines'||type==='intersecting_lines'){
+        const ls={};lineNames.forEach(n=>ls[n]=lines[n]);
+        return {type:type,lines:ls};
+      }
+      const pr=projecting[projectName];
+      return {type:type,projection:pr.proj,line:pr.line,name:projectName};
+    }
+    return {
+      planeA:planeDef(spec.meta.typeA,['a','b'],['A','B','C'],'Σ'),
+      planeB:planeDef(spec.meta.typeB,['c','d'],['D','E','F'],'Θ'),
+      pointK:points.K
+    };
+  }
+
+  function setupCustomDiagramEditor(task){
+    const canvas=$('calibrationCanvas');
+    if(!canvas) return;
+    state.calibrator={image:null,base:null,clicks:[],spec:null,cropMode:'sheet'};
+
+    $('schemeImage').addEventListener('change',ev=>{
+      const file=ev.target.files && ev.target.files[0];
+      if(!file) return;
+      const img=new Image();
+      img.onload=()=>{
+        state.calibrator.image=img;
+        state.calibrator.clicks=[];
+        state.calibrator.spec=null;
+        state.calibrator.cropMode=$('schemeCropMode').value;
+        drawCalibrationBase();
+        updateMarkPrompt();
+      };
+      img.src=URL.createObjectURL(file);
+    });
+    $('schemeCropMode').addEventListener('change',()=>{
+      if(!state.calibrator) return;
+      state.calibrator.cropMode=$('schemeCropMode').value;
+      state.calibrator.clicks=[];
+      state.calibrator.spec=null;
+      drawCalibrationBase();
+      updateMarkPrompt();
+    });
+    $('startMarking').addEventListener('click',()=>{
+      if(!state.calibrator.image){ $('markPrompt').textContent='Сначала выбери фото.'; return; }
+      state.calibrator.spec=makeCustomSpec(task);
+      state.calibrator.clicks=[];
+      drawCalibrationOverlay();
+      updateMarkPrompt();
+    });
+    $('undoMark').addEventListener('click',()=>{
+      if(!state.calibrator) return;
+      state.calibrator.clicks.pop();
+      drawCalibrationOverlay();
+      updateMarkPrompt();
+    });
+    canvas.addEventListener('click',ev=>{
+      const c=state.calibrator;
+      if(!c || !c.spec || c.clicks.length>=c.spec.sequence.length) return;
+      const rect=canvas.getBoundingClientRect();
+      const x=(ev.clientX-rect.left)*canvas.width/rect.width;
+      const y=(ev.clientY-rect.top)*canvas.height/rect.height;
+      c.clicks.push(snapDark(x,y));
+      drawCalibrationOverlay();
+      updateMarkPrompt();
+    });
+    $('finishMarking').addEventListener('click',()=>{
+      const scheme=buildSchemeFromClicks(task);
+      if(!scheme) return;
+      state.customSchemes[task]=scheme;
+      $('solverMode').textContent='своя схема готова';
+      rebuild(true);
+    });
   }
 
   function readCoords(){
