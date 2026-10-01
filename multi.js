@@ -1717,7 +1717,21 @@
     let L3=null,target3=null,through3=null;
     if(op.through && scheme.points && scheme.points[op.through]) through3=schemePoint3(scheme.points[op.through]);
 
-    if(op.type==='line_parallel_plane' && through3){
+    if(op.type==='line_parallel_horizontal' && through3){
+      L3=line3Extent(through3,dh,100);
+      i=steps.length;
+      const a=project3(L3[0]),b=project3(L3[1]);
+      push({
+        title:'Через '+op.through+' проведи ℓ ∥ h',
+        action:'Через заданную точку проведи ℓ параллельно уже построенной горизонтали h плоскости.',
+        why:'Требование относится именно к горизонтали: пространственные направления ℓ и h должны совпадать, поэтому обе пары одноимённых проекций строятся параллельно.',
+        measure:['ℓ₁ ∥ h₁','ℓ₂ ∥ h₂'],
+        check:'ℓ проходит через '+op.through+', а её обе проекции параллельны соответствующим проекциям h.'
+      },[
+        line(i,a.p1,b.p1,'answer-line'),textEntity(i,b.p1,'ℓ₁','svg-label'),
+        line(i,a.p2,b.p2,'answer-line'),textEntity(i,b.p2,'ℓ₂','svg-label')
+      ],{kind:'line',a:a.p1,b:b.p1});
+    } else if(op.type==='line_parallel_plane' && through3){
       L3=line3Extent(through3,dh,100);
       i=steps.length;
       const a=project3(L3[0]),b=project3(L3[1]);
@@ -1825,6 +1839,22 @@
         R3={x:ref3.x,y:ref3.y,z:ref3.z-52};
       } else if(op.relation==='behind_line' && ref3){
         R3={x:ref3.x,y:ref3.y-52,z:ref3.z};
+      } else if(op.relation==='above_plane'){
+        const x=through3?through3.x:base.x+45;
+        const y=through3?through3.y:base.y+35;
+        const zp=planeZAt(plane,x,y);
+        if(zp!==null){
+          ref3={x:x,y:y,z:zp};
+          R3={x:x,y:y,z:zp+52};
+        }
+      } else if(op.relation==='front_of_plane'){
+        const x=through3?through3.x:base.x+45;
+        const z=through3?through3.z:base.z+25;
+        const yp=planeYAt(plane,x,z);
+        if(yp!==null){
+          ref3={x:x,y:yp,z:z};
+          R3={x:x,y:yp+52,z:z};
+        }
       } else if(op.relation==='below_plane'){
         const x=through3?through3.x:base.x+45;
         const y=through3?through3.y:base.y+35;
@@ -1852,6 +1882,12 @@
         } else if(op.relation==='behind_line'){
           relationText='за прямой ℓ';
           why='Для отношения по глубине сохраняем x и z, меняя y. Поэтому фронтальная проекция совпадает по положению с точкой ℓ₂, а различие видно на Π₁.';
+        } else if(op.relation==='above_plane'){
+          relationText='над плоскостью Σ';
+          why='Сначала находим точку плоскости с теми же x и y, затем увеличиваем только z. Так новая точка оказывается строго над Σ.';
+        } else if(op.relation==='front_of_plane'){
+          relationText='перед плоскостью Σ';
+          why='Сначала находим точку плоскости с теми же x и z, затем увеличиваем y. Так новая точка располагается перед Σ по направлению удаления от фронтальной плоскости проекций.';
         } else {
           relationText='под плоскостью Σ';
           why='Сначала вертикалью находим точку плоскости с теми же x,y, затем уменьшаем z. Это даёт точку строго под Σ.';
@@ -2080,6 +2116,17 @@
       const pseudo={planeType:def.type,planeLines:names.slice(0,2),lines:def.lines};
       return planeFromScheme(pseudo);
     }
+    if(def.type==='line_point'){
+      const lineName=def.lineName||Object.keys(def.lines||{})[0];
+      const pointName=def.pointName||Object.keys(def.points||{})[0];
+      return planeFromScheme({
+        planeType:'line_point',
+        planeLine:lineName,
+        planePoint:pointName,
+        lines:def.lines,
+        points:def.points
+      });
+    }
     if(def.type==='frontal_projecting' || def.type==='horizontal_projecting'){
       const seg=toSeg(def.line);
       const a=seg[0],b=seg[1];
@@ -2103,6 +2150,19 @@
         out.push(point(step,{x:q.p1[0],y:q.p1[1]},pre+name+'₁'));
       });
       appendABCPlaneEntities(out,pseudo,step);
+    } else if(def.type==='line_point'){
+      Object.entries(def.lines||{}).forEach(([name,L])=>{
+        out.push(line(step,{x:L.p2[0][0],y:L.p2[0][1]},{x:L.p2[1][0],y:L.p2[1][1]},'object-line'));
+        out.push(textEntity(step,{x:L.p2[1][0]+3,y:L.p2[1][1]-2},name+'₂','svg-label'));
+        out.push(line(step,{x:L.p1[0][0],y:L.p1[0][1]},{x:L.p1[1][0],y:L.p1[1][1]},'object-line'));
+        out.push(textEntity(step,{x:L.p1[1][0]+3,y:L.p1[1][1]-2},name+'₁','svg-label'));
+      });
+      Object.entries(def.points||{}).forEach(([name,P])=>{
+        const q=normalizedPointRec(P);
+        out.push(line(step,{x:q.p2[0],y:q.p2[1]},{x:q.p1[0],y:q.p1[1]},'construction-line'));
+        out.push(point(step,{x:q.p2[0],y:q.p2[1]},name+'₂'));
+        out.push(point(step,{x:q.p1[0],y:q.p1[1]},name+'₁'));
+      });
     } else if(def.lines){
       Object.entries(def.lines).forEach(([name,L])=>{
         out.push(line(step,{x:L.p2[0][0],y:L.p2[0][1]},{x:L.p2[1][0],y:L.p2[1][1]},'object-line'));
