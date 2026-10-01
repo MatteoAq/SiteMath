@@ -317,6 +317,42 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('general source fidelity: '+e.stack);
 }
 
+
+// Every photographed task 4 must show the actual graphical construction path,
+// not only the stored source labels and a finished answer line. Task 6 must keep
+// both projections of its auxiliary sections and their projectors.
+if (!onlyVariant && !onlyTask) try {
+  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const task4Labels=['1₂','2₂','1₁','2₁','3₁','4₁','3₂','4₂','S₁','S₂'];
+  for(const variant of photographed){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+
+    $('taskSelect').value='4';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('lastBtn').click();
+    let labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+    for(const label of task4Labels){
+      if(!labels.includes(label)) failures.push('task4 construction '+variant+': missing '+label);
+    }
+    if(window.document.querySelectorAll('#drawing line.construction-line').length<6){
+      failures.push('task4 construction '+variant+': too few projector/helper lines');
+    }
+
+    $('taskSelect').value='6';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('lastBtn').click();
+    if(window.document.querySelectorAll('#drawing line.construction-line').length<8){
+      failures.push('task6 construction '+variant+': too few projector/helper lines');
+    }
+    if(window.document.querySelectorAll('#drawing line.aux-line').length<4){
+      failures.push('task6 construction '+variant+': both auxiliary section projections are not visible');
+    }
+  }
+} catch(e) {
+  failures.push('global graphical construction regression: '+e.stack);
+}
+
 // Variant 18 is now confirmed by a photographed sheet explicitly labeled "В. 18".
 try {
   const v18=window.SITEMATH_DATA.variants['18'];
