@@ -2117,3 +2117,13 @@ body { color:var(--ui-text); }
     max-height:72px;
   }
 }
+
+
+/* Projection / construction lines on engineering drawings are thin solid lines.
+   Keep dashed styling for hidden/auxiliary semantics, not for ordinary projectors. */
+.construction-line {
+  stroke:var(--construction);
+  stroke-width:.28;
+  stroke-dasharray:none;
+  opacity:.78;
+}
