@@ -210,6 +210,24 @@ try {
   failures.push('new photographed variants: '+e.stack);
 }
 
+// Additional-condition points in task 4 must actually be constructed, not only described.
+try {
+  const expectedResults={ '03':'B', '06':'A', '09':'E', '12':'A', '18':'A' };
+  for(const [variant,name] of Object.entries(expectedResults)){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='4';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('lastBtn').click();
+    const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+    if(!labels.includes(name+'₁') || !labels.includes(name+'₂')) {
+      failures.push('task4 result '+variant+': missing constructed '+name+'₁/'+name+'₂');
+    }
+  }
+} catch(e) {
+  failures.push('task4 constructed result points: '+e.stack);
+}
+
 // Variant 12 regression: intersecting defining lines must include their common projector,
 // and original named points must remain visible.
 try {
