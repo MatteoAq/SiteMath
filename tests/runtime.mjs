@@ -149,7 +149,9 @@ try {
   const aFoot=window.document.querySelector('circle[data-label="Aₓ"]');
   if (!aFoot) failures.push('task2 helpers: Aₓ foot missing');
   const helperLines=window.document.querySelectorAll('#drawing line.construction-line').length;
-  if (helperLines < 5) failures.push('task2 helpers: expected axis/projector/coordinate guides, got '+helperLines);
+  const axisLines=window.document.querySelectorAll('#drawing line.axis').length;
+  if (helperLines < 4) failures.push('task2 helpers: expected four coordinate/projector guides, got '+helperLines);
+  if (axisLines < 3) failures.push('task2 axes: expected x plus explicit y/z axis rays, got '+axisLines);
 
   $('taskSelect').value = '1';
   $('taskSelect').dispatchEvent(new window.Event('change'));
