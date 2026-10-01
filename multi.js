@@ -2734,9 +2734,19 @@
     return pages.length?pages:[''];
   }
 
+  function stepTextLimit(){
+    const w=window.innerWidth||1024;
+    if(w<=350) return 46;
+    if(w<=390) return 52;
+    if(w<=520) return 58;
+    if(w<=760) return 64;
+    return 82;
+  }
+
   function stepInfoPages(st,mode){
+    const limit=stepTextLimit();
     if(mode==='action'){
-      const pages=paginateStepText(st.action,72).map(text=>({text,items:[]}));
+      const pages=paginateStepText(st.action,limit).map(text=>({text,items:[]}));
       (st.measure||[]).forEach(item=>{
         pages.push({text:'Отмерь и проверь:',items:[item]});
       });
@@ -2748,7 +2758,7 @@
       return m.map(item=>({text:'Отмерь и проверь:',items:[item]}));
     }
     const value=mode==='why'?st.why:st.check;
-    return paginateStepText(value,72).map(text=>({text,items:[]}));
+    return paginateStepText(value,limit).map(text=>({text,items:[]}));
   }
 
   function renderStepInfoPage(st){
@@ -2772,12 +2782,29 @@
     $('stepInfoNextPage').disabled=state.stepInfoPage>=pages.length-1;
   }
 
+  function fitStepTitle(){
+    const el=$('stepTitle');
+    if(!el) return;
+    el.style.fontSize='';
+    el.style.lineHeight='';
+    if((window.innerWidth||1024)>760) return;
+    let size=16;
+    const maxHeight=38;
+    el.style.fontSize=size+'px';
+    el.style.lineHeight='1.12';
+    while(el.scrollHeight>maxHeight && size>11){
+      size-=.5;
+      el.style.fontSize=size+'px';
+    }
+  }
+
   function renderExplanation(){
     const st=state.steps[state.step];
     $('stepNumber').textContent=String(state.step+1);
     $('stepTotal').textContent=String(state.steps.length);
     $('stepBadge').textContent='Шаг '+(state.step+1);
     $('stepTitle').textContent=st.title;
+    fitStepTitle();
     $('stepAction').textContent=st.action;
     $('stepWhy').textContent=st.why;
     $('stepCheck').textContent=st.check;
@@ -3160,7 +3187,11 @@
     renderStepInfoPage(state.steps[state.step]);
   });
   $('firstRunStart').addEventListener('click',finishFirstRun);
-  window.addEventListener('resize',()=>{ if(state.screenZoom===null) applyDrawingZoom(); });
+  window.addEventListener('resize',()=>{
+    if(state.screenZoom===null) applyDrawingZoom();
+    fitStepTitle();
+    if(state.steps.length) renderStepInfoPage(state.steps[state.step]);
+  });
   $('kSlider').addEventListener('input',()=>{
     $('kOutput').textContent=$('kSlider').value+'%';
     if(state.task===3) rebuild(false);
