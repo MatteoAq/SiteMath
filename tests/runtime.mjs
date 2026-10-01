@@ -198,6 +198,66 @@ try {
   failures.push('variant12 source fidelity: '+e.stack);
 }
 
+// Every photographed graphical task must render the exact named source objects,
+ // not anonymous substitute strips.
+try {
+  const photographed=['04','05','07','08','10','11','12','13','14','15','17','18','19'];
+
+  function expectedFromPlaneDef(def,out){
+    if(!def) return;
+    if(def.lines) for(const name of Object.keys(def.lines)) {
+      out.push(name+'₁',name+'₂');
+    }
+    if(def.points) for(const name of Object.keys(def.points)) {
+      out.push(name+'₁',name+'₂');
+    }
+    if(def.line) {
+      const idx=def.type==='frontal_projecting'?'₂':'₁';
+      out.push((def.name||'Π')+idx);
+    }
+  }
+
+  for(const variant of photographed){
+    for(const task of [4,5,6]){
+      const scheme=window.SITEMATH_SCHEMES?.[variant]?.['task'+task];
+      if(!scheme){
+        failures.push('source fidelity '+variant+'/'+task+': scheme missing');
+        continue;
+      }
+      $('variantSelect').value=variant;
+      $('variantSelect').dispatchEvent(new window.Event('change'));
+      $('taskSelect').value=String(task);
+      $('taskSelect').dispatchEvent(new window.Event('change'));
+      $('firstBtn').click();
+
+      const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+      const expected=[];
+      if(task===6){
+        expectedFromPlaneDef(scheme.planeA,expected);
+        expectedFromPlaneDef(scheme.planeB,expected);
+        const k=scheme.pointLabel||'K';
+        if(scheme.pointK||scheme.pointThrough) expected.push(k+'₁',k+'₂');
+      }else{
+        if(scheme.lines) for(const name of Object.keys(scheme.lines)) expected.push(name+'₁',name+'₂');
+        if(scheme.points) for(const name of Object.keys(scheme.points)) expected.push(name+'₁',name+'₂');
+      }
+      for(const label of [...new Set(expected)]){
+        if(!labels.includes(label)) failures.push('source fidelity '+variant+'/'+task+': missing '+label);
+      }
+
+      const hasIntersecting =
+        scheme.planeType==='intersecting_lines' ||
+        scheme.planeA?.type==='intersecting_lines' ||
+        scheme.planeB?.type==='intersecting_lines';
+      if(hasIntersecting && window.document.querySelectorAll('#drawing .construction-line').length===0){
+        failures.push('source fidelity '+variant+'/'+task+': missing projector for intersecting source lines');
+      }
+    }
+  }
+} catch(e) {
+  failures.push('general source fidelity: '+e.stack);
+}
+
 // Temporary unnumbered sheet is exposed as provisional variant 18.
 try {
   const v18=window.SITEMATH_DATA.variants['18'];
