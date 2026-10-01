@@ -390,27 +390,106 @@
     return {x:0,y:0,w:w,h:h};
   }
 
-  function drawCalibrationBase(){
+  function normalizeRect(a,b){
+    const x=Math.min(a.x,b.x),y=Math.min(a.y,b.y);
+    return {x:x,y:y,w:Math.abs(a.x-b.x),h:Math.abs(a.y-b.y)};
+  }
+
+  function clampRect(r,w,h){
+    const x=Math.max(0,Math.min(w,r.x));
+    const y=Math.max(0,Math.min(h,r.y));
+    return {
+      x:x,y:y,
+      w:Math.max(1,Math.min(w-x,r.w)),
+      h:Math.max(1,Math.min(h-y,r.h))
+    };
+  }
+
+  function setPhotoZoom(value){
     const c=state.calibrator;
-    if(!c || !c.image) return;
     const canvas=$('calibrationCanvas');
-    if(!canvas) return;
-    const source=c.cropMode==='task'
-      ? {x:0,y:0,w:c.image.naturalWidth,h:c.image.naturalHeight}
-      : taskCropRect(state.task,c.image.naturalWidth,c.image.naturalHeight);
-    const maxW=760;
-    const scale=Math.min(1,maxW/source.w);
-    canvas.width=Math.max(1,Math.round(source.w*scale));
-    canvas.height=Math.max(1,Math.round(source.h*scale));
+    if(!c||!canvas) return;
+    c.photoZoom=Math.max(.35,Math.min(4,value));
+    canvas.style.width=Math.max(160,canvas.width*c.photoZoom)+'px';
+    canvas.style.height='auto';
+    $('photoZoomLabel').textContent=Math.round(c.photoZoom*100)+'%';
+  }
+
+  function fitPhoto(){
+    const c=state.calibrator,canvas=$('calibrationCanvas');
+    const wrap=canvas&&canvas.parentElement;
+    if(!c||!canvas||!wrap||!canvas.width) return;
+    const z=Math.min(1,Math.max(.35,(wrap.clientWidth-10)/canvas.width));
+    setPhotoZoom(z);
+  }
+
+  function renderCropPreview(){
+    const c=state.calibrator,canvas=$('calibrationCanvas');
+    if(!c||!c.image||!canvas) return;
+    const maxRaster=1000;
+    c.previewScale=Math.min(1,maxRaster/c.image.naturalWidth);
+    canvas.width=Math.max(1,Math.round(c.image.naturalWidth*c.previewScale));
+    canvas.height=Math.max(1,Math.round(c.image.naturalHeight*c.previewScale));
+    const ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(c.image,0,0,canvas.width,canvas.height);
+    c.base=null;
+    c.cropApplied=false;
+
+    if(c.crop){
+      const r={
+        x:c.crop.x*c.previewScale,
+        y:c.crop.y*c.previewScale,
+        w:c.crop.w*c.previewScale,
+        h:c.crop.h*c.previewScale
+      };
+      ctx.save();
+      ctx.fillStyle='rgba(25,25,25,.42)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.clearRect(r.x,r.y,r.w,r.h);
+      ctx.drawImage(c.image,c.crop.x,c.crop.y,c.crop.w,c.crop.h,r.x,r.y,r.w,r.h);
+      ctx.strokeStyle='#b84f3a';
+      ctx.lineWidth=3;
+      ctx.setLineDash([10,6]);
+      ctx.strokeRect(r.x,r.y,r.w,r.h);
+      ctx.restore();
+    }
+    $('photoViewControls').hidden=false;
+    fitPhoto();
+  }
+
+  function applySelectedCrop(){
+    const c=state.calibrator,canvas=$('calibrationCanvas');
+    if(!c||!c.image||!canvas) return;
+    if(!c.crop) c.crop={x:0,y:0,w:c.image.naturalWidth,h:c.image.naturalHeight};
+    c.crop=clampRect(c.crop,c.image.naturalWidth,c.image.naturalHeight);
+    if(c.crop.w<40||c.crop.h<40){
+      $('markPrompt').textContent='Область слишком маленькая. Выдели само задание целиком.';
+      return;
+    }
+    const maxRaster=1200;
+    const scale=Math.min(1,maxRaster/c.crop.w);
     c.base=document.createElement('canvas');
-    c.base.width=canvas.width;c.base.height=canvas.height;
-    c.base.getContext('2d').drawImage(c.image,source.x,source.y,source.w,source.h,0,0,canvas.width,canvas.height);
+    c.base.width=Math.max(1,Math.round(c.crop.w*scale));
+    c.base.height=Math.max(1,Math.round(c.crop.h*scale));
+    c.base.getContext('2d').drawImage(c.image,c.crop.x,c.crop.y,c.crop.w,c.crop.h,0,0,c.base.width,c.base.height);
+    canvas.width=c.base.width;
+    canvas.height=c.base.height;
+    c.cropApplied=true;
+    c.selectingCrop=false;
+    c.clicks=[];
+    c.spec=null;
     drawCalibrationOverlay();
+    $('cropControls').hidden=true;
+    $('markControls').hidden=false;
+    $('cropStatus').textContent='область выбрана';
+    $('markPrompt').textContent='3. Область готова. Нажми «Начать разметку» – сайт будет говорить, что именно отмечать.';
+    fitPhoto();
   }
 
   function drawCalibrationOverlay(){
     const c=state.calibrator,canvas=$('calibrationCanvas');
-    if(!c || !canvas || !c.base) return;
+    if(!c||!canvas||!c.base) return;
     const ctx=canvas.getContext('2d');
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.drawImage(c.base,0,0);
@@ -426,8 +505,8 @@
       ctx.fillText(String(i+1),p.x+7,p.y-7);
     });
     for(let i=1;i<c.clicks.length;i+=2){
-      const prev=c.spec.sequence[i-1],cur=c.spec.sequence[i];
-      if(prev && cur && prev.kind!=='point' && prev.key===cur.key && prev.proj===cur.proj){
+      const prev=c.spec&&c.spec.sequence[i-1],cur=c.spec&&c.spec.sequence[i];
+      if(prev&&cur&&prev.kind!=='point'&&prev.key===cur.key&&prev.proj===cur.proj){
         const a=c.clicks[i-1],b=c.clicks[i];
         ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
         ctx.strokeStyle='rgba(40,95,120,.9)';ctx.lineWidth=2;ctx.stroke();
@@ -437,7 +516,7 @@
 
   function snapDark(x,y){
     const c=state.calibrator;
-    if(!c || !c.base) return {x:x,y:y};
+    if(!c||!c.base) return {x:x,y:y};
     const ctx=c.base.getContext('2d');
     const r=9;
     const x0=Math.max(0,Math.floor(x-r)),y0=Math.max(0,Math.floor(y-r));
@@ -457,35 +536,49 @@
     return {x:best.x,y:best.y};
   }
 
-  function updateMarkPrompt(){
-    const c=state.calibrator;
-    const prompt=$('markPrompt');
-    if(!c || !prompt) return;
+  function renderMarkChecklist(){
+    const c=state.calibrator,list=$('markChecklist');
+    if(!list) return;
+    if(!c||!c.spec){list.innerHTML='';return;}
     const n=c.clicks.length;
-    if(!c.image){ prompt.textContent='Сначала выбери фото.'; return; }
-    if(!c.spec){ prompt.textContent='Нажми «Начать разметку».'; return; }
+    list.innerHTML=c.spec.sequence.map((item,i)=>{
+      const cls=i<n?'done':i===n?'current':'';
+      const mark=i<n?'✓':i===n?'→':'·';
+      return '<div class="mark-item '+cls+'"><span>'+mark+'</span><span>'+esc(item.prompt)+'</span></div>';
+    }).join('');
+    $('markProgress').textContent=Math.min(n,c.spec.sequence.length)+' / '+c.spec.sequence.length;
+  }
+
+  function updateMarkPrompt(){
+    const c=state.calibrator,prompt=$('markPrompt');
+    if(!c||!prompt) return;
+    if(!c.image){prompt.textContent='1. Сначала выбери фото.';return;}
+    if(!c.cropApplied){prompt.textContent='2. Выдели на фото только область задания №'+state.task+' и нажми «Использовать область».';return;}
+    if(!c.spec){prompt.textContent='3. Область готова. Нажми «Начать разметку».';renderMarkChecklist();return;}
+    const n=c.clicks.length;
+    renderMarkChecklist();
     if(n>=c.spec.sequence.length){
-      prompt.textContent='Разметка готова. Нажми «Решить по разметке».';
+      prompt.textContent='Разметка готова. Проверь отмеченные линии и нажми «Решить по разметке».';
       $('finishMarking').disabled=false;
       return;
     }
     $('finishMarking').disabled=true;
-    prompt.textContent='Шаг разметки '+(n+1)+'/'+c.spec.sequence.length+': '+c.spec.sequence[n].prompt;
+    prompt.textContent='Сейчас: '+c.spec.sequence[n].prompt+'. Это только перенос исходных данных с фото.';
   }
 
   function buildSchemeFromClicks(task){
     const c=state.calibrator,spec=c.spec,clicks=c.clicks;
-    if(!spec || clicks.length<spec.sequence.length) return null;
+    if(!spec||clicks.length<spec.sequence.length) return null;
     const points={},lines={},projecting={};
     spec.sequence.forEach((item,i)=>{
       const p=[clicks[i].x,clicks[i].y];
       if(item.kind==='point'){
         if(!points[item.key]) points[item.key]={};
         points[item.key][item.proj]=p;
-      } else if(item.kind==='line'){
+      }else if(item.kind==='line'){
         if(!lines[item.key]) lines[item.key]={p1:[null,null],p2:[null,null]};
         lines[item.key][item.proj][item.part]=p;
-      } else {
+      }else{
         if(!projecting[item.key]) projecting[item.key]={proj:item.proj,line:[null,null]};
         projecting[item.key].line[item.part]=p;
       }
@@ -494,7 +587,7 @@
     if(task===4){
       const m=spec.meta;
       const scheme={planeType:m.planeType,points:points,lines:lines};
-      if(m.planeType==='line_point'){ scheme.planeLine='a';scheme.planePoint='A'; }
+      if(m.planeType==='line_point'){scheme.planeLine='a';scheme.planePoint='A';}
       if(m.planeType==='parallel_lines'||m.planeType==='intersecting_lines') scheme.planeLines=['a','b'];
       scheme.operation={
         type:m.operation,through:m.through,resultPoint:m.result,
@@ -505,15 +598,14 @@
     if(task===5){
       const m=spec.meta;
       const scheme={planeType:m.planeType,points:points,lines:lines,givenLine:'l'};
-      if(m.planeType==='line_point'){ scheme.planeLine='a';scheme.planePoint='A'; }
+      if(m.planeType==='line_point'){scheme.planeLine='a';scheme.planePoint='A';}
       if(m.planeType==='parallel_lines'||m.planeType==='intersecting_lines') scheme.planeLines=['a','b'];
       return scheme;
     }
 
     function planeDef(type,lineNames,pointNames,projectName){
       if(type==='ABC'){
-        const ps={};
-        pointNames.forEach(n=>ps[n]=points[n]);
+        const ps={};pointNames.forEach(n=>ps[n]=points[n]);
         return {type:'ABC',points:ps};
       }
       if(type==='parallel_lines'||type==='intersecting_lines'){
@@ -533,56 +625,125 @@
   function setupCustomDiagramEditor(task){
     const canvas=$('calibrationCanvas');
     if(!canvas) return;
-    state.calibrator={image:null,base:null,clicks:[],spec:null,cropMode:'sheet'};
+    state.calibrator={
+      image:null,base:null,clicks:[],spec:null,crop:null,cropApplied:false,
+      selectingCrop:false,dragStart:null,dragNow:null,previewScale:1,photoZoom:1
+    };
+
+    const canvasPoint=ev=>{
+      const rect=canvas.getBoundingClientRect();
+      return {
+        x:(ev.clientX-rect.left)*canvas.width/rect.width,
+        y:(ev.clientY-rect.top)*canvas.height/rect.height
+      };
+    };
 
     $('schemeImage').addEventListener('change',ev=>{
-      const file=ev.target.files && ev.target.files[0];
+      const file=ev.target.files&&ev.target.files[0];
       if(!file) return;
       const img=new Image();
       img.onload=()=>{
-        state.calibrator.image=img;
-        state.calibrator.clicks=[];
-        state.calibrator.spec=null;
-        state.calibrator.cropMode=$('schemeCropMode').value;
-        drawCalibrationBase();
-        updateMarkPrompt();
+        const c=state.calibrator;
+        c.image=img;c.base=null;c.clicks=[];c.spec=null;c.crop=null;c.cropApplied=false;
+        $('cropControls').hidden=false;
+        $('markControls').hidden=true;
+        $('photoViewControls').hidden=false;
+        $('cropStatus').textContent='не выбрана';
+        renderCropPreview();
+        $('markPrompt').textContent='2. Выдели область задания №'+task+'. Для полного листа можно начать с «Авто №'+task+'».';
       };
       img.src=URL.createObjectURL(file);
     });
-    $('schemeCropMode').addEventListener('change',()=>{
-      if(!state.calibrator) return;
-      state.calibrator.cropMode=$('schemeCropMode').value;
-      state.calibrator.clicks=[];
-      state.calibrator.spec=null;
-      drawCalibrationBase();
-      updateMarkPrompt();
+
+    $('autoCrop').addEventListener('click',()=>{
+      const c=state.calibrator;if(!c.image)return;
+      c.crop=taskCropRect(task,c.image.naturalWidth,c.image.naturalHeight);
+      c.selectingCrop=false;
+      renderCropPreview();
+      $('cropStatus').textContent='авто – проверь рамку';
     });
+
+    $('wholeCrop').addEventListener('click',()=>{
+      const c=state.calibrator;if(!c.image)return;
+      c.crop={x:0,y:0,w:c.image.naturalWidth,h:c.image.naturalHeight};
+      c.selectingCrop=false;
+      renderCropPreview();
+      $('cropStatus').textContent='всё изображение';
+    });
+
+    $('manualCrop').addEventListener('click',()=>{
+      const c=state.calibrator;if(!c.image)return;
+      c.selectingCrop=true;c.dragStart=null;c.dragNow=null;
+      $('cropStatus').textContent='проведи рамку по заданию';
+      $('markPrompt').textContent='Зажми палец/мышь в одном углу задания №'+task+' и протяни до противоположного.';
+    });
+
+    $('applyCrop').addEventListener('click',applySelectedCrop);
+    $('changeCrop').addEventListener('click',()=>{
+      const c=state.calibrator;if(!c.image)return;
+      c.cropApplied=false;c.spec=null;c.clicks=[];
+      $('cropControls').hidden=false;$('markControls').hidden=true;
+      renderCropPreview();updateMarkPrompt();
+    });
+
+    $('photoZoomOut').addEventListener('click',()=>setPhotoZoom(state.calibrator.photoZoom*.8));
+    $('photoZoomIn').addEventListener('click',()=>setPhotoZoom(state.calibrator.photoZoom*1.25));
+    $('photoZoomFit').addEventListener('click',fitPhoto);
+
     $('startMarking').addEventListener('click',()=>{
-      if(!state.calibrator.image){ $('markPrompt').textContent='Сначала выбери фото.'; return; }
-      state.calibrator.spec=makeCustomSpec(task);
-      state.calibrator.clicks=[];
-      drawCalibrationOverlay();
-      updateMarkPrompt();
+      const c=state.calibrator;
+      if(!c.image||!c.cropApplied){updateMarkPrompt();return;}
+      c.spec=makeCustomSpec(task);c.clicks=[];
+      drawCalibrationOverlay();updateMarkPrompt();
     });
+
     $('undoMark').addEventListener('click',()=>{
-      if(!state.calibrator) return;
-      state.calibrator.clicks.pop();
-      drawCalibrationOverlay();
-      updateMarkPrompt();
+      const c=state.calibrator;if(!c)return;
+      c.clicks.pop();drawCalibrationOverlay();updateMarkPrompt();
     });
+
+    canvas.addEventListener('pointerdown',ev=>{
+      const c=state.calibrator;
+      if(!c||!c.image)return;
+      if(c.selectingCrop&&!c.cropApplied){
+        canvas.setPointerCapture&&canvas.setPointerCapture(ev.pointerId);
+        c.dragStart=canvasPoint(ev);c.dragNow=c.dragStart;
+        ev.preventDefault();
+      }
+    });
+    canvas.addEventListener('pointermove',ev=>{
+      const c=state.calibrator;
+      if(!c||!c.selectingCrop||!c.dragStart||c.cropApplied)return;
+      c.dragNow=canvasPoint(ev);
+      const r=normalizeRect(c.dragStart,c.dragNow);
+      c.crop={
+        x:r.x/c.previewScale,y:r.y/c.previewScale,
+        w:r.w/c.previewScale,h:r.h/c.previewScale
+      };
+      renderCropPreview();
+      ev.preventDefault();
+    });
+    canvas.addEventListener('pointerup',ev=>{
+      const c=state.calibrator;
+      if(!c||!c.selectingCrop||!c.dragStart||c.cropApplied)return;
+      c.selectingCrop=false;
+      c.dragStart=null;c.dragNow=null;
+      $('cropStatus').textContent='ручная область – проверь рамку';
+      $('markPrompt').textContent='Если рамка охватывает только задание №'+task+', нажми «Использовать область».';
+      ev.preventDefault();
+    });
+
     canvas.addEventListener('click',ev=>{
       const c=state.calibrator;
-      if(!c || !c.spec || c.clicks.length>=c.spec.sequence.length) return;
-      const rect=canvas.getBoundingClientRect();
-      const x=(ev.clientX-rect.left)*canvas.width/rect.width;
-      const y=(ev.clientY-rect.top)*canvas.height/rect.height;
-      c.clicks.push(snapDark(x,y));
-      drawCalibrationOverlay();
-      updateMarkPrompt();
+      if(!c||!c.cropApplied||!c.spec||c.clicks.length>=c.spec.sequence.length)return;
+      const p=canvasPoint(ev);
+      c.clicks.push(snapDark(p.x,p.y));
+      drawCalibrationOverlay();updateMarkPrompt();
     });
+
     $('finishMarking').addEventListener('click',()=>{
       const scheme=buildSchemeFromClicks(task);
-      if(!scheme) return;
+      if(!scheme)return;
       state.customSchemes[task]=scheme;
       $('solverMode').textContent='своя схема готова';
       rebuild(true);
