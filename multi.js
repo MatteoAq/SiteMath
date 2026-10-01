@@ -383,7 +383,9 @@
     $('taskName').textContent = task + '. ' + DATA.tasks[task].title;
     $('variantNote').textContent = state.variant==='custom'
       ? 'Ручной режим – координаты можно вводить самостоятельно.'
-      : (v && v.verifiedNumber===false ? 'Номер на присланном фото обрезан, поэтому лист специально не привязан к выдуманному номеру.' : 'Данные взяты с присланного листа ' + variantDisplayLabel(state.variant) + '.');
+      : (v && v.provisionalNumber
+          ? 'Этот лист временно помечен как вариант 18. Если найдётся другой подтверждённый вариант 18, номер будет исправлен.'
+          : 'Данные взяты с присланного листа ' + variantDisplayLabel(state.variant) + '.');
 
     if(task<=3){
       $('dataTitle').textContent='Координаты, мм';
