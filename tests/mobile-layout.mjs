@@ -90,6 +90,28 @@ for (const vp of viewports) {
     if (x.text !== String(Number(x.key))) failures.push(vp.name+': wrong variant display '+x.key+' -> '+x.text);
   }
 
+  // Long explanations must paginate in-place rather than create a scrollbar or grow the sheet.
+  for (const mode of ['action','measure','why','check']) {
+    await page.locator('.step-info-tab[data-step-mode="'+mode+'"]').click();
+    await page.waitForTimeout(20);
+    const info = await page.locator('.step-info-page').evaluate(el => {
+      const pager=document.querySelector('#stepInfoPager');
+      const cs=getComputedStyle(el);
+      return {
+        overflowY:cs.overflowY,
+        scrollHeight:el.scrollHeight,
+        clientHeight:el.clientHeight,
+        pagerHidden:!!pager?.hidden
+      };
+    });
+    if (info.overflowY==='auto' || info.overflowY==='scroll') {
+      failures.push(vp.name+': step text uses scrollbar in '+mode);
+    }
+    if (info.scrollHeight>info.clientHeight+2 && info.pagerHidden) {
+      failures.push(vp.name+': step text is clipped without paging in '+mode);
+    }
+  }
+
   await page.locator('#mobileSetupClose').click();
   await page.waitForTimeout(280);
 
