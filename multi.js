@@ -1094,13 +1094,15 @@
       measure:['Сетка: 5 мм = 1 клетка','Оси строятся под 90°'],
       check:'У всех трёх видов одна и та же точка O.'
     },[
-      line(0,{x:8,y:O.y},{x:complexWidth-8,y:O.y},'axis',{arrow:true}),
-      line(0,{x:O.x,y:8},{x:O.x,y:height-8},'axis'),
+      line(0,O,{x:8,y:O.y},'axis',{arrow:true}),
+      line(0,O,{x:complexWidth-8,y:O.y},'axis',{arrow:true}),
+      line(0,O,{x:O.x,y:8},'axis',{arrow:true}),
+      line(0,O,{x:O.x,y:height-8},'axis',{arrow:true}),
       point(0,O,'O'),
-      textEntity(0,{x:10,y:O.y-3},'x'),
-      textEntity(0,{x:complexWidth-18,y:O.y-3},'y₃'),
-      textEntity(0,{x:O.x+3,y:11},'z'),
-      textEntity(0,{x:O.x+3,y:height-9},'y₁'),
+      textEntity(0,{x:10,y:O.y-3},'+x','svg-label'),
+      textEntity(0,{x:complexWidth-22,y:O.y-3},'+y₃','svg-label'),
+      textEntity(0,{x:O.x+3,y:11},'+z','svg-label'),
+      textEntity(0,{x:O.x+3,y:height-9},'+y₁','svg-label'),
       textEntity(0,{x:12,y:16},'Π₂','svg-note'),
       textEntity(0,{x:12,y:height-12},'Π₁','svg-note'),
       textEntity(0,{x:complexWidth-26,y:16},'Π₃','svg-note')
@@ -1188,16 +1190,29 @@
 
   function twoPlaneAxisEntities(step,O,width,height){
     return [
-      line(step,{x:8,y:O.y},{x:width-8,y:O.y},'axis'),
+      line(step,O,{x:8,y:O.y},'axis',{arrow:true}),
+      line(step,O,{x:width-8,y:O.y},'axis',{arrow:true}),
       line(step,O,{x:O.x,y:12},'axis',{arrow:true}),
       line(step,O,{x:O.x,y:height-10},'axis',{arrow:true}),
       point(step,O,'O'),
-      textEntity(step,{x:10,y:O.y-3},'x','svg-label'),
-      textEntity(step,{x:O.x+3,y:15},'z','svg-label'),
-      textEntity(step,{x:O.x+3,y:height-11},'y','svg-label'),
+      textEntity(step,{x:10,y:O.y-3},'+x','svg-label'),
+      textEntity(step,{x:width-20,y:O.y-3},'−x','svg-label'),
+      textEntity(step,{x:O.x+3,y:15},'+z','svg-label'),
+      textEntity(step,{x:O.x+3,y:height-11},'+y','svg-label'),
       textEntity(step,{x:O.x+6,y:O.y-3},'x₁₂','svg-note'),
       textEntity(step,{x:width-24,y:15},'Π₂','svg-note'),
       textEntity(step,{x:width-24,y:height-10},'Π₁','svg-note')
+    ];
+  }
+
+  function coordinateGuideEntities(step,O,name,p1,p2){
+    const yFoot={x:O.x,y:p1.y};
+    const zFoot={x:O.x,y:p2.y};
+    return [
+      line(step,yFoot,p1,'construction-line'),
+      line(step,zFoot,p2,'construction-line'),
+      point(step,yFoot,name+'ᵧ','construction-dot'),
+      point(step,zFoot,name+'𝓏','construction-dot')
     ];
   }
 
@@ -1260,8 +1275,7 @@
       dim(i,q.O,q.Ax,Math.abs(A.x)+' мм',{x:0,y:-3}),
       line(i,q.Ax,q.A1,'construction-line'),
       line(i,q.Ax,q.A2,'construction-line'),
-      line(i,{x:q.O.x,y:q.A1.y},q.A1,'construction-line'),
-      line(i,{x:q.O.x,y:q.A2.y},q.A2,'construction-line'),
+      ...coordinateGuideEntities(i,q.O,'A',q.A1,q.A2),
       point(i,q.Ax,'Aₓ','construction-dot'),
       point(i,q.A1,'A₁'),point(i,q.A2,'A₂')
     ],{kind:'line',a:q.Ax,b:q.A1});
@@ -1277,8 +1291,7 @@
       dim(i,q.O,q.Bx,Math.abs(B.x)+' мм',{x:0,y:-3}),
       line(i,q.Bx,q.B1,'construction-line'),
       line(i,q.Bx,q.B2,'construction-line'),
-      line(i,{x:q.O.x,y:q.B1.y},q.B1,'construction-line'),
-      line(i,{x:q.O.x,y:q.B2.y},q.B2,'construction-line'),
+      ...coordinateGuideEntities(i,q.O,'B',q.B1,q.B2),
       point(i,q.Bx,'Bₓ','construction-dot'),
       point(i,q.B1,'B₁'),point(i,q.B2,'B₂')
     ],{kind:'line',a:q.Bx,b:q.B1});
@@ -1421,8 +1434,7 @@
         dim(j,O,px,Math.abs(p.x)+' мм',{x:0,y:-3}),
         line(j,px,p1,'construction-line'),
         line(j,px,p2,'construction-line'),
-        line(j,{x:O.x,y:p1.y},p1,'construction-line'),
-        line(j,{x:O.x,y:p2.y},p2,'construction-line'),
+        ...coordinateGuideEntities(j,O,name,p1,p2),
         point(j,px,name+'ₓ','construction-dot'),
         point(j,p1,name+'₁'),
         point(j,p2,name+'₂')
@@ -2643,16 +2655,19 @@
   }
 
   function stepInfoPages(st,mode){
+    if(mode==='action'){
+      const pages=paginateStepText(st.action,72).map(text=>({text,items:[]}));
+      (st.measure||[]).forEach(item=>{
+        pages.push({text:'Отмерь и проверь:',items:[item]});
+      });
+      return pages.length?pages:[{text:'Выполни построение текущего шага.',items:[]}];
+    }
     if(mode==='measure'){
       const m=st.measure||[];
       if(!m.length) return [{text:'На этом шаге ничего дополнительно отмерять не нужно.',items:[]}];
-      const pages=[];
-      for(let i=0;i<m.length;i++){
-        pages.push({text:'Отмерь и проверь:',items:[m[i]]});
-      }
-      return pages;
+      return m.map(item=>({text:'Отмерь и проверь:',items:[item]}));
     }
-    const value=mode==='action'?st.action:mode==='why'?st.why:st.check;
+    const value=mode==='why'?st.why:st.check;
     return paginateStepText(value,72).map(text=>({text,items:[]}));
   }
 
