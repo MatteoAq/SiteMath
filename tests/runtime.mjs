@@ -200,7 +200,7 @@ try {
 
 // Every photographed graphical task must render the exact named source objects,
  // not anonymous substitute strips.
-try {
+if (!onlyVariant && !onlyTask) try {
   const photographed=['04','05','07','08','10','11','12','13','14','15','17','18','19'];
 
   function expectedFromPlaneDef(def,out){
