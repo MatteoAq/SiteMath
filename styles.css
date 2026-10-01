@@ -1900,3 +1900,10 @@ body { color:var(--ui-text); }
     max-width:42vw;
   }
 }
+
+
+@media (max-width:760px) {
+  .controls-panel {
+    grid-template-columns:minmax(0,1fr);
+  }
+}
