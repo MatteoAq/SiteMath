@@ -2754,6 +2754,21 @@
     wrap.scrollTop=Math.max(0,top-(viewport.height-h)/2);
   }
 
+  function ensureDrawingClearOfStepSheet(){
+    const wrap=document.querySelector('.paper-wrap');
+    const panel=$('stepSheet');
+    if(!wrap||!panel||getComputedStyle(panel).position!=='fixed') return;
+    const nodes=[...svg.querySelectorAll('line.object-line,line.construction-line,line.answer-line,line.aux-line,circle.point-dot,circle.answer-dot,circle.construction-dot')];
+    const boxes=nodes.map(n=>n.getBoundingClientRect()).filter(r=>r.width+r.height>0);
+    if(!boxes.length) return;
+    const bottom=Math.max(...boxes.map(r=>r.bottom));
+    const safeBottom=panel.getBoundingClientRect().top-20;
+    if(bottom>safeBottom){
+      const maxScroll=Math.max(0,wrap.scrollHeight-wrap.clientHeight);
+      wrap.scrollTop=Math.min(maxScroll,wrap.scrollTop+(bottom-safeBottom));
+    }
+  }
+
   function applyDrawingZoom(){
     const g=state.geometry;
     if(!g) return;
@@ -2763,7 +2778,13 @@
     svg.style.height=(g.height*cssMm*z)+'px';
     $('zoomLabel').textContent=Math.round(z*100)+'%';
     if(state.screenZoom===null){
-      requestAnimationFrame(focusVisibleDrawing);
+      requestAnimationFrame(()=>{
+        focusVisibleDrawing();
+        requestAnimationFrame(()=>{
+          ensureDrawingClearOfStepSheet();
+          requestAnimationFrame(ensureDrawingClearOfStepSheet);
+        });
+      });
     }
   }
 
@@ -2788,7 +2809,10 @@
     if(mode==='fit'){
       state.screenZoom=null;
       applyDrawingZoom();
-      requestAnimationFrame(focusVisibleDrawing);
+      requestAnimationFrame(()=>{
+        focusVisibleDrawing();
+        requestAnimationFrame(ensureDrawingClearOfStepSheet);
+      });
       return;
     }
     if(mode==='100'){
