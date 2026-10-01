@@ -1184,6 +1184,20 @@
     return {width,height,O,steps};
   }
 
+  function twoPlaneAxisEntities(step,O,width,height){
+    return [
+      line(step,{x:8,y:O.y},{x:width-8,y:O.y},'axis',{arrow:true}),
+      line(step,{x:O.x,y:12},{x:O.x,y:height-10},'construction-line'),
+      point(step,O,'O'),
+      textEntity(step,{x:10,y:O.y-3},'x','svg-label'),
+      textEntity(step,{x:O.x+3,y:15},'z','svg-label'),
+      textEntity(step,{x:O.x+3,y:height-11},'y','svg-label'),
+      textEntity(step,{x:O.x+6,y:O.y-3},'x₁₂','svg-note'),
+      textEntity(step,{x:width-24,y:15},'Π₂','svg-note'),
+      textEntity(step,{x:width-24,y:height-10},'Π₁','svg-note')
+    ];
+  }
+
   function choosePerpPoint(baseA,baseB,length,side){
     const u=unit2(vec2(baseA,baseB));
     let n=perp2(u);
@@ -1230,16 +1244,7 @@
       why:'Задача решается в системе двух плоскостей проекций.',
       measure:['1 клетка = 5 мм'],
       check:'Π₂ находится над x₁₂, Π₁ – под ней для положительных z и y.'
-    },[
-      line(i,{x:8,y:q.O.y},{x:width-8,y:q.O.y},'axis'),
-      line(i,{x:q.O.x,y:12},{x:q.O.x,y:height-10},'construction-line'),
-      point(i,q.O,'O'),
-      textEntity(i,{x:10,y:q.O.y-3},'x₁₂','svg-label'),
-      textEntity(i,{x:q.O.x+3,y:12},'+z','svg-note'),
-      textEntity(i,{x:q.O.x+3,y:height-10},'+y','svg-note'),
-      textEntity(i,{x:width-24,y:15},'Π₂','svg-note'),
-      textEntity(i,{x:width-24,y:height-10},'Π₁','svg-note')
-    ],{kind:'line',a:{x:8,y:q.O.y},b:{x:width-8,y:q.O.y}});
+    },twoPlaneAxisEntities(i,q.O,width,height),{kind:'line',a:{x:8,y:q.O.y},b:{x:width-8,y:q.O.y}});
 
     i=steps.length;
     push({
@@ -1252,6 +1257,8 @@
       dim(i,q.O,q.Ax,Math.abs(A.x)+' мм',{x:0,y:-3}),
       line(i,q.Ax,q.A1,'construction-line'),
       line(i,q.Ax,q.A2,'construction-line'),
+      line(i,{x:q.O.x,y:q.A1.y},q.A1,'construction-line'),
+      line(i,{x:q.O.x,y:q.A2.y},q.A2,'construction-line'),
       point(i,q.Ax,'Aₓ','construction-dot'),
       point(i,q.A1,'A₁'),point(i,q.A2,'A₂')
     ],{kind:'line',a:q.Ax,b:q.A1});
@@ -1267,6 +1274,8 @@
       dim(i,q.O,q.Bx,Math.abs(B.x)+' мм',{x:0,y:-3}),
       line(i,q.Bx,q.B1,'construction-line'),
       line(i,q.Bx,q.B2,'construction-line'),
+      line(i,{x:q.O.x,y:q.B1.y},q.B1,'construction-line'),
+      line(i,{x:q.O.x,y:q.B2.y},q.B2,'construction-line'),
       point(i,q.Bx,'Bₓ','construction-dot'),
       point(i,q.B1,'B₁'),point(i,q.B2,'B₂')
     ],{kind:'line',a:q.Bx,b:q.B1});
@@ -1394,16 +1403,7 @@
       why:'На одной вертикальной линии связи будут находиться горизонтальная и фронтальная проекции каждой точки.',
       measure:['1 клетка = 5 мм'],
       check:'Ось x₁₂ горизонтальна.'
-    },[
-      line(i,{x:8,y:O.y},{x:width-8,y:O.y},'axis'),
-      line(i,{x:O.x,y:12},{x:O.x,y:height-10},'construction-line'),
-      point(i,O,'O'),
-      textEntity(i,{x:10,y:O.y-3},'x₁₂','svg-label'),
-      textEntity(i,{x:O.x+3,y:12},'+z','svg-note'),
-      textEntity(i,{x:O.x+3,y:height-10},'+y','svg-note'),
-      textEntity(i,{x:width-24,y:15},'Π₂','svg-note'),
-      textEntity(i,{x:width-24,y:height-10},'Π₁','svg-note')
-    ],{kind:'line',a:{x:8,y:O.y},b:{x:width-8,y:O.y}});
+    },twoPlaneAxisEntities(i,O,width,height),{kind:'line',a:{x:8,y:O.y},b:{x:width-8,y:O.y}});
 
     [['A',A,q.A1,q.A2,q.Ax],['B',B,q.B1,q.B2,q.Bx],['C',C,q.C1,q.C2,q.Cx]].forEach(row=>{
       const name=row[0],p=row[1],p1=row[2],p2=row[3],px=row[4];
@@ -1418,6 +1418,8 @@
         dim(j,O,px,Math.abs(p.x)+' мм',{x:0,y:-3}),
         line(j,px,p1,'construction-line'),
         line(j,px,p2,'construction-line'),
+        line(j,{x:O.x,y:p1.y},p1,'construction-line'),
+        line(j,{x:O.x,y:p2.y},p2,'construction-line'),
         point(j,px,name+'ₓ','construction-dot'),
         point(j,p1,name+'₁'),
         point(j,p2,name+'₂')
@@ -2589,7 +2591,7 @@
   function paginateStepText(value,limit){
     const text=String(value||'').trim();
     if(!text) return [''];
-    const max=limit||150;
+    const max=limit||105;
     const sentences=text.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[text];
     const pages=[];
     let current='';
@@ -2623,13 +2625,13 @@
       const m=st.measure||[];
       if(!m.length) return [{text:'На этом шаге ничего дополнительно отмерять не нужно.',items:[]}];
       const pages=[];
-      for(let i=0;i<m.length;i+=2){
-        pages.push({text:'Отмерь и проверь:',items:m.slice(i,i+2)});
+      for(let i=0;i<m.length;i++){
+        pages.push({text:'Отмерь и проверь:',items:[m[i]]});
       }
       return pages;
     }
     const value=mode==='action'?st.action:mode==='why'?st.why:st.check;
-    return paginateStepText(value,150).map(text=>({text,items:[]}));
+    return paginateStepText(value,105).map(text=>({text,items:[]}));
   }
 
   function renderStepInfoPage(st){
@@ -2701,13 +2703,20 @@
     };
   }
 
-  function drawingOverlayHeight(){
+  function visibleDrawingViewport(){
+    const wrap=document.querySelector('.paper-wrap');
+    if(!wrap) return {width:360,height:520};
+    const wr=wrap.getBoundingClientRect();
+    let visibleBottom=Math.min(wr.bottom,window.innerHeight||wr.bottom);
     const panel=$('stepSheet');
-    if(!panel) return 0;
-    const cs=getComputedStyle(panel);
-    if(cs.position!=='fixed') return 0;
-    const r=panel.getBoundingClientRect();
-    return Math.max(0,r.height+12);
+    if(panel && getComputedStyle(panel).position==='fixed'){
+      const pr=panel.getBoundingClientRect();
+      if(pr.top>wr.top) visibleBottom=Math.min(visibleBottom,pr.top-10);
+    }
+    return {
+      width:Math.max(120,Math.min(wr.width,window.innerWidth||wr.width)),
+      height:Math.max(120,visibleBottom-wr.top)
+    };
   }
 
   function currentFitZoom(){
@@ -2718,9 +2727,9 @@
     const cs=getComputedStyle(wrap);
     const px=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0);
     const py=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
-    const availableW=Math.max(120,(wrap.clientWidth||window.innerWidth||360)-px);
-    const overlayH=drawingOverlayHeight();
-    const availableH=Math.max(140,(wrap.clientHeight||window.innerHeight||640)-py-overlayH);
+    const viewport=visibleDrawingViewport();
+    const availableW=Math.max(120,viewport.width-px);
+    const availableH=Math.max(120,viewport.height-py);
     const vb=visibleDrawingBounds();
     const visibleW=Math.max(20,vb.maxX-vb.minX);
     const visibleH=Math.max(20,vb.maxY-vb.minY);
@@ -2738,9 +2747,9 @@
     const top=vb.minY*cssMm*z;
     const w=(vb.maxX-vb.minX)*cssMm*z;
     const h=(vb.maxY-vb.minY)*cssMm*z;
-    const usableH=Math.max(120,wrap.clientHeight-drawingOverlayHeight());
-    wrap.scrollLeft=Math.max(0,left-(wrap.clientWidth-w)/2);
-    wrap.scrollTop=Math.max(0,top-(usableH-h)/2);
+    const viewport=visibleDrawingViewport();
+    wrap.scrollLeft=Math.max(0,left-(viewport.width-w)/2);
+    wrap.scrollTop=Math.max(0,top-(viewport.height-h)/2);
   }
 
   function applyDrawingZoom(){
