@@ -1629,6 +1629,21 @@
     ];
   }
 
+  function closestLineMidpoint3(L1,L2){
+    const p=L1[0],q=L2[0];
+    const u=normalize3(sub3(L1[1],L1[0]));
+    const v=normalize3(sub3(L2[1],L2[0]));
+    const w=sub3(p,q);
+    const b=dot3(u,v), d=dot3(u,w), e=dot3(v,w);
+    const den=1-b*b;
+    if(Math.abs(den)<1e-6) return mul3(add3(p,q),.5);
+    const t=(b*e-d)/den;
+    const s=(e-b*d)/den;
+    const p1=add3(p,mul3(u,t));
+    const p2=add3(q,mul3(v,s));
+    return mul3(add3(p1,p2),.5);
+  }
+
   function planeFromScheme(scheme){
     let P,Q,R;
     if(scheme.planeType==='ABC'){
@@ -1638,11 +1653,25 @@
     } else if(scheme.planeType==='line_point'){
       const L=schemeLine3(scheme.lines[scheme.planeLine]);
       P=L[0]; Q=L[1]; R=schemePoint3(scheme.points[scheme.planePoint]);
-    } else if(scheme.planeType==='parallel_lines' || scheme.planeType==='intersecting_lines'){
+    } else if(scheme.planeType==='parallel_lines'){
       const names=scheme.planeLines;
       const L1=schemeLine3(scheme.lines[names[0]]);
       const L2=schemeLine3(scheme.lines[names[1]]);
-      P=L1[0]; Q=L1[1]; R=L2[0];
+      let u1=normalize3(sub3(L1[1],L1[0]));
+      let u2=normalize3(sub3(L2[1],L2[0]));
+      if(dot3(u1,u2)<0) u2=mul3(u2,-1);
+      const u=normalize3(add3(u1,u2));
+      const m1=mul3(add3(L1[0],L1[1]),.5);
+      const m2=mul3(add3(L2[0],L2[1]),.5);
+      P=m1; Q=add3(m1,u); R=m2;
+    } else if(scheme.planeType==='intersecting_lines'){
+      const names=scheme.planeLines;
+      const L1=schemeLine3(scheme.lines[names[0]]);
+      const L2=schemeLine3(scheme.lines[names[1]]);
+      const u=normalize3(sub3(L1[1],L1[0]));
+      const v=normalize3(sub3(L2[1],L2[0]));
+      const c=closestLineMidpoint3(L1,L2);
+      P=c; Q=add3(c,u); R=add3(c,v);
     } else {
       throw new Error('Неизвестный способ задания плоскости: '+scheme.planeType);
     }
