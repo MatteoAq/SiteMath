@@ -83,12 +83,21 @@
             <div class="section-kicker">Пошаговое построение</div>
             <div class="step-counter"><span id="stepNumber">1</span> / <span id="stepTotal">1</span></div>
           </div>
-          <div class="transport-controls">
-            <button id="firstBtn" class="icon-btn" type="button" aria-label="Первый шаг">|◀</button>
-            <button id="prevBtn" class="icon-btn" type="button" aria-label="Предыдущий шаг">◀</button>
-            <button id="playBtn" class="icon-btn wide" type="button">▶ Авто</button>
-            <button id="nextBtn" class="icon-btn" type="button" aria-label="Следующий шаг">▶</button>
-            <button id="lastBtn" class="icon-btn" type="button" aria-label="Последний шаг">▶|</button>
+          <div class="toolbar-groups">
+            <div class="transport-controls">
+              <button id="firstBtn" class="icon-btn" type="button" aria-label="Первый шаг">|◀</button>
+              <button id="prevBtn" class="icon-btn" type="button" aria-label="Предыдущий шаг">◀</button>
+              <button id="playBtn" class="icon-btn wide" type="button">▶ Авто</button>
+              <button id="nextBtn" class="icon-btn" type="button" aria-label="Следующий шаг">▶</button>
+              <button id="lastBtn" class="icon-btn" type="button" aria-label="Последний шаг">▶|</button>
+            </div>
+            <div class="view-controls" aria-label="Масштаб чертежа на экране">
+              <button id="zoomOutBtn" class="icon-btn" type="button" aria-label="Уменьшить">−</button>
+              <button id="zoomFitBtn" class="icon-btn wide" type="button">Вписать</button>
+              <button id="zoom100Btn" class="icon-btn wide" type="button">100%</button>
+              <button id="zoomInBtn" class="icon-btn" type="button" aria-label="Увеличить">+</button>
+              <span id="zoomLabel" class="zoom-label">100%</span>
+            </div>
           </div>
         </div>
 
