@@ -37,16 +37,36 @@
         <button id="mobileSetupClose" class="mobile-icon-btn" type="button" aria-label="Закрыть параметры">×</button>
       </div>
       <div class="mobile-sheet-handle" aria-hidden="true"></div>
-      <section class="picker-card">
+      <section class="picker-card picker-flow">
         <div class="section-kicker">Что решаем</div>
-        <div class="select-grid">
-          <label>Вариант
-            <select id="variantSelect"></select>
-          </label>
-          <label>Задание
-            <select id="taskSelect"></select>
-          </label>
+
+        <div class="choice-block">
+          <div class="choice-heading">
+            <div>
+              <span class="choice-step">1</span>
+              <b>Выбери вариант</b>
+            </div>
+            <span id="variantChoiceSummary" class="choice-summary">Вариант 10</span>
+          </div>
+          <div id="variantChips" class="variant-chips" role="listbox" aria-label="Варианты"></div>
         </div>
+
+        <div class="choice-block">
+          <div class="choice-heading">
+            <div>
+              <span class="choice-step">2</span>
+              <b>Выбери задание</b>
+            </div>
+            <span id="taskChoiceSummary" class="choice-summary">№1</span>
+          </div>
+          <div id="taskCards" class="task-choice-grid" role="listbox" aria-label="Задания"></div>
+        </div>
+
+        <div class="native-select-fallback" aria-hidden="true">
+          <select id="variantSelect" tabindex="-1"></select>
+          <select id="taskSelect" tabindex="-1"></select>
+        </div>
+
         <p id="variantNote" class="hint"></p>
       </section>
 
