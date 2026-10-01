@@ -2230,8 +2230,8 @@
       Object.entries(def.points).forEach(([name,P])=>{
         const q=normalizedPointRec(P);
         out.push(line(step,{x:q.p2[0],y:q.p2[1]},{x:q.p1[0],y:q.p1[1]},'construction-line'));
-        out.push(point(step,{x:q.p2[0],y:q.p2[1]},pre+name+'₂'));
-        out.push(point(step,{x:q.p1[0],y:q.p1[1]},pre+name+'₁'));
+        out.push(point(step,{x:q.p2[0],y:q.p2[1]},name+'₂'));
+        out.push(point(step,{x:q.p1[0],y:q.p1[1]},name+'₁'));
       });
       appendABCPlaneEntities(out,pseudo,step);
     } else if(def.type==='line_point'){
