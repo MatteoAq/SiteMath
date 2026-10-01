@@ -1783,3 +1783,38 @@ body { color:var(--ui-text); }
     grid-template-columns:repeat(5,minmax(0,1fr));
   }
 }
+
+
+/* Mobile sheet overflow fixes found by real Chromium audit */
+@media (max-width:760px) {
+  .mobile-sheet-head {
+    width:100%;
+    max-width:100%;
+    margin:0;
+    padding:12px 0 10px;
+    grid-template-columns:minmax(0,1fr) 40px;
+  }
+  .mobile-sheet-head .mobile-icon-btn {
+    width:40px;
+    min-width:40px;
+    height:40px;
+    justify-self:end;
+  }
+  .controls-panel {
+    overflow-x:hidden;
+  }
+  .choice-heading {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    width:100%;
+  }
+  .choice-summary {
+    max-width:48vw;
+  }
+}
+@media (max-width:340px) {
+  .variant-chips,
+  .first-run-variants {
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+}
