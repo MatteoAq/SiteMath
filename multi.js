@@ -299,6 +299,12 @@
         '</div>'+
       '</div>'+
       '<p id="markPrompt" class="mark-prompt">1. Сначала выбери фото.</p>'+
+      '<div id="photoViewControls" class="photo-view-controls" hidden>'+
+        '<button id="photoZoomOut" class="icon-btn" type="button">−</button>'+
+        '<button id="photoZoomFit" class="icon-btn wide" type="button">Вписать</button>'+
+        '<button id="photoZoomIn" class="icon-btn" type="button">+</button>'+
+        '<span id="photoZoomLabel" class="zoom-label">100%</span>'+
+      '</div>'+
       '<div class="calibration-wrap"><canvas id="calibrationCanvas"></canvas></div>'+
       '</div>';
   }
