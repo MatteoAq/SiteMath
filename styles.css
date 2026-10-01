@@ -232,3 +232,89 @@ select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(184,79,58
 }
 .calibration-wrap { overflow:auto; max-height:520px; border-radius:12px; background:#d8d1c5; border:1px solid #c9bfaf; }
 #calibrationCanvas { display:block; max-width:100%; height:auto; margin:0 auto; cursor:crosshair; }
+
+.toolbar-groups { display:grid; gap:7px; justify-items:end; }
+.view-controls { display:flex; gap:7px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+.zoom-label { min-width:48px; text-align:center; font-size:12px; font-weight:800; color:var(--muted); }
+
+.paper-wrap {
+  touch-action: pan-x pan-y pinch-zoom;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+#drawing {
+  transform-origin: top left;
+  flex: 0 0 auto;
+}
+
+.workflow-card {
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #d8c9ae;
+  background:#fff9ec;
+  font-size:13px;
+  line-height:1.5;
+}
+.workflow-card p { margin:6px 0 8px; }
+.workflow-card ol { margin:0; padding-left:20px; }
+.workflow-card li + li { margin-top:4px; }
+
+.inline-fields { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.inline-fields input {
+  width:100%;
+  border:1px solid #cfc7b7;
+  border-radius:10px;
+  padding:9px;
+  background:#fffef9;
+}
+.crop-controls,.mark-controls { display:grid; gap:8px; }
+.crop-title { display:flex; justify-content:space-between; gap:10px; align-items:center; font-size:13px; }
+.crop-title span { color:var(--muted); font-size:11px; text-align:right; }
+.photo-view-controls { display:flex; gap:7px; align-items:center; flex-wrap:wrap; }
+.mark-checklist {
+  display:grid;
+  gap:5px;
+  max-height:210px;
+  overflow:auto;
+  border:1px solid #d7cebf;
+  border-radius:10px;
+  padding:7px;
+  background:rgba(255,255,255,.5);
+}
+.mark-item { display:grid; grid-template-columns:20px 1fr; gap:6px; align-items:start; font-size:12px; color:var(--muted); line-height:1.35; }
+.mark-item.current { color:var(--ink); font-weight:750; background:#fff5dd; border-radius:7px; padding:5px; }
+.mark-item.done { color:#47705a; }
+.calibration-wrap {
+  touch-action: pan-x pan-y pinch-zoom;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+#calibrationCanvas { max-width:none; touch-action:none; }
+
+@media (max-width: 720px) {
+  body { overflow-x:hidden; }
+  .topbar { padding-top:16px; padding-bottom:10px; }
+  .topbar h1 { font-size:26px; line-height:1.05; }
+  .subtitle { font-size:13px; }
+  .layout { gap:12px; }
+  .controls-panel { padding:12px; gap:12px; }
+  .stage-toolbar { padding:10px; display:grid; grid-template-columns:1fr; gap:8px; }
+  .toolbar-groups { justify-items:stretch; }
+  .transport-controls,.view-controls { justify-content:center; }
+  .icon-btn { min-width:40px; padding:9px 8px; }
+  .icon-btn.wide { min-width:72px; }
+  .paper-wrap {
+    min-height:340px;
+    padding:8px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:flex-start;
+  }
+  .explanation-panel { padding:13px; }
+  .explanation-panel > h2 { font-size:20px; }
+  .action-text { font-size:15px; }
+  .inline-fields { grid-template-columns:1fr; }
+  .calibration-wrap { max-height:62vh; }
+  .calibrator-actions { display:grid; grid-template-columns:1fr 1fr; }
+  .calibrator-actions .primary { grid-column:1/-1; }
+}
