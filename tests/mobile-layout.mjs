@@ -102,6 +102,17 @@ for (const vp of viewports) {
   await page.waitForTimeout(50);
   await visibleOverflow(page,vp.name+' fitted');
 
+  for (const mode of ['action','measure','why','check']) {
+    const tab=page.locator('.step-info-tab[data-step-mode="'+mode+'"]');
+    if(await tab.count()){
+      await tab.click();
+      await page.waitForTimeout(30);
+      await visibleOverflow(page,vp.name+' step-'+mode);
+    } else {
+      failures.push(vp.name+': missing step info tab '+mode);
+    }
+  }
+
   await context.close();
 }
 
