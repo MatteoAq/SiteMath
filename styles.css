@@ -218,3 +218,17 @@ select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(184,79,58
 .aux-line { stroke: #7b6a8a; stroke-width: .42; fill: none; stroke-dasharray: 4 1.5; }
 .hidden-line { stroke: #285f78; stroke-width: .68; fill: none; stroke-dasharray: 3 2; }
 .construction-dot { fill: var(--construction); }
+
+.custom-editor { display:grid; gap:11px; }
+.custom-form { display:grid; gap:8px; }
+.custom-form label { display:grid; gap:5px; font-size:12px; font-weight:800; color:var(--muted); }
+.custom-form input[type="text"], .custom-form input:not([type]), .custom-form input[type="file"] {
+  width:100%; border:1px solid #cfc7b7; border-radius:10px; padding:9px; background:#fffef9; color:var(--ink);
+}
+.calibrator-actions { display:flex; flex-wrap:wrap; gap:7px; }
+.mark-prompt {
+  margin:0; padding:9px 10px; border-radius:10px; background:#fff9ec;
+  border:1px solid #ddd0b7; font-size:12px; line-height:1.45; color:#5e5549;
+}
+.calibration-wrap { overflow:auto; max-height:520px; border-radius:12px; background:#d8d1c5; border:1px solid #c9bfaf; }
+#calibrationCanvas { display:block; max-width:100%; height:auto; margin:0 auto; cursor:crosshair; }
