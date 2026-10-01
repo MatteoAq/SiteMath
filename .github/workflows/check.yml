@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: ["04", "05", "07", "08"]
+        variant: ["04", "05", "07", "08", "13", "19"]
         task: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@v4
