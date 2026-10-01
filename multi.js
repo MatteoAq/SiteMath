@@ -1024,11 +1024,438 @@
     return {width:norm.width,height:norm.height,O:{x:0,y:0},steps:steps,diagramPending:false};
   }
 
+
+  function toSeg(seg){
+    return [{x:seg[0][0],y:seg[0][1]},{x:seg[1][0],y:seg[1][1]}];
+  }
+
+  function lineIntersection2(a,b,c,d){
+    const r=vec2(a,b), q=vec2(c,d);
+    const den=r.x*q.y-r.y*q.x;
+    if(Math.abs(den)<EPS) return null;
+    const ca={x:c.x-a.x,y:c.y-a.y};
+    const t=(ca.x*q.y-ca.y*q.x)/den;
+    return {x:a.x+t*r.x,y:a.y+t*r.y};
+  }
+
+  function normalizedPointRec(rec){
+    const x=(rec.p1[0]+rec.p2[0])/2;
+    return {p1:[x,rec.p1[1]],p2:[x,rec.p2[1]]};
+  }
+
+  function abcLineRec(scheme,a,b){
+    const A=normalizedPointRec(scheme.points[a]), B=normalizedPointRec(scheme.points[b]);
+    return {p1:[A.p1,B.p1],p2:[A.p2,B.p2]};
+  }
+
+  function planeReferenceLines(scheme){
+    if(scheme.planeType==='ABC'){
+      return [
+        {name:'AB',rec:abcLineRec(scheme,'A','B')},
+        {name:'AC',rec:abcLineRec(scheme,'A','C')}
+      ];
+    }
+    const names=scheme.planeLines || Object.keys(scheme.lines||{}).filter(n=>n!==scheme.givenLine).slice(0,2);
+    return names.slice(0,2).map(name=>({name:name,rec:scheme.lines[name]}));
+  }
+
+  function appendABCPlaneEntities(out,scheme,step){
+    if(scheme.planeType!=='ABC') return;
+    const A=normalizedPointRec(scheme.points.A),B=normalizedPointRec(scheme.points.B),C=normalizedPointRec(scheme.points.C);
+    [['A','B',A,B],['B','C',B,C],['C','A',C,A]].forEach(row=>{
+      out.push(line(step,{x:row[2].p2[0],y:row[2].p2[1]},{x:row[3].p2[0],y:row[3].p2[1]},'object-line'));
+      out.push(line(step,{x:row[2].p1[0],y:row[2].p1[1]},{x:row[3].p1[0],y:row[3].p1[1]},'object-line'));
+    });
+  }
+
+  function planeYAt(plane,x,z){
+    if(Math.abs(plane.n.y)<EPS) return null;
+    return -(plane.n.x*x+plane.n.z*z+plane.d)/plane.n.y;
+  }
+
+  function line3AtX(rec,x){
+    return {x:x,y:lineY(rec.p1,x),z:-lineY(rec.p2,x)};
+  }
+
+  function segmentVisibility(rec,plane,proj,K){
+    const seg=toSeg(rec[proj]);
+    const endA=seg[0],endB=seg[1];
+    const k={x:K.x,y:proj==='p1'?lineY(rec.p1,K.x):lineY(rec.p2,K.x)};
+    const mids=[lerp2(endA,k,.5),lerp2(k,endB,.5)];
+    return mids.map(m=>{
+      const P=line3AtX(rec,m.x);
+      if(proj==='p1'){
+        const zp=planeZAt(plane,P.x,P.y);
+        if(zp===null) return true;
+        return P.z>=zp;
+      }
+      const yp=planeYAt(plane,P.x,P.z);
+      if(yp===null) return true;
+      return P.y>=yp;
+    });
+  }
+
+  function solveTask5Scheme(scheme,stored){
+    let plane;
+    try { plane=planeFromScheme(scheme); }
+    catch(err){ return {error:err.message}; }
+    const lrec=scheme.lines[scheme.givenLine||'l'];
+    if(!lrec) return {error:'В оцифрованной схеме не найдена прямая ℓ.'};
+    const refs=planeReferenceLines(scheme);
+    if(refs.length<2) return {error:'Для плоскости не хватает двух опорных линий.'};
+
+    const l1=toSeg(lrec.p1), l2=toSeg(lrec.p2);
+    const r11=toSeg(refs[0].rec.p1), r12=toSeg(refs[1].rec.p1);
+    const I1=lineIntersection2(l1[0],l1[1],r11[0],r11[1]);
+    const I2=lineIntersection2(l1[0],l1[1],r12[0],r12[1]);
+    if(!I1 || !I2) return {error:'В выбранной вспомогательной проекции одна из опорных линий параллельна ℓ. Нужен альтернативный секущий алгоритм.'};
+
+    const I1p2={x:I1.x,y:lineY(refs[0].rec.p2,I1.x)};
+    const I2p2={x:I2.x,y:lineY(refs[1].rec.p2,I2.x)};
+    const K2=lineIntersection2(l2[0],l2[1],I1p2,I2p2);
+    if(!K2) return {error:'После оцифровки ℓ₂ оказалась параллельна линии сечения. Проверь исходную схему.'};
+    const K1={x:K2.x,y:lineY(lrec.p1,K2.x)};
+
+    const steps=[],push=(m,e,t)=>steps.push(Object.assign({},m,{entities:e||[],tool:t||null}));
+    let i=0;
+    const starter=starterEntitiesFromScheme(scheme,i);
+    appendABCPlaneEntities(starter,scheme,i);
+    push({
+      title:'Перенеси исходные проекции плоскости и прямой ℓ',
+      action:'Воспроизведи заданные линии без изменения наклонов. Для плоскости через три точки дополнительно соедини A–B–C.',
+      why:'В задаче №5 геометрия задаётся самим рисунком. Все последующие точки строятся относительно этих исходных проекций.',
+      measure:['Сохраняй пары индексов 1 и 2.','Тонкие вертикали – линии проекционной связи.'],
+      check:'ℓ₁/ℓ₂ и плоскость совпадают по форме с исходным вариантом.'
+    },starter);
+
+    i=steps.length;
+    push({
+      title:'Заключи ℓ во вспомогательную проецирующую плоскость Ω',
+      action:'Возьми горизонтально-проецирующую плоскость Ω так, чтобы её вырожденная проекция Ω₁ совпала с ℓ₁.',
+      why:'Это стандартный алгоритм пересечения прямой и плоскости: вспомогательная плоскость содержит ℓ, поэтому её пересечение с Σ обязательно пересечёт ℓ в искомой K.',
+      measure:['Ω₁ ≡ ℓ₁'],
+      check:'Прямая ℓ полностью принадлежит Ω.'
+    },[
+      line(i,l1[0],l1[1],'aux-line'),
+      textEntity(i,lerp2(l1[0],l1[1],.18),'Ω₁≡ℓ₁','svg-label')
+    ],{kind:'line',a:l1[0],b:l1[1]});
+
+    i=steps.length;
+    push({
+      title:'Найди 1₁ и 2₁ – точки сечения Ω с плоскостью Σ',
+      action:'Продли Ω₁=ℓ₁ до пересечения с двумя опорными линиями плоскости: '+refs[0].name+'₁ и '+refs[1].name+'₁.',
+      why:'Каждая такая точка одновременно принадлежит Ω и Σ. Двух общих точек достаточно, чтобы задать линию m = Ω ∩ Σ.',
+      measure:['1₁ = Ω₁ ∩ '+refs[0].name+'₁','2₁ = Ω₁ ∩ '+refs[1].name+'₁'],
+      check:'Обе точки лежат на ℓ₁/Ω₁.'
+    },[
+      point(i,I1,'1₁','answer-dot'),
+      point(i,I2,'2₁','answer-dot')
+    ]);
+
+    i=steps.length;
+    push({
+      title:'Перенеси 1₁ и 2₁ на Π₂',
+      action:'Из 1₁ и 2₁ проведи линии связи. На соответствующих вторых проекциях '+refs[0].name+'₂ и '+refs[1].name+'₂ получи 1₂ и 2₂.',
+      why:'Точка на пространственной опорной линии должна одновременно принадлежать обеим её одноимённым проекциям.',
+      measure:['1₁↔1₂ – одна линия связи','2₁↔2₂ – одна линия связи'],
+      check:'1₂ лежит на '+refs[0].name+'₂, 2₂ – на '+refs[1].name+'₂.'
+    },[
+      line(i,I1,I1p2,'construction-line'),point(i,I1p2,'1₂','answer-dot'),
+      line(i,I2,I2p2,'construction-line'),point(i,I2p2,'2₂','answer-dot')
+    ],{kind:'line',a:I1,b:I1p2});
+
+    i=steps.length;
+    push({
+      title:'Построй m₂ = 1₂2₂ и найди K₂',
+      action:'Соедини 1₂ и 2₂. В точке пересечения m₂ с ℓ₂ поставь K₂.',
+      why:'m – линия пересечения вспомогательной Ω и заданной Σ. Поскольку ℓ лежит в Ω, пересечение ℓ с m и есть ℓ ∩ Σ.',
+      measure:['m₂ = 1₂2₂','K₂ = m₂ ∩ ℓ₂'],
+      check:'K₂ одновременно лежит на m₂ и ℓ₂.'
+    },[
+      line(i,I1p2,I2p2,'answer-line'),textEntity(i,lerp2(I1p2,I2p2,.7),'m₂','svg-label'),
+      point(i,K2,'K₂','answer-dot')
+    ],{kind:'line',a:I1p2,b:I2p2});
+
+    i=steps.length;
+    push({
+      title:'Перенеси K₂ в K₁',
+      action:'Из K₂ опусти линию связи до ℓ₁. Полученная точка – K₁.',
+      why:'K₁ и K₂ – две проекции одной пространственной точки пересечения K.',
+      measure:['K₁K₂ – линия связи'],
+      check:'K₁ лежит на ℓ₁.'
+    },[
+      line(i,K2,K1,'construction-line'),point(i,K1,'K₁','answer-dot')
+    ],{kind:'line',a:K2,b:K1});
+
+    const vis1=segmentVisibility(lrec,plane,'p1',K1);
+    const vis2=segmentVisibility(lrec,plane,'p2',K2);
+    i=steps.length;
+    const p1a=l1[0],p1b=l1[1],p2a=l2[0],p2b=l2[1];
+    push({
+      title:'Определи видимость ℓ методом конкурирующих точек',
+      action:'По обе стороны K сравни глубину точки ℓ и точки плоскости с той же проекцией. Ближний к наблюдателю объект остаётся сплошным, дальний участок ℓ проводится штриховой линией.',
+      why:'На Π₁ сравниваются высоты z, на Π₂ – удаления y от фронтальной плоскости. Точка K разделяет участки, где знак этой разности меняется.',
+      measure:['Π₁: сравнить z линии и плоскости','Π₂: сравнить y линии и плоскости'],
+      check:'В K видимость может смениться, но сама K остаётся общей точкой.'
+    },[
+      line(i,p1a,K1,vis1[0]?'answer-line':'hidden-line'),
+      line(i,K1,p1b,vis1[1]?'answer-line':'hidden-line'),
+      line(i,p2a,K2,vis2[0]?'answer-line':'hidden-line'),
+      line(i,K2,p2b,vis2[1]?'answer-line':'hidden-line'),
+      point(i,K1,'K₁','answer-dot'),point(i,K2,'K₂','answer-dot')
+    ]);
+
+    const norm=normalizeSteps(steps,200,165);
+    return {width:norm.width,height:norm.height,O:{x:0,y:0},steps:steps,diagramPending:false};
+  }
+
+  function planeFromDef(def){
+    if(def.type==='ABC'){
+      const pseudo={planeType:'ABC',points:def.points};
+      return planeFromScheme(pseudo);
+    }
+    if(def.type==='parallel_lines' || def.type==='intersecting_lines'){
+      const names=Object.keys(def.lines);
+      const pseudo={planeType:def.type,planeLines:names.slice(0,2),lines:def.lines};
+      return planeFromScheme(pseudo);
+    }
+    if(def.type==='frontal_projecting' || def.type==='horizontal_projecting'){
+      const seg=toSeg(def.line);
+      const a=seg[0],b=seg[1];
+      const A=a.y-b.y, B=b.x-a.x, C=a.x*b.y-b.x*a.y;
+      if(def.type==='frontal_projecting'){
+        return {n:{x:A,y:0,z:-B},d:C,P:null};
+      }
+      return {n:{x:A,y:B,z:0},d:C,P:null};
+    }
+    throw new Error('Неизвестный тип плоскости '+def.type);
+  }
+
+  function starterPlaneDefEntities(def,step,prefix){
+    const out=[],pre=prefix||'';
+    if(def.type==='ABC'){
+      const pseudo={planeType:'ABC',points:def.points};
+      Object.entries(def.points).forEach(([name,P])=>{
+        const q=normalizedPointRec(P);
+        out.push(line(step,{x:q.p2[0],y:q.p2[1]},{x:q.p1[0],y:q.p1[1]},'construction-line'));
+        out.push(point(step,{x:q.p2[0],y:q.p2[1]},pre+name+'₂'));
+        out.push(point(step,{x:q.p1[0],y:q.p1[1]},pre+name+'₁'));
+      });
+      appendABCPlaneEntities(out,pseudo,step);
+    } else if(def.lines){
+      Object.entries(def.lines).forEach(([name,L])=>{
+        out.push(line(step,{x:L.p2[0][0],y:L.p2[0][1]},{x:L.p2[1][0],y:L.p2[1][1]},'object-line'));
+        out.push(textEntity(step,{x:L.p2[1][0]+3,y:L.p2[1][1]-2},name+'₂','svg-label'));
+        out.push(line(step,{x:L.p1[0][0],y:L.p1[0][1]},{x:L.p1[1][0],y:L.p1[1][1]},'object-line'));
+        out.push(textEntity(step,{x:L.p1[1][0]+3,y:L.p1[1][1]-2},name+'₁','svg-label'));
+      });
+    } else if(def.line){
+      const seg=toSeg(def.line);
+      const idx=def.type==='frontal_projecting'?'₂':'₁';
+      out.push(line(step,seg[0],seg[1],'object-line'));
+      out.push(textEntity(step,{x:seg[1].x+4,y:seg[1].y-2},(def.name||pre||'Π')+idx,'svg-label'));
+    }
+    return out;
+  }
+
+  function intersectionPlanes(p1,p2){
+    const d=cross3(p1.n,p2.n);
+    const den=dot3(d,d);
+    if(den<EPS) return null;
+    const v=sub3(mul3(p1.n,p2.d),mul3(p2.n,p1.d));
+    const P=mul3(cross3(v,d),1/den);
+    return {P:P,d:d};
+  }
+
+  function commonPointAtZ(p1,p2,z){
+    const A1=p1.n.x,B1=p1.n.y,C1=-(p1.d+p1.n.z*z);
+    const A2=p2.n.x,B2=p2.n.y,C2=-(p2.d+p2.n.z*z);
+    const den=A1*B2-A2*B1;
+    if(Math.abs(den)<EPS) return null;
+    const x=(C1*B2-C2*B1)/den;
+    const y=(A1*C2-A2*C1)/den;
+    return {x:x,y:y,z:z};
+  }
+
+  function commonPointAtY(p1,p2,y){
+    const A1=p1.n.x,B1=p1.n.z,C1=-(p1.d+p1.n.y*y);
+    const A2=p2.n.x,B2=p2.n.z,C2=-(p2.d+p2.n.y*y);
+    const den=A1*B2-A2*B1;
+    if(Math.abs(den)<EPS) return null;
+    const x=(C1*B2-C2*B1)/den;
+    const z=(A1*C2-A2*C1)/den;
+    return {x:x,y:y,z:z};
+  }
+
+  function planeLineAtPoint(plane,P,levelType){
+    let d;
+    if(levelType==='horizontal') d=cross3(plane.n,{x:0,y:0,z:1});
+    else d=cross3(plane.n,{x:0,y:1,z:0});
+    if(norm3(d)<EPS) return null;
+    return line3Extent(P,d,82);
+  }
+
+  function solveTask6Scheme(scheme,stored){
+    let A,B;
+    try { A=planeFromDef(scheme.planeA); B=planeFromDef(scheme.planeB); }
+    catch(err){ return {error:err.message}; }
+    const inter=intersectionPlanes(A,B);
+    if(!inter) return {error:'Заданные плоскости параллельны или оцифровка выродилась.'};
+
+    const u=normalize3(inter.d);
+    let P=add3(inter.P,mul3(u,-55)), Q=add3(inter.P,mul3(u,55));
+    let levelType='horizontal';
+    if(Math.abs(P.z-Q.z)<8){
+      levelType='frontal';
+      if(Math.abs(P.y-Q.y)<8){
+        P=add3(inter.P,mul3(u,-85)); Q=add3(inter.P,mul3(u,85));
+      }
+    }
+
+    if(levelType==='horizontal'){
+      const p0=commonPointAtZ(A,B,P.z),q0=commonPointAtZ(A,B,Q.z);
+      if(p0) P=p0;
+      if(q0) Q=q0;
+    } else {
+      const p0=commonPointAtY(A,B,P.y),q0=commonPointAtY(A,B,Q.y);
+      if(p0) P=p0;
+      if(q0) Q=q0;
+    }
+
+    const pp=project3(P),qq=project3(Q);
+    const K3=schemePoint3(scheme.pointK);
+    const K=project3(K3);
+    const throughK=line3Extent(K3,inter.d,90);
+    const kA=project3(throughK[0]),kB=project3(throughK[1]);
+
+    const steps=[],push=(m,e,t)=>steps.push(Object.assign({},m,{entities:e||[],tool:t||null}));
+    let i=0;
+    const starter=[
+      ...starterPlaneDefEntities(scheme.planeA,i,'Σ'),
+      ...starterPlaneDefEntities(scheme.planeB,i,'Θ'),
+      line(i,{x:scheme.pointK.p2[0],y:scheme.pointK.p2[1]},{x:scheme.pointK.p1[0],y:scheme.pointK.p1[1]},'construction-line'),
+      point(i,{x:scheme.pointK.p2[0],y:scheme.pointK.p2[1]},'K₂'),
+      point(i,{x:scheme.pointK.p1[0],y:scheme.pointK.p1[1]},'K₁')
+    ];
+    push({
+      title:'Перенеси обе плоскости и точку K',
+      action:'Сначала воспроизведи исходные проекции двух плоскостей и заданную точку K без изменения наклонов.',
+      why:'Положение линий на варианте является исходными данными. Решение строится уже поверх них.',
+      measure:['Плоскость Σ – первый набор','Плоскость Θ – второй набор','K₁/K₂ – одна линия связи'],
+      check:'Стартовый рисунок совпадает с печатным условием.'
+    },starter);
+
+    const linePA=planeLineAtPoint(A,P,levelType), linePB=planeLineAtPoint(B,P,levelType);
+    const lineQA=planeLineAtPoint(A,Q,levelType), lineQB=planeLineAtPoint(B,Q,levelType);
+    if(!linePA||!linePB||!lineQA||!lineQB) return {error:'Не удалось подобрать удобные вспомогательные плоскости.'};
+    const pA0=project3(linePA[0]),pA1=project3(linePA[1]);
+    const pB0=project3(linePB[0]),pB1=project3(linePB[1]);
+    const qA0=project3(lineQA[0]),qA1=project3(lineQA[1]);
+    const qB0=project3(lineQB[0]),qB1=project3(lineQB[1]);
+
+    if(levelType==='horizontal'){
+      i=steps.length;
+      push({
+        title:'Первое вспомогательное горизонтальное сечение',
+        action:'Проведи вспомогательную горизонтальную плоскость уровня через будущую точку P. Она пересекает Σ и Θ по двум горизонталям.',
+        why:'Две горизонтали лежат в одной вспомогательной плоскости. Их пересечение P принадлежит одновременно Σ и Θ.',
+        measure:['На Π₂ обе горизонтали имеют один уровень z.','На Π₁ строятся их действительные направления.'],
+        check:'P₁ – пересечение горизонталей обеих плоскостей.'
+      },[
+        line(i,pA0.p1,pA1.p1,'aux-line'),textEntity(i,pA1.p1,'hΣ₁','svg-label'),
+        line(i,pB0.p1,pB1.p1,'aux-line'),textEntity(i,pB1.p1,'hΘ₁','svg-label'),
+        point(i,pp.p1,'P₁','answer-dot'),
+        point(i,pp.p2,'P₂','answer-dot'),
+        line(i,pp.p1,pp.p2,'construction-line')
+      ]);
+
+      i=steps.length;
+      push({
+        title:'Второе вспомогательное горизонтальное сечение',
+        action:'На другом уровне повтори построение и получи вторую общую точку Q.',
+        why:'Две различные общие точки однозначно задают линию пересечения плоскостей.',
+        measure:['Q ∈ Σ','Q ∈ Θ'],
+        check:'Q₁/Q₂ находятся на одной линии связи.'
+      },[
+        line(i,qA0.p1,qA1.p1,'aux-line'),textEntity(i,qA1.p1,'hΣ₁','svg-label'),
+        line(i,qB0.p1,qB1.p1,'aux-line'),textEntity(i,qB1.p1,'hΘ₁','svg-label'),
+        point(i,qq.p1,'Q₁','answer-dot'),
+        point(i,qq.p2,'Q₂','answer-dot'),
+        line(i,qq.p1,qq.p2,'construction-line')
+      ]);
+    } else {
+      i=steps.length;
+      push({
+        title:'Первое вспомогательное фронтальное сечение',
+        action:'Проведи вспомогательную фронтальную плоскость через P. Она пересекает обе заданные плоскости по фронталям.',
+        why:'Пересечение двух полученных фронталей даёт общую точку P.',
+        measure:['На Π₁ фронтали имеют одинаковый уровень y.'],
+        check:'P принадлежит обеим плоскостям.'
+      },[
+        line(i,pA0.p2,pA1.p2,'aux-line'),
+        line(i,pB0.p2,pB1.p2,'aux-line'),
+        point(i,pp.p1,'P₁','answer-dot'),point(i,pp.p2,'P₂','answer-dot'),
+        line(i,pp.p1,pp.p2,'construction-line')
+      ]);
+      i=steps.length;
+      push({
+        title:'Второе вспомогательное фронтальное сечение',
+        action:'Повтори на другом уровне y и получи Q.',
+        why:'P и Q задают искомую линию пересечения.',
+        measure:['Q ∈ Σ и Θ'],
+        check:'Q₁/Q₂ согласованы линией связи.'
+      },[
+        line(i,qA0.p2,qA1.p2,'aux-line'),
+        line(i,qB0.p2,qB1.p2,'aux-line'),
+        point(i,qq.p1,'Q₁','answer-dot'),point(i,qq.p2,'Q₂','answer-dot'),
+        line(i,qq.p1,qq.p2,'construction-line')
+      ]);
+    }
+
+    i=steps.length;
+    push({
+      title:'Соедини P и Q – это линия пересечения r',
+      action:'Проведи r₁ через P₁,Q₁ и r₂ через P₂,Q₂.',
+      why:'Линия, проходящая через две общие точки плоскостей, целиком принадлежит обеим плоскостям.',
+      measure:['r = Σ ∩ Θ'],
+      check:'P и Q лежат на обеих проекциях r.'
+    },[
+      line(i,pp.p1,qq.p1,'answer-line'),textEntity(i,qq.p1,'r₁','svg-label'),
+      line(i,pp.p2,qq.p2,'answer-line'),textEntity(i,qq.p2,'r₂','svg-label')
+    ],{kind:'line',a:pp.p1,b:qq.p1});
+
+    i=steps.length;
+    push({
+      title:'Через K проведи прямую k ∥ обеим плоскостям',
+      action:'Через K₁ проведи k₁ ∥ r₁, а через K₂ – k₂ ∥ r₂.',
+      why:'Общее направление двух непараллельных плоскостей – направление их линии пересечения r. Поэтому прямая, параллельная r, параллельна одновременно Σ и Θ.',
+      measure:['k₁ ∥ r₁','k₂ ∥ r₂'],
+      check:'Направления k и r совпадают на обеих проекциях.'
+    },[
+      line(i,kA.p1,kB.p1,'answer-line'),textEntity(i,kB.p1,'k₁','svg-label'),
+      line(i,kA.p2,kB.p2,'answer-line'),textEntity(i,kB.p2,'k₂','svg-label')
+    ],{kind:'line',a:kA.p1,b:kB.p1});
+
+    i=steps.length;
+    push({
+      title:'Финальная проверка задания 6',
+      action:'Проверь две общие точки линии r и попарную параллельность проекций k и r.',
+      why:'Это одновременно подтверждает линию пересечения и требуемое направление прямой через K.',
+      measure:['P,Q ∈ Σ и Θ','k ∥ r'],
+      check:'k проходит через K и не обязана лежать ни в одной из плоскостей.'
+    },[]);
+
+    const norm=normalizeSteps(steps,210,170);
+    return {width:norm.width,height:norm.height,O:{x:0,y:0},steps:steps,diagramPending:false};
+  }
+
   function solveDiagramTask(task,stored){
     const schemeRoot=window.SITEMATH_SCHEMES||{};
     const variantSchemes=schemeRoot[state.variant]||{};
     const scheme=variantSchemes['task'+task];
     if(task===4 && scheme) return solveTask4Scheme(scheme,stored);
+    if(task===5 && scheme) return solveTask5Scheme(scheme,stored);
+    if(task===6 && scheme) return solveTask6Scheme(scheme,stored);
 
     const steps=[];
     const title = task===4 ? 'Для этого варианта схема №4 ещё не оцифрована' : task===5 ? 'Положение исходных линий задаётся рисунком' : 'Обе плоскости задаются графически';
