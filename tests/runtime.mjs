@@ -71,6 +71,25 @@ for (const variant of variants) {
 }
 
 
+// Variant ordering / display regression.
+try {
+  const visible=[...window.document.querySelectorAll('.variant-chip[data-variant]')]
+    .filter(b=>b.dataset.variant!=='custom' && b.dataset.variant!=='photo-unknown');
+  const keys=visible.map(b=>b.dataset.variant);
+  const nums=visible.map(b=>Number(b.querySelector('.variant-number')?.textContent));
+  const sorted=[...keys].sort((a,b)=>Number(a)-Number(b));
+  if (keys.join(',')!==sorted.join(',')) {
+    failures.push('variant order: '+keys.join(','));
+  }
+  for (let i=0;i<visible.length;i++) {
+    if (String(nums[i])!==String(Number(keys[i]))) {
+      failures.push('variant display has leading zero or wrong number: '+keys[i]+' -> '+visible[i].textContent.trim());
+    }
+  }
+} catch (e) {
+  failures.push('variant ordering/display: '+e.stack);
+}
+
 // Visual picker regression: the visible cards must drive the same state as the hidden selects.
 try {
   const v05=window.document.querySelector('.variant-chip[data-variant="05"]');
