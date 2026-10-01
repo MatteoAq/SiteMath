@@ -133,6 +133,80 @@ try {
   failures.push('visual picker: '+e.stack);
 }
 
+// Projection drafting regression: axes, coordinate feet and paged explanation must be present.
+try {
+  $('variantSelect').value = '10';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+
+  $('taskSelect').value = '2';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('firstBtn').click();
+  const t2labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+  for (const expected of ['x₁₂','+y','+z','Π₁','Π₂']) {
+    if (!t2labels.includes(expected)) failures.push('task2 axes: missing '+expected);
+  }
+  $('nextBtn').click();
+  const aFoot=window.document.querySelector('circle[data-label="Aₓ"]');
+  if (!aFoot) failures.push('task2 helpers: Aₓ foot missing');
+
+  $('taskSelect').value = '1';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('firstBtn').click();
+  const t1labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+  for (const expected of ['x','y₁','y₃','z','Π₁','Π₂','Π₃']) {
+    if (!t1labels.includes(expected)) failures.push('task1 axes: missing '+expected);
+  }
+
+  const tabs=[...window.document.querySelectorAll('.step-info-tab')];
+  if (tabs.length!==4) failures.push('step info: expected 4 paged tabs, got '+tabs.length);
+  const why=tabs.find(b=>b.dataset.stepMode==='why');
+  if (!why) failures.push('step info: why tab missing');
+  else {
+    why.click();
+    if (!$('stepInfoText').textContent.trim()) failures.push('step info: why page empty');
+  }
+} catch (e) {
+  failures.push('projection helpers / step pages: '+e.stack);
+}
+
+// Variant 12 regression: intersecting defining lines must include their common projector,
+// and original named points must remain visible.
+try {
+  $('variantSelect').value='12';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+
+  $('taskSelect').value='4';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('firstBtn').click();
+  const first4=window.document.querySelectorAll('#drawing .construction-line').length;
+  const labels4=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+  if(first4<2) failures.push('variant12/task4: missing intersection projector or D projector');
+  for(const x of ['a₁','a₂','b₁','b₂','D₁','D₂']) if(!labels4.includes(x)) failures.push('variant12/task4: missing '+x);
+
+  $('taskSelect').value='5';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('firstBtn').click();
+  const labels5=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+  for(const x of ['A₁','A₂','B₁','B₂','C₁','C₂','l₁','l₂']) if(!labels5.includes(x)) failures.push('variant12/task5: missing '+x);
+
+  $('taskSelect').value='6';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('firstBtn').click();
+  const labels6=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+  for(const x of ['a₁','a₂','b₁','b₂','h₁','h₂','f₁','f₂','K₁','K₂']) if(!labels6.includes(x)) failures.push('variant12/task6: missing '+x);
+} catch(e) {
+  failures.push('variant12 source fidelity: '+e.stack);
+}
+
+// Temporary unnumbered sheet is exposed as provisional variant 18.
+try {
+  const v18=window.SITEMATH_DATA.variants['18'];
+  if(!v18 || !v18.provisionalNumber) failures.push('variant18: provisional mapping missing');
+  if(window.SITEMATH_DATA.variants['photo-unknown']) failures.push('variant18: old photo-unknown key still exists');
+} catch(e) {
+  failures.push('variant18 mapping: '+e.stack);
+}
+
 // Regression: coordinate drawings use the visible 5 mm paper grid as the actual metric grid.
 try {
   $('variantSelect').value = '10';
