@@ -2171,3 +2171,15 @@ body { color:var(--ui-text); }
     margin-bottom:calc(var(--mobile-step-peek) + 18px);
   }
 }
+
+
+/* Guaranteed scroll reserve under the canvas. Padding participates in scrollHeight
+   reliably even when the fitted SVG itself is shorter than the viewport. */
+@media (max-width:760px) {
+  .paper-wrap {
+    padding-bottom:calc(var(--mobile-step-peek) + 32px);
+  }
+  #drawing {
+    margin-bottom:0;
+  }
+}
