@@ -105,6 +105,36 @@ for (const vp of viewports) {
   await context.close();
 }
 
+// Visual source-fidelity captures for the variant that exposed the issue.
+{
+  const context = await browser.newContext({
+    viewport:{width:393,height:873},
+    deviceScaleFactor:2,
+    isMobile:true,
+    hasTouch:true
+  });
+  const page = await context.newPage();
+  await page.addInitScript(() => localStorage.clear());
+  await page.goto(base,{waitUntil:'networkidle'});
+  await page.locator('.first-run-variant[data-variant="12"]').click();
+  await page.locator('.first-run-task[data-task="4"]').click();
+  await page.locator('#firstRunStart').click();
+  await page.waitForTimeout(120);
+  for (const task of [4,5,6]) {
+    await page.evaluate((n)=>{
+      const sel=document.querySelector('#taskSelect');
+      sel.value=String(n);
+      sel.dispatchEvent(new Event('change'));
+      document.querySelector('#firstBtn')?.click();
+    },task);
+    await page.waitForTimeout(80);
+    await page.locator('#zoomFitBtn').click();
+    await page.waitForTimeout(80);
+    await page.screenshot({path:'mobile-screenshots/variant12-task'+task+'-source.png',fullPage:false});
+  }
+  await context.close();
+}
+
 await browser.close();
 fs.writeFileSync('mobile-layout-results.json',JSON.stringify({failures},null,2));
 if (failures.length) {
