@@ -1929,6 +1929,8 @@
         R3={x:ref3.x,y:ref3.y,z:ref3.z-52};
       } else if(op.relation==='behind_line' && ref3){
         R3={x:ref3.x,y:ref3.y-52,z:ref3.z};
+      } else if(op.relation==='front_of_line' && ref3){
+        R3={x:ref3.x,y:ref3.y+52,z:ref3.z};
       } else if(op.relation==='above_plane'){
         const x=through3?through3.x:base.x+45;
         const y=through3?through3.y:base.y+35;
@@ -1972,6 +1974,9 @@
         } else if(op.relation==='behind_line'){
           relationText='за прямой ℓ';
           why='Для отношения по глубине сохраняем x и z, меняя y. Поэтому фронтальная проекция совпадает по положению с точкой ℓ₂, а различие видно на Π₁.';
+        } else if(op.relation==='front_of_line'){
+          relationText='перед прямой ℓ';
+          why='Для положения перед прямой сохраняем x и z выбранной точки ℓ и увеличиваем y. Поэтому на Π₂ проекция сохраняет положение по высоте, а на Π₁ точка смещается вперёд по глубине.';
         } else if(op.relation==='above_plane'){
           relationText='над плоскостью Σ';
           why='Сначала находим точку плоскости с теми же x и y, затем увеличиваем только z. Так новая точка оказывается строго над Σ.';
