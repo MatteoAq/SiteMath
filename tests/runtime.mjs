@@ -98,6 +98,7 @@ try {
   failures.push('custom smoke: '+e.stack);
 }
 
+fs.writeFileSync('runtime-results.json', JSON.stringify({failures}, null, 2));
 if (failures.length) {
   console.error('\nFAILURES\n'+failures.join('\n'));
   process.exit(1);
