@@ -2693,6 +2693,30 @@
     return state.screenZoom===null ? currentFitZoom() : state.screenZoom;
   }
 
+  function visibleDrawingBounds(){
+    const pts=[];
+    for(let i=0;i<=state.step;i++){
+      const st=state.steps[i];
+      if(!st) continue;
+      (st.entities||[]).forEach(e=>collectEntityPoints(e,pts));
+      if(st.tool){
+        if(st.tool.a) pts.push(st.tool.a);
+        if(st.tool.b) pts.push(st.tool.b);
+      }
+    }
+    const good=pts.filter(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y));
+    if(!good.length || !state.geometry){
+      return {minX:0,minY:0,maxX:state.geometry?.width||180,maxY:state.geometry?.height||145};
+    }
+    const margin=8;
+    return {
+      minX:Math.max(0,Math.min(...good.map(p=>p.x))-margin),
+      minY:Math.max(0,Math.min(...good.map(p=>p.y))-margin),
+      maxX:Math.min(state.geometry.width,Math.max(...good.map(p=>p.x))+margin),
+      maxY:Math.min(state.geometry.height,Math.max(...good.map(p=>p.y))+margin)
+    };
+  }
+
   function currentFitZoom(){
     const g=state.geometry;
     const wrap=document.querySelector('.paper-wrap');
@@ -2703,9 +2727,25 @@
     const py=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
     const availableW=Math.max(120,(wrap.clientWidth||window.innerWidth||360)-px);
     const availableH=Math.max(160,(wrap.clientHeight||window.innerHeight||640)-py);
-    const fitW=availableW/(g.width*cssMm);
-    const fitH=availableH/(g.height*cssMm);
+    const vb=visibleDrawingBounds();
+    const visibleW=Math.max(20,vb.maxX-vb.minX);
+    const visibleH=Math.max(20,vb.maxY-vb.minY);
+    const fitW=availableW/(visibleW*cssMm);
+    const fitH=availableH/(visibleH*cssMm);
     return Math.max(.06,Math.min(1,fitW,fitH));
+  }
+
+  function focusVisibleDrawing(){
+    const wrap=document.querySelector('.paper-wrap');
+    if(!wrap||!state.geometry) return;
+    const z=drawingZoom(),cssMm=96/25.4;
+    const vb=visibleDrawingBounds();
+    const left=vb.minX*cssMm*z;
+    const top=vb.minY*cssMm*z;
+    const w=(vb.maxX-vb.minX)*cssMm*z;
+    const h=(vb.maxY-vb.minY)*cssMm*z;
+    wrap.scrollLeft=Math.max(0,left-(wrap.clientWidth-w)/2);
+    wrap.scrollTop=Math.max(0,top-(wrap.clientHeight-h)/2);
   }
 
   function applyDrawingZoom(){
@@ -2716,6 +2756,9 @@
     svg.style.width=(g.width*cssMm*z)+'px';
     svg.style.height=(g.height*cssMm*z)+'px';
     $('zoomLabel').textContent=Math.round(z*100)+'%';
+    if(state.screenZoom===null){
+      requestAnimationFrame(focusVisibleDrawing);
+    }
   }
 
   function setZoomAround(next,anchor){
@@ -2736,11 +2779,10 @@
   }
 
   function setDrawingZoom(mode){
-    const wrap=document.querySelector('.paper-wrap');
     if(mode==='fit'){
       state.screenZoom=null;
       applyDrawingZoom();
-      if(wrap){ wrap.scrollLeft=0; wrap.scrollTop=0; }
+      requestAnimationFrame(focusVisibleDrawing);
       return;
     }
     if(mode==='100'){
