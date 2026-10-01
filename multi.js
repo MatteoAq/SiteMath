@@ -2591,7 +2591,7 @@
   function paginateStepText(value,limit){
     const text=String(value||'').trim();
     if(!text) return [''];
-    const max=limit||105;
+    const max=limit||72;
     const sentences=text.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[text];
     const pages=[];
     let current='';
@@ -2631,7 +2631,7 @@
       return pages;
     }
     const value=mode==='action'?st.action:mode==='why'?st.why:st.check;
-    return paginateStepText(value,105).map(text=>({text,items:[]}));
+    return paginateStepText(value,72).map(text=>({text,items:[]}));
   }
 
   function renderStepInfoPage(st){
