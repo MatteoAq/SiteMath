@@ -140,7 +140,9 @@ for (const vp of viewports) {
     },task);
     await page.waitForTimeout(80);
     await page.locator('#zoomFitBtn').click();
-    await page.waitForTimeout(80);
+    // Source lines animate as if drawn by pencil. Wait for the animation to finish
+    // before taking fidelity screenshots, otherwise long segments look truncated.
+    await page.waitForTimeout(2200);
     await page.screenshot({path:'mobile-screenshots/variant12-task'+task+'-source.png',fullPage:false});
   }
   await context.close();
