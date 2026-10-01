@@ -1666,6 +1666,9 @@
       out.push(point(step,p2,name+'₂'));
       out.push(point(step,p1,name+'₁'));
     });
+    if(scheme.planeType==='ABC'){
+      appendABCPlaneEntities(out,scheme,step);
+    }
     if(scheme.planeType==='intersecting_lines'){
       appendIntersectingLineProjector(out,scheme.lines,scheme.planeLines,step);
     }
@@ -2082,7 +2085,6 @@
     const steps=[],push=(m,e,t)=>steps.push(Object.assign({},m,{entities:e||[],tool:t||null}));
     let i=0;
     const starter=starterEntitiesFromScheme(scheme,i);
-    appendABCPlaneEntities(starter,scheme,i);
     push({
       title:'Перенеси исходные проекции плоскости и прямой ℓ',
       action:'Воспроизведи заданные линии без изменения наклонов. Для плоскости через три точки дополнительно соедини A–B–C.',
