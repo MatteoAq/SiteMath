@@ -142,12 +142,14 @@ try {
   $('taskSelect').dispatchEvent(new window.Event('change'));
   $('firstBtn').click();
   const t2labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
-  for (const expected of ['x₁₂','+y','+z','Π₁','Π₂']) {
+  for (const expected of ['x','y','z','x₁₂','Π₁','Π₂']) {
     if (!t2labels.includes(expected)) failures.push('task2 axes: missing '+expected);
   }
   $('nextBtn').click();
   const aFoot=window.document.querySelector('circle[data-label="Aₓ"]');
   if (!aFoot) failures.push('task2 helpers: Aₓ foot missing');
+  const helperLines=window.document.querySelectorAll('#drawing line.construction-line').length;
+  if (helperLines < 5) failures.push('task2 helpers: expected axis/projector/coordinate guides, got '+helperLines);
 
   $('taskSelect').value = '1';
   $('taskSelect').dispatchEvent(new window.Event('change'));
@@ -164,6 +166,7 @@ try {
   else {
     why.click();
     if (!$('stepInfoText').textContent.trim()) failures.push('step info: why page empty');
+    if ($('stepInfoText').textContent.length > 115) failures.push('step info: page too long for compact sheet ('+$('stepInfoText').textContent.length+')');
   }
 } catch (e) {
   failures.push('projection helpers / step pages: '+e.stack);
