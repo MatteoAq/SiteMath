@@ -1095,6 +1095,7 @@
     },[
       line(0,{x:8,y:O.y},{x:complexWidth-8,y:O.y},'axis',{arrow:true}),
       line(0,{x:O.x,y:8},{x:O.x,y:height-8},'axis'),
+      point(0,O,'O'),
       textEntity(0,{x:10,y:O.y-3},'x'),
       textEntity(0,{x:complexWidth-18,y:O.y-3},'y₃'),
       textEntity(0,{x:O.x+3,y:11},'z'),
