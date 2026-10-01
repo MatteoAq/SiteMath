@@ -136,7 +136,7 @@ for (const vp of viewports) {
   await page.locator('#firstRunStart').click();
   await page.waitForTimeout(100);
 
-  const photographed=['04','05','07','08','10','11','12','13','14','15','17','18','19'];
+  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
   for (const variant of photographed) {
     for (const task of [4,5,6]) {
       await page.evaluate(({variant,task})=>{
