@@ -116,7 +116,7 @@ for (const vp of viewports) {
   await context.close();
 }
 
-// Visual source-fidelity captures for the variant that exposed the issue.
+// Visual source-fidelity captures for every photographed variant.
 {
   const context = await browser.newContext({
     viewport:{width:393,height:873},
@@ -130,20 +130,29 @@ for (const vp of viewports) {
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
   await page.locator('#firstRunStart').click();
-  await page.waitForTimeout(120);
-  for (const task of [4,5,6]) {
-    await page.evaluate((n)=>{
-      const sel=document.querySelector('#taskSelect');
-      sel.value=String(n);
-      sel.dispatchEvent(new Event('change'));
-      document.querySelector('#firstBtn')?.click();
-    },task);
-    await page.waitForTimeout(80);
-    await page.locator('#zoomFitBtn').click();
-    // Source lines animate as if drawn by pencil. Wait for the animation to finish
-    // before taking fidelity screenshots, otherwise long segments look truncated.
-    await page.waitForTimeout(2200);
-    await page.screenshot({path:'mobile-screenshots/variant12-task'+task+'-source.png',fullPage:false});
+  await page.waitForTimeout(100);
+
+  const photographed=['04','05','07','08','10','11','12','13','14','15','17','18','19'];
+  for (const variant of photographed) {
+    for (const task of [4,5,6]) {
+      await page.evaluate(({variant,task})=>{
+        const vs=document.querySelector('#variantSelect');
+        const ts=document.querySelector('#taskSelect');
+        vs.value=variant;
+        vs.dispatchEvent(new Event('change'));
+        ts.value=String(task);
+        ts.dispatchEvent(new Event('change'));
+        document.querySelector('#firstBtn')?.click();
+      },{variant,task});
+      await page.waitForTimeout(40);
+      await page.locator('#zoomFitBtn').click();
+      // Source lines animate as if drawn by pencil. Wait until long segments finish.
+      await page.waitForTimeout(1450);
+      await page.screenshot({
+        path:'mobile-screenshots/source-v'+String(Number(variant)).padStart(2,'0')+'-t'+task+'.png',
+        fullPage:false
+      });
+    }
   }
   await context.close();
 }
