@@ -123,7 +123,24 @@
   }
 
   function allVariantKeys(){
-    return Object.keys(DATA.variants);
+    return Object.keys(DATA.variants).sort((a,b)=>{
+      const an=/^\d+$/.test(a), bn=/^\d+$/.test(b);
+      if(an && bn) return Number(a)-Number(b);
+      if(an) return -1;
+      if(bn) return 1;
+      return a.localeCompare(b,'ru');
+    });
+  }
+
+  function variantDisplayNumber(key){
+    return /^\d+$/.test(key) ? String(Number(key)) : key;
+  }
+
+  function variantDisplayLabel(key){
+    if(key==='custom') return 'Свои данные';
+    const v=DATA.variants[key];
+    if(v && v.verifiedNumber===false) return 'Фото без номера';
+    return 'Вариант '+variantDisplayNumber(key);
   }
 
   function initSelectors(){
@@ -132,7 +149,7 @@
     allVariantKeys().forEach(k=>{
       const o=document.createElement('option');
       o.value=k;
-      o.textContent=DATA.variants[k].label;
+      o.textContent=variantDisplayLabel(k);
       vs.appendChild(o);
     });
     const custom=document.createElement('option');
@@ -179,7 +196,7 @@
         b.setAttribute('role','option');
         b.innerHTML=k==='photo-unknown'
           ? '<span class="variant-number">?</span><span>Фото</span>'
-          : '<span class="variant-number">'+esc(k)+'</span><span>вариант</span>';
+          : '<span class="variant-number">'+esc(variantDisplayNumber(k))+'</span><span>вариант</span>';
         b.addEventListener('click',()=>{
           $('variantSelect').value=k;
           $('variantSelect').dispatchEvent(new Event('change'));
@@ -236,7 +253,7 @@
     if(vs){
       vs.textContent=state.variant==='custom'
         ? 'Свои данные'
-        : ((DATA.variants[state.variant]&&DATA.variants[state.variant].label)||state.variant);
+        : variantDisplayLabel(state.variant);
     }
     if(ts) ts.textContent='№'+state.task+' · '+taskPickerLabel(state.task);
   }
@@ -273,7 +290,7 @@
     $('taskName').textContent = task + '. ' + DATA.tasks[task].title;
     $('variantNote').textContent = state.variant==='custom'
       ? 'Ручной режим – координаты можно вводить самостоятельно.'
-      : (v && v.verifiedNumber===false ? 'Номер на присланном фото обрезан, поэтому лист специально не привязан к выдуманному номеру.' : 'Данные взяты с присланного листа ' + DATA.variants[state.variant].label + '.');
+      : (v && v.verifiedNumber===false ? 'Номер на присланном фото обрезан, поэтому лист специально не привязан к выдуманному номеру.' : 'Данные взяты с присланного листа ' + variantDisplayLabel(state.variant) + '.');
 
     if(task<=3){
       $('dataTitle').textContent='Координаты, мм';
@@ -327,7 +344,7 @@
   function updateMobileSummary(){
     const label=state.variant==='custom'
       ? 'Свои данные'
-      : ((DATA.variants[state.variant]&&DATA.variants[state.variant].label)||('Вариант '+state.variant));
+      : variantDisplayLabel(state.variant);
     const node=$('mobileTaskSummary');
     if(node) node.textContent=label+' · Задание '+state.task;
   }
