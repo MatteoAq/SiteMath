@@ -1231,6 +1231,7 @@
       check:'Π₂ находится над x₁₂, Π₁ – под ней для положительных z и y.'
     },[
       line(i,{x:8,y:q.O.y},{x:width-8,y:q.O.y},'axis'),
+      line(i,{x:q.O.x,y:12},{x:q.O.x,y:height-10},'construction-line'),
       point(i,q.O,'O'),
       textEntity(i,{x:10,y:q.O.y-3},'x₁₂','svg-label'),
       textEntity(i,{x:q.O.x+3,y:12},'+z','svg-note'),
@@ -1394,6 +1395,7 @@
       check:'Ось x₁₂ горизонтальна.'
     },[
       line(i,{x:8,y:O.y},{x:width-8,y:O.y},'axis'),
+      line(i,{x:O.x,y:12},{x:O.x,y:height-10},'construction-line'),
       point(i,O,'O'),
       textEntity(i,{x:10,y:O.y-3},'x₁₂','svg-label'),
       textEntity(i,{x:O.x+3,y:12},'+z','svg-note'),
