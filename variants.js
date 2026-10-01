@@ -240,7 +240,6 @@ window.SITEMATH_DATA = {
     },
     "18": {
       label: "Вариант 18",
-      provisionalNumber:true,
       task1: {
         A:[30,60,30], B:[40,50,0], C:[20,-60,0], D:[45,-30,-20], E:[30,50,-15]
       },
@@ -767,6 +766,176 @@ Object.assign(window.SITEMATH_SCHEMES, {
         C:{p2:[885,985],p1:[885,1150]}
       }},
       pointK:{p2:[650,930],p1:[650,1140]}
+    }
+  }
+});
+
+
+Object.assign(window.SITEMATH_DATA.variants, {
+  "03": {
+    label:"Вариант 3",
+    task1:{
+      A:[40,30,-15], B:[25,-30,60], C:[30,65,40], D:[50,0,0], E:[30,50,0]
+    },
+    task2:{A:[70,20,-60],B:[10,20,45]},
+    task3:{A:[40,30,-15],B:[25,30,-60],C:[0,65,40]},
+    task4:{
+      statement:"В плоскости Σ(a∥b) построить горизонталь, фронталь и линию наибольшего ската. Через т. A провести прямую ℓ, пересекающую прямую a. Построить т. B под пл. Σ.",
+      plane:"a∥b",operation:"line_intersects_a",pointRelation:"below_plane"
+    },
+    task5:{
+      statement:"Построить точку пересечения прямой ℓ с пл. Σ(a∩f) и определить видимость прямой относительно пл. Σ.",
+      plane:"a∩f"
+    },
+    task6:{
+      statement:"Построить линию пересечения пл. Σ(ABC) и пл. Θ(a∩b). Через т. K провести прямую ∥ обеим плоскостям.",
+      planes:["ABC","a∩b"]
+    }
+  },
+  "06": {
+    label:"Вариант 6",
+    task1:{
+      A:[10,20,45], B:[25,20,0], C:[20,-25,-35], D:[45,0,55], E:[40,30,15]
+    },
+    task2:{A:[15,-40,-50],B:[55,-30,30]},
+    task3:{A:[10,20,-45],B:[45,20,0],C:[20,-25,-10]},
+    task4:{
+      statement:"В пл. Δ(m∥n) построить горизонталь, фронталь и линию наибольшего ската. Через т. D провести прямую ℓ ∥ Δ. Взять т. A перед прямой ℓ.",
+      plane:"m∥n",operation:"line_parallel_plane",pointRelation:"front_of_line"
+    },
+    task5:{
+      statement:"Построить точку пересечения прямой ℓ с пл. Σ(a∩b) и определить видимость прямой относительно пл. Σ(a∩b).",
+      plane:"a∩b"
+    },
+    task6:{
+      statement:"Построить линию пересечения пл. Σ(a∩b) и пл. Β(ABC). Через т. K провести прямую ∥ обеим плоскостям.",
+      planes:["a∩b","ABC"]
+    }
+  },
+  "09": {
+    label:"Вариант 9",
+    task1:{
+      A:[25,40,0], B:[40,60,-20], C:[20,-25,60], D:[57,40,0], E:[40,0,10]
+    },
+    task2:{A:[20,15,25],B:[73,40,60]},
+    task3:{A:[25,40,0],B:[40,60,-20],C:[10,-25,60]},
+    task4:{
+      statement:"В пл. Δ(A;b) построить горизонталь, фронталь и линию наибольшего ската. Через т. B провести прямую ℓ ∥ горизонтали. Построить т. E под прямой ℓ.",
+      plane:"A;b",operation:"line_parallel_horizontal",pointRelation:"below_line"
+    },
+    task5:{
+      statement:"Построить точку пересечения прямой ℓ с пл. Σ(a∥b) и определить видимость прямой ℓ относительно пл. Σ.",
+      plane:"a∥b"
+    },
+    task6:{
+      statement:"Построить линию пересечения пл. Σ(a∩b) и пл. Θ(h∥h′). Через т. K провести прямую ∥ обеим плоскостям.",
+      planes:["a∩b","h∥h′"]
+    }
+  }
+});
+
+Object.assign(window.SITEMATH_SCHEMES, {
+  "03": {
+    task4:{
+      planeType:"parallel_lines",planeLines:["a","b"],
+      lines:{
+        a:{p2:[[170,115],[355,170]],p1:[[168,255],[360,242]]},
+        b:{p2:[[178,150],[350,205]],p1:[[172,287],[360,273]]}
+      },
+      points:{A:{p2:[92,104],p1:[92,270]}},
+      sourceVerified:true,
+      operation:{type:"line_intersects_named",through:"A",target:"a",resultPoint:"B",relation:"below_plane"}
+    },
+    task5:{
+      planeType:"intersecting_lines",planeLines:["a","f"],
+      lines:{
+        f:{p2:[[170,95],[335,185]],p1:[[155,300],[345,303]]},
+        a:{p2:[[185,190],[335,105]],p1:[[165,355],[330,250]]},
+        l:{p2:[[160,205],[350,150]],p1:[[150,320],[350,390]]}
+      },
+      givenLine:"l",sourceVerified:true
+    },
+    task6:{
+      planeA:{type:"ABC",points:{
+        A:{p2:[115,140],p1:[115,315]},
+        B:{p2:[240,82],p1:[240,255]},
+        C:{p2:[335,155],p1:[335,355]}
+      }},
+      planeB:{type:"intersecting_lines",lines:{
+        a:{p2:[[390,105],[540,185]],p1:[[392,335],[540,255]]},
+        b:{p2:[[410,195],[535,112]],p1:[[395,280],[540,350]]}
+      }},
+      pointK:{p2:[190,92],p1:[190,380]},
+      sourceVerified:true
+    }
+  },
+  "06": {
+    task4:{
+      planeType:"parallel_lines",planeLines:["m","n"],
+      lines:{
+        m:{p2:[[110,130],[330,82]],p1:[[100,250],[330,365]]},
+        n:{p2:[[105,165],[330,116]],p1:[[105,215],[330,328]]}
+      },
+      points:{D:{p2:[420,120],p1:[420,350]}},
+      sourceVerified:true,
+      operation:{type:"line_parallel_plane",through:"D",resultPoint:"A",relation:"front_of_line"}
+    },
+    task5:{
+      planeType:"intersecting_lines",planeLines:["a","b"],
+      lines:{
+        a:{p2:[[165,180],[350,70]],p1:[[155,330],[350,245]]},
+        b:{p2:[[135,120],[300,220]],p1:[[145,260],[320,345]]},
+        l:{p2:[[140,205],[365,150]],p1:[[145,290],[350,390]]}
+      },
+      givenLine:"l",sourceVerified:true
+    },
+    task6:{
+      planeA:{type:"intersecting_lines",lines:{
+        a:{p2:[[105,155],[285,160]],p1:[[105,305],[285,300]]},
+        b:{p2:[[110,235],[275,105]],p1:[[110,350],[285,255]]}
+      }},
+      planeB:{type:"ABC",points:{
+        A:{p2:[355,130],p1:[355,235]},
+        B:{p2:[465,75],p1:[465,375]},
+        C:{p2:[575,180],p1:[575,315]}
+      }},
+      pointK:{p2:[175,90],p1:[175,375]},
+      sourceVerified:true
+    }
+  },
+  "09": {
+    task4:{
+      planeType:"line_point",planeLine:"b",planePoint:"A",
+      lines:{
+        b:{p2:[[160,160],[325,62]],p1:[[160,230],[325,360]]}
+      },
+      points:{
+        A:{p2:[95,102],p1:[95,315]},
+        B:{p2:[410,118],p1:[410,282]}
+      },
+      sourceVerified:true,
+      operation:{type:"line_parallel_horizontal",through:"B",resultPoint:"E",relation:"below_line"}
+    },
+    task5:{
+      planeType:"parallel_lines",planeLines:["a","b"],
+      lines:{
+        a:{p2:[[125,105],[340,205]],p1:[[125,300],[345,365]]},
+        b:{p2:[[105,150],[320,245]],p1:[[105,260],[330,325]]},
+        l:{p2:[[110,215],[355,205]],p1:[[105,338],[355,388]]}
+      },
+      givenLine:"l",sourceVerified:true
+    },
+    task6:{
+      planeA:{type:"intersecting_lines",lines:{
+        a:{p2:[[105,95],[275,210]],p1:[[105,290],[285,345]]},
+        b:{p2:[[115,205],[280,82]],p1:[[115,330],[285,275]]}
+      }},
+      planeB:{type:"parallel_lines",lines:{
+        h:{p2:[[350,145],[565,145]],p1:[[350,300],[565,250]]},
+        hp:{p2:[[350,185],[565,185]],p1:[[350,345],[565,295]]}
+      }},
+      pointK:{p2:[430,85],p1:[430,385]},
+      sourceVerified:true
     }
   }
 });
