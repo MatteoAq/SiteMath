@@ -2048,3 +2048,72 @@ body { color:var(--ui-text); }
     letter-spacing:-.01em;
   }
 }
+
+
+/* Keep the step sheet compact. Long explanations are paged in-place. */
+.step-info-page {
+  position:relative;
+  min-height:64px;
+  max-height:82px;
+  align-content:start;
+  overflow:hidden;
+  padding-bottom:22px;
+}
+
+.step-info-text {
+  display:block;
+  overflow:hidden;
+}
+
+.step-info-pager {
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  color:#897d8e;
+  font-size:10px;
+  font-weight:750;
+}
+
+.step-info-pager[hidden] { display:none; }
+
+.step-info-pager button {
+  width:28px;
+  min-width:28px;
+  height:22px;
+  padding:0;
+  border:0;
+  border-radius:7px;
+  background:#f2eaf5;
+  color:#7c3aed;
+  font-size:18px;
+  line-height:1;
+}
+
+.step-info-pager button:disabled {
+  opacity:.3;
+}
+
+@media (max-width:760px) {
+  :root { --mobile-step-peek: 218px; }
+
+  .workspace {
+    padding-bottom:calc(var(--mobile-step-peek) + env(safe-area-inset-bottom));
+  }
+
+  .explanation-panel,
+  .explanation-panel.is-expanded {
+    max-height:var(--mobile-step-peek);
+    overflow:hidden;
+  }
+
+  .step-info-page {
+    min-height:60px;
+    max-height:72px;
+  }
+}
