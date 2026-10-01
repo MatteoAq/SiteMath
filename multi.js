@@ -280,6 +280,7 @@
       variants.innerHTML='';
       allVariantKeys().forEach(k=>{
         const v=DATA.variants[k];
+        if(v.verifiedNumber===false) return;
         const b=document.createElement('button');
         b.type='button';
         b.className='variant-chip';
