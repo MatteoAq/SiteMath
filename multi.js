@@ -18,7 +18,8 @@
     timer: null,
     customSchemes: {},
     calibrator: null,
-    screenZoom: null
+    screenZoom: null,
+    canvasPointers: new Map()
   };
 
   const sources = {
@@ -214,6 +215,39 @@
       }
     }
     holder.querySelectorAll('.coord-input').forEach(i=>i.addEventListener('change',()=>rebuild(true)));
+    updateMobileSummary();
+  }
+
+  function updateMobileSummary(){
+    const label=state.variant==='custom'
+      ? 'Свои данные'
+      : ((DATA.variants[state.variant]&&DATA.variants[state.variant].label)||('Вариант '+state.variant));
+    const node=$('mobileTaskSummary');
+    if(node) node.textContent=label+' · Задание '+state.task;
+  }
+
+  function openMobileSetup(){
+    const panel=$('controlsPanel'),backdrop=$('mobileBackdrop');
+    if(!panel||!backdrop)return;
+    panel.classList.add('is-open');
+    backdrop.hidden=false;
+    document.body.classList.add('mobile-sheet-open');
+  }
+
+  function closeMobileSetup(){
+    const panel=$('controlsPanel'),backdrop=$('mobileBackdrop');
+    if(!panel||!backdrop)return;
+    panel.classList.remove('is-open');
+    backdrop.hidden=true;
+    document.body.classList.remove('mobile-sheet-open');
+  }
+
+  function toggleStepSheet(){
+    const sheet=$('stepSheet'),btn=$('stepSheetToggle');
+    if(!sheet||!btn)return;
+    const expanded=!sheet.classList.contains('is-expanded');
+    sheet.classList.toggle('is-expanded',expanded);
+    btn.setAttribute('aria-expanded',expanded?'true':'false');
   }
 
 
@@ -2168,6 +2202,9 @@
     $('firstBtn').disabled=state.step===0;
     $('nextBtn').disabled=state.step===state.steps.length-1;
     $('lastBtn').disabled=state.step===state.steps.length-1;
+    if($('mobilePrevBtn')) $('mobilePrevBtn').disabled=state.step===0;
+    if($('mobileNextBtn')) $('mobileNextBtn').disabled=state.step===state.steps.length-1;
+    syncPlayButtons();
   }
 
   function currentFitZoom(){
@@ -2199,6 +2236,74 @@
     applyDrawingZoom();
   }
 
+  function setupCanvasGestures(){
+    const wrap=document.querySelector('.paper-wrap');
+    if(!wrap)return;
+    const pointers=state.canvasPointers;
+    let gesture=null;
+
+    const pointOf=ev=>{
+      const r=wrap.getBoundingClientRect();
+      return {x:ev.clientX-r.left,y:ev.clientY-r.top};
+    };
+    const distance=pts=>{
+      const a=pts[0],b=pts[1];
+      return Math.hypot(a.x-b.x,a.y-b.y);
+    };
+    const center=pts=>({x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2});
+
+    wrap.addEventListener('pointerdown',ev=>{
+      if(ev.pointerType!=='touch')return;
+      wrap.setPointerCapture&&wrap.setPointerCapture(ev.pointerId);
+      pointers.set(ev.pointerId,pointOf(ev));
+      const pts=[...pointers.values()];
+      if(pts.length===1){
+        gesture={type:'pan',start:pts[0],left:wrap.scrollLeft,top:wrap.scrollTop};
+      }else if(pts.length===2){
+        const z=state.screenZoom===null?currentFitZoom():state.screenZoom;
+        gesture={type:'pinch',distance:distance(pts),zoom:z,center:center(pts),left:wrap.scrollLeft,top:wrap.scrollTop};
+      }
+      ev.preventDefault();
+    },{passive:false});
+
+    wrap.addEventListener('pointermove',ev=>{
+      if(ev.pointerType!=='touch'||!pointers.has(ev.pointerId))return;
+      pointers.set(ev.pointerId,pointOf(ev));
+      const pts=[...pointers.values()];
+      if(pts.length===1&&gesture&&gesture.type==='pan'){
+        wrap.scrollLeft=gesture.left-(pts[0].x-gesture.start.x);
+        wrap.scrollTop=gesture.top-(pts[0].y-gesture.start.y);
+      }else if(pts.length===2){
+        if(!gesture||gesture.type!=='pinch'){
+          const z=state.screenZoom===null?currentFitZoom():state.screenZoom;
+          gesture={type:'pinch',distance:distance(pts),zoom:z,center:center(pts),left:wrap.scrollLeft,top:wrap.scrollTop};
+        }
+        const d=Math.max(10,distance(pts));
+        const next=Math.max(.25,Math.min(4,gesture.zoom*d/Math.max(10,gesture.distance)));
+        const ratio=next/gesture.zoom;
+        state.screenZoom=next;
+        applyDrawingZoom();
+        const c=center(pts);
+        wrap.scrollLeft=(gesture.left+gesture.center.x)*ratio-c.x;
+        wrap.scrollTop=(gesture.top+gesture.center.y)*ratio-c.y;
+      }
+      ev.preventDefault();
+    },{passive:false});
+
+    const release=ev=>{
+      if(ev.pointerType!=='touch')return;
+      pointers.delete(ev.pointerId);
+      const pts=[...pointers.values()];
+      if(pts.length===1){
+        gesture={type:'pan',start:pts[0],left:wrap.scrollLeft,top:wrap.scrollTop};
+      }else if(!pts.length){
+        gesture=null;
+      }
+    };
+    wrap.addEventListener('pointerup',release);
+    wrap.addEventListener('pointercancel',release);
+  }
+
   function renderDrawing(){
     const g=state.geometry;
     svg.replaceChildren();
@@ -2215,11 +2320,17 @@
     animateCurrent();
   }
 
+  function syncPlayButtons(){
+    const label=state.playing?'Ⅱ Стоп':'▶ Авто';
+    if($('playBtn')) $('playBtn').textContent=label;
+    if($('mobilePlayBtn')) $('mobilePlayBtn').textContent=label;
+  }
+
   function stopAuto(){
     state.playing=false;
     if(state.timer) clearTimeout(state.timer);
     state.timer=null;
-    $('playBtn').textContent='▶ Авто';
+    syncPlayButtons();
   }
 
   function moveTo(n){
@@ -2231,7 +2342,7 @@
   function toggleAuto(){
     if(state.playing){stopAuto();return;}
     state.playing=true;
-    $('playBtn').textContent='Ⅱ Стоп';
+    syncPlayButtons();
     const tick=()=>{
       if(!state.playing) return;
       if(state.step>=state.steps.length-1){stopAuto();return;}
@@ -2299,7 +2410,7 @@
     resetCurrent();
   });
   $('resetBtn').addEventListener('click',resetCurrent);
-  $('buildBtn').addEventListener('click',()=>rebuild(true));
+  $('buildBtn').addEventListener('click',()=>{ rebuild(true); closeMobileSetup(); setDrawingZoom('fit'); });
   $('printBtn').addEventListener('click',()=>window.print());
   $('prevBtn').addEventListener('click',()=>moveTo(state.step-1));
   $('nextBtn').addEventListener('click',()=>moveTo(state.step+1));
@@ -2310,6 +2421,14 @@
   $('zoomFitBtn').addEventListener('click',()=>setDrawingZoom('fit'));
   $('zoom100Btn').addEventListener('click',()=>setDrawingZoom('100'));
   $('zoomInBtn').addEventListener('click',()=>setDrawingZoom('in'));
+  $('mobileFitBtn').addEventListener('click',()=>setDrawingZoom('fit'));
+  $('mobileSetupBtn').addEventListener('click',openMobileSetup);
+  $('mobileSetupClose').addEventListener('click',closeMobileSetup);
+  $('mobileBackdrop').addEventListener('click',closeMobileSetup);
+  $('stepSheetToggle').addEventListener('click',toggleStepSheet);
+  $('mobilePrevBtn').addEventListener('click',()=>moveTo(state.step-1));
+  $('mobileNextBtn').addEventListener('click',()=>moveTo(state.step+1));
+  $('mobilePlayBtn').addEventListener('click',toggleAuto);
   window.addEventListener('resize',()=>{ if(state.screenZoom===null) applyDrawingZoom(); });
   $('kSlider').addEventListener('input',()=>{
     $('kOutput').textContent=$('kSlider').value+'%';
@@ -2319,4 +2438,6 @@
   initSelectors();
   renderInputs();
   rebuild(true);
+  setupCanvasGestures();
+  updateMobileSummary();
 })();
