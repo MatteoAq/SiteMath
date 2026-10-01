@@ -148,6 +148,19 @@ for (const vp of viewports) {
       await page.locator('#zoomFitBtn').click();
       // Source lines animate as if drawn by pencil. Wait until long segments finish.
       await page.waitForTimeout(1450);
+
+      const coverage=await page.evaluate(()=>{
+        const wrap=document.querySelector('.paper-wrap');
+        const nodes=[...document.querySelectorAll('#drawing line.object-line, #drawing line.construction-line, #drawing circle.point-dot, #drawing circle.answer-dot, #drawing circle.construction-dot')];
+        const boxes=nodes.map(n=>n.getBoundingClientRect()).filter(r=>r.width+r.height>0);
+        if(!wrap||!boxes.length) return 0;
+        const left=Math.min(...boxes.map(r=>r.left)),right=Math.max(...boxes.map(r=>r.right));
+        const top=Math.min(...boxes.map(r=>r.top)),bottom=Math.max(...boxes.map(r=>r.bottom));
+        const wr=wrap.getBoundingClientRect();
+        return Math.max((right-left)/wr.width,(bottom-top)/wr.height);
+      });
+      if(coverage<.28) failures.push('source '+variant+'/'+task+': current construction too small after Fit ('+coverage.toFixed(2)+')');
+
       await page.screenshot({
         path:'mobile-screenshots/source-v'+String(Number(variant)).padStart(2,'0')+'-t'+task+'.png',
         fullPage:false
