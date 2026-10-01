@@ -4,70 +4,68 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f4efe3">
-  <title>Начертательная геометрия – задание 3</title>
+  <title>SiteMath – начертательная геометрия пошагово</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <header class="topbar">
     <div>
-      <p class="eyebrow">Интерактивный построитель</p>
-      <h1>Начертательная геометрия – задание 3</h1>
-      <p class="subtitle">Введи A, B и C. Сайт сам построит эпюр Монжа и покажет каждый шаг так, как его выполнять карандашом и линейкой.</p>
+      <p class="eyebrow">SiteMath · интерактивный построитель</p>
+      <h1>Начертательная геометрия пошагово</h1>
+      <p class="subtitle">Выбери вариант и номер задания. Для координатных задач сайт сам рассчитывает построение, размеры, клетки и каждый ход карандашом. Для задач со схемами исходный рисунок варианта хранится отдельно и решается по тем же геометрическим правилам.</p>
     </div>
     <a class="repo-link" href="https://github.com/MatteoAq/SiteMath" target="_blank" rel="noreferrer">GitHub</a>
   </header>
 
   <main class="layout">
     <aside class="panel controls-panel">
-      <section class="task-card">
-        <div class="section-kicker">Точное условие</div>
-        <p>Через точку <b>C</b> провести прямую <b>ℓ</b>, пересекающую отрезок прямой <b>AB</b>, и прямую <b>a</b>, параллельную <b>AB</b>.</p>
+      <section class="picker-card">
+        <div class="section-kicker">Что решаем</div>
+        <div class="select-grid">
+          <label>Вариант
+            <select id="variantSelect"></select>
+          </label>
+          <label>Задание
+            <select id="taskSelect"></select>
+          </label>
+        </div>
+        <p id="variantNote" class="hint"></p>
       </section>
 
-      <section>
+      <section class="task-card">
+        <div class="section-kicker">Условие</div>
+        <h2 id="taskName"></h2>
+        <p id="taskStatement"></p>
+      </section>
+
+      <section id="dataEditor">
         <div class="section-head">
           <div>
             <div class="section-kicker">Исходные данные</div>
-            <h2>Координаты, мм</h2>
+            <h2 id="dataTitle">Координаты, мм</h2>
           </div>
-          <button id="presetBtn" class="ghost small" type="button">Вариант 12</button>
+          <button id="resetBtn" class="ghost small" type="button">Сбросить</button>
         </div>
-
-        <div class="coord-table" role="group" aria-label="Координаты точек">
-          <div class="coord-header"></div><div>X</div><div>Y</div><div>Z</div>
-          <label>A</label>
-          <input id="Ax" type="number" step="1" value="0" aria-label="A X">
-          <input id="Ay" type="number" step="1" value="10" aria-label="A Y">
-          <input id="Az" type="number" step="1" value="50" aria-label="A Z">
-          <label>B</label>
-          <input id="Bx" type="number" step="1" value="30" aria-label="B X">
-          <input id="By" type="number" step="1" value="25" aria-label="B Y">
-          <input id="Bz" type="number" step="1" value="30" aria-label="B Z">
-          <label>C</label>
-          <input id="Cx" type="number" step="1" value="50" aria-label="C X">
-          <input id="Cy" type="number" step="1" value="25" aria-label="C Y">
-          <input id="Cz" type="number" step="1" value="60" aria-label="C Z">
-        </div>
+        <div id="dynamicInputs"></div>
       </section>
 
-      <section class="choice-card">
+      <section id="intersectionChoice" class="choice-card" hidden>
         <div class="section-head compact">
           <div>
-            <div class="section-kicker">Свободный выбор в условии</div>
-            <h2>Где ℓ пересечёт AB</h2>
+            <div class="section-kicker">Свобода условия</div>
+            <h2>Точка K на AB</h2>
           </div>
           <output id="kOutput" for="kSlider">50%</output>
         </div>
         <input id="kSlider" type="range" min="15" max="85" value="50" step="1">
-        <p class="hint">Точка пересечения не задана, поэтому правильных прямых ℓ бесконечно много. Для наглядности выбираем точку K внутри AB. Это не допущение, а свобода, которую оставило условие.</p>
+        <p class="hint">В задании №3 точка пересечения ℓ с AB не фиксирована. Сайт выбирает K внутри отрезка и отдельно объясняет, почему такой выбор допустим.</p>
       </section>
 
       <section class="scale-card">
         <div class="metric-row"><span>Масштаб</span><b>1:1</b></div>
         <div class="metric-row"><span>1 клетка</span><b>5 мм = 0,5 см</b></div>
         <div class="metric-row"><span>Поле чертежа</span><b id="sheetSize">авто</b></div>
-        <div class="metric-row"><span>Проекции</span><b>П₁ + П₂</b></div>
-        <p class="hint">Координаты из задания считаются миллиметрами. На сетке каждые 5 мм – одна клетка.</p>
+        <div class="metric-row"><span>Режим</span><b id="solverMode">расчёт</b></div>
       </section>
 
       <div id="validation" class="validation" role="alert" hidden></div>
@@ -86,19 +84,22 @@
             <div class="step-counter"><span id="stepNumber">1</span> / <span id="stepTotal">1</span></div>
           </div>
           <div class="transport-controls">
+            <button id="firstBtn" class="icon-btn" type="button" aria-label="Первый шаг">|◀</button>
             <button id="prevBtn" class="icon-btn" type="button" aria-label="Предыдущий шаг">◀</button>
             <button id="playBtn" class="icon-btn wide" type="button">▶ Авто</button>
             <button id="nextBtn" class="icon-btn" type="button" aria-label="Следующий шаг">▶</button>
+            <button id="lastBtn" class="icon-btn" type="button" aria-label="Последний шаг">▶|</button>
           </div>
         </div>
 
         <div class="paper-wrap">
-          <svg id="drawing" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Пошаговый эпюр Монжа"></svg>
+          <svg id="drawing" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Пошаговый чертёж"></svg>
         </div>
 
         <div class="legend">
           <span><i class="swatch construction"></i>тонкие построения</span>
-          <span><i class="swatch object"></i>AB и искомые прямые</span>
+          <span><i class="swatch object"></i>исходная геометрия</span>
+          <span><i class="swatch answer"></i>результат</span>
           <span><i class="swatch active"></i>текущий шаг</span>
         </div>
       </div>
@@ -123,20 +124,34 @@
         </div>
       </article>
 
-      <details class="panel source-panel">
-        <summary>На чём основан алгоритм</summary>
+      <section id="statusPanel" class="panel status-panel">
+        <div class="section-kicker">Покрытие банка вариантов</div>
+        <div class="coverage-grid">
+          <div><b id="knownVariants">0</b><span>листов оцифровано</span></div>
+          <div><b>1–3</b><span>решаются по координатам</span></div>
+          <div><b>4–6</b><span id="diagramStatus">движок схем в разработке</span></div>
+        </div>
+        <p class="hint">Номера отсутствующих вариантов не вычисляются по формуле. Если вариант не найден в исходной методичке или на присланном листе, сайт не подставляет выдуманные данные.</p>
+      </section>
+
+      <details class="panel source-panel" open>
+        <summary>Источники алгоритмов</summary>
         <div class="source-body">
-          <p>Алгоритм не подменяет начертательную геометрию «рисованием по картинке». Он использует свойства ортогонального проецирования и стандартные построения для пересекающихся и параллельных прямых.</p>
+          <p><b>Происхождение листа.</b> Шесть заданий совпадают с материалами «Инженерная и компьютерная графика. ДВИК, Владивосток, 2007». В найденном описании старой методики варианты 0–9 назначались по последней цифре номера личного дела. Современные листы 10–17 используют тот же блок заданий, но расширенный набор исходных данных.</p>
           <ul>
-            <li><a href="https://nachert.ru/course/?id=22&lesson=4" target="_blank" rel="noreferrer">«Взаимное положение двух прямых»</a> – подтверждает используемые правила для параллельных и пересекающихся прямых на комплексном чертеже.</li>
-            <li><a href="https://naploskosti.ru/nachertalka/vzaimnoe-polozhenie-pryamikh" target="_blank" rel="noreferrer">Видео и текстовый урок «Взаимное положение прямых»</a> – наглядно разбирает параллельные, пересекающиеся и скрещивающиеся прямые.</li>
-            <li><a href="https://www.youtube.com/watch?v=q4d96d2IiCk" target="_blank" rel="noreferrer">Видео «Следы прямой. Взаимное положение двух прямых»</a> – дополнительный разбор взаимного положения прямых.</li>
+            <li><a href="https://mehanika-sopromat.ru/grafika/vladivostok_2007_grafika.html" target="_blank" rel="noreferrer">Исходная методичка ДВИК 2007 – формулировки шести заданий</a></li>
+            <li><a href="https://mehanika-sopromat.ru/grafika/vladivostok_2007_grafika_examples.html" target="_blank" rel="noreferrer">Готовые образцы ДВИК – в том числе задания 1–4</a></li>
+            <li><a href="https://www.youtube.com/watch?v=KiOZi8UHrAI" target="_blank" rel="noreferrer">Видео – натуральная величина отрезка методом прямоугольного треугольника</a></li>
+            <li><a href="https://www.youtube.com/watch?v=MJQnwYup5yk" target="_blank" rel="noreferrer">Видео – главные линии плоскости</a></li>
+            <li><a href="https://naploskosti.ru/nachertalka/peresechenie-pryamoy-i-ploskosti" target="_blank" rel="noreferrer">Пошаговый текст – пересечение прямой с плоскостью и видимость</a></li>
+            <li><a href="https://www.youtube.com/watch?v=CyajlNsDISE" target="_blank" rel="noreferrer">Видео – линия пересечения двух плоскостей</a></li>
           </ul>
         </div>
       </details>
     </section>
   </main>
 
-  <script src="./app.js"></script>
+  <script src="./variants.js"></script>
+  <script src="./multi.js"></script>
 </body>
 </html>
