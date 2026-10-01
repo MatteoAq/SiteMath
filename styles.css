@@ -1907,3 +1907,13 @@ body { color:var(--ui-text); }
     grid-template-columns:minmax(0,1fr);
   }
 }
+
+
+/* Override legacy chip caption color: a selected variant must keep readable contrast. */
+.variant-chip > span {
+  color:inherit;
+}
+.variant-chip.is-selected .variant-number,
+.variant-chip.is-selected .own-label {
+  color:#fff;
+}
