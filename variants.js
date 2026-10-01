@@ -161,3 +161,88 @@ window.SITEMATH_DATA = {
     }
   }
 };
+
+window.SITEMATH_SCHEMES = {
+  "10": {
+    task4: {
+      planeType:"ABC",
+      points:{
+        A:{p2:[184,463],p1:[184,548]},
+        B:{p2:[277,375],p1:[277,610]},
+        C:{p2:[354,448],p1:[354,483]},
+        D:{p2:[448,385],p1:[448,571]}
+      },
+      operation:{type:"line_intersects_frontale",through:"D",resultPoint:"E",relation:"below_line"}
+    }
+  },
+  "11": {
+    task4: {
+      planeType:"ABC",
+      points:{
+        A:{p2:[131,203],p1:[131,293]},
+        B:{p2:[210,168],p1:[210,329]},
+        C:{p2:[237,239],p1:[237,248]},
+        D:{p2:[281,203],p1:[281,307]}
+      },
+      operation:{type:"line_parallel_plane",through:"D",resultPoint:"E",relation:"above_line"}
+    }
+  },
+  "14": {
+    task4: {
+      planeType:"line_point",
+      planeLine:"a",
+      planePoint:"A",
+      lines:{
+        a:{p2:[[52,548],[231,458]],p1:[[51,600],[252,665]]}
+      },
+      points:{
+        A:{p2:[189,538],p1:[189,596]},
+        D:{p2:[373,484],p1:[373,669]}
+      },
+      operation:{type:"line_intersects_named",through:"D",target:"a",resultPoint:"B",relation:"below_plane"}
+    }
+  },
+  "15": {
+    task4: {
+      planeType:"line_point",
+      planeLine:"a",
+      planePoint:"A",
+      lines:{
+        a:{p2:[[174,485],[387,443]],p1:[[177,536],[389,620]]}
+      },
+      points:{
+        A:{p2:[247,386],p1:[247,645]},
+        B:{p2:[483,444],p1:[483,580]}
+      },
+      operation:{type:"line_parallel_plane",through:"B",resultPoint:"C",relation:"above_line"}
+    }
+  },
+  "17": {
+    task4: {
+      planeType:"parallel_lines",
+      planeLines:["m","n"],
+      lines:{
+        m:{p2:[[108,432],[287,365]],p1:[[126,481],[303,628]]},
+        n:{p2:[[157,460],[334,395]],p1:[[80,527],[260,675]]}
+      },
+      points:{
+        A:{p2:[400,388],p1:[400,584]}
+      },
+      operation:{type:"line_intersects_frontale",through:"A",resultPoint:"B",relation:"above_line"}
+    }
+  },
+  "photo-unknown": {
+    task4: {
+      planeType:"parallel_lines",
+      planeLines:["a","b"],
+      lines:{
+        a:{p2:[[164,159],[343,270]],p1:[[110,286],[277,372]]},
+        b:{p2:[[145,192],[322,305]],p1:[[112,248],[299,339]]}
+      },
+      points:{
+        B:{p2:[371,217],p1:[371,343]}
+      },
+      operation:{type:"line_intersects_frontale",through:"B",resultPoint:"A",relation:"behind_line"}
+    }
+  }
+};
