@@ -7,7 +7,7 @@ const viewports = [
   {name:'android-common', width:360, height:800},
   {name:'android-tall', width:393, height:873},
   {name:'android-wide', width:412, height:915},
-  {name:'landscape', width:800, height:360},
+  {name:'landscape-mobile', width:700, height:360},
 ];
 
 const browser = await chromium.launch({headless:true});
