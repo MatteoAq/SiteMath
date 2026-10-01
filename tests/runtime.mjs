@@ -71,6 +71,26 @@ for (const variant of variants) {
 }
 
 
+// Visual picker regression: the visible cards must drive the same state as the hidden selects.
+try {
+  const v05=window.document.querySelector('.variant-chip[data-variant="05"]');
+  const task6=window.document.querySelector('.task-choice[data-task="6"]');
+  if (!v05 || !task6) {
+    failures.push('visual picker: variant 05 or task 6 card missing');
+  } else {
+    v05.click();
+    task6.click();
+    if ($('variantSelect').value!=='05' || $('taskSelect').value!=='6') {
+      failures.push('visual picker: cards do not sync hidden selects');
+    }
+    if (!v05.classList.contains('is-selected') || !task6.classList.contains('is-selected')) {
+      failures.push('visual picker: selected state is not visible');
+    }
+  }
+} catch (e) {
+  failures.push('visual picker: '+e.stack);
+}
+
 // Regression: coordinate drawings use the visible 5 mm paper grid as the actual metric grid.
 try {
   $('variantSelect').value = '10';
