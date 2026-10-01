@@ -1541,6 +1541,33 @@
         line(i,Q.p1,T.p1,'answer-line'),textEntity(i,T.p1,'ℓ₁','svg-label'),
         line(i,Q.p2,T.p2,'answer-line'),textEntity(i,T.p2,'ℓ₂','svg-label')
       ],{kind:'line',a:Q.p1,b:T.p1});
+    } else if(op.type==='line_intersects_horizontal' && through3){
+      target3=lerp3(h3[0],h3[1],.58);
+      L3=[through3,target3];
+      i=steps.length;
+      const T=project3(target3),Q=project3(through3);
+      push({
+        title:'Выбери точку T на горизонтали h',
+        action:'На уже построенной горизонтали h отметь удобную точку T и согласуй T₁/T₂ линией связи.',
+        why:'Чтобы прямая через заданную точку пересекала горизонталь, достаточно провести её через любую точку T этой горизонтали.',
+        measure:['T₁ ∈ h₁','T₂ ∈ h₂'],
+        check:'T₁ и T₂ – проекции одной точки T горизонтали.'
+      },[
+        point(i,T.p1,'T₁','answer-dot'),point(i,T.p2,'T₂','answer-dot'),
+        line(i,T.p1,T.p2,'construction-line')
+      ]);
+
+      i=steps.length;
+      push({
+        title:'Соедини '+op.through+' с T – получишь ℓ',
+        action:'Проведи ℓ₁ через '+op.through+'₁ и T₁, затем ℓ₂ через '+op.through+'₂ и T₂.',
+        why:'T принадлежит h, поэтому построенная через '+op.through+' и T прямая ℓ гарантированно пересекает горизонталь h.',
+        measure:['ℓ ∩ h = T'],
+        check:'Обе проекции точки пересечения согласованы одной линией связи.'
+      },[
+        line(i,Q.p1,T.p1,'answer-line'),textEntity(i,T.p1,'ℓ₁','svg-label'),
+        line(i,Q.p2,T.p2,'answer-line'),textEntity(i,T.p2,'ℓ₂','svg-label')
+      ],{kind:'line',a:Q.p1,b:T.p1});
     } else if(op.type==='line_intersects_named' && through3 && scheme.lines && scheme.lines[op.target]){
       const targetLine=schemeLine3(scheme.lines[op.target]);
       target3=lerp3(targetLine[0],targetLine[1],.55);
@@ -1936,7 +1963,10 @@
     }
 
     const pp=project3(P),qq=project3(Q);
-    const K3=schemePoint3(scheme.pointK);
+    const throughRec=scheme.pointK||scheme.pointThrough;
+    if(!throughRec) return {error:'В схеме задания 6 не указана исходная точка, через которую нужно провести прямую.'};
+    const throughLabel=scheme.pointLabel||'K';
+    const K3=schemePoint3(throughRec);
     const K=project3(K3);
     const throughK=line3Extent(K3,inter.d,90);
     const kA=project3(throughK[0]),kB=project3(throughK[1]);
@@ -1946,15 +1976,15 @@
     const starter=[
       ...starterPlaneDefEntities(scheme.planeA,i,'Σ'),
       ...starterPlaneDefEntities(scheme.planeB,i,'Θ'),
-      line(i,{x:scheme.pointK.p2[0],y:scheme.pointK.p2[1]},{x:scheme.pointK.p1[0],y:scheme.pointK.p1[1]},'construction-line'),
-      point(i,{x:scheme.pointK.p2[0],y:scheme.pointK.p2[1]},'K₂'),
-      point(i,{x:scheme.pointK.p1[0],y:scheme.pointK.p1[1]},'K₁')
+      line(i,{x:throughRec.p2[0],y:throughRec.p2[1]},{x:throughRec.p1[0],y:throughRec.p1[1]},'construction-line'),
+      point(i,{x:throughRec.p2[0],y:throughRec.p2[1]},throughLabel+'₂'),
+      point(i,{x:throughRec.p1[0],y:throughRec.p1[1]},throughLabel+'₁')
     ];
     push({
-      title:'Перенеси обе плоскости и точку K',
-      action:'Сначала воспроизведи исходные проекции двух плоскостей и заданную точку K без изменения наклонов.',
+      title:'Перенеси обе плоскости и точку '+throughLabel,
+      action:'Сначала воспроизведи исходные проекции двух плоскостей и заданную точку '+throughLabel+' без изменения наклонов.',
       why:'Положение линий на варианте является исходными данными. Решение строится уже поверх них.',
-      measure:['Плоскость Σ – первый набор','Плоскость Θ – второй набор','K₁/K₂ – одна линия связи'],
+      measure:['Плоскость Σ – первый набор','Плоскость Θ – второй набор',throughLabel+'₁/'+throughLabel+'₂ – одна линия связи'],
       check:'Стартовый рисунок совпадает с печатным условием.'
     },starter);
 
@@ -2039,8 +2069,8 @@
 
     i=steps.length;
     push({
-      title:'Через K проведи прямую k ∥ обеим плоскостям',
-      action:'Через K₁ проведи k₁ ∥ r₁, а через K₂ – k₂ ∥ r₂.',
+      title:'Через '+throughLabel+' проведи прямую k ∥ обеим плоскостям',
+      action:'Через '+throughLabel+'₁ проведи k₁ ∥ r₁, а через '+throughLabel+'₂ – k₂ ∥ r₂.',
       why:'Общее направление двух непараллельных плоскостей – направление их линии пересечения r. Поэтому прямая, параллельная r, параллельна одновременно Σ и Θ.',
       measure:['k₁ ∥ r₁','k₂ ∥ r₂'],
       check:'Направления k и r совпадают на обеих проекциях.'
@@ -2053,9 +2083,9 @@
     push({
       title:'Финальная проверка задания 6',
       action:'Проверь две общие точки линии r и попарную параллельность проекций k и r.',
-      why:'Это одновременно подтверждает линию пересечения и требуемое направление прямой через K.',
+      why:'Это одновременно подтверждает линию пересечения и требуемое направление прямой через '+throughLabel+'.',
       measure:['P,Q ∈ Σ и Θ','k ∥ r'],
-      check:'k проходит через K и не обязана лежать ни в одной из плоскостей.'
+      check:'k проходит через '+throughLabel+' и не обязана лежать ни в одной из плоскостей.'
     },[]);
 
     const norm=normalizeSteps(steps,210,170);
