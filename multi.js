@@ -855,12 +855,16 @@
     const k=Number($('kSlider').value)/100;
     const cOn=onSegment3(C,A,B);
     const K=cOn ? {...C} : lerp3(A,B,k);
+    const AB3=sub3(B,A);
+    const profileAB=Math.abs(AB3.x)<EPS;
+    const D=profileAB ? add3(C,mul3(AB3,.5)) : null;
     const raw=[
       {x:-A.x,y:A.y},{x:-A.x,y:-A.z},
       {x:-B.x,y:B.y},{x:-B.x,y:-B.z},
       {x:-C.x,y:C.y},{x:-C.x,y:-C.z},
       {x:-K.x,y:K.y},{x:-K.x,y:-K.z},{x:0,y:0}
     ];
+    if(D) raw.push({x:-D.x,y:D.y},{x:-D.x,y:-D.z});
     const b0=bounds(raw,25), sx=-b0.minX, sy=-b0.minY;
     const O={x:sx,y:sy};
     const P1=p=>shiftPoint({x:-p.x,y:p.y},sx,sy);
@@ -868,11 +872,12 @@
     const AX=p=>shiftPoint({x:-p.x,y:0},sx,sy);
     const q={
       A1:P1(A),A2:P2(A),B1:P1(B),B2:P2(B),C1:P1(C),C2:P2(C),
-      K1:P1(K),K2:P2(K),Ax:AX(A),Bx:AX(B),Cx:AX(C)
+      K1:P1(K),K2:P2(K),Ax:AX(A),Bx:AX(B),Cx:AX(C),
+      D1:D?P1(D):null,D2:D?P2(D):null,Dx:D?AX(D):null
     };
     const ext=Math.max(b0.width,b0.height)*.7;
-    const a1=extendLine(q.C1,add2(q.C1,vec2(q.A1,q.B1)),ext);
-    const a2=extendLine(q.C2,add2(q.C2,vec2(q.A2,q.B2)),ext);
+    const a1=profileAB ? extendLine(q.C1,q.D1,ext) : extendLine(q.C1,add2(q.C1,vec2(q.A1,q.B1)),ext);
+    const a2=profileAB ? extendLine(q.C2,q.D2,ext) : extendLine(q.C2,add2(q.C2,vec2(q.A2,q.B2)),ext);
     let l1,l2;
     if(cOn){
       let d={x:1,y:1,z:1};
@@ -922,6 +927,21 @@
                angleDeg(q.A2,q.B2)===null?'A₂B₂ вырождена': 'Наклон A₂B₂ ≈ '+fmt(angleDeg(q.A2,q.B2))+'°'],
       check:'Проекции соединяют только одноимённые точки.'
     },[line(i,q.A1,q.B1,'object-line'),line(i,q.A2,q.B2,'object-line')]);
+
+    if(profileAB){
+      i=steps.length;
+      push({
+        title:'Особый случай: AB – профильная прямая',
+        action:'Так как xA = xB, простого условия «a₁ ∥ A₁B₁ и a₂ ∥ A₂B₂» недостаточно для фиксации одного пространственного направления. Построй согласованную вспомогательную точку D = C + 0,5·(B−A).',
+        why:'У профильной прямой обе основные проекции могут выглядеть вертикальными. Пара D₁/D₂ сохраняет одинаковый коэффициент 0,5 сразу по y и z и тем самым гарантирует a ∥ AB в пространстве.',
+        measure:['D = ('+fmt(D.x)+'; '+fmt(D.y)+'; '+fmt(D.z)+')','CD = 0,5·AB по вектору направления'],
+        check:'D₁ и D₂ лежат на одной линии связи, а C₁D₁/C₂D₂ задают согласованные проекции одной прямой.'
+      },[
+        line(i,q.D1,q.D2,'construction-line'),
+        point(i,q.D1,'D₁','answer-dot'),
+        point(i,q.D2,'D₂','answer-dot')
+      ],{kind:'line',a:q.D1,b:q.D2});
+    }
 
     i=steps.length;
     const ae=[];
@@ -1349,7 +1369,7 @@
         }
         push({
           title:'Построй '+op.resultPoint+' '+relationText,
-          action:'Выбери удобную опорную точку и отложи 52 условных единицы в требуемом направлении. На реальном листе величина произвольна – важно только правильное взаимное положение.',
+          action:'Выбери удобное смещение в требуемом направлении. Условие не задаёт расстояние, поэтому его выбирают только для читаемости чертежа; экранный отступ сайта не является размером, который нужно переносить на бумагу.',
           why:why,
           measure:['Величина смещения не задана условием – выбирается для читаемости чертежа.'],
           check:'Проверь совпадающую координату по соответствующей линии связи.'
@@ -2014,8 +2034,16 @@
     state.steps=solved.steps;
     if(resetStep!==false) state.step=0;
     state.step=Math.max(0,Math.min(state.step,state.steps.length-1));
-    $('sheetSize').textContent=Math.round(solved.width)+' × '+Math.round(solved.height)+' мм';
-    $('diagramStatus').textContent=solved.diagramPending?'оцифровка присланных схем':'решаются автоматически';
+    if(state.task<=3){
+      $('scaleValue').textContent='1:1';
+      $('gridValue').textContent='5 мм = 0,5 см';
+      $('sheetSize').textContent=Math.round(solved.width)+' × '+Math.round(solved.height)+' мм';
+    } else {
+      $('scaleValue').textContent='по исходной схеме';
+      $('gridValue').textContent='вспомогательная';
+      $('sheetSize').textContent='авто';
+    }
+    $('diagramStatus').textContent=solved.diagramPending?'нужна исходная схема':'решаются автоматически';
     renderDrawing();
   }
 
