@@ -8,6 +8,16 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+  <div class="mobile-appbar">
+    <button id="mobileSetupBtn" class="mobile-icon-btn" type="button" aria-label="Открыть параметры">☰</button>
+    <div class="mobile-title">
+      <b>SiteMath</b>
+      <span id="mobileTaskSummary">Вариант 10 · Задание 1</span>
+    </div>
+    <button id="mobileFitBtn" class="mobile-icon-btn text-btn" type="button">Вписать</button>
+  </div>
+  <div id="mobileBackdrop" class="mobile-backdrop" hidden></div>
+
   <header class="topbar">
     <div>
       <p class="eyebrow">SiteMath · интерактивный построитель</p>
@@ -18,7 +28,15 @@
   </header>
 
   <main class="layout">
-    <aside class="panel controls-panel">
+    <aside id="controlsPanel" class="panel controls-panel" aria-label="Параметры задачи">
+      <div class="mobile-sheet-head">
+        <div>
+          <b>Параметры задачи</b>
+          <span>вариант, задание и исходные данные</span>
+        </div>
+        <button id="mobileSetupClose" class="mobile-icon-btn" type="button" aria-label="Закрыть параметры">×</button>
+      </div>
+      <div class="mobile-sheet-handle" aria-hidden="true"></div>
       <section class="picker-card">
         <div class="section-kicker">Что решаем</div>
         <div class="select-grid">
@@ -113,10 +131,20 @@
         </div>
       </div>
 
-      <article class="panel explanation-panel" aria-live="polite">
+      <article id="stepSheet" class="panel explanation-panel" aria-live="polite">
+        <button id="stepSheetToggle" class="step-sheet-toggle" type="button" aria-expanded="false">
+          <span class="sheet-handle" aria-hidden="true"></span>
+          <span class="step-sheet-caption">Текущий шаг</span>
+          <span class="step-sheet-chevron">⌃</span>
+        </button>
         <div class="step-badge" id="stepBadge">Шаг 1</div>
         <h2 id="stepTitle">Подготовка</h2>
         <p id="stepAction" class="action-text"></p>
+        <div class="mobile-step-nav">
+          <button id="mobilePrevBtn" class="step-nav-btn secondary" type="button">← Назад</button>
+          <button id="mobilePlayBtn" class="step-nav-btn secondary" type="button">▶ Авто</button>
+          <button id="mobileNextBtn" class="step-nav-btn primary-step" type="button">Дальше →</button>
+        </div>
         <div class="explain-grid">
           <section>
             <h3>Почему именно так</h3>
