@@ -20,7 +20,8 @@
     calibrator: null,
     screenZoom: null,
     canvasPointers: new Map(),
-    stepInfoMode: 'action'
+    stepInfoMode: 'action',
+    stepInfoPage: 0
   };
 
   const sources = {
@@ -2601,27 +2602,71 @@
     if(s && s.tool) drawTool(s.tool);
   }
 
-  function renderStepInfoPage(s){
+  function paginateStepText(value,limit){
+    const text=String(value||'').trim();
+    if(!text) return [''];
+    const max=limit||150;
+    const sentences=text.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[text];
+    const pages=[];
+    let current='';
+    const pushWords=part=>{
+      const words=part.trim().split(/\s+/);
+      words.forEach(word=>{
+        const next=current ? current+' '+word : word;
+        if(next.length>max && current){
+          pages.push(current.trim());
+          current=word;
+        } else current=next;
+      });
+    };
+    sentences.forEach(raw=>{
+      const sentence=raw.trim();
+      const next=current ? current+' '+sentence : sentence;
+      if(next.length<=max){
+        current=next;
+      }else{
+        if(current){ pages.push(current.trim()); current=''; }
+        if(sentence.length<=max) current=sentence;
+        else pushWords(sentence);
+      }
+    });
+    if(current) pages.push(current.trim());
+    return pages.length?pages:[''];
+  }
+
+  function stepInfoPages(st,mode){
+    if(mode==='measure'){
+      const m=st.measure||[];
+      if(!m.length) return [{text:'На этом шаге ничего дополнительно отмерять не нужно.',items:[]}];
+      const pages=[];
+      for(let i=0;i<m.length;i+=2){
+        pages.push({text:'Отмерь и проверь:',items:m.slice(i,i+2)});
+      }
+      return pages;
+    }
+    const value=mode==='action'?st.action:mode==='why'?st.why:st.check;
+    return paginateStepText(value,150).map(text=>({text,items:[]}));
+  }
+
+  function renderStepInfoPage(st){
     const mode=state.stepInfoMode||'action';
     document.querySelectorAll('.step-info-tab').forEach(btn=>{
       const on=btn.dataset.stepMode===mode;
       btn.classList.toggle('is-active',on);
       btn.setAttribute('aria-selected',on?'true':'false');
     });
-    const text=$('stepInfoText'),measure=$('stepInfoMeasure');
-    measure.innerHTML='';
-    if(mode==='action'){
-      text.textContent=s.action||'';
-    } else if(mode==='measure'){
-      text.textContent=(s.measure&&s.measure.length)?'Отмерь и проверь эти величины:':'На этом шаге ничего дополнительно отмерять не нужно.';
-      measure.innerHTML=(s.measure&&s.measure.length)
-        ? '<ul class="step-measure-list">'+s.measure.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>'
-        : '';
-    } else if(mode==='why'){
-      text.textContent=s.why||'';
-    } else {
-      text.textContent=s.check||'';
-    }
+    const pages=stepInfoPages(st,mode);
+    state.stepInfoPage=Math.max(0,Math.min(state.stepInfoPage||0,pages.length-1));
+    const page=pages[state.stepInfoPage]||pages[0];
+    $('stepInfoText').textContent=page.text||'';
+    $('stepInfoMeasure').innerHTML=page.items&&page.items.length
+      ? '<ul class="step-measure-list">'+page.items.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>'
+      : '';
+    const pager=$('stepInfoPager');
+    pager.hidden=pages.length<=1;
+    $('stepInfoPageLabel').textContent=(state.stepInfoPage+1)+' / '+pages.length;
+    $('stepInfoPrevPage').disabled=state.stepInfoPage<=0;
+    $('stepInfoNextPage').disabled=state.stepInfoPage>=pages.length-1;
   }
 
   function renderExplanation(){
@@ -2812,6 +2857,7 @@
     stopAuto();
     state.step=Math.max(0,Math.min(state.steps.length-1,n));
     state.stepInfoMode='action';
+    state.stepInfoPage=0;
     renderDrawing();
   }
 
@@ -2824,6 +2870,7 @@
       if(state.step>=state.steps.length-1){stopAuto();return;}
       state.step++;
       state.stepInfoMode='action';
+      state.stepInfoPage=0;
       renderDrawing();
       state.timer=setTimeout(tick,1900);
     };
@@ -2912,8 +2959,17 @@
   $('mobilePlayBtn').addEventListener('click',toggleAuto);
   document.querySelectorAll('.step-info-tab').forEach(btn=>btn.addEventListener('click',()=>{
     state.stepInfoMode=btn.dataset.stepMode||'action';
+    state.stepInfoPage=0;
     renderStepInfoPage(state.steps[state.step]);
   }));
+  $('stepInfoPrevPage').addEventListener('click',()=>{
+    state.stepInfoPage=Math.max(0,(state.stepInfoPage||0)-1);
+    renderStepInfoPage(state.steps[state.step]);
+  });
+  $('stepInfoNextPage').addEventListener('click',()=>{
+    state.stepInfoPage=(state.stepInfoPage||0)+1;
+    renderStepInfoPage(state.steps[state.step]);
+  });
   $('firstRunStart').addEventListener('click',finishFirstRun);
   window.addEventListener('resize',()=>{ if(state.screenZoom===null) applyDrawingZoom(); });
   $('kSlider').addEventListener('input',()=>{
