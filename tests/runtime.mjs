@@ -18,7 +18,12 @@ window.eval(fs.readFileSync('variants.js','utf8'));
 window.eval(fs.readFileSync('multi.js','utf8'));
 
 const $ = id => window.document.getElementById(id);
-const variants = [...$('variantSelect').options].map(o=>o.value).filter(v=>v!=='custom');
+const onlyVariant = process.env.ONLY_VARIANT || '';
+const onlyTask = Number(process.env.ONLY_TASK || 0);
+const variants = [...$('variantSelect').options]
+  .map(o=>o.value)
+  .filter(v=>v!=='custom')
+  .filter(v=>!onlyVariant || v===onlyVariant);
 const failures = [];
 
 for (const id of ['zoomOutBtn','zoomFitBtn','zoom100Btn','zoomInBtn','zoomLabel','mobileSetupBtn','mobileSetupClose','mobileBackdrop','stepSheetToggle','mobilePrevBtn','mobilePlayBtn','mobileNextBtn','mobileTaskSummary']) {
@@ -42,6 +47,7 @@ for (const variant of variants) {
   $('variantSelect').value = variant;
   $('variantSelect').dispatchEvent(new window.Event('change'));
   for (let task=1; task<=6; task++) {
+    if (onlyTask && task!==onlyTask) continue;
     try {
       $('taskSelect').value = String(task);
       $('taskSelect').dispatchEvent(new window.Event('change'));
@@ -62,7 +68,7 @@ for (const variant of variants) {
 
 
 // Custom-data UI smoke test, including the profile-line special case in task 3.
-try {
+if (!onlyVariant && !onlyTask) try {
   $('variantSelect').value = 'custom';
   $('variantSelect').dispatchEvent(new window.Event('change'));
 
