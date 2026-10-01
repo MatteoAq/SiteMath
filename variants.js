@@ -78,34 +78,7 @@ window.SITEMATH_DATA = {
         planes:["a∥b","horizontal_projecting"]
       }
     },
-    "04": {
-    task4: {
-      planeType:"ABC",
-      points:{
-        A:{p2:[86,166],p1:[86,224]},
-        B:{p2:[218,128],p1:[218,326]},
-        C:{p2:[321,248],p1:[321,326]},
-        D:{p2:[391,144],p1:[391,278]}
-      },
-      operation:{type:"line_intersects_horizontal",through:"D",resultPoint:"E",relation:"above_line"}
-    }
-  },
-  "08": {
-    task4: {
-      planeType:"line_point",
-      planeLine:"a",
-      planePoint:"A",
-      lines:{
-        a:{p2:[[87,123],[251,213]],p1:[[79,209],[255,268]]}
-      },
-      points:{
-        A:{p2:[148,95],p1:[148,202]},
-        B:{p2:[253,127],p1:[253,283]}
-      },
-      operation:{type:"line_parallel_plane",through:"B",resultPoint:"C",relation:"above_line"}
-    }
-  },
-  "10": {
+    "10": {
       label: "Вариант 10",
       task1: {
         A:[50,60,0], B:[10,0,70], C:[60,50,40], D:[60,50,-20], E:[50,-40,-30]
@@ -250,6 +223,33 @@ window.SITEMATH_DATA = {
 };
 
 window.SITEMATH_SCHEMES = {
+  "04": {
+    task4: {
+      planeType:"ABC",
+      points:{
+        A:{p2:[86,166],p1:[86,224]},
+        B:{p2:[218,128],p1:[218,326]},
+        C:{p2:[321,248],p1:[321,326]},
+        D:{p2:[391,144],p1:[391,278]}
+      },
+      operation:{type:"line_intersects_horizontal",through:"D",resultPoint:"E",relation:"above_line"}
+    }
+  },
+  "08": {
+    task4: {
+      planeType:"line_point",
+      planeLine:"a",
+      planePoint:"A",
+      lines:{
+        a:{p2:[[87,123],[251,213]],p1:[[79,209],[255,268]]}
+      },
+      points:{
+        A:{p2:[148,95],p1:[148,202]},
+        B:{p2:[253,127],p1:[253,283]}
+      },
+      operation:{type:"line_parallel_plane",through:"B",resultPoint:"C",relation:"above_line"}
+    }
+  },
   "10": {
     task4: {
       planeType:"ABC",
