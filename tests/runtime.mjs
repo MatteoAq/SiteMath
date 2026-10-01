@@ -26,21 +26,25 @@ const variants = [...$('variantSelect').options]
   .filter(v=>!onlyVariant || v===onlyVariant);
 const failures = [];
 
-for (const id of ['zoomOutBtn','zoomFitBtn','zoom100Btn','zoomInBtn','zoomLabel','mobileSetupBtn','mobileSetupClose','mobileBackdrop','stepSheetToggle','mobilePrevBtn','mobilePlayBtn','mobileNextBtn','mobileTaskSummary']) {
-  if (!$(id)) failures.push('mobile control missing: '+id);
-}
-
-try {
-  $('mobileSetupBtn').click();
-  if (!$('controlsPanel').classList.contains('is-open') || $('mobileBackdrop').hidden) failures.push('mobile setup sheet does not open');
-  $('mobileSetupClose').click();
-  if ($('controlsPanel').classList.contains('is-open') || !$('mobileBackdrop').hidden) failures.push('mobile setup sheet does not close');
-  $('stepSheetToggle').click();
-  if (!$('stepSheet').classList.contains('is-expanded')) failures.push('step bottom sheet does not expand');
-  $('stepSheetToggle').click();
-  if ($('stepSheet').classList.contains('is-expanded')) failures.push('step bottom sheet does not collapse');
-} catch (e) {
-  failures.push('mobile shell interaction: '+e.stack);
+if (!onlyVariant && !onlyTask) {
+  for (const id of ['zoomOutBtn','zoomFitBtn','zoom100Btn','zoomInBtn','zoomLabel','mobileSetupBtn','mobileSetupClose','mobileBackdrop','stepSheetToggle','mobilePrevBtn','mobilePlayBtn','mobileNextBtn','mobileTaskSummary']) {
+    if (!$(id)) failures.push('mobile control missing: '+id);
+  }
+  
+  try {
+    $('mobileSetupBtn').click();
+    if (!$('controlsPanel').classList.contains('is-open') || $('mobileBackdrop').hidden) failures.push('mobile setup sheet does not open');
+    $('mobileSetupClose').click();
+    if ($('controlsPanel').classList.contains('is-open') || !$('mobileBackdrop').hidden) failures.push('mobile setup sheet does not close');
+    $('stepSheetToggle').click();
+    if (!$('stepSheet').classList.contains('is-expanded')) failures.push('step bottom sheet does not expand');
+    $('stepSheetToggle').click();
+    if ($('stepSheet').classList.contains('is-expanded')) failures.push('step bottom sheet does not collapse');
+  } catch (e) {
+    failures.push('mobile shell interaction: '+e.stack);
+  }
+  
+  
 }
 
 for (const variant of variants) {
