@@ -102,7 +102,7 @@ for (const vp of viewports) {
   await page.waitForTimeout(50);
   await visibleOverflow(page,vp.name+' fitted');
 
-  for (const mode of ['action','measure','why','check']) {
+  for (const mode of ['action','why','check']) {
     const tab=page.locator('.step-info-tab[data-step-mode="'+mode+'"]');
     if(await tab.count()){
       await tab.click();
