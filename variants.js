@@ -238,9 +238,9 @@ window.SITEMATH_DATA = {
         planes:["a∥b","c∩h"]
       }
     },
-    "photo-unknown": {
-      label: "Фото без видимого номера",
-      verifiedNumber:false,
+    "18": {
+      label: "Вариант 18",
+      provisionalNumber:true,
       task1: {
         A:[30,60,30], B:[40,50,0], C:[20,-60,0], D:[45,-30,-20], E:[30,50,-15]
       },
@@ -396,7 +396,7 @@ window.SITEMATH_SCHEMES = {
       operation:{type:"line_intersects_frontale",through:"A",resultPoint:"B",relation:"above_line"}
     }
   },
-  "photo-unknown": {
+  "18": {
     task4: {
       planeType:"parallel_lines",
       planeLines:["a","b"],
@@ -631,7 +631,7 @@ Object.assign(window.SITEMATH_SCHEMES["17"], {
   }
 });
 
-Object.assign(window.SITEMATH_SCHEMES["photo-unknown"], {
+Object.assign(window.SITEMATH_SCHEMES["18"], {
   task5:{
     planeType:"ABC",
     points:{
