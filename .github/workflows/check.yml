@@ -22,3 +22,22 @@ jobs:
           name: runtime-diagnostics
           path: runtime-results.json
           if-no-files-found: ignore
+
+  diagnose-new-variants:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: ["04", "08"]
+        task: [1, 2, 3, 4, 5, 6]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install jsdom@26 --no-save
+      - name: Smoke variant ${{ matrix.variant }} task ${{ matrix.task }}
+        env:
+          ONLY_VARIANT: ${{ matrix.variant }}
+          ONLY_TASK: ${{ matrix.task }}
+        run: node tests/runtime.mjs
