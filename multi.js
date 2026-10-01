@@ -194,7 +194,7 @@
       b.type='button';
       b.className='first-run-task';
       b.dataset.task=k;
-      b.innerHTML='<span>'+k+'</span><b>'+esc(taskPickerLabel(n))+'</b>';
+      b.innerHTML='<span>'+k+'</span><b>'+esc(taskPickerLabel(n))+'</b><i>›</i>';
       b.addEventListener('click',()=>{ state.task=n; renderFirstRunPicker(); });
       tasks.appendChild(b);
     });
@@ -286,8 +286,8 @@
         b.dataset.variant=k;
         b.setAttribute('role','option');
         b.innerHTML=k==='photo-unknown'
-          ? '<span class="variant-number">?</span><span>Фото</span>'
-          : '<span class="variant-number">'+esc(variantDisplayNumber(k))+'</span><span>вариант</span>';
+          ? '<span class="variant-number">?</span>'
+          : '<span class="variant-number">'+esc(variantDisplayNumber(k))+'</span>';
         b.addEventListener('click',()=>{
           $('variantSelect').value=k;
           $('variantSelect').dispatchEvent(new Event('change'));
@@ -299,7 +299,7 @@
       own.className='variant-chip own-data';
       own.dataset.variant='custom';
       own.setAttribute('role','option');
-      own.innerHTML='<span class="variant-number">＋</span><span>Свои данные</span>';
+      own.innerHTML='<span class="variant-number">＋</span><span class="own-label">Свои</span>';
       own.addEventListener('click',()=>{
         $('variantSelect').value='custom';
         $('variantSelect').dispatchEvent(new Event('change'));
@@ -317,7 +317,8 @@
         b.dataset.task=k;
         b.setAttribute('role','option');
         b.innerHTML='<span class="task-choice-number">'+k+'</span>'+
-          '<span class="task-choice-copy"><b>'+esc(taskPickerLabel(n))+'</b><small>'+esc(DATA.tasks[n].short)+'</small></span>';
+          '<span class="task-choice-copy"><b>'+esc(taskPickerLabel(n))+'</b></span>'+
+          '<span class="task-choice-arrow">›</span>';
         b.addEventListener('click',()=>{
           $('taskSelect').value=k;
           $('taskSelect').dispatchEvent(new Event('change'));
@@ -432,12 +433,15 @@
 
   function updateMobileSummary(){
     const node=$('mobileTaskSummary');
-    if(!node) return;
+    const sheet=$('mobileSheetSummary');
     if(!state.variant || !state.task){
-      node.textContent='Выбери вариант и задание';
+      if(node) node.textContent='Выбери вариант и задание';
+      if(sheet) sheet.textContent='вариант и задание';
       return;
     }
-    node.textContent=variantDisplayLabel(state.variant)+' · Задание '+state.task;
+    const compact=variantDisplayNumber(state.variant)+' · '+taskPickerLabel(state.task);
+    if(node) node.textContent=compact;
+    if(sheet) sheet.textContent=compact;
   }
 
   function openMobileSetup(){
