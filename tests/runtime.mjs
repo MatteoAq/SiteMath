@@ -162,7 +162,7 @@ try {
   }
 
   const tabs=[...window.document.querySelectorAll('.step-info-tab')];
-  if (tabs.length!==4) failures.push('step info: expected 4 paged tabs, got '+tabs.length);
+  if (tabs.length!==3) failures.push('step info: expected 3 guidance tabs, got '+tabs.length);
   const why=tabs.find(b=>b.dataset.stepMode==='why');
   if (!why) failures.push('step info: why tab missing');
   else {
