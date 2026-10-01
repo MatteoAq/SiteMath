@@ -38,7 +38,74 @@ window.SITEMATH_DATA = {
     }
   },
   variants: {
-    "10": {
+    "04": {
+      label: "Вариант 04",
+      task1: {
+        A:[20,50,0], B:[40,50,55], C:[20,0,60], D:[60,-30,25], E:[40,50,-30]
+      },
+      task2: { A:[20,50,0], B:[40,30,55] },
+      task3: { A:[40,50,30], B:[20,50,0], C:[60,-30,25] },
+      task4: {
+        statement:"В пл. Σ(ABC) построить горизонталь, фронталь и линию наибольшего ската. Через т. D провести прямую ℓ, пересекающую h. Построить т. E над прямой ℓ.",
+        plane:"ABC", operation:"line_intersects_horizontal", pointRelation:"above_line"
+      },
+      task5: {
+        statement:"Построить точку пересечения прямой ℓ с пл. Σ(a∥b) и определить видимость прямой ℓ относительно пл. Σ.",
+        plane:"a∥b"
+      },
+      task6: {
+        statement:"Построить линию пересечения пл. Σ(ABC) и пл. Θ(h∩f). Через т. M провести прямую ℓ ∥ обеим плоскостям.",
+        planes:["ABC","h∩f"], throughPoint:"M"
+      }
+    },
+    "08": {
+      label: "Вариант 08",
+      task1: {
+        A:[30,60,30], B:[70,-25,-60], C:[40,-50,15], D:[40,0,50], E:[30,10,0]
+      },
+      task2: { A:[10,40,55], B:[70,55,-25] },
+      task3: { A:[30,30,60], B:[70,-25,-60], C:[40,50,50] },
+      task4: {
+        statement:"В пл. Σ(A;a) построить горизонталь, фронталь и линию наибольшего ската. Через т. B провести прямую, параллельную пл. Σ. Построить т. C над прямой.",
+        plane:"A;a", operation:"line_parallel_plane", pointRelation:"above_line"
+      },
+      task5: {
+        statement:"Построить точку пересечения прямой ℓ с пл. Σ(ABC) и определить видимость прямой относительно пл. Σ.",
+        plane:"ABC"
+      },
+      task6: {
+        statement:"Построить линию пересечения пл. Σ(a∥b) и пл. Δ(Δ₁). Через т. K провести прямую ∥ обеим плоскостям.",
+        planes:["a∥b","horizontal_projecting"]
+      }
+    },
+    "04": {
+    task4: {
+      planeType:"ABC",
+      points:{
+        A:{p2:[86,166],p1:[86,224]},
+        B:{p2:[218,128],p1:[218,326]},
+        C:{p2:[321,248],p1:[321,326]},
+        D:{p2:[391,144],p1:[391,278]}
+      },
+      operation:{type:"line_intersects_horizontal",through:"D",resultPoint:"E",relation:"above_line"}
+    }
+  },
+  "08": {
+    task4: {
+      planeType:"line_point",
+      planeLine:"a",
+      planePoint:"A",
+      lines:{
+        a:{p2:[[87,123],[251,213]],p1:[[79,209],[255,268]]}
+      },
+      points:{
+        A:{p2:[148,95],p1:[148,202]},
+        B:{p2:[253,127],p1:[253,283]}
+      },
+      operation:{type:"line_parallel_plane",through:"B",resultPoint:"C",relation:"above_line"}
+    }
+  },
+  "10": {
       label: "Вариант 10",
       task1: {
         A:[50,60,0], B:[10,0,70], C:[60,50,40], D:[60,50,-20], E:[50,-40,-30]
@@ -280,6 +347,51 @@ window.SITEMATH_SCHEMES = {
     }
   }
 };
+
+Object.assign(window.SITEMATH_SCHEMES["04"], {
+  task5:{
+    planeType:"parallel_lines",planeLines:["a","b"],
+    lines:{
+      a:{p2:[[86,73],[319,174]],p1:[[84,241],[291,357]]},
+      b:{p2:[[73,116],[296,211]],p1:[[72,282],[280,389]]},
+      l:{p2:[[88,187],[315,58]],p1:[[78,322],[277,404]]}
+    },givenLine:"l"
+  },
+  task6:{
+    planeA:{type:"ABC",points:{
+      A:{p2:[155,138],p1:[155,258]},
+      B:{p2:[263,72],p1:[263,334]},
+      C:{p2:[365,230],p1:[365,404]}
+    }},
+    planeB:{type:"intersecting_lines",lines:{
+      h:{p2:[[108,217],[378,225]],p1:[[116,368],[363,301]]},
+      f:{p2:[[167,112],[355,221]],p1:[[145,302],[365,305]]}
+    }},
+    pointK:{p2:[112,79],p1:[112,330]},
+    pointLabel:"M"
+  }
+});
+
+Object.assign(window.SITEMATH_SCHEMES["08"], {
+  task5:{
+    planeType:"ABC",
+    points:{
+      A:{p2:[80,115],p1:[82,296]},
+      B:{p2:[140,72],p1:[140,194]},
+      C:{p2:[254,149],p1:[255,252]}
+    },
+    lines:{l:{p2:[[43,166],[282,116]],p1:[[45,252],[286,307]]}},
+    givenLine:"l"
+  },
+  task6:{
+    planeA:{type:"parallel_lines",lines:{
+      a:{p2:[[28,117],[160,70]],p1:[[39,269],[162,181]]},
+      b:{p2:[[42,156],[185,103]],p1:[[92,302],[211,214]]}
+    }},
+    planeB:{type:"horizontal_projecting",projection:"p1",line:[[54,219],[233,309]],name:"Δ"},
+    pointK:{p2:[232,102],p1:[239,282]}
+  }
+});
 
 Object.assign(window.SITEMATH_SCHEMES["10"], {
   task5:{
