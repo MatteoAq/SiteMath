@@ -2127,3 +2127,38 @@ body { color:var(--ui-text); }
   stroke-dasharray:none;
   opacity:.78;
 }
+
+
+/* Drafting helpers must remain visible on screen and on printouts. */
+.construction-line {
+  stroke: #8f8498;
+  stroke-width: .30;
+  opacity: .9;
+}
+@media print {
+  .construction-line {
+    stroke:#777;
+    stroke-width:.24;
+    opacity:1;
+  }
+  .aux-line {
+    stroke:#666;
+    stroke-width:.28;
+  }
+}
+
+/* Fixed-height mobile guidance: titles and text paginate instead of growing or scrolling. */
+@media (max-width:760px) {
+  .explanation-panel > h2 {
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .step-info-page {
+    overflow:hidden;
+  }
+  .step-info-text {
+    overflow:visible;
+  }
+}
