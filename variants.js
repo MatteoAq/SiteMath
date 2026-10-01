@@ -78,6 +78,26 @@ window.SITEMATH_DATA = {
         planes:["a∥b","projecting"]
       }
     },
+    "12": {
+      label: "Вариант 12",
+      task1: {
+        A:[25,-10,40], B:[30,50,25], C:[40,30,-60], D:[50,0,50], E:[60,20,15]
+      },
+      task2: { A:[50,-15,50], B:[20,20,30] },
+      task3: { A:[0,10,50], B:[30,25,30], C:[50,25,60] },
+      task4: {
+        statement:"В пл. Σ(a∩b) построить горизонталь, фронталь и линию наибольшего ската. Через т. D провести прямую ℓ, пересекающую прямую a. Построить т. A за прямой ℓ.",
+        plane:"a∩b", operation:"line_intersects_a", pointRelation:"behind_line"
+      },
+      task5: {
+        statement:"Построить точку пересечения прямой ℓ с пл. Σ(ABC) и определить видимость прямой относительно плоскости.",
+        plane:"ABC"
+      },
+      task6: {
+        statement:"Построить линию пересечения пл. Σ(a∥b) и пл. Θ(h∩f). Через т. K провести прямую ∥ обеим плоскостям.",
+        planes:["a∥b","h∩f"]
+      }
+    },
     "14": {
       label: "Вариант 14",
       task1: {
@@ -187,6 +207,20 @@ window.SITEMATH_SCHEMES = {
       operation:{type:"line_parallel_plane",through:"D",resultPoint:"E",relation:"above_line"}
     }
   },
+  "12": {
+    task4: {
+      planeType:"intersecting_lines",
+      planeLines:["a","b"],
+      lines:{
+        a:{p2:[[610,747],[755,679]],p1:[[594,806],[780,855]]},
+        b:{p2:[[605,678],[765,772]],p1:[[590,760],[754,842]]}
+      },
+      points:{
+        D:{p2:[828,695],p1:[828,841]}
+      },
+      operation:{type:"line_intersects_named",through:"D",target:"a",resultPoint:"A",relation:"behind_line"}
+    }
+  },
   "14": {
     task4: {
       planeType:"line_point",
@@ -287,6 +321,30 @@ Object.assign(window.SITEMATH_SCHEMES["11"], {
     }},
     planeB:{type:"frontal_projecting",projection:"p2",line:[[58,149],[242,149]],name:"Γ"},
     pointK:{p2:[289,116],p1:[295,266]}
+  }
+});
+
+Object.assign(window.SITEMATH_SCHEMES["12"], {
+  task5:{
+    planeType:"ABC",
+    points:{
+      A:{p2:[193,1068],p1:[190,1316]},
+      B:{p2:[341,1016],p1:[341,1231]},
+      C:{p2:[386,1119],p1:[386,1324]}
+    },
+    lines:{l:{p2:[[165,1124],[402,1081]],p1:[[165,1221],[386,1346]]}},
+    givenLine:"l"
+  },
+  task6:{
+    planeA:{type:"parallel_lines",lines:{
+      a:{p2:[[540,1129],[753,1072]],p1:[[537,1258],[779,1311]]},
+      b:{p2:[[539,1171],[769,1112]],p1:[[536,1290],[754,1341]]}
+    }},
+    planeB:{type:"intersecting_lines",lines:{
+      h:{p2:[[787,1162],[938,1166]],p1:[[807,1277],[944,1360]]},
+      f:{p2:[[799,1201],[920,1117]],p1:[[786,1323],[930,1323]]}
+    }},
+    pointK:{p2:[648,1047],p1:[648,1340]}
   }
 });
 
