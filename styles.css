@@ -1818,3 +1818,85 @@ body { color:var(--ui-text); }
     grid-template-columns:repeat(4,minmax(0,1fr));
   }
 }
+
+
+/* Hard clamp for the mobile settings sheet after screenshot audit */
+@media (max-width:760px) {
+  .controls-panel,
+  .controls-panel * {
+    min-width:0;
+  }
+
+  .controls-panel {
+    width:100%;
+    max-width:100%;
+    contain:layout paint;
+  }
+
+  .mobile-sheet-head {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 40px;
+    align-items:center;
+    gap:8px;
+    overflow:hidden;
+  }
+
+  .mobile-sheet-head > div {
+    min-width:0;
+    overflow:hidden;
+  }
+
+  .mobile-sheet-head > div > b,
+  .mobile-sheet-head > div > span {
+    display:block;
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .picker-flow,
+  .choice-block,
+  .variant-chips,
+  .task-choice-grid {
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    overflow:hidden;
+  }
+
+  .choice-heading {
+    grid-template-columns:minmax(0,1fr) minmax(0,auto);
+    overflow:hidden;
+  }
+
+  .choice-heading > b,
+  .choice-summary {
+    min-width:0;
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .variant-chips {
+    grid-template-columns:repeat(5,minmax(0,1fr));
+  }
+
+  .variant-chip {
+    width:100%;
+    min-width:0;
+    max-width:100%;
+  }
+}
+
+@media (max-width:340px) {
+  .variant-chips,
+  .first-run-variants {
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+
+  .choice-summary {
+    max-width:42vw;
+  }
+}
