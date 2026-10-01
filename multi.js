@@ -9,8 +9,8 @@
   const svg = $('drawing');
 
   const state = {
-    variant: '10',
-    task: 1,
+    variant: null,
+    task: null,
     step: 0,
     steps: [],
     geometry: null,
@@ -143,6 +143,97 @@
     return 'Вариант '+variantDisplayNumber(key);
   }
 
+  function validSelection(sel){
+    return !!(sel && (sel.variant==='custom' || DATA.variants[sel.variant]) &&
+      Number.isInteger(Number(sel.task)) && Number(sel.task)>=1 && Number(sel.task)<=6);
+  }
+
+  function loadSelection(){
+    try {
+      const saved=JSON.parse(localStorage.getItem('sitemath-selection')||'null');
+      return validSelection(saved) ? {variant:saved.variant,task:Number(saved.task)} : null;
+    } catch (_) { return null; }
+  }
+
+  function saveSelection(){
+    if(!state.variant || !state.task) return;
+    try {
+      localStorage.setItem('sitemath-selection',JSON.stringify({variant:state.variant,task:state.task}));
+    } catch (_) {}
+  }
+
+  function renderFirstRunPicker(){
+    const root=$('firstRunPicker');
+    if(!root) return;
+    const variants=$('firstRunVariants'),tasks=$('firstRunTasks');
+    variants.innerHTML='';
+    allVariantKeys().forEach(k=>{
+      if(DATA.variants[k].verifiedNumber===false) return;
+      const b=document.createElement('button');
+      b.type='button';
+      b.className='first-run-variant';
+      b.dataset.variant=k;
+      b.textContent=variantDisplayNumber(k);
+      b.addEventListener('click',()=>{
+        state.variant=k;
+        renderFirstRunPicker();
+      });
+      variants.appendChild(b);
+    });
+    const own=document.createElement('button');
+    own.type='button';
+    own.className='first-run-variant';
+    own.dataset.variant='custom';
+    own.textContent='Свои';
+    own.addEventListener('click',()=>{ state.variant='custom'; renderFirstRunPicker(); });
+    variants.appendChild(own);
+
+    tasks.innerHTML='';
+    Object.keys(DATA.tasks).forEach(k=>{
+      const n=Number(k),b=document.createElement('button');
+      b.type='button';
+      b.className='first-run-task';
+      b.dataset.task=k;
+      b.innerHTML='<span>'+k+'</span><b>'+esc(taskPickerLabel(n))+'</b>';
+      b.addEventListener('click',()=>{ state.task=n; renderFirstRunPicker(); });
+      tasks.appendChild(b);
+    });
+
+    variants.querySelectorAll('.first-run-variant').forEach(b=>{
+      const on=b.dataset.variant===state.variant;
+      b.classList.toggle('is-selected',on);
+      b.setAttribute('aria-selected',on?'true':'false');
+    });
+    tasks.querySelectorAll('.first-run-task').forEach(b=>{
+      const on=Number(b.dataset.task)===state.task;
+      b.classList.toggle('is-selected',on);
+      b.setAttribute('aria-selected',on?'true':'false');
+    });
+
+    $('firstRunVariantSummary').textContent=state.variant ? variantDisplayLabel(state.variant) : 'не выбран';
+    $('firstRunTaskSummary').textContent=state.task ? '№'+state.task+' · '+taskPickerLabel(state.task) : 'не выбрано';
+    $('firstRunStart').disabled=!(state.variant&&state.task);
+  }
+
+  function showFirstRunPicker(){
+    renderFirstRunPicker();
+    $('firstRunPicker').hidden=false;
+    document.body.classList.add('first-run-open');
+  }
+
+  function finishFirstRun(){
+    if(!state.variant||!state.task) return;
+    $('variantSelect').value=state.variant;
+    $('taskSelect').value=String(state.task);
+    saveSelection();
+    $('firstRunPicker').hidden=true;
+    document.body.classList.remove('first-run-open');
+    renderInputs();
+    rebuild(true);
+    setDrawingZoom('fit');
+    updateMobileSummary();
+  }
+
   function initSelectors(){
     const vs=$('variantSelect');
     vs.innerHTML='';
@@ -251,11 +342,9 @@
     const vs=$('variantChoiceSummary');
     const ts=$('taskChoiceSummary');
     if(vs){
-      vs.textContent=state.variant==='custom'
-        ? 'Свои данные'
-        : variantDisplayLabel(state.variant);
+      vs.textContent=state.variant ? variantDisplayLabel(state.variant) : 'не выбран';
     }
-    if(ts) ts.textContent='№'+state.task+' · '+taskPickerLabel(state.task);
+    if(ts) ts.textContent=state.task ? '№'+state.task+' · '+taskPickerLabel(state.task) : 'не выбрано';
   }
 
   function currentVariant(){
@@ -342,11 +431,13 @@
   }
 
   function updateMobileSummary(){
-    const label=state.variant==='custom'
-      ? 'Свои данные'
-      : variantDisplayLabel(state.variant);
     const node=$('mobileTaskSummary');
-    if(node) node.textContent=label+' · Задание '+state.task;
+    if(!node) return;
+    if(!state.variant || !state.task){
+      node.textContent='Выбери вариант и задание';
+      return;
+    }
+    node.textContent=variantDisplayLabel(state.variant)+' · Задание '+state.task;
   }
 
   function openMobileSetup(){
@@ -2367,33 +2458,66 @@
     syncPlayButtons();
   }
 
+  function drawingZoom(){
+    return state.screenZoom===null ? currentFitZoom() : state.screenZoom;
+  }
+
   function currentFitZoom(){
     const g=state.geometry;
     const wrap=document.querySelector('.paper-wrap');
     if(!g || !wrap) return 1;
     const cssMm=96/25.4;
-    const available=Math.max(220,wrap.clientWidth-32);
-    return Math.min(1,available/(g.width*cssMm));
+    const cs=getComputedStyle(wrap);
+    const px=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0);
+    const py=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+    const availableW=Math.max(120,(wrap.clientWidth||window.innerWidth||360)-px);
+    const availableH=Math.max(160,(wrap.clientHeight||window.innerHeight||640)-py);
+    const fitW=availableW/(g.width*cssMm);
+    const fitH=availableH/(g.height*cssMm);
+    return Math.max(.06,Math.min(1,fitW,fitH));
   }
 
   function applyDrawingZoom(){
     const g=state.geometry;
     if(!g) return;
     const cssMm=96/25.4;
-    const z=state.screenZoom===null?currentFitZoom():state.screenZoom;
-    svg.style.width=Math.max(120,g.width*cssMm*z)+'px';
-    svg.style.height='auto';
+    const z=drawingZoom();
+    svg.style.width=(g.width*cssMm*z)+'px';
+    svg.style.height=(g.height*cssMm*z)+'px';
     $('zoomLabel').textContent=Math.round(z*100)+'%';
   }
 
-  function setDrawingZoom(mode){
-    if(mode==='fit') state.screenZoom=null;
-    else if(mode==='100') state.screenZoom=1;
-    else {
-      const current=state.screenZoom===null?currentFitZoom():state.screenZoom;
-      state.screenZoom=Math.max(.25,Math.min(4,current*(mode==='in'?1.25:.8)));
-    }
+  function setZoomAround(next,anchor){
+    const wrap=document.querySelector('.paper-wrap');
+    if(!wrap||!state.geometry) return;
+    const prev=Math.max(.001,drawingZoom());
+    const cs=getComputedStyle(wrap);
+    const padX=parseFloat(cs.paddingLeft)||0;
+    const padY=parseFloat(cs.paddingTop)||0;
+    const ax=anchor&&Number.isFinite(anchor.x)?anchor.x:wrap.clientWidth/2;
+    const ay=anchor&&Number.isFinite(anchor.y)?anchor.y:wrap.clientHeight/2;
+    const contentX=(wrap.scrollLeft+ax-padX)/prev;
+    const contentY=(wrap.scrollTop+ay-padY)/prev;
+    state.screenZoom=Math.max(.06,Math.min(6,next));
     applyDrawingZoom();
+    wrap.scrollLeft=Math.max(0,contentX*state.screenZoom-ax+padX);
+    wrap.scrollTop=Math.max(0,contentY*state.screenZoom-ay+padY);
+  }
+
+  function setDrawingZoom(mode){
+    const wrap=document.querySelector('.paper-wrap');
+    if(mode==='fit'){
+      state.screenZoom=null;
+      applyDrawingZoom();
+      if(wrap){ wrap.scrollLeft=0; wrap.scrollTop=0; }
+      return;
+    }
+    if(mode==='100'){
+      setZoomAround(1);
+      return;
+    }
+    const current=drawingZoom();
+    setZoomAround(current*(mode==='in'?1.2:1/1.2));
   }
 
   function setupCanvasGestures(){
@@ -2406,22 +2530,26 @@
       const r=wrap.getBoundingClientRect();
       return {x:ev.clientX-r.left,y:ev.clientY-r.top};
     };
-    const distance=pts=>{
-      const a=pts[0],b=pts[1];
-      return Math.hypot(a.x-b.x,a.y-b.y);
-    };
+    const values=()=>[...pointers.values()];
+    const distance=pts=>Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);
     const center=pts=>({x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2});
 
     wrap.addEventListener('pointerdown',ev=>{
       if(ev.pointerType!=='touch')return;
       wrap.setPointerCapture&&wrap.setPointerCapture(ev.pointerId);
       pointers.set(ev.pointerId,pointOf(ev));
-      const pts=[...pointers.values()];
+      const pts=values();
       if(pts.length===1){
         gesture={type:'pan',start:pts[0],left:wrap.scrollLeft,top:wrap.scrollTop};
       }else if(pts.length===2){
-        const z=state.screenZoom===null?currentFitZoom():state.screenZoom;
-        gesture={type:'pinch',distance:distance(pts),zoom:z,center:center(pts),left:wrap.scrollLeft,top:wrap.scrollTop};
+        gesture={
+          type:'pinch',
+          distance:Math.max(10,distance(pts)),
+          zoom:drawingZoom(),
+          center:center(pts),
+          left:wrap.scrollLeft,
+          top:wrap.scrollTop
+        };
       }
       ev.preventDefault();
     },{passive:false});
@@ -2429,23 +2557,24 @@
     wrap.addEventListener('pointermove',ev=>{
       if(ev.pointerType!=='touch'||!pointers.has(ev.pointerId))return;
       pointers.set(ev.pointerId,pointOf(ev));
-      const pts=[...pointers.values()];
+      const pts=values();
       if(pts.length===1&&gesture&&gesture.type==='pan'){
         wrap.scrollLeft=gesture.left-(pts[0].x-gesture.start.x);
         wrap.scrollTop=gesture.top-(pts[0].y-gesture.start.y);
       }else if(pts.length===2){
         if(!gesture||gesture.type!=='pinch'){
-          const z=state.screenZoom===null?currentFitZoom():state.screenZoom;
-          gesture={type:'pinch',distance:distance(pts),zoom:z,center:center(pts),left:wrap.scrollLeft,top:wrap.scrollTop};
+          gesture={type:'pinch',distance:Math.max(10,distance(pts)),zoom:drawingZoom(),center:center(pts),left:wrap.scrollLeft,top:wrap.scrollTop};
         }
-        const d=Math.max(10,distance(pts));
-        const next=Math.max(.25,Math.min(4,gesture.zoom*d/Math.max(10,gesture.distance)));
-        const ratio=next/gesture.zoom;
+        const next=Math.max(.06,Math.min(6,gesture.zoom*distance(pts)/gesture.distance));
+        const cs=getComputedStyle(wrap);
+        const padX=parseFloat(cs.paddingLeft)||0,padY=parseFloat(cs.paddingTop)||0;
+        const anchorContentX=(gesture.left+gesture.center.x-padX)/gesture.zoom;
+        const anchorContentY=(gesture.top+gesture.center.y-padY)/gesture.zoom;
         state.screenZoom=next;
         applyDrawingZoom();
-        const c=center(pts);
-        wrap.scrollLeft=(gesture.left+gesture.center.x)*ratio-c.x;
-        wrap.scrollTop=(gesture.top+gesture.center.y)*ratio-c.y;
+        const now=center(pts);
+        wrap.scrollLeft=Math.max(0,anchorContentX*next-now.x+padX);
+        wrap.scrollTop=Math.max(0,anchorContentY*next-now.y+padY);
       }
       ev.preventDefault();
     },{passive:false});
@@ -2453,7 +2582,7 @@
     const release=ev=>{
       if(ev.pointerType!=='touch')return;
       pointers.delete(ev.pointerId);
-      const pts=[...pointers.values()];
+      const pts=values();
       if(pts.length===1){
         gesture={type:'pan',start:pts[0],left:wrap.scrollLeft,top:wrap.scrollTop};
       }else if(!pts.length){
@@ -2562,12 +2691,16 @@
   }
 
   $('variantSelect').addEventListener('change',e=>{
-    state.variant=e.target.value;
-    resetCurrent();
+    state.variant=e.target.value||null;
+    syncChoicePickers();
+    updateMobileSummary();
+    if(state.variant&&state.task){ saveSelection(); resetCurrent(); }
   });
   $('taskSelect').addEventListener('change',e=>{
-    state.task=Number(e.target.value);
-    resetCurrent();
+    state.task=e.target.value?Number(e.target.value):null;
+    syncChoicePickers();
+    updateMobileSummary();
+    if(state.variant&&state.task){ saveSelection(); resetCurrent(); }
   });
   $('resetBtn').addEventListener('click',resetCurrent);
   $('buildBtn').addEventListener('click',()=>{ rebuild(true); closeMobileSetup(); setDrawingZoom('fit'); });
@@ -2589,15 +2722,27 @@
   $('mobilePrevBtn').addEventListener('click',()=>moveTo(state.step-1));
   $('mobileNextBtn').addEventListener('click',()=>moveTo(state.step+1));
   $('mobilePlayBtn').addEventListener('click',toggleAuto);
+  $('firstRunStart').addEventListener('click',finishFirstRun);
   window.addEventListener('resize',()=>{ if(state.screenZoom===null) applyDrawingZoom(); });
   $('kSlider').addEventListener('input',()=>{
     $('kOutput').textContent=$('kSlider').value+'%';
     if(state.task===3) rebuild(false);
   });
 
+  const remembered=loadSelection();
+  if(remembered){
+    state.variant=remembered.variant;
+    state.task=remembered.task;
+  }
   initSelectors();
-  renderInputs();
-  rebuild(true);
   setupCanvasGestures();
   updateMobileSummary();
+  if(remembered){
+    renderInputs();
+    rebuild(true);
+    setDrawingZoom('fit');
+  } else {
+    syncChoicePickers();
+    showFirstRunPicker();
+  }
 })();
