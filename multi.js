@@ -1675,7 +1675,8 @@
     const p2=lineIntersection2(toSeg(A.p2)[0],toSeg(A.p2)[1],toSeg(B.p2)[0],toSeg(B.p2)[1]);
     const p1=lineIntersection2(toSeg(A.p1)[0],toSeg(A.p1)[1],toSeg(B.p1)[0],toSeg(B.p1)[1]);
     if(!p1 || !p2) return;
-    const q2={x:p2.x,y:p2.y}, q1={x:p1.x,y:p1.y};
+    const x=(p1.x+p2.x)/2;
+    const q2={x:x,y:p2.y}, q1={x:x,y:p1.y};
     out.push(line(step,q2,q1,'construction-line'));
     out.push(point(step,q2,'','construction-dot'));
     out.push(point(step,q1,'','construction-dot'));
