@@ -2041,3 +2041,10 @@ body { color:var(--ui-text); }
     font-size:12px;
   }
 }
+
+@media (max-width:390px) {
+  .step-info-tab {
+    font-size:9.7px;
+    letter-spacing:-.01em;
+  }
+}
