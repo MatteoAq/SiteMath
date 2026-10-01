@@ -27,6 +27,29 @@ const variants = [...$('variantSelect').options]
 const failures = [];
 
 if (!onlyVariant && !onlyTask) {
+  try {
+    if ($('firstRunPicker').hidden) failures.push('first run: chooser is not shown with empty storage');
+    if ($('variantSelect').value==='10' && $('taskSelect').value==='1') failures.push('first run: silently defaulted to variant 10 task 1');
+    const v13=window.document.querySelector('.first-run-variant[data-variant="13"]');
+    const t2=window.document.querySelector('.first-run-task[data-task="2"]');
+    if(!v13 || !t2) failures.push('first run: variant/task buttons missing');
+    else {
+      v13.click(); t2.click();
+      if ($('firstRunStart').disabled) failures.push('first run: start remains disabled after both choices');
+      $('firstRunStart').click();
+      if (!$('firstRunPicker').hidden) failures.push('first run: chooser did not close');
+      if ($('variantSelect').value!=='13' || $('taskSelect').value!=='2') failures.push('first run: selected values not applied');
+    }
+  } catch(e) {
+    failures.push('first run chooser: '+e.stack);
+  }
+
+  const css=fs.readFileSync('styles.css','utf8');
+  if(!css.includes('box-sizing:border-box')) failures.push('layout invariant: border-box missing');
+  if(!css.includes('max-width:100vw')) failures.push('layout invariant: viewport max-width missing');
+  if(!css.includes('grid-template-columns:40px minmax(68px,1fr) 40px')) failures.push('layout invariant: mobile zoom controls are not constrained');
+
+
   for (const id of ['zoomOutBtn','zoomFitBtn','zoom100Btn','zoomInBtn','zoomLabel','mobileSetupBtn','mobileSetupClose','mobileBackdrop','stepSheetToggle','mobilePrevBtn','mobilePlayBtn','mobileNextBtn','mobileTaskSummary']) {
     if (!$(id)) failures.push('mobile control missing: '+id);
   }
