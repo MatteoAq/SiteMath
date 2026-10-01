@@ -932,7 +932,7 @@ Object.assign(window.SITEMATH_SCHEMES, {
       }},
       planeB:{type:"parallel_lines",lines:{
         h:{p2:[[350,145],[565,145]],p1:[[350,300],[565,250]]},
-        hp:{p2:[[350,185],[565,185]],p1:[[350,345],[565,295]]}
+        "h′":{p2:[[350,185],[565,185]],p1:[[350,345],[565,295]]}
       }},
       pointK:{p2:[430,85],p1:[430,385]},
       sourceVerified:true
