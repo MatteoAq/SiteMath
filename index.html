@@ -20,21 +20,31 @@
 
   <section id="firstRunPicker" class="first-run-picker" hidden aria-modal="true" role="dialog" aria-labelledby="firstRunTitle">
     <div class="first-run-card">
-      <div class="first-run-brand">SiteMath</div>
-      <h1 id="firstRunTitle">Что будем решать?</h1>
-      <p>Сначала выбери свой вариант, затем номер задания. Сайт не подставляет вариант автоматически.</p>
+      <div class="first-run-top">
+        <div class="first-run-logo">S</div>
+        <div>
+          <div class="first-run-brand">SiteMath</div>
+          <h1 id="firstRunTitle">Выбери задачу</h1>
+        </div>
+      </div>
 
       <div class="first-run-section">
-        <div class="first-run-heading"><span>1</span><b>Вариант</b><em id="firstRunVariantSummary">не выбран</em></div>
+        <div class="first-run-heading">
+          <b>Вариант</b>
+          <em id="firstRunVariantSummary">не выбран</em>
+        </div>
         <div id="firstRunVariants" class="first-run-variants" role="listbox" aria-label="Выбор варианта"></div>
       </div>
 
       <div class="first-run-section">
-        <div class="first-run-heading"><span>2</span><b>Задание</b><em id="firstRunTaskSummary">не выбрано</em></div>
+        <div class="first-run-heading">
+          <b>Задание</b>
+          <em id="firstRunTaskSummary">не выбрано</em>
+        </div>
         <div id="firstRunTasks" class="first-run-tasks" role="listbox" aria-label="Выбор задания"></div>
       </div>
 
-      <button id="firstRunStart" class="first-run-start" type="button" disabled>Открыть чертёж</button>
+      <button id="firstRunStart" class="first-run-start" type="button" disabled>Продолжить</button>
     </div>
   </section>
 
@@ -51,32 +61,24 @@
     <aside id="controlsPanel" class="panel controls-panel" aria-label="Параметры задачи">
       <div class="mobile-sheet-head">
         <div>
-          <b>Параметры задачи</b>
-          <span>вариант, задание и исходные данные</span>
+          <b>Выбор задачи</b>
+          <span id="mobileSheetSummary">вариант и задание</span>
         </div>
         <button id="mobileSetupClose" class="mobile-icon-btn" type="button" aria-label="Закрыть параметры">×</button>
       </div>
       <div class="mobile-sheet-handle" aria-hidden="true"></div>
-      <section class="picker-card picker-flow">
-        <div class="section-kicker">Что решаем</div>
-
-        <div class="choice-block">
+      <section class="picker-flow">
+        <div class="choice-block variant-choice-block">
           <div class="choice-heading">
-            <div>
-              <span class="choice-step">1</span>
-              <b>Выбери вариант</b>
-            </div>
+            <b>Вариант</b>
             <span id="variantChoiceSummary" class="choice-summary">не выбран</span>
           </div>
           <div id="variantChips" class="variant-chips" role="listbox" aria-label="Варианты"></div>
         </div>
 
-        <div class="choice-block">
+        <div class="choice-block task-choice-block">
           <div class="choice-heading">
-            <div>
-              <span class="choice-step">2</span>
-              <b>Выбери задание</b>
-            </div>
+            <b>Задание</b>
             <span id="taskChoiceSummary" class="choice-summary">не выбрано</span>
           </div>
           <div id="taskCards" class="task-choice-grid" role="listbox" aria-label="Задания"></div>
@@ -87,14 +89,16 @@
           <select id="taskSelect" tabindex="-1"></select>
         </div>
 
-        <p id="variantNote" class="hint"></p>
+        <p id="variantNote" class="picker-note hint"></p>
       </section>
 
-      <section class="task-card">
-        <div class="section-kicker">Условие</div>
-        <h2 id="taskName"></h2>
+      <details class="task-card task-details">
+        <summary>
+          <span>Условие</span>
+          <b id="taskName"></b>
+        </summary>
         <p id="taskStatement"></p>
-      </section>
+      </details>
 
       <section id="dataEditor">
         <div class="section-head">
@@ -119,18 +123,19 @@
         <p class="hint">В задании №3 точка пересечения ℓ с AB не фиксирована. Сайт выбирает K внутри отрезка и отдельно объясняет, почему такой выбор допустим.</p>
       </section>
 
-      <section class="scale-card">
+      <details class="scale-card compact-details">
+        <summary>Параметры чертежа</summary>
         <div class="metric-row"><span>Масштаб</span><b id="scaleValue">1:1</b></div>
         <div class="metric-row"><span>1 клетка</span><b id="gridValue">5 мм = 0,5 см</b></div>
-        <div class="metric-row"><span>Поле чертежа</span><b id="sheetSize">авто</b></div>
+        <div class="metric-row"><span>Поле</span><b id="sheetSize">авто</b></div>
         <div class="metric-row"><span>Режим</span><b id="solverMode">расчёт</b></div>
-      </section>
+      </details>
 
       <div id="validation" class="validation" role="alert" hidden></div>
 
-      <div class="primary-actions">
-        <button id="buildBtn" class="primary" type="button">Построить заново</button>
-        <button id="printBtn" class="ghost" type="button">Печать / PDF</button>
+      <div class="primary-actions utility-actions">
+        <button id="buildBtn" class="ghost" type="button">Пересчитать</button>
+        <button id="printBtn" class="ghost" type="button">PDF</button>
       </div>
     </aside>
 
