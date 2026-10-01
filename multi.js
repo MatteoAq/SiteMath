@@ -449,10 +449,10 @@
           '<div class="diagram-info">' +
           '<p><b>Тип данных:</b> графическая схема на листе, а не координаты.</p>' +
           (knownScheme
-            ? '<p><b>Статус:</b> исходный рисунок этого присланного варианта оцифрован. Сайт сохраняет его реальные наклоны и строит решение поверх него.</p>'
-            : '<p><b>Статус:</b> точного исходного рисунка пока нет. Сайт не подставляет выдуманную геометрию.</p>') +
+            ? '<p><b>Статус:</b> для варианта сохранена индивидуальная схема с фото. Решение строится поверх неё; исходные точки и линии не заменяются универсальным шаблоном.</p>'
+            : '<p><b>Статус:</b> исходного рисунка пока нет. Сайт не подставляет выдуманную геометрию.</p>') +
           '</div>';
-        $('solverMode').textContent=knownScheme?'точная схема':'нет схемы';
+        $('solverMode').textContent=knownScheme?'схема варианта':'нет схемы';
         $('taskStatement').textContent = info.statement || DATA.tasks[task].short;
       }
     }
@@ -1817,94 +1817,141 @@
     },starterEntitiesFromScheme(scheme,i));
 
     const base=plane.P;
+    const refs=planeReferenceLines(scheme);
+    const hCut=sourceAnchoredLevelLine(refs,'p2');
+    const fCut=sourceAnchoredLevelLine(refs,'p1');
+
     let dh=cross3(plane.n,{x:0,y:0,z:1});
     if(norm3(dh)<EPS) dh={x:1,y:0,z:0};
     let df=cross3(plane.n,{x:0,y:1,z:0});
     if(norm3(df)<EPS) df={x:1,y:0,z:0};
+
+    let h3=hCut?hCut.p3:line3Extent(base,dh,105);
+    let f3=fCut?fCut.p3:line3Extent(base,df,105);
+    if(hCut) dh=sub3(h3[1],h3[0]);
+    if(fCut) df=sub3(f3[1],f3[0]);
+
     let ds=cross3(plane.n,dh);
     if(norm3(ds)<EPS) ds=cross3(plane.n,df);
+    const sBase=mul3(add3(h3[0],h3[1]),.5);
+    const s3=line3Extent(sBase,ds,90);
 
-    const h3=line3Extent(base,dh,105), f3=line3Extent(base,df,105), s3=line3Extent(base,ds,90);
     const h0=project3(h3[0]),h1=project3(h3[1]);
     const f0=project3(f3[0]),f1=project3(f3[1]);
     const s0=project3(s3[0]),s1=project3(s3[1]);
 
+    const auxRef=refs.find(ref=>ref.auxiliary);
+    if(auxRef){
+      i=steps.length;
+      push({
+        title:'Задай вторую вспомогательную прямую плоскости',
+        action:'Плоскость задана точкой и прямой. Возьми точку T на заданной прямой и соедини T с отдельной заданной точкой плоскости. Полученная g тоже лежит в плоскости.',
+        why:'Для последующих построений нужны две опорные прямые одной плоскости. g не является новым исходным объектом – это вспомогательная линия, построенная из заданных данных.',
+        measure:['T₁/T₂ – одна линия связи','g проходит через заданную точку и T'],
+        check:'T лежит на исходной прямой в обеих проекциях.'
+      },auxiliaryReferenceEntities(auxRef,i));
+    }
+
     i=steps.length;
-    push({
-      title:'Построй горизонталь h – сначала h₂',
-      action:'Через выбранную точку плоскости проведи фронтальную проекцию h₂ параллельно горизонтальному направлению листа.',
-      why:'У горизонтали z постоянно. Поэтому её фронтальная проекция h₂ параллельна оси x₁₂. Вторая точка горизонтали определяется принадлежностью плоскости.',
-      measure:['h₂ – горизонтальная линия','z = const'],
-      check:'Обе выбранные точки h принадлежат плоскости Σ.'
-    },[
+    const hStep=hCut?[
+      line(i,hCut.primary[0],hCut.primary[1],'answer-line'),
+      point(i,hCut.primary[0],'1₂','answer-dot'),
+      point(i,hCut.primary[1],'2₂','answer-dot'),
+      textEntity(i,hCut.primary[1],'h₂','svg-label')
+    ]:[
       line(i,h0.p2,h1.p2,'answer-line'),
+      point(i,h0.p2,'1₂','answer-dot'),point(i,h1.p2,'2₂','answer-dot'),
       textEntity(i,h1.p2,'h₂','svg-label')
-    ],{kind:'line',a:h0.p2,b:h1.p2});
+    ];
+    push({
+      title:'Найди две точки горизонтали h₂',
+      action:'Проведи h₂ параллельно x₁₂ и отметь точки 1₂ и 2₂ там, где она пересекает две опорные линии плоскости.',
+      why:'У горизонтали z постоянно, поэтому h₂ горизонтальна. Точки 1 и 2 берутся не произвольно: каждая принадлежит конкретной опорной линии исходной плоскости.',
+      measure:['h₂ ∥ x₁₂','1₂ и 2₂ лежат на опорных линиях плоскости'],
+      check:'На этом шаге видны места, откуда будут опущены линии связи.'
+    },hStep,{kind:'line',a:hCut?hCut.primary[0]:h0.p2,b:hCut?hCut.primary[1]:h1.p2});
 
     i=steps.length;
+    const hPrimary=hCut?hCut.primary:[h0.p2,h1.p2];
+    const hPaired=hCut?hCut.paired:[h0.p1,h1.p1];
     push({
-      title:'Дострой горизонтальную проекцию h₁',
-      action:'Перенеси две точки h₂ линиями связи на соответствующие линии плоскости и соедини полученные точки – это h₁.',
-      why:'Обе проекции должны описывать одну и ту же горизонталь, лежащую в Σ.',
-      measure:['Проекторы между h₂ и h₁ проходят по одной координате x.'],
-      check:'h₁ лежит в проекции плоскости, а h₂ остаётся горизонтальной.'
+      title:'Перенеси 1₂ и 2₂ на Π₁ и получи h₁',
+      action:'Из 1₂ и 2₂ проведи линии связи до одноимённых горизонтальных проекций тех же опорных линий. Получи 1₁ и 2₁ и соедини их.',
+      why:'Так h₁ получается из тех же пространственных точек 1 и 2, а не рисуется отдельной абстрактной полосой.',
+      measure:['1₂↔1₁ – одна линия связи','2₂↔2₁ – одна линия связи'],
+      check:'1₁/2₁ принадлежат соответствующим исходным линиям плоскости.'
     },[
-      line(i,h0.p1,h1.p1,'answer-line'),
-      textEntity(i,h1.p1,'h₁','svg-label'),
-      line(i,h0.p2,h0.p1,'construction-line'),
-      line(i,h1.p2,h1.p1,'construction-line')
-    ],{kind:'line',a:h0.p1,b:h1.p1});
+      line(i,hPaired[0],hPaired[1],'answer-line'),
+      textEntity(i,hPaired[1],'h₁','svg-label'),
+      line(i,hPrimary[0],hPaired[0],'construction-line'),
+      line(i,hPrimary[1],hPaired[1],'construction-line'),
+      point(i,hPaired[0],'1₁','answer-dot'),point(i,hPaired[1],'2₁','answer-dot')
+    ],{kind:'line',a:hPaired[0],b:hPaired[1]});
 
     i=steps.length;
-    push({
-      title:'Построй фронталь f – сначала f₁',
-      action:'Через точку плоскости проведи горизонтальную проекцию f₁ параллельно x₁₂, затем найди вторую точку по принадлежности плоскости.',
-      why:'У фронтали y постоянно. Поэтому на Π₁ её проекция f₁ параллельна x₁₂.',
-      measure:['f₁ – горизонтальная линия','y = const'],
-      check:'f₁ действительно проходит через две точки, принадлежащие Σ.'
-    },[
+    const fStep=fCut?[
+      line(i,fCut.primary[0],fCut.primary[1],'answer-line'),
+      point(i,fCut.primary[0],'3₁','answer-dot'),
+      point(i,fCut.primary[1],'4₁','answer-dot'),
+      textEntity(i,fCut.primary[1],'f₁','svg-label')
+    ]:[
       line(i,f0.p1,f1.p1,'answer-line'),
+      point(i,f0.p1,'3₁','answer-dot'),point(i,f1.p1,'4₁','answer-dot'),
       textEntity(i,f1.p1,'f₁','svg-label')
-    ],{kind:'line',a:f0.p1,b:f1.p1});
-
-    i=steps.length;
+    ];
     push({
-      title:'Дострой фронтальную проекцию f₂',
-      action:'Перенеси точки f₁ линиями связи на Π₂ и соедини их.',
-      why:'f₂ вместе с f₁ задаёт пространственную фронталь плоскости.',
-      measure:['Одноимённые точки f₁/f₂ имеют общий x.'],
-      check:'f₂ принадлежит плоскости Σ.'
-    },[
-      line(i,f0.p2,f1.p2,'answer-line'),
-      textEntity(i,f1.p2,'f₂','svg-label'),
-      line(i,f0.p1,f0.p2,'construction-line'),
-      line(i,f1.p1,f1.p2,'construction-line')
-    ],{kind:'line',a:f0.p2,b:f1.p2});
+      title:'Найди две точки фронтали f₁',
+      action:'Проведи f₁ параллельно x₁₂ и отметь 3₁ и 4₁ на пересечениях с двумя опорными линиями плоскости.',
+      why:'У фронтали y постоянно, поэтому f₁ горизонтальна. Обе точки привязаны к исходной геометрии варианта.',
+      measure:['f₁ ∥ x₁₂','3₁ и 4₁ лежат на опорных линиях плоскости'],
+      check:'Перед переносом наверх обе точки найдены именно на исходных элементах.'
+    },fStep,{kind:'line',a:fCut?fCut.primary[0]:f0.p1,b:fCut?fCut.primary[1]:f1.p1});
 
     i=steps.length;
+    const fPrimary=fCut?fCut.primary:[f0.p1,f1.p1];
+    const fPaired=fCut?fCut.paired:[f0.p2,f1.p2];
+    push({
+      title:'Перенеси 3₁ и 4₁ на Π₂ и получи f₂',
+      action:'Из 3₁ и 4₁ проведи линии связи до соответствующих фронтальных проекций исходных опорных линий. Соедини 3₂ и 4₂.',
+      why:'f₁ и f₂ теперь построены через одни и те же две пространственные точки 3 и 4.',
+      measure:['3₁↔3₂ – одна линия связи','4₁↔4₂ – одна линия связи'],
+      check:'3₂/4₂ принадлежат тем же исходным объектам, что и 3₁/4₁.'
+    },[
+      line(i,fPaired[0],fPaired[1],'answer-line'),
+      textEntity(i,fPaired[1],'f₂','svg-label'),
+      line(i,fPrimary[0],fPaired[0],'construction-line'),
+      line(i,fPrimary[1],fPaired[1],'construction-line'),
+      point(i,fPaired[0],'3₂','answer-dot'),point(i,fPaired[1],'4₂','answer-dot')
+    ],{kind:'line',a:fPaired[0],b:fPaired[1]});
+
+    i=steps.length;
+    const sCross=project3(sBase);
     push({
       title:'Построй линию наибольшего ската s₁',
-      action:'На Π₁ через точку плоскости проведи s₁ перпендикулярно горизонтали h₁.',
-      why:'Линия наибольшего ската плоскости к Π₁ перпендикулярна её горизонталям. Это ключевое графическое свойство, поэтому угол строится как 90°, а не измеряется транспортиром.',
+      action:'Через точку S₁ на уже построенной h₁ проведи s₁ перпендикулярно h₁.',
+      why:'Линия наибольшего ската плоскости к Π₁ перпендикулярна её горизонтали. Поэтому начало построения явно привязано к h, а не к произвольной точке поля.',
       measure:['s₁ ⟂ h₁','Угол = 90°'],
-      check:'Пересечение s₁ и h₁ образует прямой угол.'
+      check:'S₁ лежит на h₁, а s₁ пересекает h₁ под прямым углом.'
     },[
       line(i,s0.p1,s1.p1,'answer-line'),
+      point(i,sCross.p1,'S₁','answer-dot'),
       textEntity(i,s1.p1,'s₁','svg-label')
     ],{kind:'line',a:s0.p1,b:s1.p1});
 
     i=steps.length;
     push({
       title:'Дострой s₂ по линиям связи',
-      action:'Возьми две точки s₁, найди их вторые проекции по принадлежности плоскости и соедини – получишь s₂.',
-      why:'Перпендикулярность нужна только на горизонтальной проекции; фронтальная проекция определяется уже пространственным положением линии в Σ.',
-      measure:['s₂ не обязана быть перпендикулярна h₂.'],
-      check:'s₁/s₂ задают одну линию, целиком лежащую в Σ.'
+      action:'Возьми две точки на s₁, перенеси их линиями связи на Π₂ по принадлежности плоскости и соедини полученные проекции.',
+      why:'Тонкие проекторы показывают, откуда возникает s₂. Она не должна появляться на листе как независимая готовая линия.',
+      measure:['Одноимённые точки s₁/s₂ имеют общий x.'],
+      check:'s₁/s₂ задают одну пространственную линию плоскости.'
     },[
       line(i,s0.p2,s1.p2,'answer-line'),
       textEntity(i,s1.p2,'s₂','svg-label'),
       line(i,s0.p1,s0.p2,'construction-line'),
-      line(i,s1.p1,s1.p2,'construction-line')
+      line(i,s1.p1,s1.p2,'construction-line'),
+      point(i,sCross.p2,'S₂','answer-dot'),
+      line(i,sCross.p1,sCross.p2,'construction-line')
     ],{kind:'line',a:s0.p2,b:s1.p2});
 
     const op=scheme.operation||{};
@@ -2151,8 +2198,86 @@
         {name:'AC',rec:abcLineRec(scheme,'A','C')}
       ];
     }
+    if(scheme.planeType==='line_point'){
+      const lineName=scheme.planeLine || Object.keys(scheme.lines||{})[0];
+      const pointName=scheme.planePoint || Object.keys(scheme.points||{})[0];
+      const source=scheme.lines && scheme.lines[lineName];
+      const pointRec=scheme.points && scheme.points[pointName];
+      if(!source || !pointRec) return source?[{name:lineName,rec:source}]:[];
+      const A=normalizedPointRec(pointRec);
+      const xs=[source.p1[0][0],source.p1[1][0],source.p2[0][0],source.p2[1][0]];
+      const x=xs.reduce((sum,v)=>sum+v,0)/xs.length;
+      const T={p1:[x,lineY(source.p1,x)],p2:[x,lineY(source.p2,x)]};
+      const g={p1:[A.p1,T.p1],p2:[A.p2,T.p2]};
+      return [
+        {name:lineName,rec:source},
+        {name:'g',rec:g,auxiliary:true,anchor:T,throughPoint:A,throughName:pointName}
+      ];
+    }
     const names=scheme.planeLines || Object.keys(scheme.lines||{}).filter(n=>n!==scheme.givenLine).slice(0,2);
     return names.slice(0,2).map(name=>({name:name,rec:scheme.lines[name]}));
+  }
+
+  function lineXAtY(seg,y){
+    const a={x:seg[0][0],y:seg[0][1]},b={x:seg[1][0],y:seg[1][1]};
+    if(Math.abs(b.y-a.y)<EPS) return null;
+    return a.x+(b.x-a.x)*(y-a.y)/(b.y-a.y);
+  }
+
+  function chooseLevelCut(refs,proj){
+    if(!refs || refs.length<2 || !refs[0].rec || !refs[1].rec) return null;
+    const segs=refs.slice(0,2).map(ref=>ref.rec[proj]);
+    const ys=segs.flat().map(p=>+p[1]).filter(Number.isFinite);
+    if(ys.length<4) return null;
+    const minY=Math.min(...ys),maxY=Math.max(...ys);
+    if(maxY-minY<EPS) return null;
+    let best=null;
+    for(const t of [.30,.38,.46,.54,.62,.70]){
+      const y=minY+(maxY-minY)*t;
+      const x0=lineXAtY(segs[0],y),x1=lineXAtY(segs[1],y);
+      if(!Number.isFinite(x0)||!Number.isFinite(x1)) continue;
+      const separation=Math.abs(x1-x0);
+      if(separation<6) continue;
+      let outside=0;
+      [x0,x1].forEach((x,k)=>{
+        const xs=segs[k].map(p=>+p[0]);
+        const lo=Math.min(...xs),hi=Math.max(...xs);
+        if(x<lo) outside+=lo-x;
+        if(x>hi) outside+=x-hi;
+      });
+      const score=separation-outside*.8;
+      if(!best || score>best.score) best={y:y,xs:[x0,x1],score:score};
+    }
+    return best;
+  }
+
+  function sourceAnchoredLevelLine(refs,proj){
+    const cut=chooseLevelCut(refs,proj);
+    if(!cut) return null;
+    const other=proj==='p2'?'p1':'p2';
+    const primary=[
+      {x:cut.xs[0],y:cut.y},
+      {x:cut.xs[1],y:cut.y}
+    ];
+    const paired=primary.map((p,i)=>({x:p.x,y:lineY(refs[i].rec[other],p.x)}));
+    const p3=primary.map((p,i)=>line3AtX(refs[i].rec,p.x));
+    return {primary:primary,paired:paired,p3:p3,proj:proj,other:other};
+  }
+
+  function auxiliaryReferenceEntities(ref,step){
+    if(!ref || !ref.auxiliary || !ref.rec) return [];
+    const a1={x:ref.rec.p1[0][0],y:ref.rec.p1[0][1]},b1={x:ref.rec.p1[1][0],y:ref.rec.p1[1][1]};
+    const a2={x:ref.rec.p2[0][0],y:ref.rec.p2[0][1]},b2={x:ref.rec.p2[1][0],y:ref.rec.p2[1][1]};
+    const out=[
+      line(step,a1,b1,'aux-line'),textEntity(step,b1,ref.name+'₁','svg-label'),
+      line(step,a2,b2,'aux-line'),textEntity(step,b2,ref.name+'₂','svg-label')
+    ];
+    if(ref.anchor){
+      const t1={x:ref.anchor.p1[0],y:ref.anchor.p1[1]},t2={x:ref.anchor.p2[0],y:ref.anchor.p2[1]};
+      out.push(line(step,t2,t1,'construction-line'));
+      out.push(point(step,t1,'T₁','construction-dot'),point(step,t2,'T₂','construction-dot'));
+    }
+    return out;
   }
 
   function appendABCPlaneEntities(out,scheme,step){
@@ -2489,8 +2614,12 @@
         measure:['На Π₂ обе горизонтали имеют один уровень z.','На Π₁ строятся их действительные направления.'],
         check:'P₁ – пересечение горизонталей обеих плоскостей.'
       },[
+        line(i,pA0.p2,pA1.p2,'construction-line'),textEntity(i,pA1.p2,'hΣ₂','svg-note'),
+        line(i,pB0.p2,pB1.p2,'construction-line'),textEntity(i,pB1.p2,'hΘ₂','svg-note'),
         line(i,pA0.p1,pA1.p1,'aux-line'),textEntity(i,pA1.p1,'hΣ₁','svg-label'),
         line(i,pB0.p1,pB1.p1,'aux-line'),textEntity(i,pB1.p1,'hΘ₁','svg-label'),
+        line(i,pA0.p2,pA0.p1,'construction-line'),line(i,pA1.p2,pA1.p1,'construction-line'),
+        line(i,pB0.p2,pB0.p1,'construction-line'),line(i,pB1.p2,pB1.p1,'construction-line'),
         point(i,pp.p1,'P₁','answer-dot'),
         point(i,pp.p2,'P₂','answer-dot'),
         line(i,pp.p1,pp.p2,'construction-line')
@@ -2504,8 +2633,12 @@
         measure:['Q ∈ Σ','Q ∈ Θ'],
         check:'Q₁/Q₂ находятся на одной линии связи.'
       },[
+        line(i,qA0.p2,qA1.p2,'construction-line'),textEntity(i,qA1.p2,'hΣ₂','svg-note'),
+        line(i,qB0.p2,qB1.p2,'construction-line'),textEntity(i,qB1.p2,'hΘ₂','svg-note'),
         line(i,qA0.p1,qA1.p1,'aux-line'),textEntity(i,qA1.p1,'hΣ₁','svg-label'),
         line(i,qB0.p1,qB1.p1,'aux-line'),textEntity(i,qB1.p1,'hΘ₁','svg-label'),
+        line(i,qA0.p2,qA0.p1,'construction-line'),line(i,qA1.p2,qA1.p1,'construction-line'),
+        line(i,qB0.p2,qB0.p1,'construction-line'),line(i,qB1.p2,qB1.p1,'construction-line'),
         point(i,qq.p1,'Q₁','answer-dot'),
         point(i,qq.p2,'Q₂','answer-dot'),
         line(i,qq.p1,qq.p2,'construction-line')
@@ -2519,8 +2652,12 @@
         measure:['На Π₁ фронтали имеют одинаковый уровень y.'],
         check:'P принадлежит обеим плоскостям.'
       },[
-        line(i,pA0.p2,pA1.p2,'aux-line'),
-        line(i,pB0.p2,pB1.p2,'aux-line'),
+        line(i,pA0.p1,pA1.p1,'construction-line'),textEntity(i,pA1.p1,'fΣ₁','svg-note'),
+        line(i,pB0.p1,pB1.p1,'construction-line'),textEntity(i,pB1.p1,'fΘ₁','svg-note'),
+        line(i,pA0.p2,pA1.p2,'aux-line'),textEntity(i,pA1.p2,'fΣ₂','svg-label'),
+        line(i,pB0.p2,pB1.p2,'aux-line'),textEntity(i,pB1.p2,'fΘ₂','svg-label'),
+        line(i,pA0.p1,pA0.p2,'construction-line'),line(i,pA1.p1,pA1.p2,'construction-line'),
+        line(i,pB0.p1,pB0.p2,'construction-line'),line(i,pB1.p1,pB1.p2,'construction-line'),
         point(i,pp.p1,'P₁','answer-dot'),point(i,pp.p2,'P₂','answer-dot'),
         line(i,pp.p1,pp.p2,'construction-line')
       ]);
@@ -2532,8 +2669,12 @@
         measure:['Q ∈ Σ и Θ'],
         check:'Q₁/Q₂ согласованы линией связи.'
       },[
-        line(i,qA0.p2,qA1.p2,'aux-line'),
-        line(i,qB0.p2,qB1.p2,'aux-line'),
+        line(i,qA0.p1,qA1.p1,'construction-line'),textEntity(i,qA1.p1,'fΣ₁','svg-note'),
+        line(i,qB0.p1,qB1.p1,'construction-line'),textEntity(i,qB1.p1,'fΘ₁','svg-note'),
+        line(i,qA0.p2,qA1.p2,'aux-line'),textEntity(i,qA1.p2,'fΣ₂','svg-label'),
+        line(i,qB0.p2,qB1.p2,'aux-line'),textEntity(i,qB1.p2,'fΘ₂','svg-label'),
+        line(i,qA0.p1,qA0.p2,'construction-line'),line(i,qA1.p1,qA1.p2,'construction-line'),
+        line(i,qB0.p1,qB0.p2,'construction-line'),line(i,qB1.p1,qB1.p2,'construction-line'),
         point(i,qq.p1,'Q₁','answer-dot'),point(i,qq.p2,'Q₂','answer-dot'),
         line(i,qq.p1,qq.p2,'construction-line')
       ]);
