@@ -1131,6 +1131,10 @@
         ],
         check:'Расстояния '+name+'₁ и '+name+'₂ от оси x равны |y| и |z|.'
       },[
+        line(i,q.yFoot,q.p1,'construction-line'),
+        line(i,q.zFoot,q.p2,'construction-line'),
+        point(i,q.yFoot,name+'ᵧ','construction-dot'),
+        point(i,q.zFoot,name+'𝓏','construction-dot'),
         point(i,q.p1,name+'₁'),
         point(i,q.p2,name+'₂'),
         dim(i,q.xFoot,q.p1,Math.abs(p.y)+' мм',{x:3,y:0}),
@@ -1148,14 +1152,12 @@
         ],
         check:name+'₂ и '+name+'₃ имеют одинаковую высоту z.'
       },[
-        line(i,q.p1,q.yFoot,'construction-line'),
         line(i,q.yFoot,q.y3Foot,'construction-line'),
         line(i,q.y3Foot,q.p3,'construction-line'),
-        line(i,q.p2,q.p3,'construction-line'),
-        point(i,q.yFoot,name+'ᵧ₁','construction-dot'),
+        line(i,q.zFoot,q.p3,'construction-line'),
         point(i,q.y3Foot,name+'ᵧ₃','construction-dot'),
         point(i,q.p3,name+'₃','answer-dot')
-      ],{kind:'line',a:q.p2,b:q.p3});
+      ],{kind:'line',a:q.zFoot,b:q.p3});
     });
 
     let i=steps.length;
@@ -1186,8 +1188,9 @@
 
   function twoPlaneAxisEntities(step,O,width,height){
     return [
-      line(step,{x:8,y:O.y},{x:width-8,y:O.y},'axis',{arrow:true}),
-      line(step,{x:O.x,y:12},{x:O.x,y:height-10},'construction-line'),
+      line(step,{x:8,y:O.y},{x:width-8,y:O.y},'axis'),
+      line(step,O,{x:O.x,y:12},'axis',{arrow:true}),
+      line(step,O,{x:O.x,y:height-10},'axis',{arrow:true}),
       point(step,O,'O'),
       textEntity(step,{x:10,y:O.y-3},'x','svg-label'),
       textEntity(step,{x:O.x+3,y:15},'z','svg-label'),
