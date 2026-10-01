@@ -105,6 +105,23 @@
 
   function shiftPoint(p,dx,dy){ return {x:p.x+dx,y:p.y+dy}; }
 
+  function ceilToGrid(v){ return Math.ceil(v/GRID)*GRID; }
+
+  function gridFrame(points,margin,minWidth,minHeight){
+    const m=margin===undefined?25:margin;
+    const good=points.filter(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y));
+    if(!good.length) return {dx:25,dy:25,width:minWidth||180,height:minHeight||150};
+    const minX=Math.min(...good.map(p=>p.x)),maxX=Math.max(...good.map(p=>p.x));
+    const minY=Math.min(...good.map(p=>p.y)),maxY=Math.max(...good.map(p=>p.y));
+    // Critical invariant: dx/dy are whole 5 mm cells. This keeps O on the
+    // paper grid and preserves the true millimetre coordinates of every point.
+    const dx=ceilToGrid(m-minX);
+    const dy=ceilToGrid(m-minY);
+    const width=ceilToGrid(Math.max(minWidth||0,maxX+dx+m));
+    const height=ceilToGrid(Math.max(minHeight||0,maxY+dy+m));
+    return {dx,dy,width,height};
+  }
+
   function allVariantKeys(){
     return Object.keys(DATA.variants);
   }
@@ -820,8 +837,8 @@
       raw.push({x:-p.x,y:p.y},{x:-p.x,y:-p.z},{x:p.y,y:-p.z});
     });
     raw.push({x:0,y:0});
-    const b=bounds(raw,18);
-    const dx=-b.minX, dy=-b.minY;
+    const frame=gridFrame(raw,25,170,145);
+    const dx=frame.dx, dy=frame.dy;
     const O={x:dx,y:dy};
     const project={};
     names.forEach(n=>{
@@ -836,7 +853,7 @@
       };
     });
 
-    const complexWidth=b.width;
+    const complexWidth=frame.width;
     const axOrigin={x:complexWidth+55,y:Math.max(70,O.y)};
     const axScale=.52;
     const ex={x:-.78*axScale,y:.44*axScale};
@@ -857,7 +874,7 @@
     const allPts=raw.map(p=>shiftPoint(p,dx,dy)).concat(axPoints);
     const bb=bounds(allPts,18);
     const width=Math.max(complexWidth+110,bb.maxX+10);
-    const height=Math.max(b.height,bb.maxY+10,145);
+    const height=ceilToGrid(Math.max(frame.height,bb.maxY+15,145));
 
     const steps=[];
     const push=(meta,entities,tool)=>steps.push(Object.assign({},meta,{entities:entities||[],tool:tool||null}));
@@ -966,27 +983,26 @@
     const L=Math.hypot(dx3,dy3,dz3);
     if(L<EPS) return {error:'A и B совпадают – длина отрезка равна нулю.'};
 
-    const raw=[
-      {x:-A.x,y:A.y},{x:-A.x,y:-A.z},
-      {x:-B.x,y:B.y},{x:-B.x,y:-B.z},{x:0,y:0}
-    ];
-    const b0=bounds(raw,24), sx=-b0.minX, sy=-b0.minY;
-    const O={x:sx,y:sy};
-    const A1=shiftPoint({x:-A.x,y:A.y},sx,sy);
-    const A2=shiftPoint({x:-A.x,y:-A.z},sx,sy);
-    const B1=shiftPoint({x:-B.x,y:B.y},sx,sy);
-    const B2=shiftPoint({x:-B.x,y:-B.z},sx,sy);
-    const Ax=shiftPoint({x:-A.x,y:0},sx,sy);
-    const Bx=shiftPoint({x:-B.x,y:0},sx,sy);
+    const world={
+      O:{x:0,y:0},
+      A1:{x:-A.x,y:A.y},
+      A2:{x:-A.x,y:-A.z},
+      B1:{x:-B.x,y:B.y},
+      B2:{x:-B.x,y:-B.z},
+      Ax:{x:-A.x,y:0},
+      Bx:{x:-B.x,y:0}
+    };
+    world.A0=choosePerpPoint(world.A1,world.B1,Math.abs(dz3),1);
+    world.B0=choosePerpPoint(world.B2,world.A2,Math.abs(dy3),-1);
 
-    const A0=choosePerpPoint(A1,B1,Math.abs(dz3),1);
-    const B0=choosePerpPoint(B2,A2,Math.abs(dy3),-1);
-    const pts=[O,A1,A2,B1,B2,Ax,Bx,A0,B0];
-    const bb=bounds(pts,18);
-    const shx=bb.minX<0?-bb.minX:0, shy=bb.minY<0?-bb.minY:0;
-    const S=p=>shiftPoint(p,shx,shy);
-    const q={O:S(O),A1:S(A1),A2:S(A2),B1:S(B1),B2:S(B2),Ax:S(Ax),Bx:S(Bx),A0:S(A0),B0:S(B0)};
-    const width=Math.max(170,bb.width), height=Math.max(150,bb.height);
+    const frame=gridFrame(Object.values(world),25,170,150);
+    const S=p=>shiftPoint(p,frame.dx,frame.dy);
+    const q={
+      O:S(world.O),A1:S(world.A1),A2:S(world.A2),
+      B1:S(world.B1),B2:S(world.B2),Ax:S(world.Ax),Bx:S(world.Bx),
+      A0:S(world.A0),B0:S(world.B0)
+    };
+    const width=frame.width, height=frame.height;
     const alpha=Math.asin(Math.min(1,Math.abs(dz3)/L))*180/Math.PI;
     const beta=Math.asin(Math.min(1,Math.abs(dy3)/L))*180/Math.PI;
 
@@ -1106,7 +1122,8 @@
       {x:-K.x,y:K.y},{x:-K.x,y:-K.z},{x:0,y:0}
     ];
     if(D) raw.push({x:-D.x,y:D.y},{x:-D.x,y:-D.z});
-    const b0=bounds(raw,25), sx=-b0.minX, sy=-b0.minY;
+    const frame=gridFrame(raw,25,180,150), sx=frame.dx, sy=frame.dy;
+    const b0=bounds(raw,25);
     const O={x:sx,y:sy};
     const P1=p=>shiftPoint({x:-p.x,y:p.y},sx,sy);
     const P2=p=>shiftPoint({x:-p.x,y:-p.z},sx,sy);
@@ -1130,7 +1147,7 @@
       l1=extendLine(q.C1,q.K1,ext);
       l2=extendLine(q.C2,q.K2,ext);
     }
-    const width=Math.max(180,b0.width),height=Math.max(150,b0.height);
+    const width=frame.width,height=frame.height;
     const steps=[],push=(m,e,t)=>steps.push(Object.assign({},m,{entities:e||[],tool:t||null}));
 
     let i=0;
@@ -2165,7 +2182,7 @@
       if(e.arrow) n.setAttribute('marker-end','url(#axisArrow)');
       svg.append(n);
     } else if(e.type==='point'){
-      const n=E('circle',{cx:e.p.x,cy:e.p.y,r:e.cls.includes('answer')?1.05:.88,class:e.cls+(active?' active-dot':''),'data-active':active?'1':'0'});
+      const n=E('circle',{cx:e.p.x,cy:e.p.y,r:e.cls.includes('answer')?1.05:.88,class:e.cls+(active?' active-dot':''),'data-active':active?'1':'0','data-label':e.label||''});
       svg.append(n);
       if(e.label) svg.append(E('text',{x:e.p.x+2.1,y:e.p.y-2.0,class:'svg-label','data-active':active?'1':'0'},e.label));
     } else if(e.type==='text'){
