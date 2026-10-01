@@ -514,12 +514,15 @@
       const opts=
         '<option value="parallel_lines">двумя параллельными прямыми</option>'+
         '<option value="intersecting_lines">двумя пересекающимися прямыми</option>'+
+        '<option value="line_point">точкой и прямой</option>'+
         '<option value="ABC">тремя точками</option>'+
         '<option value="frontal_projecting">фронтально-проецирующая – задана одной линией на Π₂</option>'+
         '<option value="horizontal_projecting">горизонтально-проецирующая – задана одной линией на Π₁</option>';
       planeControls=
         '<label>Как задана плоскость Σ?<select id="customPlaneAType">'+opts+'</select></label>'+
-        '<label>Как задана плоскость Θ?<select id="customPlaneBType">'+opts+'</select></label>';
+        '<label>Как задана плоскость Θ?<select id="customPlaneBType">'+opts+'</select></label>'+
+        '<label>Через какую исходную точку провести прямую, параллельную обеим плоскостям?'+
+        '<input id="customTask6Through" value="K" maxlength="2"></label>';
     }
 
     let opControls='';
@@ -528,7 +531,9 @@
         '<label>Что написано после построения h, f и линии ската?'+
         '<select id="customOperation">'+
         '<option value="line_parallel_plane">через точку провести ℓ ∥ Σ</option>'+
-        '<option value="line_intersects_frontale">через точку провести ℓ, пересекающую фронталь</option>'+
+        '<option value="line_parallel_horizontal">через точку провести ℓ ∥ горизонтали h</option>'+
+        '<option value="line_intersects_frontale">через точку провести ℓ, пересекающую фронталь f</option>'+
+        '<option value="line_intersects_horizontal">через точку провести ℓ, пересекающую горизонталь h</option>'+
         '<option value="line_intersects_named">через точку провести ℓ, пересекающую прямую a</option>'+
         '</select></label>'+
         '<div class="inline-fields">'+
@@ -540,7 +545,11 @@
         '<option value="above_line">над ℓ</option>'+
         '<option value="below_line">под ℓ</option>'+
         '<option value="behind_line">за ℓ</option>'+
+        '<option value="front_of_line">перед ℓ</option>'+
+        '<option value="above_named">над прямой a</option>'+
+        '<option value="above_plane">над Σ</option>'+
         '<option value="below_plane">под Σ</option>'+
+        '<option value="front_of_plane">перед Σ</option>'+
         '<option value="">в условии новой точки нет</option>'+
         '</select></label>';
     }
@@ -657,10 +666,11 @@
     } else {
       const typeA=$('customPlaneAType').value;
       const typeB=$('customPlaneBType').value;
-      meta.typeA=typeA; meta.typeB=typeB;
+      const through=(($('customTask6Through')&&$('customTask6Through').value)||'K').trim().toUpperCase()||'K';
+      meta.typeA=typeA; meta.typeB=typeB; meta.through=through;
       appendPlaneClickItems(sequence,typeA,{lines:['a','b'],points:['A','B','C'],projecting:'Σ'});
       appendPlaneClickItems(sequence,typeB,{lines:['c','d'],points:['D','E','F'],projecting:'Θ'});
-      sequence.push(...pointClickItems('K'));
+      sequence.push(...pointClickItems(through));
     }
     return {sequence:sequence,meta:meta};
   }
@@ -737,7 +747,8 @@
       ctx.restore();
     }
     $('photoViewControls').hidden=false;
-    fitPhoto();
+    if(c.selectingCrop) setPhotoZoom(c.photoZoom);
+    else fitPhoto();
   }
 
   function applySelectedCrop(){
@@ -873,7 +884,8 @@
       if(m.planeType==='parallel_lines'||m.planeType==='intersecting_lines') scheme.planeLines=['a','b'];
       scheme.operation={
         type:m.operation,through:m.through,resultPoint:m.result,
-        relation:m.relation,target:m.operation==='line_intersects_named'?'a':undefined
+        relation:m.relation,
+        target:(m.operation==='line_intersects_named'||m.relation==='above_named')?'a':undefined
       };
       return scheme;
     }
@@ -890,6 +902,16 @@
         const ps={};pointNames.forEach(n=>ps[n]=points[n]);
         return {type:'ABC',points:ps};
       }
+      if(type==='line_point'){
+        const lineName=lineNames[0],pointName=pointNames[0];
+        return {
+          type:'line_point',
+          lineName:lineName,
+          pointName:pointName,
+          lines:{[lineName]:lines[lineName]},
+          points:{[pointName]:points[pointName]}
+        };
+      }
       if(type==='parallel_lines'||type==='intersecting_lines'){
         const ls={};lineNames.forEach(n=>ls[n]=lines[n]);
         return {type:type,lines:ls};
@@ -897,10 +919,12 @@
       const pr=projecting[projectName];
       return {type:type,projection:pr.proj,line:pr.line,name:projectName};
     }
+    const through=spec.meta.through||'K';
     return {
       planeA:planeDef(spec.meta.typeA,['a','b'],['A','B','C'],'Σ'),
       planeB:planeDef(spec.meta.typeB,['c','d'],['D','E','F'],'Θ'),
-      pointK:points.K
+      pointThrough:points[through],
+      pointLabel:through
     };
   }
 
