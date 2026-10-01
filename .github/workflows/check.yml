@@ -41,3 +41,28 @@ jobs:
           ONLY_VARIANT: ${{ matrix.variant }}
           ONLY_TASK: ${{ matrix.task }}
         run: node tests/runtime.mjs
+
+  mobile-layout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install playwright@1.55.0 --no-save
+      - run: npx playwright install --with-deps chromium
+      - name: Start local site
+        run: |
+          python3 -m http.server 4173 >/tmp/sitemath-http.log 2>&1 &
+          echo $! > /tmp/sitemath-http.pid
+      - name: Run mobile browser layout checks
+        run: node tests/mobile-layout.mjs
+      - name: Upload mobile screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-layout-artifacts
+          path: |
+            mobile-layout-results.json
+            mobile-screenshots/
+          if-no-files-found: ignore
