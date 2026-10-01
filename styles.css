@@ -668,3 +668,96 @@ select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(184,79,58
     .mobile-step-nav .step-nav-btn { min-height:40px; }
   }
 }
+
+
+/* Rose-violet visual system */
+:root {
+  --ink: #2d2233;
+  --muted: #75677d;
+  --paper: #fffaff;
+  --paper-line: #eadfed;
+  --paper-major: #d7c2df;
+  --panel: #fbf5fc;
+  --accent: #d946b3;
+  --accent-soft: #f7d7ef;
+  --blue: #7c3aed;
+  --construction: #9b8ba6;
+  --shadow: 0 16px 45px rgba(88, 48, 106, .14);
+}
+
+body {
+  background:
+    radial-gradient(circle at 14% 0%, rgba(217,70,179,.13), transparent 31rem),
+    radial-gradient(circle at 92% 12%, rgba(124,58,237,.10), transparent 28rem),
+    #f2eaf6;
+}
+a { color:#7c3aed; }
+.repo-link { background:linear-gradient(135deg,#7c3aed,#d946b3); }
+.panel { background:rgba(251,245,252,.95); border-color:rgba(117,83,132,.17); }
+.picker-card,.task-card,.choice-card,.scale-card {
+  border-color:rgba(117,83,132,.16);
+  background:rgba(255,250,255,.72);
+}
+.coord-table input, select, .custom-form input[type="text"], .custom-form input:not([type]), .custom-form input[type="file"] {
+  border-color:#dccbe3;
+  background:#fffaff;
+}
+.coord-table input:focus, select:focus {
+  box-shadow:0 0 0 3px rgba(217,70,179,.14);
+}
+.ghost,.icon-btn,.mobile-icon-btn {
+  border-color:#dbcbe2;
+  background:#fffaff;
+}
+.validation {
+  background:#fff0f8;
+  color:#8b245f;
+  border-color:#edb4d6;
+}
+.paper-wrap { background:#ded3e4; }
+.stage-toolbar { border-bottom-color:rgba(117,83,132,.14); }
+.step-badge { color:#9b286f; }
+.explain-grid section { border-top-color:#dfd1e4; }
+.grid-minor { stroke:#eadfed; }
+.grid-major { stroke:#d7c2df; }
+.axis { stroke:#352a3c; }
+.object-line { stroke:#34293a; }
+.answer-line,.answer-dot { stroke:#7c3aed; fill:#7c3aed; }
+.dimension { stroke:#a95a9a; }
+.dimension-text { fill:#9d3d83; }
+.ruler-body { fill:rgba(217,70,179,.13); stroke:rgba(124,58,237,.45); }
+.ruler-tick { stroke:rgba(102,50,150,.65); }
+.pencil-body { fill:#d978c3; stroke:#7d3d86; }
+.mobile-appbar {
+  background:rgba(255,249,255,.97);
+  border-bottom-color:rgba(117,83,132,.15);
+}
+.controls-panel {
+  background:#fbf5fc;
+  box-shadow:0 -18px 55px rgba(63,35,78,.25);
+}
+.mobile-sheet-head {
+  background:linear-gradient(#fbf5fc 80%,rgba(251,245,252,0));
+}
+.explanation-panel {
+  background:rgba(255,250,255,.98);
+  border-color:rgba(117,83,132,.18);
+  box-shadow:0 12px 40px rgba(63,35,78,.28);
+}
+.step-nav-btn.secondary { background:#f7eff9; border-color:#ddcee3; }
+.workflow-card {
+  border-color:#dfc7df;
+  background:#fff5fc;
+}
+.mark-item.current { background:#fceafb; }
+.calibration-wrap { background:#241a28; }
+
+@media (max-width:760px) {
+  html,body { background:#e2d7e8; }
+  .stage-panel { background:#e2d7e8; }
+  .stage-toolbar { background:rgba(250,244,252,.97); }
+  .paper-wrap { background:#d8cce0; }
+  .picker-card,.task-card,.choice-card,.scale-card { background:#fffaff; }
+  .primary-actions { background:linear-gradient(rgba(251,245,252,0),#fbf5fc 22%); }
+  .photo-view-controls { background:rgba(251,245,252,.95); }
+}
