@@ -1624,19 +1624,47 @@
     steps.forEach(st=>{
       if(st.tool){ if(st.tool.a) pts.push(st.tool.a); if(st.tool.b) pts.push(st.tool.b); }
     });
-    const b=bounds(pts,24);
-    const dx=-b.minX,dy=-b.minY;
+
+    const good=pts.filter(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y));
+    const targetW=minimumWidth||180,targetH=minimumHeight||145,margin=12;
+    if(!good.length) return {width:targetW,height:targetH,shift:{x:0,y:0},scale:1};
+
+    const minX=Math.min(...good.map(p=>p.x)),maxX=Math.max(...good.map(p=>p.x));
+    const minY=Math.min(...good.map(p=>p.y)),maxY=Math.max(...good.map(p=>p.y));
+    const rawW=Math.max(1,maxX-minX),rawH=Math.max(1,maxY-minY);
+
+    // Graphic tasks 4–6 come from photographed source sheets. Their raw coordinates
+    // are image pixels, not millimetres. Uniformly fit the whole construction into
+    // the working sheet so source geometry stays proportional but does not shrink
+    // to an unreadable 10–20% screen zoom.
+    const scale=Math.min(1,(targetW-2*margin)/rawW,(targetH-2*margin)/rawH);
+    const tx=margin-minX*scale,ty=margin-minY*scale;
+    const tr=p=>p?{x:p.x*scale+tx,y:p.y*scale+ty}:p;
+
+    const transformEntity=e=>{
+      if(e.a) e.a=tr(e.a);
+      if(e.b) e.b=tr(e.b);
+      if(e.p) e.p=tr(e.p);
+      if(e.c) e.c=tr(e.c);
+      if(e.r!==undefined) e.r*=scale;
+      if(e.offset) e.offset={x:e.offset.x*scale,y:e.offset.y*scale};
+      return e;
+    };
+
     steps.forEach(st=>{
-      (st.entities||[]).forEach(e=>shiftEntity(e,dx,dy));
+      (st.entities||[]).forEach(transformEntity);
       if(st.tool){
-        if(st.tool.a) st.tool.a=shiftPoint(st.tool.a,dx,dy);
-        if(st.tool.b) st.tool.b=shiftPoint(st.tool.b,dx,dy);
+        if(st.tool.a) st.tool.a=tr(st.tool.a);
+        if(st.tool.b) st.tool.b=tr(st.tool.b);
       }
     });
+
+    const fittedW=rawW*scale+2*margin,fittedH=rawH*scale+2*margin;
     return {
-      width:Math.max(minimumWidth||180,b.width),
-      height:Math.max(minimumHeight||145,b.height),
-      shift:{x:dx,y:dy}
+      width:Math.max(targetW,fittedW),
+      height:Math.max(targetH,fittedH),
+      shift:{x:tx,y:ty},
+      scale
     };
   }
 
