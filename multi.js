@@ -674,6 +674,7 @@
     $('manualCrop').addEventListener('click',()=>{
       const c=state.calibrator;if(!c.image)return;
       c.selectingCrop=true;c.dragStart=null;c.dragNow=null;
+      canvas.style.touchAction='none';
       $('cropStatus').textContent='проведи рамку по заданию';
       $('markPrompt').textContent='Зажми палец/мышь в одном углу задания №'+task+' и протяни до противоположного.';
     });
@@ -694,6 +695,7 @@
       const c=state.calibrator;
       if(!c.image||!c.cropApplied){updateMarkPrompt();return;}
       c.spec=makeCustomSpec(task);c.clicks=[];
+      canvas.style.touchAction='pan-x pan-y pinch-zoom';
       drawCalibrationOverlay();updateMarkPrompt();
     });
 
@@ -728,9 +730,17 @@
       if(!c||!c.selectingCrop||!c.dragStart||c.cropApplied)return;
       c.selectingCrop=false;
       c.dragStart=null;c.dragNow=null;
+      canvas.style.touchAction='pan-x pan-y pinch-zoom';
       $('cropStatus').textContent='ручная область – проверь рамку';
       $('markPrompt').textContent='Если рамка охватывает только задание №'+task+', нажми «Использовать область».';
       ev.preventDefault();
+    });
+
+    canvas.addEventListener('pointercancel',()=>{
+      const c=state.calibrator;
+      if(!c)return;
+      c.selectingCrop=false;c.dragStart=null;c.dragNow=null;
+      canvas.style.touchAction='pan-x pan-y pinch-zoom';
     });
 
     canvas.addEventListener('click',ev=>{
