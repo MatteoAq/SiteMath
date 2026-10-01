@@ -246,3 +246,131 @@ window.SITEMATH_SCHEMES = {
     }
   }
 };
+
+Object.assign(window.SITEMATH_SCHEMES["10"], {
+  task5:{
+    planeType:"intersecting_lines",planeLines:["a","f"],
+    lines:{
+      a:{p2:[[280,470],[560,360]],p1:[[232,690],[536,608]]},
+      f:{p2:[[270,400],[543,480]],p1:[[260,618],[523,618]]},
+      l:{p2:[[310,345],[525,470]],p1:[[300,530],[527,684]]}
+    },givenLine:"l"
+  },
+  task6:{
+    planeA:{type:"parallel_lines",lines:{
+      a:{p2:[[198,345],[500,500]],p1:[[100,510],[316,585]]},
+      b:{p2:[[145,372],[443,542]],p1:[[100,565],[318,640]]}
+    }},
+    planeB:{type:"intersecting_lines",lines:{
+      h:{p2:[[394,411],[622,410]],p1:[[412,516],[627,642]]},
+      f:{p2:[[392,468],[601,350]],p1:[[401,573],[631,570]]}
+    }},
+    pointK:{p2:[370,350],p1:[384,629]}
+  }
+});
+
+Object.assign(window.SITEMATH_SCHEMES["11"], {
+  task5:{
+    planeType:"ABC",
+    points:{
+      A:{p2:[219,188],p1:[219,238]},
+      B:{p2:[329,124],p1:[329,199]},
+      C:{p2:[367,162],p1:[367,266]}
+    },
+    lines:{l:{p2:[[264,128],[358,180]],p1:[[238,260],[354,218]]}},
+    givenLine:"l"
+  },
+  task6:{
+    planeA:{type:"parallel_lines",lines:{
+      a:{p2:[[58,151],[174,120]],p1:[[55,188],[202,242]]},
+      b:{p2:[[102,174],[222,130]],p1:[[52,202],[187,270]]}
+    }},
+    planeB:{type:"frontal_projecting",projection:"p2",line:[[58,149],[242,149]],name:"Γ"},
+    pointK:{p2:[289,116],p1:[295,266]}
+  }
+});
+
+Object.assign(window.SITEMATH_SCHEMES["14"], {
+  task5:{
+    planeType:"parallel_lines",planeLines:["a","b"],
+    lines:{
+      a:{p2:[[301,385],[579,534]],p1:[[241,511],[386,676]]},
+      b:{p2:[[274,425],[548,571]],p1:[[278,500],[418,644]]},
+      l:{p2:[[205,480],[463,395]],p1:[[221,651],[397,530]]}
+    },givenLine:"l"
+  },
+  task6:{
+    planeA:{type:"intersecting_lines",lines:{
+      a:{p2:[[4,443],[218,398]],p1:[[8,581],[213,681]]},
+      b:{p2:[[2,472],[245,540]],p1:[[48,594],[245,690]]}
+    }},
+    planeB:{type:"horizontal_projecting",projection:"p1",line:[[48,650],[250,564]],name:"Ω"},
+    pointK:{p2:[369,433],p1:[381,659]}
+  }
+});
+
+Object.assign(window.SITEMATH_SCHEMES["15"], {
+  task5:{
+    planeType:"parallel_lines",planeLines:["a","b"],
+    lines:{
+      a:{p2:[[350,325],[585,445]],p1:[[273,548],[552,597]]},
+      b:{p2:[[320,367],[557,490]],p1:[[290,491],[560,543]]},
+      l:{p2:[[267,456],[583,353]],p1:[[250,635],[550,585]]}
+    },givenLine:"l"
+  },
+  task6:{
+    planeA:{type:"frontal_projecting",projection:"p2",line:[[137,380],[371,270]],name:"Σ"},
+    planeB:{type:"ABC",points:{
+      A:{p2:[250,399],p1:[250,462]},
+      B:{p2:[440,300],p1:[451,625]},
+      C:{p2:[538,380],p1:[539,548]}
+    }},
+    pointK:{p2:[211,287],p1:[217,530]}
+  }
+});
+
+Object.assign(window.SITEMATH_SCHEMES["17"], {
+  task5:{
+    planeType:"intersecting_lines",planeLines:["a","b"],
+    lines:{
+      a:{p2:[[150,390],[480,480]],p1:[[175,650],[371,480]]},
+      b:{p2:[[80,505],[386,390]],p1:[[80,550],[448,650]]},
+      l:{p2:[[133,538],[439,432]],p1:[[225,678],[500,490]]}
+    },givenLine:"l"
+  },
+  task6:{
+    planeA:{type:"parallel_lines",lines:{
+      a:{p2:[[54,481],[250,350]],p1:[[56,551],[329,567]]},
+      b:{p2:[[108,523],[333,365]],p1:[[61,615],[327,624]]}
+    }},
+    planeB:{type:"intersecting_lines",lines:{
+      c:{p2:[[402,351],[582,524]],p1:[[399,691],[582,582]]},
+      h:{p2:[[349,461],[580,475]],p1:[[351,650],[583,600]]}
+    }},
+    pointK:{p2:[170,359],p1:[170,666]}
+  }
+});
+
+Object.assign(window.SITEMATH_SCHEMES["photo-unknown"], {
+  task5:{
+    planeType:"ABC",
+    points:{
+      A:{p2:[49,282],p1:[48,424]},
+      B:{p2:[197,214],p1:[184,373]},
+      C:{p2:[299,341],p1:[299,494]}
+    },
+    lines:{l:{p2:[[49,283],[299,283]],p1:[[75,374],[292,494]]}},
+    givenLine:"l"
+  },
+  task6:{
+    planeA:{type:"intersecting_lines",lines:{
+      a:{p2:[[117,219],[310,341]],p1:[[73,392],[276,443]]},
+      b:{p2:[[80,322],[268,232]],p1:[[73,442],[272,399]]}
+    }},
+    planeB:{type:"intersecting_lines",lines:{
+      c:{p2:[[302,237],[461,300]],p1:[[300,365],[461,449]]},
+      d:{p2:[[302,286],[461,255]],p1:[[286,418],[462,397]]}
+    }},
+    pointK:{p2:[47,263],p1:[48,480]}
+  }
+});
