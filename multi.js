@@ -2711,7 +2711,7 @@
     const panel=$('stepSheet');
     if(panel && getComputedStyle(panel).position==='fixed'){
       const pr=panel.getBoundingClientRect();
-      if(pr.top>wr.top) visibleBottom=Math.min(visibleBottom,pr.top-10);
+      if(pr.top>wr.top) visibleBottom=Math.min(visibleBottom,pr.top-28);
     }
     return {
       width:Math.max(120,Math.min(wr.width,window.innerWidth||wr.width)),
