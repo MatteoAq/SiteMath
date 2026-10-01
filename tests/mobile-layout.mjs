@@ -20,6 +20,8 @@ async function visibleOverflow(page,label){
     const docOverflow = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - vw;
     const offenders = [];
     for (const el of document.querySelectorAll('button, input, select, .panel, .mobile-appbar, .stage-toolbar, .controls-panel, .explanation-panel')) {
+      if (el.closest('#controlsPanel') && !document.querySelector('#controlsPanel')?.classList.contains('is-open')) continue;
+      if (el.closest('#firstRunPicker') && document.querySelector('#firstRunPicker')?.hidden) continue;
       const cs = getComputedStyle(el);
       if (cs.display === 'none' || cs.visibility === 'hidden') continue;
       const r = el.getBoundingClientRect();
