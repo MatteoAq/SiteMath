@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f4efe3">
+  <meta name="theme-color" content="#7c3aed">
   <title>SiteMath – начертательная геометрия пошагово</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -12,11 +12,31 @@
     <button id="mobileSetupBtn" class="mobile-icon-btn" type="button" aria-label="Открыть параметры">☰</button>
     <div class="mobile-title">
       <b>SiteMath</b>
-      <span id="mobileTaskSummary">Вариант 10 · Задание 1</span>
+      <span id="mobileTaskSummary">Выбери вариант и задание</span>
     </div>
     <button id="mobileFitBtn" class="mobile-icon-btn text-btn" type="button">Вписать</button>
   </div>
   <div id="mobileBackdrop" class="mobile-backdrop" hidden></div>
+
+  <section id="firstRunPicker" class="first-run-picker" hidden aria-modal="true" role="dialog" aria-labelledby="firstRunTitle">
+    <div class="first-run-card">
+      <div class="first-run-brand">SiteMath</div>
+      <h1 id="firstRunTitle">Что будем решать?</h1>
+      <p>Сначала выбери свой вариант, затем номер задания. Сайт не подставляет вариант автоматически.</p>
+
+      <div class="first-run-section">
+        <div class="first-run-heading"><span>1</span><b>Вариант</b><em id="firstRunVariantSummary">не выбран</em></div>
+        <div id="firstRunVariants" class="first-run-variants" role="listbox" aria-label="Выбор варианта"></div>
+      </div>
+
+      <div class="first-run-section">
+        <div class="first-run-heading"><span>2</span><b>Задание</b><em id="firstRunTaskSummary">не выбрано</em></div>
+        <div id="firstRunTasks" class="first-run-tasks" role="listbox" aria-label="Выбор задания"></div>
+      </div>
+
+      <button id="firstRunStart" class="first-run-start" type="button" disabled>Открыть чертёж</button>
+    </div>
+  </section>
 
   <header class="topbar">
     <div>
@@ -46,7 +66,7 @@
               <span class="choice-step">1</span>
               <b>Выбери вариант</b>
             </div>
-            <span id="variantChoiceSummary" class="choice-summary">Вариант 10</span>
+            <span id="variantChoiceSummary" class="choice-summary">не выбран</span>
           </div>
           <div id="variantChips" class="variant-chips" role="listbox" aria-label="Варианты"></div>
         </div>
@@ -57,7 +77,7 @@
               <span class="choice-step">2</span>
               <b>Выбери задание</b>
             </div>
-            <span id="taskChoiceSummary" class="choice-summary">№1</span>
+            <span id="taskChoiceSummary" class="choice-summary">не выбрано</span>
           </div>
           <div id="taskCards" class="task-choice-grid" role="listbox" aria-label="Задания"></div>
         </div>
