@@ -2701,6 +2701,15 @@
     };
   }
 
+  function drawingOverlayHeight(){
+    const panel=$('stepSheet');
+    if(!panel) return 0;
+    const cs=getComputedStyle(panel);
+    if(cs.position!=='fixed') return 0;
+    const r=panel.getBoundingClientRect();
+    return Math.max(0,r.height+12);
+  }
+
   function currentFitZoom(){
     const g=state.geometry;
     const wrap=document.querySelector('.paper-wrap');
@@ -2710,7 +2719,8 @@
     const px=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0);
     const py=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
     const availableW=Math.max(120,(wrap.clientWidth||window.innerWidth||360)-px);
-    const availableH=Math.max(160,(wrap.clientHeight||window.innerHeight||640)-py);
+    const overlayH=drawingOverlayHeight();
+    const availableH=Math.max(140,(wrap.clientHeight||window.innerHeight||640)-py-overlayH);
     const vb=visibleDrawingBounds();
     const visibleW=Math.max(20,vb.maxX-vb.minX);
     const visibleH=Math.max(20,vb.maxY-vb.minY);
@@ -2728,8 +2738,9 @@
     const top=vb.minY*cssMm*z;
     const w=(vb.maxX-vb.minX)*cssMm*z;
     const h=(vb.maxY-vb.minY)*cssMm*z;
+    const usableH=Math.max(120,wrap.clientHeight-drawingOverlayHeight());
     wrap.scrollLeft=Math.max(0,left-(wrap.clientWidth-w)/2);
-    wrap.scrollTop=Math.max(0,top-(wrap.clientHeight-h)/2);
+    wrap.scrollTop=Math.max(0,top-(usableH-h)/2);
   }
 
   function applyDrawingZoom(){
