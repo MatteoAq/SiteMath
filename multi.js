@@ -17,7 +17,8 @@
     playing: false,
     timer: null,
     customSchemes: {},
-    calibrator: null
+    calibrator: null,
+    screenZoom: null
   };
 
   const sources = {
@@ -1992,19 +1993,48 @@
     $('lastBtn').disabled=state.step===state.steps.length-1;
   }
 
+  function currentFitZoom(){
+    const g=state.geometry;
+    const wrap=document.querySelector('.paper-wrap');
+    if(!g || !wrap) return 1;
+    const cssMm=96/25.4;
+    const available=Math.max(220,wrap.clientWidth-32);
+    return Math.min(1,available/(g.width*cssMm));
+  }
+
+  function applyDrawingZoom(){
+    const g=state.geometry;
+    if(!g) return;
+    const cssMm=96/25.4;
+    const z=state.screenZoom===null?currentFitZoom():state.screenZoom;
+    svg.style.width=Math.max(120,g.width*cssMm*z)+'px';
+    svg.style.height='auto';
+    $('zoomLabel').textContent=Math.round(z*100)+'%';
+  }
+
+  function setDrawingZoom(mode){
+    if(mode==='fit') state.screenZoom=null;
+    else if(mode==='100') state.screenZoom=1;
+    else {
+      const current=state.screenZoom===null?currentFitZoom():state.screenZoom;
+      state.screenZoom=Math.max(.25,Math.min(4,current*(mode==='in'?1.25:.8)));
+    }
+    applyDrawingZoom();
+  }
+
   function renderDrawing(){
     const g=state.geometry;
     svg.replaceChildren();
     svg.setAttribute('viewBox','0 0 '+g.width+' '+g.height);
     svg.setAttribute('width',g.width+'mm');
     svg.setAttribute('height',g.height+'mm');
-    svg.style.width=g.width+'mm';
     drawGrid(g.width,g.height);
     state.steps.forEach((s,idx)=>{
       if(idx>state.step) return;
       (s.entities||[]).forEach(e=>drawEntity(e,idx===state.step));
     });
     renderExplanation();
+    applyDrawingZoom();
     animateCurrent();
   }
 
@@ -2099,6 +2129,11 @@
   $('firstBtn').addEventListener('click',()=>moveTo(0));
   $('lastBtn').addEventListener('click',()=>moveTo(state.steps.length-1));
   $('playBtn').addEventListener('click',toggleAuto);
+  $('zoomOutBtn').addEventListener('click',()=>setDrawingZoom('out'));
+  $('zoomFitBtn').addEventListener('click',()=>setDrawingZoom('fit'));
+  $('zoom100Btn').addEventListener('click',()=>setDrawingZoom('100'));
+  $('zoomInBtn').addEventListener('click',()=>setDrawingZoom('in'));
+  window.addEventListener('resize',()=>{ if(state.screenZoom===null) applyDrawingZoom(); });
   $('kSlider').addEventListener('input',()=>{
     $('kOutput').textContent=$('kSlider').value+'%';
     if(state.task===3) rebuild(false);
