@@ -218,3 +218,260 @@
     }
     return '';
   }
+
+  function solveTask1(coords){
+    const names=Object.keys(coords);
+    const raw=[];
+    names.forEach(n=>{
+      const p=coords[n];
+      raw.push({x:-p.x,y:p.y},{x:-p.x,y:-p.z},{x:p.y,y:-p.z});
+    });
+    raw.push({x:0,y:0});
+    const b=bounds(raw,18);
+    const dx=-b.minX, dy=-b.minY;
+    const O={x:dx,y:dy};
+    const project={};
+    names.forEach(n=>{
+      const p=coords[n];
+      project[n]={
+        p1:shiftPoint({x:-p.x,y:p.y},dx,dy),
+        p2:shiftPoint({x:-p.x,y:-p.z},dx,dy),
+        p3:shiftPoint({x:p.y,y:-p.z},dx,dy),
+        xFoot:shiftPoint({x:-p.x,y:0},dx,dy),
+        yFoot:shiftPoint({x:0,y:p.y},dx,dy),
+        zFoot:shiftPoint({x:0,y:-p.z},dx,dy)
+      };
+    });
+
+    const complexWidth=b.width;
+    const axOrigin={x:complexWidth+55,y:Math.max(70,O.y)};
+    const axScale=.52;
+    const ex={x:-.78*axScale,y:.44*axScale};
+    const ey={x:.78*axScale,y:.44*axScale};
+    const ez={x:0,y:-1*axScale};
+    const ax={};
+    names.forEach(n=>{
+      const p=coords[n];
+      ax[n]={
+        p:{
+          x:axOrigin.x + ex.x*p.x + ey.x*p.y + ez.x*p.z,
+          y:axOrigin.y + ex.y*p.x + ey.y*p.y + ez.y*p.z
+        }
+      };
+    });
+    const axPoints=[axOrigin];
+    Object.values(ax).forEach(v=>axPoints.push(v.p));
+    const allPts=raw.map(p=>shiftPoint(p,dx,dy)).concat(axPoints);
+    const bb=bounds(allPts,18);
+    const width=Math.max(complexWidth+110,bb.maxX+10);
+    const height=Math.max(b.height,bb.maxY+10,145);
+
+    const steps=[];
+    const push=(meta,entities,tool)=>steps.push(Object.assign({},meta,{entities:entities||[],tool:tool||null}));
+
+    push({
+      title:'Разметь три плоскости проекций',
+      action:'Проведи оси x, y, z через начало O. Слева от O располагаются П₁ и П₂, справа – профильная П₃.',
+      why:'После разворота плоскостей Монжа координаты точки читаются попарно: П₁ = (x,y), П₂ = (x,z), П₃ = (y,z).',
+      measure:['Сетка: 5 мм = 1 клетка','Оси строятся под 90°'],
+      check:'У всех трёх видов одна и та же точка O.'
+    },[
+      line(0,{x:8,y:O.y},{x:complexWidth-8,y:O.y},'axis',{arrow:true}),
+      line(0,{x:O.x,y:8},{x:O.x,y:height-8},'axis'),
+      textEntity(0,{x:10,y:O.y-3},'+x'),
+      textEntity(0,{x:complexWidth-16,y:O.y-3},'+y'),
+      textEntity(0,{x:O.x+3,y:11},'+z'),
+      textEntity(0,{x:O.x+3,y:height-9},'−z / развёртка')
+    ],{kind:'line',a:{x:8,y:O.y},b:{x:complexWidth-8,y:O.y}});
+
+    names.forEach(name=>{
+      const p=coords[name], q=project[name];
+      let i=steps.length;
+      push({
+        title:'Точка '+name+': задай линию связи по x',
+        action:'От O по оси x отложи '+Math.abs(p.x)+' мм '+(p.x>=0?'влево':'вправо')+'. Через полученную отметку проведи линию связи перпендикулярно x.',
+        why:'Обе основные проекции '+name+'₁ и '+name+'₂ имеют одну координату x, поэтому находятся на одной линии связи.',
+        measure:['|x| = '+Math.abs(p.x)+' мм = '+fmt(Math.abs(p.x)/GRID)+' клеток'],
+        check:name+'₁ и '+name+'₂ должны оказаться строго друг над другом.'
+      },[
+        dim(i,O,q.xFoot,Math.abs(p.x)+' мм',{x:0,y:-4}),
+        line(i,{x:q.xFoot.x,y:Math.min(q.p1.y,q.p2.y)-5},{x:q.xFoot.x,y:Math.max(q.p1.y,q.p2.y)+5},'construction-line')
+      ],{kind:'line',a:O,b:q.xFoot});
+
+      i=steps.length;
+      push({
+        title:'Построй '+name+'₁ и '+name+'₂',
+        action:'На линии связи от x₁₂ отложи y = '+p.y+' мм для '+name+'₁ и z = '+p.z+' мм для '+name+'₂.',
+        why:'На П₁ положительный y после разворота откладывается вниз, отрицательный – вверх. На П₂ положительный z откладывается вверх, отрицательный – вниз.',
+        measure:[
+          '|y| = '+Math.abs(p.y)+' мм = '+fmt(Math.abs(p.y)/GRID)+' клеток',
+          '|z| = '+Math.abs(p.z)+' мм = '+fmt(Math.abs(p.z)/GRID)+' клеток'
+        ],
+        check:'Расстояния '+name+'₁ и '+name+'₂ от оси x равны |y| и |z|.'
+      },[
+        point(i,q.p1,name+'₁'),
+        point(i,q.p2,name+'₂'),
+        dim(i,q.xFoot,q.p1,Math.abs(p.y)+' мм',{x:3,y:0}),
+        dim(i,q.xFoot,q.p2,Math.abs(p.z)+' мм',{x:-3,y:0})
+      ]);
+
+      i=steps.length;
+      push({
+        title:'Дострой профильную проекцию '+name+'₃',
+        action:'На П₃ используй те же y и z: от O отложи y по горизонтали и z по вертикали. Пересечение даёт '+name+'₃.',
+        why:'Профильная плоскость Π₃ хранит координаты (y,z). x на положение '+name+'₃ не влияет.',
+        measure:[
+          '|y| = '+Math.abs(p.y)+' мм по профильной оси',
+          '|z| = '+Math.abs(p.z)+' мм по вертикали'
+        ],
+        check:name+'₂ и '+name+'₃ имеют одинаковую высоту z.'
+      },[
+        line(i,q.p2,q.p3,'construction-line'),
+        line(i,q.yFoot,q.p3,'construction-line'),
+        point(i,q.p3,name+'₃','answer-dot')
+      ],{kind:'line',a:q.p2,b:q.p3});
+    });
+
+    let i=steps.length;
+    const axisLen=55;
+    const axEntities=[
+      line(i,axOrigin,add2(axOrigin,mul2(ex,axisLen/axScale)),'axis'),
+      line(i,axOrigin,add2(axOrigin,mul2(ey,axisLen/axScale)),'axis'),
+      line(i,axOrigin,add2(axOrigin,mul2(ez,axisLen/axScale)),'axis'),
+      textEntity(i,add2(axOrigin,mul2(ex,axisLen/axScale+4)),'x'),
+      textEntity(i,add2(axOrigin,mul2(ey,axisLen/axScale+4)),'y'),
+      textEntity(i,add2(axOrigin,mul2(ez,axisLen/axScale+4)),'z')
+    ];
+    names.forEach(name=>{
+      const P=ax[name].p;
+      axEntities.push(line(i,axOrigin,P,'construction-line'));
+      axEntities.push(point(i,P,name,'answer-dot'));
+    });
+    push({
+      title:'Построй наглядное изображение точек',
+      action:'Перенеси те же координаты на три пространственные оси x, y, z. Сайт показывает компактную аксонометрическую схему справа.',
+      why:'Наглядное изображение не вводит новые данные – это та же точка (x,y,z), только показанная в пространственной системе осей.',
+      measure:['Используются исходные x, y, z без пересчёта значений'],
+      check:'Знаки координат определяют, по какую сторону от O лежит каждая составляющая.'
+    },axEntities);
+
+    return {width,height,O,steps};
+  }
+
+  function choosePerpPoint(baseA,baseB,length,side){
+    const u=unit2(vec2(baseA,baseB));
+    let n=perp2(u);
+    if(side<0) n=mul2(n,-1);
+    return add2(baseA,mul2(n,length));
+  }
+
+  function solveTask2(coords){
+    const A=coords.A,B=coords.B;
+    const dx3=B.x-A.x, dy3=B.y-A.y, dz3=B.z-A.z;
+    const L1=Math.hypot(dx3,dy3);
+    const L2=Math.hypot(dx3,dz3);
+    const L=Math.hypot(dx3,dy3,dz3);
+    if(L<EPS) return {error:'A и B совпадают – длина отрезка равна нулю.'};
+
+    const raw=[
+      {x:-A.x,y:A.y},{x:-A.x,y:-A.z},
+      {x:-B.x,y:B.y},{x:-B.x,y:-B.z},{x:0,y:0}
+    ];
+    const b0=bounds(raw,24), sx=-b0.minX, sy=-b0.minY;
+    const O={x:sx,y:sy};
+    const A1=shiftPoint({x:-A.x,y:A.y},sx,sy);
+    const A2=shiftPoint({x:-A.x,y:-A.z},sx,sy);
+    const B1=shiftPoint({x:-B.x,y:B.y},sx,sy);
+    const B2=shiftPoint({x:-B.x,y:-B.z},sx,sy);
+    const Ax=shiftPoint({x:-A.x,y:0},sx,sy);
+    const Bx=shiftPoint({x:-B.x,y:0},sx,sy);
+
+    const A0=choosePerpPoint(A1,B1,Math.abs(dz3),1);
+    const B0=choosePerpPoint(B2,A2,Math.abs(dy3),-1);
+    const pts=[O,A1,A2,B1,B2,Ax,Bx,A0,B0];
+    const bb=bounds(pts,18);
+    const shx=bb.minX<0?-bb.minX:0, shy=bb.minY<0?-bb.minY:0;
+    const S=p=>shiftPoint(p,shx,shy);
+    const q={O:S(O),A1:S(A1),A2:S(A2),B1:S(B1),B2:S(B2),Ax:S(Ax),Bx:S(Bx),A0:S(A0),B0:S(B0)};
+    const width=Math.max(170,bb.width), height=Math.max(150,bb.height);
+    const alpha=Math.asin(Math.min(1,Math.abs(dz3)/L))*180/Math.PI;
+    const beta=Math.asin(Math.min(1,Math.abs(dy3)/L))*180/Math.PI;
+
+    const steps=[], push=(m,e,t)=>steps.push(Object.assign({},m,{entities:e||[],tool:t||null}));
+    let i=0;
+    push({
+      title:'Проведи ось x₁₂',
+      action:'Раздели поле на фронтальную Π₂ и горизонтальную Π₁ проекции горизонтальной осью x₁₂.',
+      why:'Задача решается в системе двух плоскостей проекций.',
+      measure:['1 клетка = 5 мм'],
+      check:'Π₂ находится над x₁₂, Π₁ – под ней для положительных z и y.'
+    },[line(i,{x:8,y:q.O.y},{x:width-8,y:q.O.y},'axis'),point(i,q.O,'O')],{kind:'line',a:{x:8,y:q.O.y},b:{x:width-8,y:q.O.y}});
+
+    i=steps.length;
+    push({
+      title:'Построй проекции точки A',
+      action:'По xA = '+A.x+' мм поставь линию связи. От неё отложи yA = '+A.y+' мм и zA = '+A.z+' мм.',
+      why:'A₁=(xA,yA), A₂=(xA,zA).',
+      measure:['xA = '+A.x+' мм','yA = '+A.y+' мм','zA = '+A.z+' мм'],
+      check:'A₁ и A₂ лежат на одной линии связи.'
+    },[line(i,q.A1,q.A2,'construction-line'),point(i,q.A1,'A₁'),point(i,q.A2,'A₂')],{kind:'line',a:q.A1,b:q.A2});
+
+    i=steps.length;
+    push({
+      title:'Построй проекции точки B',
+      action:'Аналогично построй B₁ и B₂ по координатам B.',
+      why:'B₁=(xB,yB), B₂=(xB,zB).',
+      measure:['xB = '+B.x+' мм','yB = '+B.y+' мм','zB = '+B.z+' мм'],
+      check:'B₁ и B₂ лежат на одной линии связи.'
+    },[line(i,q.B1,q.B2,'construction-line'),point(i,q.B1,'B₁'),point(i,q.B2,'B₂')],{kind:'line',a:q.B1,b:q.B2});
+
+    i=steps.length;
+    push({
+      title:'Соедини одноимённые проекции AB',
+      action:'Соедини A₁–B₁ и A₂–B₂.',
+      why:'Это горизонтальная и фронтальная проекции одного пространственного отрезка AB.',
+      measure:['A₁B₁ = '+fmt(L1)+' мм','A₂B₂ = '+fmt(L2)+' мм'],
+      check:'Обе линии соединяют проекции тех же концов A и B.'
+    },[line(i,q.A1,q.B1,'object-line'),line(i,q.A2,q.B2,'object-line')]);
+
+    i=steps.length;
+    push({
+      title:'Первый прямоугольный треугольник – на Π₁',
+      action:'Из A₁ восстанови перпендикуляр к A₁B₁ и отложи на нём |Δz| = '+fmt(Math.abs(dz3))+' мм до A₀. Соедини A₀ с B₁.',
+      why:'Катеты A₁B₁ и |zB−zA| взаимно перпендикулярны. Гипотенуза B₁A₀ равна натуральной величине AB.',
+      measure:['|Δz| = '+fmt(Math.abs(dz3))+' мм = '+fmt(Math.abs(dz3)/GRID)+' клеток','НВ AB = '+fmt(L)+' мм','α = '+fmt(alpha)+'°'],
+      check:'Угол при A₁ – 90°, B₁A₀ должен иметь длину '+fmt(L)+' мм.'
+    },[
+      line(i,q.A1,q.A0,'construction-line'),
+      line(i,q.B1,q.A0,'answer-line'),
+      point(i,q.A0,'A₀','answer-dot'),
+      dim(i,q.A1,q.A0,'Δz='+fmt(Math.abs(dz3))+' мм'),
+      textEntity(i,lerp2(q.B1,q.A0,.45),'НВ='+fmt(L)+' мм','dimension-text')
+    ],{kind:'line',a:q.B1,b:q.A0});
+
+    i=steps.length;
+    push({
+      title:'Второй прямоугольный треугольник – на Π₂',
+      action:'Из B₂ восстанови перпендикуляр к A₂B₂ и отложи |Δy| = '+fmt(Math.abs(dy3))+' мм до B₀. Соедини B₀ с A₂.',
+      why:'Теперь второй катет – разность удалений точек от Π₂. Полученная гипотенуза снова равна AB, что даёт независимую проверку.',
+      measure:['|Δy| = '+fmt(Math.abs(dy3))+' мм = '+fmt(Math.abs(dy3)/GRID)+' клеток','НВ AB = '+fmt(L)+' мм','β = '+fmt(beta)+'°'],
+      check:'Обе построенные натуральные величины должны совпасть: '+fmt(L)+' мм.'
+    },[
+      line(i,q.B2,q.B0,'construction-line'),
+      line(i,q.A2,q.B0,'answer-line'),
+      point(i,q.B0,'B₀','answer-dot'),
+      dim(i,q.B2,q.B0,'Δy='+fmt(Math.abs(dy3))+' мм'),
+      textEntity(i,lerp2(q.A2,q.B0,.48),'НВ='+fmt(L)+' мм','dimension-text')
+    ],{kind:'line',a:q.A2,b:q.B0});
+
+    i=steps.length;
+    push({
+      title:'Зафиксируй углы наклона',
+      action:'Угол между натуральной величиной и A₁B₁ – наклон к Π₁; угол между натуральной величиной и A₂B₂ – наклон к Π₂.',
+      why:'Проекция на соответствующую плоскость является прилежащим катетом прямоугольного треугольника.',
+      measure:['α(AB,Π₁) = '+fmt(alpha)+'°','β(AB,Π₂) = '+fmt(beta)+'°','AB = '+fmt(L)+' мм'],
+      check:'Чем меньше соответствующая разность координат, тем меньше угол.'
+    },[]);
+
+    return {width,height,O:q.O,steps};
+  }
