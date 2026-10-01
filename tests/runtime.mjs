@@ -71,6 +71,33 @@ for (const variant of variants) {
 }
 
 
+// Regression: coordinate drawings use the visible 5 mm paper grid as the actual metric grid.
+try {
+  $('variantSelect').value = '10';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value = '2';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('lastBtn').click();
+
+  const onGrid = value => {
+    const v=Number(value);
+    const r=((v%5)+5)%5;
+    return r<1e-6 || Math.abs(r-5)<1e-6;
+  };
+  for (const label of ['O','A₁','A₂','B₁','B₂']) {
+    const p=window.document.querySelector('circle[data-label="'+label+'"]');
+    if (!p) {
+      failures.push('grid regression: point '+label+' missing');
+      continue;
+    }
+    if (!onGrid(p.getAttribute('cx')) || !onGrid(p.getAttribute('cy'))) {
+      failures.push('grid regression: '+label+' is off 5 mm grid at '+p.getAttribute('cx')+','+p.getAttribute('cy'));
+    }
+  }
+} catch (e) {
+  failures.push('grid regression: '+e.stack);
+}
+
 // Custom-data UI smoke test, including the profile-line special case in task 3.
 if (!onlyVariant && !onlyTask) try {
   $('variantSelect').value = 'custom';
