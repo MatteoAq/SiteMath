@@ -151,6 +151,94 @@
     });
     ts.value=String(state.task);
     $('knownVariants').textContent=String(allVariantKeys().filter(k=>DATA.variants[k].verifiedNumber!==false).length);
+    renderChoicePickers();
+  }
+
+  function taskPickerLabel(task){
+    return ({
+      1:'Точки',
+      2:'Отрезок AB',
+      3:'Прямые',
+      4:'Линии плоскости',
+      5:'Прямая × плоскость',
+      6:'Две плоскости'
+    })[task] || DATA.tasks[task].title;
+  }
+
+  function renderChoicePickers(){
+    const variants=$('variantChips');
+    const tasks=$('taskCards');
+    if(variants){
+      variants.innerHTML='';
+      allVariantKeys().forEach(k=>{
+        const v=DATA.variants[k];
+        const b=document.createElement('button');
+        b.type='button';
+        b.className='variant-chip';
+        b.dataset.variant=k;
+        b.setAttribute('role','option');
+        b.innerHTML=k==='photo-unknown'
+          ? '<span class="variant-number">?</span><span>Фото</span>'
+          : '<span class="variant-number">'+esc(k)+'</span><span>вариант</span>';
+        b.addEventListener('click',()=>{
+          $('variantSelect').value=k;
+          $('variantSelect').dispatchEvent(new Event('change'));
+        });
+        variants.appendChild(b);
+      });
+      const own=document.createElement('button');
+      own.type='button';
+      own.className='variant-chip own-data';
+      own.dataset.variant='custom';
+      own.setAttribute('role','option');
+      own.innerHTML='<span class="variant-number">＋</span><span>Свои данные</span>';
+      own.addEventListener('click',()=>{
+        $('variantSelect').value='custom';
+        $('variantSelect').dispatchEvent(new Event('change'));
+      });
+      variants.appendChild(own);
+    }
+
+    if(tasks){
+      tasks.innerHTML='';
+      Object.keys(DATA.tasks).forEach(k=>{
+        const n=Number(k);
+        const b=document.createElement('button');
+        b.type='button';
+        b.className='task-choice';
+        b.dataset.task=k;
+        b.setAttribute('role','option');
+        b.innerHTML='<span class="task-choice-number">'+k+'</span>'+
+          '<span class="task-choice-copy"><b>'+esc(taskPickerLabel(n))+'</b><small>'+esc(DATA.tasks[n].short)+'</small></span>';
+        b.addEventListener('click',()=>{
+          $('taskSelect').value=k;
+          $('taskSelect').dispatchEvent(new Event('change'));
+        });
+        tasks.appendChild(b);
+      });
+    }
+    syncChoicePickers();
+  }
+
+  function syncChoicePickers(){
+    document.querySelectorAll('.variant-chip').forEach(b=>{
+      const on=b.dataset.variant===state.variant;
+      b.classList.toggle('is-selected',on);
+      b.setAttribute('aria-selected',on?'true':'false');
+    });
+    document.querySelectorAll('.task-choice').forEach(b=>{
+      const on=Number(b.dataset.task)===state.task;
+      b.classList.toggle('is-selected',on);
+      b.setAttribute('aria-selected',on?'true':'false');
+    });
+    const vs=$('variantChoiceSummary');
+    const ts=$('taskChoiceSummary');
+    if(vs){
+      vs.textContent=state.variant==='custom'
+        ? 'Свои данные'
+        : ((DATA.variants[state.variant]&&DATA.variants[state.variant].label)||state.variant);
+    }
+    if(ts) ts.textContent='№'+state.task+' · '+taskPickerLabel(state.task);
   }
 
   function currentVariant(){
@@ -233,6 +321,7 @@
     }
     holder.querySelectorAll('.coord-input').forEach(i=>i.addEventListener('change',()=>rebuild(true)));
     updateMobileSummary();
+    syncChoicePickers();
   }
 
   function updateMobileSummary(){
@@ -1618,7 +1707,11 @@
       }
       if(!ref3 && through3) ref3=through3;
 
-      if(op.relation==='above_line' && ref3){
+      if(op.relation==='above_named' && scheme.lines && scheme.lines[op.target]){
+        const named=schemeLine3(scheme.lines[op.target]);
+        ref3=lerp3(named[0],named[1],.56);
+        R3={x:ref3.x,y:ref3.y,z:ref3.z+52};
+      } else if(op.relation==='above_line' && ref3){
         R3={x:ref3.x,y:ref3.y,z:ref3.z+52};
       } else if(op.relation==='below_line' && ref3){
         R3={x:ref3.x,y:ref3.y,z:ref3.z-52};
@@ -1639,7 +1732,10 @@
         i=steps.length;
         let relationText='';
         let why='';
-        if(op.relation==='above_line'){
+        if(op.relation==='above_named'){
+          relationText='над прямой '+(op.target||'a');
+          why='Для точки над заданной прямой сохраняются x и y выбранной точки этой прямой, а z увеличивается. Поэтому на Π₁ проекция совпадает с точкой прямой, а на Π₂ располагается выше.';
+        } else if(op.relation==='above_line'){
           relationText='над прямой ℓ';
           why='Для точки прямо над выбранной точкой ℓ сохраняются x и y, а z увеличивается. Поэтому горизонтальная проекция совпадает, а фронтальная поднимается.';
         } else if(op.relation==='below_line'){
