@@ -75,8 +75,17 @@
   function add2(a,b){ return {x:a.x+b.x,y:a.y+b.y}; }
   function mul2(a,t){ return {x:a.x*t,y:a.y*t}; }
 
+  function lineRole(cls){
+    if(cls==='object-line') return 'given';
+    if(cls==='aux-line') return 'auxiliary';
+    if(cls==='construction-line' || cls==='axis') return 'construction';
+    if(cls==='answer-line' || cls==='hidden-line') return 'result';
+    return 'construction';
+  }
+
   function line(step,a,b,cls,extra){
-    return Object.assign({type:'line',step,a,b,cls:cls||'construction-line'},extra||{});
+    const className=cls||'construction-line';
+    return Object.assign({type:'line',step,a,b,cls:className,role:lineRole(className)},extra||{});
   }
   function point(step,p,label,cls){
     return {type:'point',step,p,label,cls:cls||'point-dot'};
@@ -391,6 +400,89 @@
   function getStoredTaskData(){
     const v=currentVariant();
     return v ? v['task'+state.task] : defaultTaskData(state.task);
+  }
+
+  function extractPlaneNotations(statement){
+    return [...String(statement||'').matchAll(/([ΣΔΘΩΒΓ]\s*\([^)]*\))/gu)].map(m=>m[1].replace(/\s+/g,''));
+  }
+
+  function planeDefNotation(def,symbol){
+    const s=symbol||'Σ';
+    if(!def) return s;
+    if(def.type==='ABC') return s+'(ABC)';
+    if(def.type==='line_point'){
+      const lineName=def.lineName||Object.keys(def.lines||{})[0]||'a';
+      const pointName=def.pointName||Object.keys(def.points||{})[0]||'A';
+      return s+'('+lineName+','+pointName+')';
+    }
+    if(def.type==='parallel_lines') return s+'('+Object.keys(def.lines||{}).slice(0,2).join('∥')+')';
+    if(def.type==='intersecting_lines') return s+'('+Object.keys(def.lines||{}).slice(0,2).join('∩')+')';
+    if(def.type==='frontal_projecting') return s+'('+(def.name||s)+'₂)';
+    if(def.type==='horizontal_projecting') return s+'('+(def.name||s)+'₁)';
+    return s;
+  }
+
+  function task4OperationBrief(op){
+    if(!op) return '';
+    let part='';
+    if(op.type==='line_parallel_plane') part='ℓ через '+op.through+', ℓ ∥ плоскости';
+    else if(op.type==='line_parallel_horizontal') part='ℓ через '+op.through+', ℓ ∥ h';
+    else if(op.type==='line_intersects_frontale') part='ℓ через '+op.through+', ℓ ∩ f';
+    else if(op.type==='line_intersects_horizontal') part='ℓ через '+op.through+', ℓ ∩ h';
+    else if(op.type==='line_intersects_named') part='ℓ через '+op.through+', ℓ ∩ '+(op.target||'a');
+    const rel={
+      above_line:'над ℓ',below_line:'под ℓ',behind_line:'за ℓ',front_of_line:'перед ℓ',
+      above_named:'над '+(op.target||'a'),above_plane:'над плоскостью',
+      below_plane:'под плоскостью',front_of_plane:'перед плоскостью'
+    }[op.relation]||'';
+    if(op.resultPoint && rel) part+=(part?'; ':'')+op.resultPoint+' '+rel;
+    return part;
+  }
+
+  function renderProblemBrief(){
+    const box=$('problemBrief');
+    if(!box) return;
+    if(!state.task || state.task<=3){
+      box.hidden=true;
+      return;
+    }
+    const stored=getStoredTaskData()||{};
+    const scheme=state.variant==='custom'
+      ? state.customSchemes[state.task]
+      : (window.SITEMATH_SCHEMES?.[state.variant]?.['task'+state.task]);
+    if(!scheme){
+      box.hidden=true;
+      return;
+    }
+    const notations=extractPlaneNotations(stored.statement);
+    let given='',find='';
+    if(state.task===4){
+      let plane=notations[0];
+      if(!plane){
+        if(scheme.planeType==='ABC') plane='Σ(ABC)';
+        else if(scheme.planeType==='line_point') plane='Σ('+(scheme.planeLine||'a')+','+(scheme.planePoint||'A')+')';
+        else if(scheme.planeType==='parallel_lines') plane='Σ('+(scheme.planeLines||[]).join('∥')+')';
+        else if(scheme.planeType==='intersecting_lines') plane='Σ('+(scheme.planeLines||[]).join('∩')+')';
+        else plane='плоскость по исходной схеме';
+      }
+      given='пл. '+plane+(scheme.operation?.through?'; т. '+scheme.operation.through:'');
+      find='h, f, ЛС';
+      const extra=task4OperationBrief(scheme.operation);
+      if(extra) find+='; '+extra;
+    } else if(state.task===5){
+      const plane=notations[0]||'Σ по исходной схеме';
+      given='пл. '+plane+'; прямая ℓ';
+      find='K = ℓ ∩ '+plane+'; видимость ℓ';
+    } else {
+      const a=notations[0]||planeDefNotation(scheme.planeA,'Σ');
+      const b=notations[1]||planeDefNotation(scheme.planeB,'Θ');
+      const through=scheme.pointLabel||'K';
+      given='пл. '+a+'; пл. '+b+'; т. '+through;
+      find='r = '+a+' ∩ '+b+'; через '+through+' провести ℓ ∥ обеим плоскостям';
+    }
+    $('problemGiven').textContent=given;
+    $('problemFind').textContent=find;
+    box.hidden=false;
   }
 
   function coordinateLabelsForTask(task){
@@ -1800,6 +1892,160 @@
     return out;
   }
 
+  function median(values){
+    const a=values.filter(Number.isFinite).slice().sort((x,y)=>x-y);
+    if(!a.length) return null;
+    const m=Math.floor(a.length/2);
+    return a.length%2?a[m]:(a[m-1]+a[m])/2;
+  }
+
+  function diagramAxisFromScheme(scheme){
+    const y1=[],y2=[],xs=[];
+    Object.values(scheme.lines||{}).forEach(L=>{
+      (L.p1||[]).forEach(p=>{xs.push(+p[0]);y1.push(+p[1]);});
+      (L.p2||[]).forEach(p=>{xs.push(+p[0]);y2.push(+p[1]);});
+    });
+    Object.values(scheme.points||{}).forEach(P=>{
+      if(P.p1){xs.push(+P.p1[0]);y1.push(+P.p1[1]);}
+      if(P.p2){xs.push(+P.p2[0]);y2.push(+P.p2[1]);}
+    });
+    if(!xs.length || !y1.length || !y2.length) return null;
+    const y=(median(y1)+median(y2))/2;
+    return {
+      a:{x:Math.min(...xs)-18,y:y},
+      b:{x:Math.max(...xs)+18,y:y}
+    };
+  }
+
+  function rightAngleMarkEntities(step,P,uRaw,vRaw,size){
+    const u=unit2(uRaw),v=unit2(vRaw),s=size||6;
+    if(norm2(u)<EPS||norm2(v)<EPS) return [];
+    const a=add2(P,mul2(u,s));
+    const b=add2(a,mul2(v,s));
+    const c=add2(P,mul2(v,s));
+    return [
+      line(step,a,b,'construction-line'),
+      line(step,b,c,'construction-line')
+    ];
+  }
+
+  function teacherLinePointTask4(scheme,steps,push){
+    const lineName=scheme.planeLine||Object.keys(scheme.lines||{})[0];
+    const pointName=scheme.planePoint||Object.keys(scheme.points||{})[0];
+    const rec=scheme.lines&&scheme.lines[lineName];
+    const rawPoint=scheme.points&&scheme.points[pointName];
+    if(!rec||!rawPoint) return null;
+    const A=normalizedPointRec(rawPoint);
+    const A1={x:A.p1[0],y:A.p1[1]},A2={x:A.p2[0],y:A.p2[1]};
+    const x1=lineXAtY(rec.p2,A2.y);
+    if(!Number.isFinite(x1)) return null;
+    const one2={x:x1,y:A2.y};
+    const one1={x:x1,y:lineY(rec.p1,x1)};
+    const hVec=vec2(A1,one1);
+    if(norm2(hVec)<EPS) return null;
+
+    const three1=lerp2(A1,one1,.58);
+    const x2=lineXAtY(rec.p1,three1.y);
+    if(!Number.isFinite(x2)) return null;
+    const two1={x:x2,y:three1.y};
+    const two2={x:x2,y:lineY(rec.p2,x2)};
+    const three2={x:three1.x,y:A2.y};
+
+    const lsDir=perp2(unit2(hVec));
+    const lsFar=add2(three1,mul2(lsDir,240));
+    const b1=toSeg(rec.p1);
+    const four1=lineIntersection2(three1,lsFar,b1[0],b1[1]);
+    if(!four1) return null;
+    const four2={x:four1.x,y:lineY(rec.p2,four1.x)};
+
+    const A3=schemePoint3(rawPoint);
+    const one3=line3AtX(rec,one1.x);
+    const two3=line3AtX(rec,two1.x);
+    const three3={x:three1.x,y:three1.y,z:-three2.y};
+    const four3=line3AtX(rec,four1.x);
+    const h3=[A3,one3],f3=[two3,three3],ls3=[three3,four3];
+
+    let i=steps.length;
+    push({
+      title:'Горизонталь h: проведи h₂ через '+pointName+'₂',
+      action:'Через '+pointName+'₂ проведи h₂ параллельно x₁₂ до пересечения с '+lineName+'₂. Точку пересечения обозначь 1₂.',
+      why:'У горизонтали плоскости фронтальная проекция параллельна x₁₂. Точка 1 принадлежит заданной прямой '+lineName+', поэтому её вторая проекция находится на '+lineName+'₁.',
+      measure:['h₂ ∥ x₁₂',pointName+'₂ ∈ h₂','1₂ ∈ '+lineName+'₂'],
+      check:'h₂ проходит через исходную точку '+pointName+'₂, а не через произвольное место поля.'
+    },[
+      line(i,A2,one2,'answer-line'),textEntity(i,one2,'h₂','svg-label'),
+      point(i,one2,'1₂','answer-dot')
+    ],{kind:'line',a:A2,b:one2});
+
+    i=steps.length;
+    push({
+      title:'Опусти 1₂ на '+lineName+'₁ и получи h₁',
+      action:'Из 1₂ проведи линию связи до '+lineName+'₁. Получи 1₁ и соедини '+pointName+'₁ с 1₁.',
+      why:'1₁ и 1₂ – проекции одной точки заданной прямой. Две точки '+pointName+' и 1 однозначно задают горизонталь h в плоскости.',
+      measure:['1₁1₂ – линия связи','h₁ = '+pointName+'₁1₁'],
+      check:'1₁ лежит на '+lineName+'₁; '+pointName+'₁ и 1₁ соединены h₁.'
+    },[
+      line(i,one2,one1,'construction-line'),point(i,one1,'1₁','answer-dot'),
+      line(i,A1,one1,'answer-line'),textEntity(i,one1,'h₁','svg-label')
+    ],{kind:'line',a:one2,b:one1});
+
+    i=steps.length;
+    push({
+      title:'Фронталь f: проведи f₁ ∥ x₁₂',
+      action:'Проведи f₁ параллельно x₁₂ так, чтобы она пересекла '+lineName+'₁ и уже построенную h₁. На '+lineName+'₁ поставь 2₁, на h₁ – 3₁.',
+      why:'У фронтали горизонтальная проекция параллельна x₁₂. Точки 2 и 3 принадлежат двум линиям той же плоскости, поэтому определяют фронталь f.',
+      measure:['f₁ ∥ x₁₂','2₁ ∈ '+lineName+'₁','3₁ ∈ h₁'],
+      check:'2₁ и 3₁ получены пересечениями, а не выбраны отдельно.'
+    },[
+      line(i,two1,three1,'answer-line'),textEntity(i,two1,'f₁','svg-label'),
+      point(i,two1,'2₁','answer-dot'),point(i,three1,'3₁','answer-dot')
+    ],{kind:'line',a:two1,b:three1});
+
+    i=steps.length;
+    push({
+      title:'Подними 2₁ и 3₁ и получи f₂',
+      action:'Из 2₁ подними проектор до '+lineName+'₂ – это 2₂. Из 3₁ подними проектор до h₂ – это 3₂. Соедини 2₂ и 3₂.',
+      why:'2₂ и 3₂ – вторые проекции тех же пространственных точек 2 и 3. Поэтому соединяющая их линия является f₂.',
+      measure:['2₁↔2₂ – одна линия связи','3₁↔3₂ – одна линия связи'],
+      check:'2₂ лежит на '+lineName+'₂, 3₂ – на h₂.'
+    },[
+      line(i,two1,two2,'construction-line'),point(i,two2,'2₂','answer-dot'),
+      line(i,three1,three2,'construction-line'),point(i,three2,'3₂','answer-dot'),
+      line(i,two2,three2,'answer-line'),textEntity(i,two2,'f₂','svg-label')
+    ],{kind:'line',a:two1,b:two2});
+
+    i=steps.length;
+    push({
+      title:'Линия наибольшего ската: проведи ЛС₁ ⟂ h₁',
+      action:'Через 3₁ проведи ЛС₁ перпендикулярно h₁ до пересечения с '+lineName+'₁. Пересечение обозначь 4₁.',
+      why:'Горизонтальная проекция линии наибольшего ската плоскости перпендикулярна горизонтали этой плоскости. Именно это построение показано преподавателем.',
+      measure:['ЛС₁ ⟂ h₁','4₁ ∈ '+lineName+'₁'],
+      check:'У 3₁ должен быть прямой угол между h₁ и ЛС₁.'
+    },[
+      line(i,three1,four1,'answer-line'),textEntity(i,four1,'ЛС₁','svg-label'),
+      point(i,four1,'4₁','answer-dot'),
+      ...rightAngleMarkEntities(i,three1,vec2(three1,A1),vec2(three1,four1),5)
+    ],{kind:'line',a:three1,b:four1});
+
+    i=steps.length;
+    push({
+      title:'Подними 4₁ на '+lineName+'₂ и дострой ЛС₂',
+      action:'Из 4₁ проведи проектор до '+lineName+'₂ – получишь 4₂. Соедини 3₂ и 4₂: это ЛС₂.',
+      why:'Точки 3 и 4 принадлежат линии наибольшего ската и плоскости, поэтому их вторые проекции определяют ЛС₂.',
+      measure:['4₁↔4₂ – линия связи','ЛС₂ = 3₂4₂'],
+      check:'4₂ лежит на '+lineName+'₂; 3₂ уже лежит на h₂.'
+    },[
+      line(i,four1,four2,'construction-line'),point(i,four2,'4₂','answer-dot'),
+      line(i,three2,four2,'answer-line'),textEntity(i,four2,'ЛС₂','svg-label')
+    ],{kind:'line',a:four1,b:four2});
+
+    return {
+      h3:h3,f3:f3,ls3:ls3,
+      dh:sub3(h3[1],h3[0]),
+      df:sub3(f3[1],f3[0])
+    };
+  }
+
   function solveTask4Scheme(scheme,stored){
     let plane;
     try { plane=planeFromScheme(scheme); }
@@ -2785,7 +3031,8 @@
       const n=E('line',{
         x1:e.a.x,y1:e.a.y,x2:e.b.x,y2:e.b.y,
         class:'draw-line '+e.cls+(active?' active-line':''),
-        'data-active':active?'1':'0'
+        'data-active':active?'1':'0',
+        'data-role':e.role||lineRole(e.cls)
       });
       if(e.arrow) n.setAttribute('marker-end','url(#axisArrow)');
       svg.append(n);
@@ -2946,6 +3193,7 @@
     $('stepBadge').textContent='Шаг '+(state.step+1);
     $('stepTitle').textContent=st.title;
     fitStepTitle();
+    renderProblemBrief();
     $('stepAction').textContent=st.action;
     $('stepWhy').textContent=st.why;
     $('stepCheck').textContent=st.check;
