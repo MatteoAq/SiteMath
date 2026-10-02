@@ -435,6 +435,37 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('source role/status regression: '+e.stack);
 }
 
+// Intermediate geometry must stay visually/semantically auxiliary.
+if (!onlyVariant && !onlyTask) try {
+  $('variantSelect').value='12';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+
+  $('taskSelect').value='5';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('lastBtn').click();
+  for(const label of ['1₁','1₂','2₁','2₂']){
+    const p=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
+    if(!p || p.dataset.role!=='construction') failures.push('task5 roles: '+label+' is not construction');
+  }
+  for(const label of ['K₁','K₂']){
+    const p=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
+    if(!p || p.dataset.role!=='result') failures.push('task5 roles: '+label+' is not result');
+  }
+  if(window.document.querySelectorAll('#drawing line.aux-line[data-role="auxiliary"]').length<2){
+    failures.push('task5 roles: Ω/m auxiliary lines not classified as auxiliary');
+  }
+
+  $('taskSelect').value='6';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('lastBtn').click();
+  for(const label of ['P₁','P₂','Q₁','Q₂']){
+    const p=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
+    if(!p || p.dataset.role!=='construction') failures.push('task6 roles: '+label+' is not construction');
+  }
+} catch(e) {
+  failures.push('intermediate-role regression: '+e.stack);
+}
+
 // Variant 18 is now confirmed by a photographed sheet explicitly labeled "В. 18".
 try {
   const v18=window.SITEMATH_DATA.variants['18'];
