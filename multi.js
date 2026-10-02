@@ -492,6 +492,55 @@
     return [];
   }
 
+  function sourcePairNames(names){
+    return names.map(n=>n+'₁/'+n+'₂').join(', ');
+  }
+
+  function planeDefSourceNames(def){
+    if(!def) return [];
+    const out=[];
+    if(def.lines) out.push(...Object.keys(def.lines));
+    if(def.points) out.push(...Object.keys(def.points));
+    if(def.line) out.push(def.name||'проецирующая плоскость');
+    return out;
+  }
+
+  function diagramRoleSummary(task,scheme){
+    if(!scheme) return null;
+    if(task===4){
+      const given=[];
+      if(scheme.lines) given.push(...Object.keys(scheme.lines));
+      if(scheme.points) given.push(...Object.keys(scheme.points));
+      const op=scheme.operation||{};
+      const built=['h','f','ЛС'];
+      if(op.type) built.push('ℓ');
+      if(op.resultPoint) built.push(op.resultPoint);
+      return {
+        given:sourcePairNames([...new Set(given)]),
+        built:[...new Set(built)].join(', ')+'; тонкие проекторы и характерные точки – вспомогательные'
+      };
+    }
+    if(task===5){
+      const names=[];
+      if(scheme.lines) names.push(...Object.keys(scheme.lines));
+      if(scheme.points) names.push(...Object.keys(scheme.points));
+      return {
+        given:sourcePairNames([...new Set(names)]),
+        built:'Ω – вспомогательная плоскость; 1/2 – вспомогательные точки; m – линия сечения; K – ответ; штриховая часть ℓ – невидимый участок'
+      };
+    }
+    const names=[
+      ...planeDefSourceNames(scheme.planeA),
+      ...planeDefSourceNames(scheme.planeB)
+    ];
+    const through=scheme.pointLabel||'K';
+    names.push(through);
+    return {
+      given:sourcePairNames([...new Set(names)]),
+      built:'вспомогательные сечения; P/Q – общие точки; r – линия пересечения плоскостей; ℓ через '+through+' ∥ обеим плоскостям'
+    };
+  }
+
   function renderInputs(){
     const task=state.task;
     const holder=$('dynamicInputs');
@@ -537,11 +586,14 @@
         $('taskStatement').textContent = DATA.tasks[task].short;
         setupCustomDiagramEditor(task);
       } else {
+        const roleSummary=knownScheme?diagramRoleSummary(task,knownScheme):null;
         holder.innerHTML =
           '<div class="diagram-info">' +
           '<p><b>Тип данных:</b> графическая схема на листе, а не координаты.</p>' +
           (knownScheme
-            ? '<p><b>Статус:</b> для варианта сохранена индивидуальная схема с фото. Решение строится поверх неё; исходные точки и линии не заменяются универсальным шаблоном.</p>'
+            ? '<p><b>Статус:</b> для варианта сохранена индивидуальная схема с фото. Решение строится поверх неё; исходные точки и линии не заменяются универсальным шаблоном.</p>'+
+              (roleSummary?'<p><b>На листе дано:</b> '+esc(roleSummary.given||'графическая схема')+'</p>'+
+              '<p><b>Строится:</b> '+esc(roleSummary.built)+'</p>':'')
             : '<p><b>Статус:</b> исходного рисунка пока нет. Сайт не подставляет выдуманную геометрию.</p>') +
           '</div>';
         $('solverMode').textContent=knownScheme?'схема варианта':'нет схемы';
