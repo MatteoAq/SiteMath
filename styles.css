@@ -2283,3 +2283,13 @@ body { color:var(--ui-text); }
 @media print {
   .problem-brief { display:none !important; }
 }
+
+
+/* Drafting semantics: projectors/construction guides are thin continuous lines.
+   Dashed lines are reserved for hidden geometry or explicitly auxiliary sections. */
+.construction-line {
+  stroke-dasharray:none;
+}
+.problem-brief[hidden] {
+  display:none !important;
+}
