@@ -87,8 +87,15 @@
     const className=cls||'construction-line';
     return Object.assign({type:'line',step,a,b,cls:className,role:lineRole(className)},extra||{});
   }
+  function pointRole(cls){
+    if(cls==='point-dot') return 'given';
+    if(cls==='answer-dot') return 'result';
+    return 'construction';
+  }
+
   function point(step,p,label,cls){
-    return {type:'point',step,p,label,cls:cls||'point-dot'};
+    const className=cls||'point-dot';
+    return {type:'point',step,p,label,cls:className,role:pointRole(className)};
   }
   function textEntity(step,p,label,cls){
     return {type:'text',step,p,label,cls:cls||'svg-note'};
@@ -2035,7 +2042,7 @@
       check:'h₂ проходит через исходную точку '+pointName+'₂, а не через произвольное место поля.'
     },[
       line(i,A2,one2,'answer-line'),textEntity(i,one2,'h₂','svg-label'),
-      point(i,one2,'1₂','answer-dot')
+      point(i,one2,'1₂','construction-dot')
     ],{kind:'line',a:A2,b:one2});
 
     i=steps.length;
@@ -2046,7 +2053,7 @@
       measure:['1₁1₂ – линия связи','h₁ = '+pointName+'₁1₁'],
       check:'1₁ лежит на '+lineName+'₁; '+pointName+'₁ и 1₁ соединены h₁.'
     },[
-      line(i,one2,one1,'construction-line'),point(i,one1,'1₁','answer-dot'),
+      line(i,one2,one1,'construction-line'),point(i,one1,'1₁','construction-dot'),
       line(i,A1,one1,'answer-line'),textEntity(i,one1,'h₁','svg-label')
     ],{kind:'line',a:one2,b:one1});
 
@@ -2059,7 +2066,7 @@
       check:'2₁ и 3₁ получены пересечениями, а не выбраны отдельно.'
     },[
       line(i,two1,three1,'answer-line'),textEntity(i,two1,'f₁','svg-label'),
-      point(i,two1,'2₁','answer-dot'),point(i,three1,'3₁','answer-dot')
+      point(i,two1,'2₁','construction-dot'),point(i,three1,'3₁','construction-dot')
     ],{kind:'line',a:two1,b:three1});
 
     i=steps.length;
@@ -2070,8 +2077,8 @@
       measure:['2₁↔2₂ – одна линия связи','3₁↔3₂ – одна линия связи'],
       check:'2₂ лежит на '+lineName+'₂, 3₂ – на h₂.'
     },[
-      line(i,two1,two2,'construction-line'),point(i,two2,'2₂','answer-dot'),
-      line(i,three1,three2,'construction-line'),point(i,three2,'3₂','answer-dot'),
+      line(i,two1,two2,'construction-line'),point(i,two2,'2₂','construction-dot'),
+      line(i,three1,three2,'construction-line'),point(i,three2,'3₂','construction-dot'),
       line(i,two2,three2,'answer-line'),textEntity(i,two2,'f₂','svg-label')
     ],{kind:'line',a:two1,b:two2});
 
@@ -2084,7 +2091,7 @@
       check:'У 3₁ должен быть прямой угол между h₁ и ЛС₁.'
     },[
       line(i,three1,four1,'answer-line'),textEntity(i,four1,'ЛС₁','svg-label'),
-      point(i,four1,'4₁','answer-dot'),
+      point(i,four1,'4₁','construction-dot'),
       ...rightAngleMarkEntities(i,three1,vec2(three1,A1),vec2(three1,four1),5)
     ],{kind:'line',a:three1,b:four1});
 
@@ -2096,7 +2103,7 @@
       measure:['4₁↔4₂ – линия связи','ЛС₂ = 3₂4₂'],
       check:'4₂ лежит на '+lineName+'₂; 3₂ уже лежит на h₂.'
     },[
-      line(i,four1,four2,'construction-line'),point(i,four2,'4₂','answer-dot'),
+      line(i,four1,four2,'construction-line'),point(i,four2,'4₂','construction-dot'),
       line(i,three2,four2,'answer-line'),textEntity(i,four2,'ЛС₂','svg-label')
     ],{kind:'line',a:four1,b:four2});
 
@@ -2177,12 +2184,12 @@
       i=steps.length;
       const hStep=hCut?[
         line(i,hCut.primary[0],hCut.primary[1],'answer-line'),
-        point(i,hCut.primary[0],'1₂','answer-dot'),
-        point(i,hCut.primary[1],'2₂','answer-dot'),
+        point(i,hCut.primary[0],'1₂','construction-dot'),
+        point(i,hCut.primary[1],'2₂','construction-dot'),
         textEntity(i,hCut.primary[1],'h₂','svg-label')
       ]:[
         line(i,h0.p2,h1.p2,'answer-line'),
-        point(i,h0.p2,'1₂','answer-dot'),point(i,h1.p2,'2₂','answer-dot'),
+        point(i,h0.p2,'1₂','construction-dot'),point(i,h1.p2,'2₂','construction-dot'),
         textEntity(i,h1.p2,'h₂','svg-label')
       ];
       push({
@@ -2207,18 +2214,18 @@
         textEntity(i,hPaired[1],'h₁','svg-label'),
         line(i,hPrimary[0],hPaired[0],'construction-line'),
         line(i,hPrimary[1],hPaired[1],'construction-line'),
-        point(i,hPaired[0],'1₁','answer-dot'),point(i,hPaired[1],'2₁','answer-dot')
+        point(i,hPaired[0],'1₁','construction-dot'),point(i,hPaired[1],'2₁','construction-dot')
       ],{kind:'line',a:hPaired[0],b:hPaired[1]});
 
       i=steps.length;
       const fStep=fCut?[
         line(i,fCut.primary[0],fCut.primary[1],'answer-line'),
-        point(i,fCut.primary[0],'3₁','answer-dot'),
-        point(i,fCut.primary[1],'4₁','answer-dot'),
+        point(i,fCut.primary[0],'3₁','construction-dot'),
+        point(i,fCut.primary[1],'4₁','construction-dot'),
         textEntity(i,fCut.primary[1],'f₁','svg-label')
       ]:[
         line(i,f0.p1,f1.p1,'answer-line'),
-        point(i,f0.p1,'3₁','answer-dot'),point(i,f1.p1,'4₁','answer-dot'),
+        point(i,f0.p1,'3₁','construction-dot'),point(i,f1.p1,'4₁','construction-dot'),
         textEntity(i,f1.p1,'f₁','svg-label')
       ];
       push({
@@ -2243,7 +2250,7 @@
         textEntity(i,fPaired[1],'f₂','svg-label'),
         line(i,fPrimary[0],fPaired[0],'construction-line'),
         line(i,fPrimary[1],fPaired[1],'construction-line'),
-        point(i,fPaired[0],'3₂','answer-dot'),point(i,fPaired[1],'4₂','answer-dot')
+        point(i,fPaired[0],'3₂','construction-dot'),point(i,fPaired[1],'4₂','construction-dot')
       ],{kind:'line',a:fPaired[0],b:fPaired[1]});
 
       i=steps.length;
@@ -2256,7 +2263,7 @@
         check:'S₁ лежит на h₁, у пересечения отмечен прямой угол.'
       },[
         line(i,ls0.p1,ls1.p1,'answer-line'),
-        point(i,lsCross.p1,'S₁','answer-dot'),
+        point(i,lsCross.p1,'S₁','construction-dot'),
         textEntity(i,ls1.p1,'ЛС₁','svg-label'),
         ...rightAngleMarkEntities(i,lsCross.p1,vec2(lsCross.p1,h0.p1),vec2(lsCross.p1,ls1.p1),5)
       ],{kind:'line',a:ls0.p1,b:ls1.p1});
@@ -2273,7 +2280,7 @@
         textEntity(i,ls1.p2,'ЛС₂','svg-label'),
         line(i,ls0.p1,ls0.p2,'construction-line'),
         line(i,ls1.p1,ls1.p2,'construction-line'),
-        point(i,lsCross.p2,'S₂','answer-dot'),
+        point(i,lsCross.p2,'S₂','construction-dot'),
         line(i,lsCross.p1,lsCross.p2,'construction-line')
       ],{kind:'line',a:ls0.p2,b:ls1.p2});
     }
@@ -2321,7 +2328,7 @@
         why:'Чтобы прямая через заданную точку пересекала фронталь, достаточно провести её через любую точку T этой фронтали.',
         measure:['T₁ ∈ f₁','T₂ ∈ f₂'],
         check:'T₁ и T₂ лежат на одной линии связи.'
-      },[point(i,T.p1,'T₁','answer-dot'),point(i,T.p2,'T₂','answer-dot'),line(i,T.p1,T.p2,'construction-line')]);
+      },[point(i,T.p1,'T₁','construction-dot'),point(i,T.p2,'T₂','construction-dot'),line(i,T.p1,T.p2,'construction-line')]);
 
       i=steps.length;
       push({
@@ -2346,7 +2353,7 @@
         measure:['T₁ ∈ h₁','T₂ ∈ h₂'],
         check:'T₁ и T₂ – проекции одной точки T горизонтали.'
       },[
-        point(i,T.p1,'T₁','answer-dot'),point(i,T.p2,'T₂','answer-dot'),
+        point(i,T.p1,'T₁','construction-dot'),point(i,T.p2,'T₂','construction-dot'),
         line(i,T.p1,T.p2,'construction-line')
       ]);
 
@@ -2373,7 +2380,7 @@
         why:'Будущая ℓ должна пересечь '+op.target+', поэтому T сразу выбирается общей точкой двух прямых.',
         measure:['T ∈ '+op.target],
         check:'T₁ лежит на '+op.target+'₁, T₂ – на '+op.target+'₂.'
-      },[point(i,T.p1,'T₁','answer-dot'),point(i,T.p2,'T₂','answer-dot'),line(i,T.p1,T.p2,'construction-line')]);
+      },[point(i,T.p1,'T₁','construction-dot'),point(i,T.p2,'T₂','construction-dot'),line(i,T.p1,T.p2,'construction-line')]);
       i=steps.length;
       push({
         title:'Проведи ℓ через '+op.through+' и T',
@@ -2700,8 +2707,8 @@
       measure:['1₁ = Ω₁ ∩ '+refs[0].name+'₁','2₁ = Ω₁ ∩ '+refs[1].name+'₁'],
       check:'Обе точки лежат на ℓ₁/Ω₁.'
     },[
-      point(i,I1,'1₁','answer-dot'),
-      point(i,I2,'2₁','answer-dot')
+      point(i,I1,'1₁','construction-dot'),
+      point(i,I2,'2₁','construction-dot')
     ]);
 
     i=steps.length;
@@ -2712,8 +2719,8 @@
       measure:['1₁↔1₂ – одна линия связи','2₁↔2₂ – одна линия связи'],
       check:'1₂ лежит на '+refs[0].name+'₂, 2₂ – на '+refs[1].name+'₂.'
     },[
-      line(i,I1,I1p2,'construction-line'),point(i,I1p2,'1₂','answer-dot'),
-      line(i,I2,I2p2,'construction-line'),point(i,I2p2,'2₂','answer-dot')
+      line(i,I1,I1p2,'construction-line'),point(i,I1p2,'1₂','construction-dot'),
+      line(i,I2,I2p2,'construction-line'),point(i,I2p2,'2₂','construction-dot')
     ],{kind:'line',a:I1,b:I1p2});
 
     i=steps.length;
@@ -2724,7 +2731,7 @@
       measure:['m₂ = 1₂2₂','K₂ = m₂ ∩ ℓ₂'],
       check:'K₂ одновременно лежит на m₂ и ℓ₂.'
     },[
-      line(i,I1p2,I2p2,'answer-line'),textEntity(i,lerp2(I1p2,I2p2,.7),'m₂','svg-label'),
+      line(i,I1p2,I2p2,'aux-line'),textEntity(i,lerp2(I1p2,I2p2,.7),'m₂','svg-label'),
       point(i,K2,'K₂','answer-dot')
     ],{kind:'line',a:I1p2,b:I2p2});
 
@@ -2952,8 +2959,8 @@
         line(i,pB0.p1,pB1.p1,'aux-line'),textEntity(i,pB1.p1,'hΘ₁','svg-label'),
         line(i,pA0.p2,pA0.p1,'construction-line'),line(i,pA1.p2,pA1.p1,'construction-line'),
         line(i,pB0.p2,pB0.p1,'construction-line'),line(i,pB1.p2,pB1.p1,'construction-line'),
-        point(i,pp.p1,'P₁','answer-dot'),
-        point(i,pp.p2,'P₂','answer-dot'),
+        point(i,pp.p1,'P₁','construction-dot'),
+        point(i,pp.p2,'P₂','construction-dot'),
         line(i,pp.p1,pp.p2,'construction-line')
       ]);
 
@@ -2971,8 +2978,8 @@
         line(i,qB0.p1,qB1.p1,'aux-line'),textEntity(i,qB1.p1,'hΘ₁','svg-label'),
         line(i,qA0.p2,qA0.p1,'construction-line'),line(i,qA1.p2,qA1.p1,'construction-line'),
         line(i,qB0.p2,qB0.p1,'construction-line'),line(i,qB1.p2,qB1.p1,'construction-line'),
-        point(i,qq.p1,'Q₁','answer-dot'),
-        point(i,qq.p2,'Q₂','answer-dot'),
+        point(i,qq.p1,'Q₁','construction-dot'),
+        point(i,qq.p2,'Q₂','construction-dot'),
         line(i,qq.p1,qq.p2,'construction-line')
       ]);
     } else {
@@ -2990,7 +2997,7 @@
         line(i,pB0.p2,pB1.p2,'aux-line'),textEntity(i,pB1.p2,'fΘ₂','svg-label'),
         line(i,pA0.p1,pA0.p2,'construction-line'),line(i,pA1.p1,pA1.p2,'construction-line'),
         line(i,pB0.p1,pB0.p2,'construction-line'),line(i,pB1.p1,pB1.p2,'construction-line'),
-        point(i,pp.p1,'P₁','answer-dot'),point(i,pp.p2,'P₂','answer-dot'),
+        point(i,pp.p1,'P₁','construction-dot'),point(i,pp.p2,'P₂','construction-dot'),
         line(i,pp.p1,pp.p2,'construction-line')
       ]);
       i=steps.length;
@@ -3007,7 +3014,7 @@
         line(i,qB0.p2,qB1.p2,'aux-line'),textEntity(i,qB1.p2,'fΘ₂','svg-label'),
         line(i,qA0.p1,qA0.p2,'construction-line'),line(i,qA1.p1,qA1.p2,'construction-line'),
         line(i,qB0.p1,qB0.p2,'construction-line'),line(i,qB1.p1,qB1.p2,'construction-line'),
-        point(i,qq.p1,'Q₁','answer-dot'),point(i,qq.p2,'Q₂','answer-dot'),
+        point(i,qq.p1,'Q₁','construction-dot'),point(i,qq.p2,'Q₂','construction-dot'),
         line(i,qq.p1,qq.p2,'construction-line')
       ]);
     }
@@ -3123,7 +3130,7 @@
       if(e.arrow) n.setAttribute('marker-end','url(#axisArrow)');
       svg.append(n);
     } else if(e.type==='point'){
-      const n=E('circle',{cx:e.p.x,cy:e.p.y,r:e.cls.includes('answer')?1.05:.88,class:e.cls+(active?' active-dot':''),'data-active':active?'1':'0','data-label':e.label||''});
+      const n=E('circle',{cx:e.p.x,cy:e.p.y,r:e.cls.includes('answer')?1.05:.88,class:e.cls+(active?' active-dot':''),'data-active':active?'1':'0','data-label':e.label||'','data-role':e.role||pointRole(e.cls)});
       svg.append(n);
       if(e.label) svg.append(E('text',{x:e.p.x+2.1,y:e.p.y-2.0,class:'svg-label','data-active':active?'1':'0'},e.label));
     } else if(e.type==='text'){
