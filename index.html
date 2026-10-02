@@ -169,8 +169,9 @@
         </div>
 
         <div class="legend">
-          <span><i class="swatch construction"></i>тонкие построения</span>
-          <span><i class="swatch object"></i>исходная геометрия</span>
+          <span><i class="swatch object"></i>исходное с листа</span>
+          <span><i class="swatch construction"></i>линии связи</span>
+          <span><i class="swatch auxiliary"></i>вспомогательное</span>
           <span><i class="swatch answer"></i>результат</span>
           <span><i class="swatch active"></i>текущий шаг</span>
         </div>
@@ -184,6 +185,11 @@
         </button>
         <div class="step-badge" id="stepBadge">Шаг 1</div>
         <h2 id="stepTitle">Подготовка</h2>
+
+        <div id="problemBrief" class="problem-brief" hidden>
+          <div class="problem-brief-row"><span>Дано</span><b id="problemGiven"></b></div>
+          <div class="problem-brief-row"><span>Найти</span><b id="problemFind"></b></div>
+        </div>
 
         <div class="step-info-tabs" role="tablist" aria-label="Пояснение шага">
           <button class="step-info-tab is-active" type="button" data-step-mode="action" role="tab" aria-selected="true">Что делать</button>
