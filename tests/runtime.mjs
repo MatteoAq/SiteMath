@@ -318,25 +318,51 @@ if (!onlyVariant && !onlyTask) try {
 }
 
 
-// Every photographed task 4 must show the actual graphical construction path,
-// not only the stored source labels and a finished answer line. Task 6 must keep
-// both projections of its auxiliary sections and their projectors.
+// Every photographed task 4 must show the real construction path. For a plane
+// defined by a point and a line, keep the teacher's 1-2-3-4 sequence instead of
+// inventing a second source line. Task 6 must keep both auxiliary projections.
 if (!onlyVariant && !onlyTask) try {
   const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
-  const task4Labels=['1₂','2₂','1₁','2₁','3₁','4₁','3₂','4₂','S₁','S₂'];
+  const genericLabels=['1₂','2₂','1₁','2₁','3₁','4₁','3₂','4₂','S₁','S₂','ЛС₁','ЛС₂'];
+  const linePointLabels=['1₂','1₁','2₁','3₁','2₂','3₂','4₁','4₂','ЛС₁','ЛС₂'];
   for(const variant of photographed){
     $('variantSelect').value=variant;
     $('variantSelect').dispatchEvent(new window.Event('change'));
 
     $('taskSelect').value='4';
     $('taskSelect').dispatchEvent(new window.Event('change'));
-    $('lastBtn').click();
+
+    // Step 1 is source-only: no solution line may be mixed into the printed givens.
+    $('firstBtn').click();
+    if(window.document.querySelectorAll('#drawing line[data-role="result"]').length){
+      failures.push('task4 roles '+variant+': result mixed into source step');
+    }
+    if(!window.document.querySelectorAll('#drawing line[data-role="given"]').length){
+      failures.push('task4 roles '+variant+': source has no given lines');
+    }
+
+    // Next step introduces x12 as a construction reference, not source geometry.
+    $('nextBtn').click();
     let labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
-    for(const label of task4Labels){
+    if(!labels.includes('x₁₂')) failures.push('task4 axis '+variant+': x₁₂ missing');
+    const xAxis=window.document.querySelector('#drawing line.axis[data-role="construction"]');
+    if(!xAxis) failures.push('task4 axis '+variant+': x₁₂ is not classified as construction');
+
+    $('lastBtn').click();
+    labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+    const scheme=window.SITEMATH_SCHEMES?.[variant]?.task4;
+    const expected=scheme?.planeType==='line_point'?linePointLabels:genericLabels;
+    for(const label of expected){
       if(!labels.includes(label)) failures.push('task4 construction '+variant+': missing '+label);
+    }
+    if(scheme?.planeType==='line_point' && (labels.includes('g₁')||labels.includes('g₂'))){
+      failures.push('task4 teacher sequence '+variant+': unnecessary helper g returned');
     }
     if(window.document.querySelectorAll('#drawing line.construction-line').length<6){
       failures.push('task4 construction '+variant+': too few projector/helper lines');
+    }
+    if(!window.document.querySelectorAll('#drawing line[data-role="result"]').length){
+      failures.push('task4 roles '+variant+': no result lines');
     }
 
     $('taskSelect').value='6';
@@ -351,6 +377,28 @@ if (!onlyVariant && !onlyTask) try {
   }
 } catch(e) {
   failures.push('global graphical construction regression: '+e.stack);
+}
+
+// Tasks 4-6 expose the source statement as a compact Given/Find block.
+if (!onlyVariant && !onlyTask) try {
+  for(const variant of ['03','08','12','18']){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    for(const task of [4,5,6]){
+      $('taskSelect').value=String(task);
+      $('taskSelect').dispatchEvent(new window.Event('change'));
+      if($('problemBrief').hidden) failures.push('problem brief '+variant+'/'+task+': hidden');
+      if(!$('problemGiven').textContent.trim()) failures.push('problem brief '+variant+'/'+task+': Given empty');
+      if(!$('problemFind').textContent.trim()) failures.push('problem brief '+variant+'/'+task+': Find empty');
+    }
+  }
+  $('variantSelect').value='08';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='4';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  if(!$('problemFind').textContent.includes('ЛС')) failures.push('problem brief task4: greatest-slope line missing');
+} catch(e) {
+  failures.push('problem brief regression: '+e.stack);
 }
 
 // Variant 18 is now confirmed by a photographed sheet explicitly labeled "В. 18".
