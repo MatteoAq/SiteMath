@@ -496,12 +496,15 @@
     return names.map(n=>n+'₁/'+n+'₂').join(', ');
   }
 
-  function planeDefSourceNames(def){
+  function planeDefSourceLabels(def){
     if(!def) return [];
     const out=[];
-    if(def.lines) out.push(...Object.keys(def.lines));
-    if(def.points) out.push(...Object.keys(def.points));
-    if(def.line) out.push(def.name||'проецирующая плоскость');
+    if(def.lines) for(const name of Object.keys(def.lines)) out.push(name+'₁/'+name+'₂');
+    if(def.points) for(const name of Object.keys(def.points)) out.push(name+'₁/'+name+'₂');
+    if(def.line){
+      const name=def.name||'Π';
+      out.push(name+(def.type==='frontal_projecting'?'₂':'₁'));
+    }
     return out;
   }
 
@@ -529,14 +532,14 @@
         built:'Ω – вспомогательная плоскость; 1/2 – вспомогательные точки; m – линия сечения; K – ответ; штриховая часть ℓ – невидимый участок'
       };
     }
-    const names=[
-      ...planeDefSourceNames(scheme.planeA),
-      ...planeDefSourceNames(scheme.planeB)
+    const labels=[
+      ...planeDefSourceLabels(scheme.planeA),
+      ...planeDefSourceLabels(scheme.planeB)
     ];
     const through=scheme.pointLabel||'K';
-    names.push(through);
+    labels.push(through+'₁/'+through+'₂');
     return {
-      given:sourcePairNames([...new Set(names)]),
+      given:[...new Set(labels)].join(', '),
       built:'вспомогательные сечения; P/Q – общие точки; r – линия пересечения плоскостей; ℓ через '+through+' ∥ обеим плоскостям'
     };
   }
@@ -591,7 +594,13 @@
           '<div class="diagram-info">' +
           '<p><b>Тип данных:</b> графическая схема на листе, а не координаты.</p>' +
           (knownScheme
-            ? '<p><b>Статус:</b> для варианта сохранена индивидуальная схема с фото. Решение строится поверх неё; исходные точки и линии не заменяются универсальным шаблоном.</p>'+
+            ? '<p><b>Статус:</b> '+(
+                knownScheme.sourceVerified && knownScheme.sourceId
+                  ? 'повторно сверено с доступным оригиналом '+esc(knownScheme.sourceId)+'.'
+                  : knownScheme.sourceVerified
+                    ? 'перенесено с фото ранее; исходный файл сейчас недоступен для повторной точной сверки.'
+                    : 'сохранена трассировка из прошлой работы; до повторной сверки с оригиналом её наклоны не считаются подтверждёнными.'
+              )+'</p>'+
               (roleSummary?'<p><b>На листе дано:</b> '+esc(roleSummary.given||'графическая схема')+'</p>'+
               '<p><b>Строится:</b> '+esc(roleSummary.built)+'</p>':'')
             : '<p><b>Статус:</b> исходного рисунка пока нет. Сайт не подставляет выдуманную геометрию.</p>') +
