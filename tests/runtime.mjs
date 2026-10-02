@@ -401,6 +401,40 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('problem brief regression: '+e.stack);
 }
 
+// Source-role text must not turn a one-projection plane into a fictitious pair,
+// and source verification status must reflect what can actually be rechecked now.
+if (!onlyVariant && !onlyTask) try {
+  $('variantSelect').value='11';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='6';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  let sourceText=$('dynamicInputs').textContent;
+  if(!sourceText.includes('Γ₂')) failures.push('source roles 11/6: Γ₂ missing');
+  if(sourceText.includes('Γ₁/Γ₂')) failures.push('source roles 11/6: frontal-projecting plane falsely shown as two projections');
+
+  $('variantSelect').value='08';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='6';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  sourceText=$('dynamicInputs').textContent;
+  if(!sourceText.includes('Δ₁')) failures.push('source roles 08/6: Δ₁ missing');
+  if(sourceText.includes('Δ₁/Δ₂')) failures.push('source roles 08/6: horizontal-projecting plane falsely shown as two projections');
+
+  $('variantSelect').value='12';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='4';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  if(!$('dynamicInputs').textContent.includes('IMG_20260917_131638')) failures.push('source status 12: exact source id missing');
+
+  $('variantSelect').value='03';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='4';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  if(!$('dynamicInputs').textContent.includes('недоступен')) failures.push('source status 03: unavailable recheck not disclosed');
+} catch(e) {
+  failures.push('source role/status regression: '+e.stack);
+}
+
 // Variant 18 is now confirmed by a photographed sheet explicitly labeled "В. 18".
 try {
   const v18=window.SITEMATH_DATA.variants['18'];
