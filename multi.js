@@ -2401,15 +2401,23 @@
           relationText='под плоскостью Σ';
           why='Сначала вертикалью находим точку плоскости с теми же x,y, затем уменьшаем z. Это даёт точку строго под Σ.';
         }
+        let relationAction='Выбери удобное смещение в требуемом направлении. Условие не задаёт расстояние, поэтому его выбирают только для читаемости чертежа.';
+        if(op.relation==='above_line' || op.relation==='below_line'){
+          relationAction=op.resultPoint+'₁ поставь непосредственно на ℓ₁. По этой линии связи '+op.resultPoint+'₂ располагается '+(op.relation==='above_line'?'выше':'ниже')+' соответствующей точки ℓ₂.';
+        } else if(op.relation==='behind_line' || op.relation==='front_of_line'){
+          relationAction=op.resultPoint+'₂ поставь непосредственно на ℓ₂. По той же линии связи '+op.resultPoint+'₁ располагается '+(op.relation==='front_of_line'?'перед':'за')+' соответствующей точкой ℓ₁.';
+        } else if(op.relation==='above_named'){
+          relationAction=op.resultPoint+'₁ поставь на '+(op.target||'a')+'₁. На той же линии связи '+op.resultPoint+'₂ располагается выше соответствующей точки '+(op.target||'a')+'₂.';
+        }
         push({
           title:'Построй '+op.resultPoint+' '+relationText,
-          action:'Выбери удобное смещение в требуемом направлении. Условие не задаёт расстояние, поэтому его выбирают только для читаемости чертежа; экранный отступ сайта не является размером, который нужно переносить на бумагу.',
+          action:relationAction,
           why:why,
           measure:['Величина смещения не задана условием – выбирается для читаемости чертежа.'],
           check:'Проверь совпадающую координату по соответствующей линии связи.'
         },[
-          Ref?point(i,Ref.p1,'R₁','construction-dot'):null,
-          Ref?point(i,Ref.p2,'R₂','construction-dot'):null,
+          Ref?point(i,Ref.p1,'','construction-dot'):null,
+          Ref?point(i,Ref.p2,'','construction-dot'):null,
           line(i,R.p1,R.p2,'construction-line'),
           point(i,R.p1,op.resultPoint+'₁','answer-dot'),
           point(i,R.p2,op.resultPoint+'₂','answer-dot')
