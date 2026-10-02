@@ -181,6 +181,30 @@ for (const vp of viewports) {
       });
     }
   }
+
+  // Teacher-method captures for point+line planes: these must show the full
+  // 1-2-3-4 construction chain, x12 and the compact Given/Find block.
+  for (const variant of ['08','09','14','15']) {
+    await page.evaluate((variant)=>{
+      const vs=document.querySelector('#variantSelect');
+      const ts=document.querySelector('#taskSelect');
+      vs.value=variant;
+      vs.dispatchEvent(new Event('change'));
+      ts.value='4';
+      ts.dispatchEvent(new Event('change'));
+      document.querySelector('#lastBtn')?.click();
+    },variant);
+    await page.waitForTimeout(80);
+    await page.locator('#zoomFitBtn').click();
+    await page.waitForTimeout(900);
+    const briefOverflow=await page.locator('#problemBrief').evaluate(el=>el.scrollWidth>el.clientWidth+1);
+    if(briefOverflow) failures.push('teacher task4 '+variant+': Given/Find block overflows');
+    await page.screenshot({
+      path:'mobile-screenshots/teacher-v'+String(Number(variant)).padStart(2,'0')+'-t4-final.png',
+      fullPage:false
+    });
+  }
+
   await context.close();
 }
 
