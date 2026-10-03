@@ -119,6 +119,7 @@ button { border: 0; border-radius: 11px; padding: 10px 12px; font-weight: 750; }
 .legend span { display: inline-flex; align-items: center; gap: 7px; }
 .swatch { width: 24px; height: 2px; background: var(--construction); display: inline-block; }
 .swatch.object { background: var(--ink); height: 3px; }
+.swatch.source-guide { background:#77716a; height:1px; }
 .swatch.active { background: var(--accent); height: 3px; }
 .swatch.auxiliary { background:#7b6a8a; height:2px; border-top:1px dashed #7b6a8a; }
 
@@ -143,6 +144,7 @@ button { border: 0; border-radius: 11px; padding: 10px 12px; font-weight: 750; }
 .grid-major { stroke: var(--paper-major); stroke-width: .28; }
 .axis { stroke: #37332e; stroke-width: .55; fill: none; }
 .construction-line { stroke: var(--construction); stroke-width: .32; fill: none; stroke-dasharray: 2 1.6; }
+.source-guide-line { stroke:#77716a; stroke-width:.28; fill:none; }
 .object-line { stroke: #26231f; stroke-width: .72; fill: none; }
 .answer-line { stroke: var(--blue); stroke-width: .72; fill: none; }
 .active-line { stroke: var(--accent) !important; stroke-width: .9 !important; }
@@ -2319,5 +2321,12 @@ body { color:var(--ui-text); }
     padding:7px 8px;
     font-size:11px;
     line-height:1.32;
+  }
+}
+
+@media print {
+  .source-guide-line {
+    stroke:#666 !important;
+    stroke-width:.22 !important;
   }
 }
