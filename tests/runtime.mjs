@@ -318,6 +318,35 @@ if (!onlyVariant && !onlyTask) try {
 }
 
 
+// First frame of every photographed diagram task must contain only what is
+// printed in the source sheet: given geometry plus printed source projectors.
+if (!onlyVariant && !onlyTask) try {
+  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  for(const variant of photographed){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    for(const task of [4,5,6]){
+      $('taskSelect').value=String(task);
+      $('taskSelect').dispatchEvent(new window.Event('change'));
+      $('firstBtn').click();
+      const roles=[...window.document.querySelectorAll('#drawing [data-role]')].map(n=>n.getAttribute('data-role'));
+      const bad=roles.filter(r=>!['given','given-guide'].includes(r));
+      if(bad.length) failures.push('source roles '+variant+'/'+task+': solution objects on first frame '+[...new Set(bad)].join(','));
+      if(!roles.includes('given')) failures.push('source roles '+variant+'/'+task+': no primary given geometry');
+      const hasPrintedGuide=window.document.querySelector('#drawing .source-guide-line, #drawing .source-guide-dot');
+      const scheme=window.SITEMATH_SCHEMES?.[variant]?.['task'+task];
+      const expectsGuide=task===4
+        ? !!(scheme?.points && Object.keys(scheme.points).length) || !!scheme?.junctions?.length || scheme?.planeType==='intersecting_lines'
+        : task===5
+          ? !!(scheme?.points && Object.keys(scheme.points).length) || !!scheme?.junctions?.length || scheme?.planeType==='intersecting_lines'
+          : !!(scheme?.pointK||scheme?.pointThrough) || !!scheme?.planeA?.points || !!scheme?.planeB?.points || !!scheme?.planeA?.junctions?.length || !!scheme?.planeB?.junctions?.length;
+      if(expectsGuide && !hasPrintedGuide) failures.push('source roles '+variant+'/'+task+': printed source guide missing');
+    }
+  }
+} catch(e) {
+  failures.push('source frame semantic regression: '+e.stack);
+}
+
 // Every photographed task 4 must show the real construction path. For a plane
 // defined by a point and a line, keep the teacher's 1-2-3-4 sequence instead of
 // inventing a second source line. Task 6 must keep both auxiliary projections.
