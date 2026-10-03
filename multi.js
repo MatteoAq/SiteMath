@@ -2906,6 +2906,300 @@
     return out;
   }
 
+
+  function planeDefReferenceLines(def){
+    if(!def) return [];
+    if(def.type==='ABC'){
+      const p=def.points||{};
+      const pairs=[['A','B'],['B','C'],['C','A']];
+      return pairs.filter(([a,b])=>p[a]&&p[b]).map(([a,b])=>{
+        const A=normalizedPointRec(p[a]),B=normalizedPointRec(p[b]);
+        return {name:a+b,rec:{p1:[A.p1,B.p1],p2:[A.p2,B.p2]}};
+      });
+    }
+    if(def.type==='line_point'){
+      const lineName=def.lineName||Object.keys(def.lines||{})[0];
+      const pointName=def.pointName||Object.keys(def.points||{})[0];
+      const L=def.lines?.[lineName],P=def.points?.[pointName];
+      if(!L) return [];
+      if(!P) return [{name:lineName,rec:L}];
+      const A=normalizedPointRec(P);
+      const xs=[L.p1[0][0],L.p1[1][0],L.p2[0][0],L.p2[1][0]];
+      const x=xs.reduce((s,v)=>s+v,0)/xs.length;
+      const T={p1:[x,lineY(L.p1,x)],p2:[x,lineY(L.p2,x)]};
+      return [
+        {name:lineName,rec:L},
+        {name:pointName+'T',rec:{p1:[A.p1,T.p1],p2:[A.p2,T.p2]},generated:true}
+      ];
+    }
+    if(def.lines) return Object.entries(def.lines).map(([name,rec])=>({name,rec}));
+    return [];
+  }
+
+  function task6SourceBounds(scheme){
+    const xs=[],p1y=[],p2y=[];
+    const addPair=(p,proj)=>{
+      if(!p||p.length<2)return;
+      xs.push(+p[0]);
+      (proj==='p1'?p1y:p2y).push(+p[1]);
+    };
+    const addDef=def=>{
+      if(!def)return;
+      Object.values(def.lines||{}).forEach(L=>{
+        (L.p1||[]).forEach(p=>addPair(p,'p1'));
+        (L.p2||[]).forEach(p=>addPair(p,'p2'));
+      });
+      Object.values(def.points||{}).forEach(P=>{
+        if(P.p1)addPair(P.p1,'p1');
+        if(P.p2)addPair(P.p2,'p2');
+      });
+      if(def.line){
+        const proj=def.type==='frontal_projecting'?'p2':'p1';
+        def.line.forEach(p=>addPair(p,proj));
+      }
+    };
+    addDef(scheme.planeA);addDef(scheme.planeB);
+    const K=scheme.pointK||scheme.pointThrough;
+    if(K){if(K.p1)addPair(K.p1,'p1');if(K.p2)addPair(K.p2,'p2');}
+    const range=(a,lo,hi)=>{
+      if(!a.length)return [lo,hi];
+      return [Math.min(...a),Math.max(...a)];
+    };
+    const [minX,maxX]=range(xs,20,220);
+    const [minY1,maxY1]=range(p1y,90,220);
+    const [minY2,maxY2]=range(p2y,20,100);
+    return {minX,maxX,minY1,maxY1,minY2,maxY2};
+  }
+
+  function lineLevelIntersection(seg,level){
+    const a={x:+seg[0][0],y:+seg[0][1]},b={x:+seg[1][0],y:+seg[1][1]};
+    const dy=b.y-a.y;
+    if(Math.abs(dy)<EPS)return null;
+    const t=(level-a.y)/dy;
+    return {x:a.x+(b.x-a.x)*t,y:level,t};
+  }
+
+  function outsideAmount(v,lo,hi){
+    if(v<lo)return lo-v;
+    if(v>hi)return v-hi;
+    return 0;
+  }
+
+  function regularPlaneSection(def,levelType,level,bounds){
+    const refs=planeDefReferenceLines(def);
+    if(refs.length<2)return null;
+    const primary=levelType==='horizontal'?'p2':'p1';
+    const other=primary==='p2'?'p1':'p2';
+    let best=null;
+    for(let a=0;a<refs.length;a++)for(let b=a+1;b<refs.length;b++){
+      const ra=refs[a].rec,rb=refs[b].rec;
+      if(!ra?.[primary]||!rb?.[primary]||!ra?.[other]||!rb?.[other])continue;
+      const ia=lineLevelIntersection(ra[primary],level);
+      const ib=lineLevelIntersection(rb[primary],level);
+      if(!ia||!ib||Math.abs(ia.x-ib.x)<5)continue;
+      const oa={x:ia.x,y:lineY(ra[other],ia.x)};
+      const ob={x:ib.x,y:lineY(rb[other],ib.x)};
+      if(!Number.isFinite(oa.y)||!Number.isFinite(ob.y))continue;
+      const pa={x:ia.x,y:level},pb={x:ib.x,y:level};
+      const p1=primary==='p1'?[pa,pb]:[oa,ob];
+      const p2=primary==='p2'?[pa,pb]:[oa,ob];
+      const ext=Math.max(0,-ia.t)+Math.max(0,ia.t-1)+Math.max(0,-ib.t)+Math.max(0,ib.t-1);
+      const otherLo=other==='p1'?bounds.minY1:bounds.minY2;
+      const otherHi=other==='p1'?bounds.maxY1:bounds.maxY2;
+      const spreadPenalty=outsideAmount(oa.y,otherLo-50,otherHi+50)+outsideAmount(ob.y,otherLo-50,otherHi+50);
+      const score=ext*25+spreadPenalty*.25;
+      if(!best||score<best.score)best={p1,p2,refs:[refs[a],refs[b]],score};
+    }
+    return best;
+  }
+
+  function planeSectionAtLevel(def,levelType,level,bounds){
+    if(!def)return null;
+    if(def.type!=='frontal_projecting'&&def.type!=='horizontal_projecting'){
+      return regularPlaneSection(def,levelType,level,bounds);
+    }
+    const seg=def.line;
+    if(!seg)return null;
+    if(levelType==='horizontal'){
+      if(def.type==='horizontal_projecting'){
+        const p1=toSeg(seg);
+        const p2=[{x:p1[0].x,y:level},{x:p1[1].x,y:level}];
+        return {p1,p2,refs:[],score:0,projecting:true};
+      }
+      const hit=lineLevelIntersection(seg,level);
+      if(!hit)return null;
+      const p2=[{x:hit.x,y:level},{x:hit.x,y:level}];
+      const p1=[{x:hit.x,y:bounds.minY1-25},{x:hit.x,y:bounds.maxY1+25}];
+      return {p1,p2,refs:[],score:Math.max(0,-hit.t)+Math.max(0,hit.t-1),projecting:true,degenerate:'p2'};
+    }
+    if(def.type==='frontal_projecting'){
+      const p2=toSeg(seg);
+      const p1=[{x:p2[0].x,y:level},{x:p2[1].x,y:level}];
+      return {p1,p2,refs:[],score:0,projecting:true};
+    }
+    const hit=lineLevelIntersection(seg,level);
+    if(!hit)return null;
+    const p1=[{x:hit.x,y:level},{x:hit.x,y:level}];
+    const p2=[{x:hit.x,y:bounds.minY2-25},{x:hit.x,y:bounds.maxY2+25}];
+    return {p1,p2,refs:[],score:Math.max(0,-hit.t)+Math.max(0,hit.t-1),projecting:true,degenerate:'p1'};
+  }
+
+  function sectionCommonPoint(secA,secB,levelType,level){
+    if(!secA||!secB)return null;
+    const use=levelType==='horizontal'?'p1':'p2';
+    const A=secA[use],B=secB[use];
+    const P=lineIntersection2(A[0],A[1],B[0],B[1]);
+    if(!P)return null;
+    if(levelType==='horizontal')return {p1:P,p2:{x:P.x,y:level}};
+    return {p1:{x:P.x,y:level},p2:P};
+  }
+
+  function task6SectionCandidate(scheme,levelType,level,bounds){
+    const a=planeSectionAtLevel(scheme.planeA,levelType,level,bounds);
+    const b=planeSectionAtLevel(scheme.planeB,levelType,level,bounds);
+    const P=sectionCommonPoint(a,b,levelType,level);
+    if(!a||!b||!P)return null;
+    const yLo=levelType==='horizontal'?bounds.minY1:bounds.minY2;
+    const yHi=levelType==='horizontal'?bounds.maxY1:bounds.maxY2;
+    const common=levelType==='horizontal'?P.p1:P.p2;
+    const score=(a.score||0)+(b.score||0)
+      +outsideAmount(common.x,bounds.minX-70,bounds.maxX+70)*.5
+      +outsideAmount(common.y,yLo-70,yHi+70)*.5;
+    return {levelType,level,a,b,P,score};
+  }
+
+  function sectionDrawEntities(step,sec,label){
+    const out=[];
+    const addProjection=(seg,idx)=>{
+      if(!seg||!seg[0]||!seg[1])return;
+      if(dist2(seg[0],seg[1])>.5){
+        out.push(line(step,seg[0],seg[1],'aux-line'));
+        out.push(textEntity(step,seg[1],label+idx,'svg-note'));
+      } else {
+        out.push(point(step,seg[0],label+idx,'construction-dot'));
+      }
+    };
+    addProjection(sec.p2,'₂');
+    addProjection(sec.p1,'₁');
+    if(sec.refs&&sec.refs.length===2){
+      for(let i=0;i<2;i++){
+        const p2=sec.p2[i],p1=sec.p1[i];
+        out.push(line(step,p2,p1,'construction-line'));
+      }
+    }
+    return out;
+  }
+
+  function solveTask6Graphical(scheme,stored){
+    const throughRec=scheme.pointK||scheme.pointThrough;
+    if(!throughRec)return null;
+    const bounds=task6SourceBounds(scheme);
+    const hasFrontal=[scheme.planeA,scheme.planeB].some(d=>d?.type==='frontal_projecting');
+    const levelType=hasFrontal?'frontal':'horizontal';
+    const lo=levelType==='horizontal'?bounds.minY2:bounds.minY1;
+    const hi=levelType==='horizontal'?bounds.maxY2:bounds.maxY1;
+    const span=Math.max(30,hi-lo);
+    const candidates=[];
+    for(const frac of [.18,.26,.34,.42,.50,.58,.66,.74,.82]){
+      const level=lo+span*frac;
+      const c=task6SectionCandidate(scheme,levelType,level,bounds);
+      if(c)candidates.push(c);
+    }
+    candidates.sort((a,b)=>a.score-b.score);
+    if(!candidates.length)return null;
+    const first=candidates[0];
+    let second=candidates.find(c=>
+      Math.abs(c.level-first.level)>span*.22 &&
+      dist2(c.P.p1,first.P.p1)>12 &&
+      dist2(c.P.p2,first.P.p2)>12
+    );
+    if(!second)second=candidates.find(c=>Math.abs(c.level-first.level)>span*.15);
+    if(!second)return null;
+    const pair=[first,second].sort((a,b)=>a.level-b.level);
+    const P=pair[0].P,Q=pair[1].P;
+    const r1=vec2(P.p1,Q.p1),r2=vec2(P.p2,Q.p2);
+    if(norm2(r1)<EPS||norm2(r2)<EPS)return null;
+
+    const K1={x:+throughRec.p1[0],y:+throughRec.p1[1]};
+    const K2={x:+throughRec.p2[0],y:+throughRec.p2[1]};
+    const u1=unit2(r1),u2=unit2(r2),half=85;
+    const k1a=add2(K1,mul2(u1,-half)),k1b=add2(K1,mul2(u1,half));
+    const k2a=add2(K2,mul2(u2,-half)),k2b=add2(K2,mul2(u2,half));
+    const throughLabel=scheme.pointLabel||'K';
+
+    const steps=[],push=(m,e,t)=>steps.push(Object.assign({},m,{entities:e||[],tool:t||null}));
+    let i=0;
+    push({
+      title:'Перенеси обе плоскости и точку '+throughLabel,
+      action:'Сначала воспроизведи только исходные линии, исходные линии связи и точку '+throughLabel+' с листа.',
+      why:'Наклоны и взаимное положение напечатанной схемы являются исходными данными. Вспомогательные сечения появятся только на следующих шагах.',
+      measure:['Исходные толстые линии не заменяй вспомогательными.','Исходные тонкие проекторы сохраняй тонкими.'],
+      check:'На первом шаге нет ни P/Q, ни линии пересечения r, ни новой прямой через '+throughLabel+'.'
+    },[
+      ...starterPlaneDefEntities(scheme.planeA,i,'Σ'),
+      ...starterPlaneDefEntities(scheme.planeB,i,'Θ'),
+      line(i,K2,K1,'source-guide-line'),
+      point(i,K2,throughLabel+'₂'),
+      point(i,K1,throughLabel+'₁')
+    ]);
+
+    pair.forEach((c,index)=>{
+      i=steps.length;
+      const name=index===0?'P':'Q';
+      const kind=levelType==='horizontal'?'горизонтальное':'фронтальное';
+      const symbol=levelType==='horizontal'?'h':'f';
+      push({
+        title:(index===0?'Первое':'Второе')+' вспомогательное '+kind+' сечение',
+        action:'На выбранном уровне построй линии сечения обеих заданных плоскостей. Их одноимённые проекции получай через исходные элементы и тонкие проекторы.',
+        why:'Пересечение двух линий одного вспомогательного уровня даёт точку '+name+', одновременно принадлежащую обеим плоскостям.',
+        measure:[name+' ∈ первая плоскость',name+' ∈ вторая плоскость'],
+        check:name+'₁ и '+name+'₂ находятся на одной линии связи.'
+      },[
+        ...sectionDrawEntities(i,c.a,symbol+'Σ'),
+        ...sectionDrawEntities(i,c.b,symbol+'Θ'),
+        line(i,c.P.p2,c.P.p1,'construction-line'),
+        point(i,c.P.p2,name+'₂','construction-dot'),
+        point(i,c.P.p1,name+'₁','construction-dot')
+      ]);
+    });
+
+    i=steps.length;
+    push({
+      title:'Соедини P и Q – получи линию пересечения r',
+      action:'Соедини P₁ с Q₁ и P₂ с Q₂.',
+      why:'Две общие точки P и Q однозначно задают линию пересечения двух плоскостей.',
+      measure:['r₁ = P₁Q₁','r₂ = P₂Q₂'],
+      check:'Обе проекции r проходят через соответствующие проекции P и Q.'
+    },[
+      line(i,P.p1,Q.p1,'answer-line'),textEntity(i,Q.p1,'r₁','svg-label'),
+      line(i,P.p2,Q.p2,'answer-line'),textEntity(i,Q.p2,'r₂','svg-label')
+    ],{kind:'line',a:P.p1,b:Q.p1});
+
+    i=steps.length;
+    push({
+      title:'Через '+throughLabel+' проведи ℓ ∥ обеим плоскостям',
+      action:'Через '+throughLabel+'₁ проведи ℓ₁ ∥ r₁, через '+throughLabel+'₂ – ℓ₂ ∥ r₂.',
+      why:'Направление линии пересечения принадлежит обеим плоскостям. Поэтому прямая через заданную точку, параллельная r, параллельна обеим плоскостям.',
+      measure:['ℓ₁ ∥ r₁','ℓ₂ ∥ r₂'],
+      check:'ℓ проходит через '+throughLabel+' и имеет направление r на обеих проекциях.'
+    },[
+      line(i,k1a,k1b,'answer-line'),textEntity(i,k1b,'ℓ₁','svg-label'),
+      line(i,k2a,k2b,'answer-line'),textEntity(i,k2b,'ℓ₂','svg-label')
+    ],{kind:'line',a:k1a,b:k1b});
+
+    i=steps.length;
+    push({
+      title:'Финальная проверка задания 6',
+      action:'Проверь P,Q как общие точки, затем параллельность ℓ и r на обеих проекциях.',
+      why:'Так проверяется и линия пересечения плоскостей, и требуемое направление прямой через '+throughLabel+'.',
+      measure:['P,Q ∈ обеим плоскостям','ℓ ∥ r'],
+      check:'Вспомогательные сечения остаются тонкими, r и ℓ выделены как результат.'
+    },[]);
+
+    const norm=normalizeSteps(steps,210,170);
+    return {width:norm.width,height:norm.height,O:{x:0,y:0},steps,diagramPending:false,graphicalConstruction:true};
+  }
+
   function intersectionPlanes(p1,p2){
     const d=cross3(p1.n,p2.n);
     const den=dot3(d,d);
@@ -2944,6 +3238,8 @@
   }
 
   function solveTask6Scheme(scheme,stored){
+    const graphical=solveTask6Graphical(scheme,stored);
+    if(graphical) return graphical;
     let A,B;
     try { A=planeFromDef(scheme.planeA); B=planeFromDef(scheme.planeB); }
     catch(err){ return {error:err.message}; }
