@@ -90,6 +90,7 @@
   }
   function pointRole(cls){
     if(cls==='point-dot') return 'given';
+    if(cls==='source-guide-dot') return 'given-guide';
     if(cls==='answer-dot') return 'result';
     return 'construction';
   }
@@ -1917,8 +1918,8 @@
       if(!j||!j.p1||!j.p2) return;
       const p2={x:+j.p2[0],y:+j.p2[1]},p1={x:+j.p1[0],y:+j.p1[1]};
       out.push(line(step,p2,p1,'source-guide-line'));
-      out.push(point(step,p2,j.label2||'','construction-dot'));
-      out.push(point(step,p1,j.label1||'','construction-dot'));
+      out.push(point(step,p2,j.label2||'','source-guide-dot'));
+      out.push(point(step,p1,j.label1||'','source-guide-dot'));
     });
   }
 
@@ -1932,8 +1933,8 @@
     const x=(p1.x+p2.x)/2;
     const q2={x:x,y:p2.y}, q1={x:x,y:p1.y};
     out.push(line(step,q2,q1,'source-guide-line'));
-    out.push(point(step,q2,'','construction-dot'));
-    out.push(point(step,q1,'','construction-dot'));
+    out.push(point(step,q2,'','source-guide-dot'));
+    out.push(point(step,q1,'','source-guide-dot'));
   }
 
   function starterEntitiesFromScheme(scheme,step){
@@ -2809,7 +2810,7 @@
       const pseudo={planeType:'ABC',points:def.points};
       Object.entries(def.points).forEach(([name,P])=>{
         const q=normalizedPointRec(P);
-        out.push(line(step,{x:q.p2[0],y:q.p2[1]},{x:q.p1[0],y:q.p1[1]},'construction-line'));
+        out.push(line(step,{x:q.p2[0],y:q.p2[1]},{x:q.p1[0],y:q.p1[1]},'source-guide-line'));
         out.push(point(step,{x:q.p2[0],y:q.p2[1]},name+'₂'));
         out.push(point(step,{x:q.p1[0],y:q.p1[1]},name+'₁'));
       });
@@ -2926,7 +2927,7 @@
     const starter=[
       ...starterPlaneDefEntities(scheme.planeA,i,'Σ'),
       ...starterPlaneDefEntities(scheme.planeB,i,'Θ'),
-      line(i,{x:throughRec.p2[0],y:throughRec.p2[1]},{x:throughRec.p1[0],y:throughRec.p1[1]},'construction-line'),
+      line(i,{x:throughRec.p2[0],y:throughRec.p2[1]},{x:throughRec.p1[0],y:throughRec.p1[1]},'source-guide-line'),
       point(i,{x:throughRec.p2[0],y:throughRec.p2[1]},throughLabel+'₂'),
       point(i,{x:throughRec.p1[0],y:throughRec.p1[1]},throughLabel+'₁')
     ];
