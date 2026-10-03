@@ -397,11 +397,22 @@ if (!onlyVariant && !onlyTask) try {
     $('taskSelect').value='6';
     $('taskSelect').dispatchEvent(new window.Event('change'));
     $('lastBtn').click();
-    if(window.document.querySelectorAll('#drawing line.construction-line').length<8){
+    const task6=window.SITEMATH_SCHEMES?.[variant]?.task6;
+    const hasProjecting=[task6?.planeA?.type,task6?.planeB?.type].some(type=>type==='frontal_projecting'||type==='horizontal_projecting');
+    const minProjectors=hasProjecting?4:8;
+    if(window.document.querySelectorAll('#drawing line.construction-line').length<minProjectors){
       failures.push('task6 construction '+variant+': too few projector/helper lines');
     }
     if(window.document.querySelectorAll('#drawing line.aux-line').length<4){
       failures.push('task6 construction '+variant+': both auxiliary section projections are not visible');
+    }
+    const labels6=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+    for(const label of ['P₁','P₂','Q₁','Q₂','r₁','r₂']){
+      if(!labels6.includes(label)) failures.push('task6 construction '+variant+': missing '+label);
+    }
+    const through=task6?.pointLabel||'K';
+    if(!labels6.includes('ℓ₁')||!labels6.includes('ℓ₂')){
+      failures.push('task6 construction '+variant+': final parallel line through '+through+' missing');
     }
   }
 } catch(e) {
