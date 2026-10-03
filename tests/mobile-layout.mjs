@@ -155,7 +155,7 @@ for (const vp of viewports) {
 
       const coverage=await page.evaluate(()=>{
         const wrap=document.querySelector('.paper-wrap');
-        const nodes=[...document.querySelectorAll('#drawing line.object-line, #drawing line.construction-line, #drawing circle.point-dot, #drawing circle.answer-dot, #drawing circle.construction-dot')];
+        const nodes=[...document.querySelectorAll('#drawing line.object-line, #drawing line.source-guide-line, #drawing line.construction-line, #drawing circle.point-dot, #drawing circle.source-guide-dot, #drawing circle.answer-dot, #drawing circle.construction-dot')];
         const boxes=nodes.map(n=>n.getBoundingClientRect()).filter(r=>r.width+r.height>0);
         if(!wrap||!boxes.length) return 0;
         const left=Math.min(...boxes.map(r=>r.left)),right=Math.max(...boxes.map(r=>r.right));
