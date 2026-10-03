@@ -237,7 +237,7 @@ try {
   $('taskSelect').value='4';
   $('taskSelect').dispatchEvent(new window.Event('change'));
   $('firstBtn').click();
-  const first4=window.document.querySelectorAll('#drawing .construction-line').length;
+  const first4=window.document.querySelectorAll('#drawing .source-guide-line').length;
   const labels4=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
   if(first4<2) failures.push('variant12/task4: missing intersection projector or D projector');
   for(const x of ['a₁','a₂','b₁','b₂','D₁','D₂']) if(!labels4.includes(x)) failures.push('variant12/task4: missing '+x);
@@ -308,8 +308,8 @@ if (!onlyVariant && !onlyTask) try {
         scheme.planeType==='intersecting_lines' ||
         scheme.planeA?.type==='intersecting_lines' ||
         scheme.planeB?.type==='intersecting_lines';
-      if(hasIntersecting && window.document.querySelectorAll('#drawing .construction-line').length===0){
-        failures.push('source fidelity '+variant+'/'+task+': missing projector for intersecting source lines');
+      if(hasIntersecting && window.document.querySelectorAll('#drawing .source-guide-line').length===0){
+        failures.push('source fidelity '+variant+'/'+task+': missing printed projector for intersecting source lines');
       }
     }
   }
