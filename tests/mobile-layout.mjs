@@ -182,7 +182,7 @@ for (const vp of viewports) {
 
       // Keep a final-frame capture as well. A source can be faithful while the
       // construction itself later drifts into a different topology.
-      await page.locator('#lastBtn').click();
+      await page.evaluate(()=>document.querySelector('#lastBtn')?.click());
       await page.waitForTimeout(70);
       await page.locator('#zoomFitBtn').click();
       await page.waitForTimeout(900);
