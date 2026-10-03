@@ -401,6 +401,27 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('problem brief regression: '+e.stack);
 }
 
+// Tasks 4-6 must carry an explicit warning to compare the construction with the original sheet.
+if (!onlyVariant && !onlyTask) try {
+  $('variantSelect').value='12';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  for(const task of [1,2,3]){
+    $('taskSelect').value=String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    if(!$('diagramWarning').hidden) failures.push('diagram warning: unexpectedly visible for task '+task);
+  }
+  for(const task of [4,5,6]){
+    $('taskSelect').value=String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    if($('diagramWarning').hidden) failures.push('diagram warning: hidden for task '+task);
+    const text=$('diagramWarning').textContent;
+    if(!text.includes('оригинал')) failures.push('diagram warning '+task+': original-sheet instruction missing');
+    if(!text.includes('ошиб')) failures.push('diagram warning '+task+': possible-error notice missing');
+  }
+} catch(e) {
+  failures.push('diagram warning regression: '+e.stack);
+}
+
 // Source-role text must not turn a one-projection plane into a fictitious pair,
 // and source verification status must reflect what can actually be rechecked now.
 if (!onlyVariant && !onlyTask) try {
