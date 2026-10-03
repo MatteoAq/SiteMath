@@ -147,10 +147,17 @@ button { border: 0; border-radius: 11px; padding: 10px 12px; font-weight: 750; }
 .source-guide-line { stroke:#77716a; stroke-width:.28; fill:none; }
 .object-line { stroke: #26231f; stroke-width: .72; fill: none; }
 .answer-line { stroke: var(--blue); stroke-width: .72; fill: none; }
-.active-line { stroke: var(--accent) !important; stroke-width: .9 !important; }
+.active-line { stroke-width: .9 !important; }
+.object-line.active-line { stroke:#26231f !important; }
+.source-guide-line.active-line { stroke:#77716a !important; }
+.construction-line.active-line { stroke:var(--construction) !important; }
+.aux-line.active-line { stroke:#7b6a8a !important; }
+.answer-line.active-line { stroke:var(--blue) !important; }
+.hidden-line.active-line { stroke:#285f78 !important; }
+.axis.active-line { stroke:#37332e !important; }
 .point-dot { fill: #27231f; }
 .answer-dot { fill: var(--blue); }
-.active-dot { fill: var(--accent) !important; }
+.active-dot { stroke:var(--accent); stroke-width:.65; paint-order:stroke; }
 .svg-label { font-size: 3.4px; font-weight: 700; fill: #292621; paint-order: stroke; stroke: var(--paper); stroke-width: .8px; stroke-linejoin: round; }
 .svg-note { font-size: 2.8px; fill: #5f5a52; paint-order: stroke; stroke: var(--paper); stroke-width: .7px; }
 .dimension { stroke: #8c664c; stroke-width: .28; fill: none; }
