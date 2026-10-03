@@ -77,6 +77,7 @@
 
   function lineRole(cls){
     if(cls==='object-line') return 'given';
+    if(cls==='source-guide-line') return 'given-guide';
     if(cls==='aux-line') return 'auxiliary';
     if(cls==='construction-line' || cls==='axis') return 'construction';
     if(cls==='answer-line' || cls==='hidden-line') return 'result';
@@ -1915,7 +1916,7 @@
     (junctions||[]).forEach(j=>{
       if(!j||!j.p1||!j.p2) return;
       const p2={x:+j.p2[0],y:+j.p2[1]},p1={x:+j.p1[0],y:+j.p1[1]};
-      out.push(line(step,p2,p1,'construction-line'));
+      out.push(line(step,p2,p1,'source-guide-line'));
       out.push(point(step,p2,j.label2||'','construction-dot'));
       out.push(point(step,p1,j.label1||'','construction-dot'));
     });
@@ -1930,7 +1931,7 @@
     if(!p1 || !p2) return;
     const x=(p1.x+p2.x)/2;
     const q2={x:x,y:p2.y}, q1={x:x,y:p1.y};
-    out.push(line(step,q2,q1,'construction-line'));
+    out.push(line(step,q2,q1,'source-guide-line'));
     out.push(point(step,q2,'','construction-dot'));
     out.push(point(step,q1,'','construction-dot'));
   }
@@ -1946,7 +1947,7 @@
     Object.entries(scheme.points||{}).forEach(([name,P])=>{
       const x=(P.p1[0]+P.p2[0])/2;
       const p2={x:x,y:P.p2[1]},p1={x:x,y:P.p1[1]};
-      out.push(line(step,p2,p1,'construction-line'));
+      out.push(line(step,p2,p1,'source-guide-line'));
       out.push(point(step,p2,name+'₂'));
       out.push(point(step,p1,name+'₁'));
     });
