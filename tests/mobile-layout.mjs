@@ -179,6 +179,17 @@ for (const vp of viewports) {
         path:'mobile-screenshots/source-v'+String(Number(variant)).padStart(2,'0')+'-t'+task+'.png',
         fullPage:false
       });
+
+      // Keep a final-frame capture as well. A source can be faithful while the
+      // construction itself later drifts into a different topology.
+      await page.locator('#lastBtn').click();
+      await page.waitForTimeout(70);
+      await page.locator('#zoomFitBtn').click();
+      await page.waitForTimeout(900);
+      await page.screenshot({
+        path:'mobile-screenshots/final-v'+String(Number(variant)).padStart(2,'0')+'-t'+task+'.png',
+        fullPage:false
+      });
     }
   }
 
