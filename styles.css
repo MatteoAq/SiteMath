@@ -2293,3 +2293,31 @@ body { color:var(--ui-text); }
 .problem-brief[hidden] {
   display:none !important;
 }
+
+
+.diagram-warning {
+  margin-top:10px;
+  padding:9px 10px;
+  border:1px solid #d9b65b;
+  border-radius:10px;
+  background:#fff6d8;
+  color:#594711;
+  font-size:12px;
+  line-height:1.38;
+}
+.diagram-warning b {
+  display:block;
+  margin-bottom:3px;
+  color:#4c3a08;
+}
+.diagram-warning span {
+  display:block;
+}
+@media (max-width:760px) {
+  .diagram-warning {
+    margin-top:7px;
+    padding:7px 8px;
+    font-size:11px;
+    line-height:1.32;
+  }
+}
