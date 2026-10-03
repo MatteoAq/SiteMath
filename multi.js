@@ -2256,36 +2256,93 @@
         point(i,fPaired[0],'3₂','construction-dot'),point(i,fPaired[1],'4₂','construction-dot')
       ],{kind:'line',a:fPaired[0],b:fPaired[1]});
 
-      i=steps.length;
-      const lsCross=project3(lsBase);
-      push({
-        title:'Построй линию наибольшего ската ЛС₁',
-        action:'Через точку S₁ на h₁ проведи ЛС₁ перпендикулярно h₁.',
-        why:'Горизонтальная проекция линии наибольшего ската плоскости перпендикулярна её горизонтали.',
-        measure:['ЛС₁ ⟂ h₁','Угол = 90°'],
-        check:'S₁ лежит на h₁, у пересечения отмечен прямой угол.'
-      },[
-        line(i,ls0.p1,ls1.p1,'answer-line'),
-        point(i,lsCross.p1,'S₁','construction-dot'),
-        textEntity(i,ls1.p1,'ЛС₁','svg-label'),
-        ...rightAngleMarkEntities(i,lsCross.p1,vec2(lsCross.p1,h0.p1),vec2(lsCross.p1,ls1.p1),5)
-      ],{kind:'line',a:ls0.p1,b:ls1.p1});
+      // Build the greatest-slope line graphically from h, as on paper:
+      // S lies on h; ЛС₁ ⟂ h₁; point 5 is obtained on a real defining line.
+      let slopeGraphic=null;
+      if(hCut && refs.length>=2){
+        const S1=lerp2(hPaired[0],hPaired[1],.52);
+        const S2=lerp2(hPrimary[0],hPrimary[1],.52);
+        const hDir=vec2(hPaired[0],hPaired[1]);
+        const lsDir2=perp2(unit2(hDir));
+        const rayA=add2(S1,mul2(lsDir2,-400));
+        const rayB=add2(S1,mul2(lsDir2,400));
+        let best=null;
+        refs.slice(0,2).forEach((ref,idx)=>{
+          if(!ref?.rec?.p1 || !ref?.rec?.p2) return;
+          const seg=toSeg(ref.rec.p1);
+          const T1=lineIntersection2(rayA,rayB,seg[0],seg[1]);
+          if(!T1) return;
+          const distance=dist2(S1,T1);
+          if(distance<7 || distance>190) return;
+          const T2={x:T1.x,y:lineY(ref.rec.p2,T1.x)};
+          if(!Number.isFinite(T2.y)) return;
+          if(!best || distance<best.distance) best={ref,idx,S1,S2,T1,T2,distance};
+        });
+        slopeGraphic=best;
+      }
 
-      i=steps.length;
-      push({
-        title:'Дострой ЛС₂ по линиям связи',
-        action:'Возьми две точки ЛС₁, найди их вторые проекции по принадлежности плоскости и соедини.',
-        why:'ЛС₂ возникает из тех же пространственных точек, поэтому проекторы остаются на чертеже.',
-        measure:['Одноимённые точки ЛС₁/ЛС₂ имеют общий x.'],
-        check:'ЛС₁/ЛС₂ задают одну пространственную линию.'
-      },[
-        line(i,ls0.p2,ls1.p2,'answer-line'),
-        textEntity(i,ls1.p2,'ЛС₂','svg-label'),
-        line(i,ls0.p1,ls0.p2,'construction-line'),
-        line(i,ls1.p1,ls1.p2,'construction-line'),
-        point(i,lsCross.p2,'S₂','construction-dot'),
-        line(i,lsCross.p1,lsCross.p2,'construction-line')
-      ],{kind:'line',a:ls0.p2,b:ls1.p2});
+      if(slopeGraphic){
+        const {ref,S1,S2,T1,T2}=slopeGraphic;
+        i=steps.length;
+        push({
+          title:'Построй ЛС₁ через точку S₁ на h₁',
+          action:'На h₁ возьми удобную точку S₁. Через неё проведи ЛС₁ перпендикулярно h₁ до пересечения с '+ref.name+'₁. Пересечение обозначь 5₁.',
+          why:'Так линия наибольшего ската возникает непосредственно из уже построенной горизонтали и исходной линии плоскости, как в ручном построении преподавателя.',
+          measure:['S₁ ∈ h₁','ЛС₁ ⟂ h₁','5₁ ∈ '+ref.name+'₁'],
+          check:'Прямой угол стоит у S₁, а 5₁ находится именно на исходной '+ref.name+'₁.'
+        },[
+          point(i,S1,'S₁','construction-dot'),
+          line(i,S1,T1,'answer-line'),textEntity(i,T1,'ЛС₁','svg-label'),
+          point(i,T1,'5₁','construction-dot'),
+          ...rightAngleMarkEntities(i,S1,vec2(S1,hPaired[0]),vec2(S1,T1),5)
+        ],{kind:'line',a:S1,b:T1});
+
+        i=steps.length;
+        push({
+          title:'Перенеси S₁ и 5₁ на Π₂ и получи ЛС₂',
+          action:'Из S₁ подними проектор до h₂ – получи S₂. Из 5₁ подними проектор до '+ref.name+'₂ – получи 5₂. Соедини S₂ и 5₂.',
+          why:'S и 5 – две реальные точки линии наибольшего ската, поэтому их вторые проекции однозначно задают ЛС₂.',
+          measure:['S₁↔S₂ – линия связи','5₁↔5₂ – линия связи','ЛС₂ = S₂5₂'],
+          check:'S₂ лежит на h₂, 5₂ – на '+ref.name+'₂.'
+        },[
+          line(i,S1,S2,'construction-line'),point(i,S2,'S₂','construction-dot'),
+          line(i,T1,T2,'construction-line'),point(i,T2,'5₂','construction-dot'),
+          line(i,S2,T2,'answer-line'),textEntity(i,T2,'ЛС₂','svg-label')
+        ],{kind:'line',a:S1,b:S2});
+      } else {
+        // Fallback only for a degenerate trace where the graphical intersection
+        // cannot be recovered reliably.
+        i=steps.length;
+        const lsCross=project3(lsBase);
+        push({
+          title:'Построй линию наибольшего ската ЛС₁',
+          action:'Через точку S₁ на h₁ проведи ЛС₁ перпендикулярно h₁.',
+          why:'Горизонтальная проекция линии наибольшего ската плоскости перпендикулярна её горизонтали.',
+          measure:['ЛС₁ ⟂ h₁','Угол = 90°'],
+          check:'S₁ лежит на h₁, у пересечения отмечен прямой угол.'
+        },[
+          line(i,ls0.p1,ls1.p1,'answer-line'),
+          point(i,lsCross.p1,'S₁','construction-dot'),
+          textEntity(i,ls1.p1,'ЛС₁','svg-label'),
+          ...rightAngleMarkEntities(i,lsCross.p1,vec2(lsCross.p1,h0.p1),vec2(lsCross.p1,ls1.p1),5)
+        ],{kind:'line',a:ls0.p1,b:ls1.p1});
+
+        i=steps.length;
+        push({
+          title:'Дострой ЛС₂ по линиям связи',
+          action:'Возьми две точки ЛС₁, найди их вторые проекции по принадлежности плоскости и соедини.',
+          why:'Этот запасной путь используется только если исходная трассировка вырождена для обычного графического пересечения.',
+          measure:['Одноимённые точки ЛС₁/ЛС₂ имеют общий x.'],
+          check:'ЛС₁/ЛС₂ задают одну пространственную линию.'
+        },[
+          line(i,ls0.p2,ls1.p2,'answer-line'),
+          textEntity(i,ls1.p2,'ЛС₂','svg-label'),
+          line(i,ls0.p1,ls0.p2,'construction-line'),
+          line(i,ls1.p1,ls1.p2,'construction-line'),
+          point(i,lsCross.p2,'S₂','construction-dot'),
+          line(i,lsCross.p1,lsCross.p2,'construction-line')
+        ],{kind:'line',a:ls0.p2,b:ls1.p2});
+      }
     }
 
     const op=scheme.operation||{};
