@@ -557,6 +557,7 @@
     const v=currentVariant();
     const stored=getStoredTaskData();
     $('taskName').textContent = task + '. ' + DATA.tasks[task].title;
+    if($('diagramWarning')) $('diagramWarning').hidden=task<=3;
     $('variantNote').textContent = state.variant==='custom'
       ? 'Ручной режим – координаты можно вводить самостоятельно.'
       : (v && v.provisionalNumber
