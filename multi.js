@@ -2815,6 +2815,43 @@
     });
   }
 
+  function segmentOutsideScore(seg,P){
+    if(!seg||!P)return 0;
+    const s=toSeg(seg),a=s[0],b=s[1];
+    const d=vec2(a,b),dd=dot2(d,d);
+    if(dd<EPS)return 0;
+    const t=dot2(vec2(a,P),d)/dd;
+    return t<0?-t:(t>1?t-1:0);
+  }
+
+  function task5AuxCandidate(refs,lrec,primary){
+    const other=primary==='p1'?'p2':'p1';
+    const lp=toSeg(lrec[primary]);
+    const rA=toSeg(refs[0].rec[primary]);
+    const rB=toSeg(refs[1].rec[primary]);
+    const I1=lineIntersection2(lp[0],lp[1],rA[0],rA[1]);
+    const I2=lineIntersection2(lp[0],lp[1],rB[0],rB[1]);
+    if(!I1||!I2)return null;
+
+    const J1={x:I1.x,y:lineY(refs[0].rec[other],I1.x)};
+    const J2={x:I2.x,y:lineY(refs[1].rec[other],I2.x)};
+    if(!Number.isFinite(J1.y)||!Number.isFinite(J2.y))return null;
+
+    const lOther=toSeg(lrec[other]);
+    const KOther=lineIntersection2(lOther[0],lOther[1],J1,J2);
+    if(!KOther)return null;
+    const KPrimary={x:KOther.x,y:lineY(lrec[primary],KOther.x)};
+    if(!Number.isFinite(KPrimary.y))return null;
+
+    let score=0;
+    score+=segmentOutsideScore(lrec[primary],I1)+segmentOutsideScore(lrec[primary],I2);
+    score+=segmentOutsideScore(refs[0].rec[primary],I1)+segmentOutsideScore(refs[1].rec[primary],I2);
+    score+=segmentOutsideScore(refs[0].rec[other],J1)+segmentOutsideScore(refs[1].rec[other],J2);
+    score+=segmentOutsideScore(lrec[other],KOther)+segmentOutsideScore([[J1.x,J1.y],[J2.x,J2.y]],KOther);
+
+    return {primary,other,I1,I2,J1,J2,KPrimary,KOther,score};
+  }
+
   function solveTask5Scheme(scheme,stored){
     let plane;
     try { plane=planeFromScheme(scheme); }
@@ -2824,17 +2861,24 @@
     const refs=planeReferenceLines(scheme);
     if(refs.length<2) return {error:'Для плоскости не хватает двух опорных линий.'};
 
-    const l1=toSeg(lrec.p1), l2=toSeg(lrec.p2);
-    const r11=toSeg(refs[0].rec.p1), r12=toSeg(refs[1].rec.p1);
-    const I1=lineIntersection2(l1[0],l1[1],r11[0],r11[1]);
-    const I2=lineIntersection2(l1[0],l1[1],r12[0],r12[1]);
-    if(!I1 || !I2) return {error:'В выбранной вспомогательной проекции одна из опорных линий параллельна ℓ. Нужен альтернативный секущий алгоритм.'};
-
-    const I1p2={x:I1.x,y:lineY(refs[0].rec.p2,I1.x)};
-    const I2p2={x:I2.x,y:lineY(refs[1].rec.p2,I2.x)};
-    const K2=lineIntersection2(l2[0],l2[1],I1p2,I2p2);
-    if(!K2) return {error:'После оцифровки ℓ₂ оказалась параллельна линии сечения. Проверь исходную схему.'};
-    const K1={x:K2.x,y:lineY(lrec.p1,K2.x)};
+    const candidates=[
+      task5AuxCandidate(refs,lrec,'p1'),
+      task5AuxCandidate(refs,lrec,'p2')
+    ].filter(Boolean).sort((a,b)=>a.score-b.score);
+    if(!candidates.length){
+      return {error:'Обе вспомогательные проецирующие плоскости дают вырожденное построение. Проверь исходную схему.'};
+    }
+    const cut=candidates[0];
+    const primary=cut.primary,other=cut.other;
+    const pIdx=primary==='p1'?'₁':'₂',oIdx=other==='p1'?'₁':'₂';
+    const pPlane=primary==='p1'?'Π₁':'Π₂',oPlane=other==='p1'?'Π₁':'Π₂';
+    const planeKind=primary==='p1'?'горизонтально-проецирующую':'фронтально-проецирующую';
+    const lPrimary=toSeg(lrec[primary]),lOther=toSeg(lrec[other]);
+    const I1=cut.I1,I2=cut.I2,J1=cut.J1,J2=cut.J2;
+    const K1=primary==='p1'?cut.KPrimary:cut.KOther;
+    const K2=primary==='p2'?cut.KPrimary:cut.KOther;
+    const KPrimary=primary==='p1'?K1:K2;
+    const KOther=other==='p1'?K1:K2;
 
     const steps=[],push=(m,e,t)=>steps.push(Object.assign({},m,{entities:e||[],tool:t||null}));
     let i=0;
@@ -2852,70 +2896,71 @@
     i=steps.length;
     push({
       title:'Заключи ℓ во вспомогательную проецирующую плоскость Ω',
-      action:'Возьми горизонтально-проецирующую плоскость Ω так, чтобы её вырожденная проекция Ω₁ совпала с ℓ₁.',
-      why:'Это стандартный алгоритм пересечения прямой и плоскости: вспомогательная плоскость содержит ℓ, поэтому её пересечение с Σ обязательно пересечёт ℓ в искомой K.',
-      measure:['Ω₁ ≡ ℓ₁'],
+      action:'Возьми '+planeKind+' плоскость Ω так, чтобы её вырожденная проекция Ω'+pIdx+' совпала с ℓ'+pIdx+'.',
+      why:'Из двух стандартных вариантов выбрана та проекция, где вспомогательное построение требует меньших продолжений исходных прямых. Плоскость Ω содержит ℓ, поэтому её пересечение с Σ обязательно проходит через искомую K.',
+      measure:['Ω'+pIdx+' ≡ ℓ'+pIdx],
       check:'Прямая ℓ полностью принадлежит Ω.'
     },[
-      line(i,l1[0],l1[1],'aux-line'),
-      textEntity(i,lerp2(l1[0],l1[1],.18),'Ω₁≡ℓ₁','svg-label')
-    ],{kind:'line',a:l1[0],b:l1[1]});
+      line(i,lPrimary[0],lPrimary[1],'aux-line'),
+      textEntity(i,lerp2(lPrimary[0],lPrimary[1],.18),'Ω'+pIdx+'≡ℓ'+pIdx,'svg-label')
+    ],{kind:'line',a:lPrimary[0],b:lPrimary[1]});
 
     i=steps.length;
     push({
-      title:'Найди 1₁ и 2₁ – точки сечения Ω с плоскостью Σ',
-      action:'Продли Ω₁=ℓ₁ до пересечения с двумя опорными линиями плоскости: '+refs[0].name+'₁ и '+refs[1].name+'₁.',
-      why:'Каждая такая точка одновременно принадлежит Ω и Σ. Двух общих точек достаточно, чтобы задать линию m = Ω ∩ Σ.',
-      measure:['1₁ = Ω₁ ∩ '+refs[0].name+'₁','2₁ = Ω₁ ∩ '+refs[1].name+'₁'],
-      check:'Обе точки лежат на ℓ₁/Ω₁.'
+      title:'Найди 1'+pIdx+' и 2'+pIdx+' – точки сечения Ω с плоскостью Σ',
+      action:'Продли Ω'+pIdx+'=ℓ'+pIdx+' до пересечения с двумя опорными линиями плоскости: '+refs[0].name+pIdx+' и '+refs[1].name+pIdx+'.',
+      why:'Каждая такая точка одновременно принадлежит Ω и Σ. Если точка лежит за концом исходного штриха, сайт показывает тонкое продолжение прямой до неё.',
+      measure:['1'+pIdx+' = Ω'+pIdx+' ∩ '+refs[0].name+pIdx,'2'+pIdx+' = Ω'+pIdx+' ∩ '+refs[1].name+pIdx],
+      check:'Обе точки лежат на продолжении ℓ'+pIdx+'/Ω'+pIdx+'.'
     },[
-      ...segmentExtensionEntities(i,lrec.p1,I1),
-      ...segmentExtensionEntities(i,lrec.p1,I2),
-      ...segmentExtensionEntities(i,refs[0].rec.p1,I1),
-      ...segmentExtensionEntities(i,refs[1].rec.p1,I2),
-      point(i,I1,'1₁','construction-dot'),
-      point(i,I2,'2₁','construction-dot')
+      ...segmentExtensionEntities(i,lrec[primary],I1),
+      ...segmentExtensionEntities(i,lrec[primary],I2),
+      ...segmentExtensionEntities(i,refs[0].rec[primary],I1),
+      ...segmentExtensionEntities(i,refs[1].rec[primary],I2),
+      point(i,I1,'1'+pIdx,'construction-dot'),
+      point(i,I2,'2'+pIdx,'construction-dot')
     ]);
 
     i=steps.length;
     push({
-      title:'Перенеси 1₁ и 2₁ на Π₂',
-      action:'Из 1₁ и 2₁ проведи линии связи. На соответствующих вторых проекциях '+refs[0].name+'₂ и '+refs[1].name+'₂ получи 1₂ и 2₂.',
+      title:'Перенеси 1'+pIdx+' и 2'+pIdx+' на '+oPlane,
+      action:'Из 1'+pIdx+' и 2'+pIdx+' проведи линии связи. На соответствующих проекциях '+refs[0].name+oIdx+' и '+refs[1].name+oIdx+' получи 1'+oIdx+' и 2'+oIdx+'.',
       why:'Точка на пространственной опорной линии должна одновременно принадлежать обеим её одноимённым проекциям.',
-      measure:['1₁↔1₂ – одна линия связи','2₁↔2₂ – одна линия связи'],
-      check:'1₂ лежит на '+refs[0].name+'₂, 2₂ – на '+refs[1].name+'₂.'
+      measure:['1'+pIdx+'↔1'+oIdx+' – одна линия связи','2'+pIdx+'↔2'+oIdx+' – одна линия связи'],
+      check:'1'+oIdx+' и 2'+oIdx+' лежат на соответствующих опорных линиях.'
     },[
-      ...segmentExtensionEntities(i,refs[0].rec.p2,I1p2),
-      ...segmentExtensionEntities(i,refs[1].rec.p2,I2p2),
-      line(i,I1,I1p2,'construction-line'),point(i,I1p2,'1₂','construction-dot'),
-      line(i,I2,I2p2,'construction-line'),point(i,I2p2,'2₂','construction-dot')
-    ],{kind:'line',a:I1,b:I1p2});
+      ...segmentExtensionEntities(i,refs[0].rec[other],J1),
+      ...segmentExtensionEntities(i,refs[1].rec[other],J2),
+      line(i,I1,J1,'construction-line'),point(i,J1,'1'+oIdx,'construction-dot'),
+      line(i,I2,J2,'construction-line'),point(i,J2,'2'+oIdx,'construction-dot')
+    ],{kind:'line',a:I1,b:J1});
 
     i=steps.length;
     push({
-      title:'Построй m₂ = 1₂2₂ и найди K₂',
-      action:'Соедини 1₂ и 2₂. В точке пересечения m₂ с ℓ₂ поставь K₂.',
-      why:'m – линия пересечения вспомогательной Ω и заданной Σ. Поскольку ℓ лежит в Ω, пересечение ℓ с m и есть ℓ ∩ Σ.',
-      measure:['m₂ = 1₂2₂','K₂ = m₂ ∩ ℓ₂'],
-      check:'K₂ одновременно лежит на m₂ и ℓ₂.'
+      title:'Построй m'+oIdx+' = 1'+oIdx+'2'+oIdx+' и найди K'+oIdx,
+      action:'Соедини 1'+oIdx+' и 2'+oIdx+'. В точке пересечения m'+oIdx+' с ℓ'+oIdx+' поставь K'+oIdx+'.',
+      why:'m = Ω ∩ Σ. Поскольку ℓ лежит в Ω, пересечение ℓ с m и есть ℓ ∩ Σ.',
+      measure:['m'+oIdx+' = 1'+oIdx+'2'+oIdx,'K'+oIdx+' = m'+oIdx+' ∩ ℓ'+oIdx],
+      check:'K'+oIdx+' одновременно лежит на m'+oIdx+' и ℓ'+oIdx+'.'
     },[
-      ...segmentExtensionEntities(i,[I1p2,I2p2],K2),
-      ...segmentExtensionEntities(i,lrec.p2,K2),
-      line(i,I1p2,I2p2,'aux-line'),textEntity(i,lerp2(I1p2,I2p2,.7),'m₂','svg-label'),
-      point(i,K2,'K₂','answer-dot')
-    ],{kind:'line',a:I1p2,b:I2p2});
+      ...segmentExtensionEntities(i,[[J1.x,J1.y],[J2.x,J2.y]],KOther),
+      ...segmentExtensionEntities(i,lrec[other],KOther),
+      line(i,J1,J2,'aux-line'),textEntity(i,lerp2(J1,J2,.7),'m'+oIdx,'svg-label'),
+      point(i,KOther,'K'+oIdx,'answer-dot')
+    ],{kind:'line',a:J1,b:J2});
 
     i=steps.length;
     push({
-      title:'Перенеси K₂ в K₁',
-      action:'Из K₂ опусти линию связи до ℓ₁. Полученная точка – K₁.',
+      title:'Перенеси K'+oIdx+' в K'+pIdx,
+      action:'Через K'+oIdx+' проведи линию проекционной связи до ℓ'+pIdx+'. Полученная точка – K'+pIdx+'.',
       why:'K₁ и K₂ – две проекции одной пространственной точки пересечения K.',
       measure:['K₁K₂ – линия связи'],
-      check:'K₁ лежит на ℓ₁.'
+      check:'K'+pIdx+' лежит на ℓ'+pIdx+'.'
     },[
-      line(i,K2,K1,'construction-line'),point(i,K1,'K₁','answer-dot')
-    ],{kind:'line',a:K2,b:K1});
+      line(i,KOther,KPrimary,'construction-line'),point(i,KPrimary,'K'+pIdx,'answer-dot')
+    ],{kind:'line',a:KOther,b:KPrimary});
 
+    const l1=toSeg(lrec.p1),l2=toSeg(lrec.p2);
     const vis1=segmentVisibility(lrec,plane,'p1',K1);
     const vis2=segmentVisibility(lrec,plane,'p2',K2);
     i=steps.length;
