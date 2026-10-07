@@ -256,6 +256,47 @@ try {
   failures.push('task4 constructed result points: '+e.stack);
 }
 
+// Task 4 intersection conditions need an explicit chosen point T on the
+// already existing target object before ℓ is drawn through the given point.
+if (!onlyVariant && !onlyTask) try {
+  for(const variant of variants){
+    const scheme=window.SITEMATH_SCHEMES?.[variant]?.task4;
+    const op=scheme?.operation||{};
+    if(!['line_intersects_named','line_intersects_frontale','line_intersects_horizontal'].includes(op.type)) continue;
+
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='4';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+
+    const total=Number($('stepTotal').textContent)||1;
+    let sawT=false,sawLineAfterT=false;
+    for(let n=0;n<total;n++){
+      const title=$('stepTitle').textContent.trim();
+      const labels=[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent);
+      const hasT=labels.includes('T₁')||labels.includes('T₂');
+      const hasL=labels.includes('ℓ₁')||labels.includes('ℓ₂');
+
+      if(title.startsWith('Выбери точку T')||title.startsWith('Выбери T')){
+        sawT=true;
+        if(!labels.includes('T₁')||!labels.includes('T₂')){
+          failures.push('task4 intersection '+variant+': T projections missing on choice step');
+        }
+        if(hasL) failures.push('task4 intersection '+variant+': ℓ appears while T is only being chosen');
+      } else if(hasL && !sawLineAfterT){
+        if(!sawT) failures.push('task4 intersection '+variant+': ℓ drawn before target point T');
+        else sawLineAfterT=true;
+      }
+
+      if(n<total-1) $('nextBtn').click();
+    }
+    if(!sawT||!sawLineAfterT) failures.push('task4 intersection '+variant+': incomplete T then ℓ construction chain');
+  }
+} catch(e) {
+  failures.push('task4 intersection-point sequence regression: '+e.stack);
+}
+
 // Every task-4 result point is new construction data. It must be preceded by
 // an explicit helper point N on an already existing line/plane; the answer
 // point must not exist while N is only being chosen.
