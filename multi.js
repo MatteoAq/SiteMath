@@ -3507,16 +3507,83 @@
       ]);
     });
 
+    const addSectionForPlane=(sec,def,planeSymbol,pointNames,planeName)=>{
+      const primary=levelType==='horizontal'?'p2':'p1';
+      const other=primary==='p2'?'p1':'p2';
+      const pIdx=primary==='p2'?'₂':'₁';
+      const oIdx=other==='p2'?'₂':'₁';
+      const pPlane=primary==='p2'?'Π₂':'Π₁';
+      const oPlane=other==='p2'?'Π₂':'Π₁';
+      const sectionSymbol=(levelType==='horizontal'?'h':'f')+planeSymbol;
+
+      if(sec?.refs?.length===2){
+        const primarySeg=sec[primary],otherSeg=sec[other];
+
+        i=steps.length;
+        push({
+          title:'На '+planeName+pIdx+' получи '+pointNames[0]+pIdx+' и '+pointNames[1]+pIdx+' в '+planeSymbol,
+          action:'Пересеки '+planeName+pIdx+' с двумя уже существующими опорными линиями плоскости '+planeSymbol+'. Первое пересечение обозначь '+pointNames[0]+pIdx+', второе – '+pointNames[1]+pIdx+'.',
+          why:'Эти точки не выбираются произвольно: обе задаются пересечениями вспомогательной плоскости '+planeName+' с линиями, принадлежащими '+planeSymbol+'.',
+          measure:[
+            pointNames[0]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[0].name+pIdx,
+            pointNames[1]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[1].name+pIdx
+          ],
+          check:'Обе новые точки лежат на '+planeName+pIdx+' и на соответствующих исходных линиях '+planeSymbol+'.'
+        },[
+          ...segmentExtensionEntities(i,sec.refs[0].rec[primary],primarySeg[0]),
+          ...segmentExtensionEntities(i,sec.refs[1].rec[primary],primarySeg[1]),
+          point(i,primarySeg[0],pointNames[0]+pIdx,'construction-dot'),
+          point(i,primarySeg[1],pointNames[1]+pIdx,'construction-dot'),
+          line(i,primarySeg[0],primarySeg[1],'aux-line'),
+          textEntity(i,primarySeg[1],sectionSymbol+pIdx,'svg-note')
+        ]);
+
+        i=steps.length;
+        push({
+          title:'Перенеси '+pointNames[0]+pIdx+' и '+pointNames[1]+pIdx+' на '+oPlane,
+          action:'Из '+pointNames[0]+pIdx+' и '+pointNames[1]+pIdx+' проведи линии связи до парных проекций тех же опорных линий '+planeSymbol+'. Получи '+pointNames[0]+oIdx+' и '+pointNames[1]+oIdx+', затем соедини их.',
+          why:'Так строится вторая проекция линии сечения '+sectionSymbol+'. Ни одна парная точка не ставится без линии связи.',
+          measure:[
+            pointNames[0]+pIdx+'↔'+pointNames[0]+oIdx+' – одна линия связи',
+            pointNames[1]+pIdx+'↔'+pointNames[1]+oIdx+' – одна линия связи'
+          ],
+          check:pointNames[0]+oIdx+' и '+pointNames[1]+oIdx+' лежат на тех же пространственных опорных линиях.'
+        },[
+          ...segmentExtensionEntities(i,sec.refs[0].rec[other],otherSeg[0]),
+          ...segmentExtensionEntities(i,sec.refs[1].rec[other],otherSeg[1]),
+          line(i,primarySeg[0],otherSeg[0],'construction-line'),
+          line(i,primarySeg[1],otherSeg[1],'construction-line'),
+          point(i,otherSeg[0],pointNames[0]+oIdx,'construction-dot'),
+          point(i,otherSeg[1],pointNames[1]+oIdx,'construction-dot'),
+          line(i,otherSeg[0],otherSeg[1],'aux-line'),
+          textEntity(i,otherSeg[1],sectionSymbol+oIdx,'svg-note')
+        ]);
+        return;
+      }
+
+      i=steps.length;
+      push({
+        title:'Построй сечение '+planeName+' с проецирующей плоскостью '+planeSymbol,
+        action:'Используй заданную вырожденную проекцию '+planeSymbol+' и уровень '+planeName+pIdx+'. Их пересечение или совпадающее направление сразу задаёт одну проекцию линии сечения; вторую дострой линиями связи.',
+        why:'Для проецирующей плоскости отдельные опорные точки 1–8 не требуются: положение линии сечения определяется её заданной проецирующей проекцией.',
+        measure:['Сечение принадлежит '+planeName,'Сечение принадлежит '+planeSymbol],
+        check:'Обе проекции сечения согласованы одним и тем же положением относительно x₁₂.'
+      },sectionDrawEntities(i,sec,sectionSymbol,null));
+    };
+
     pair.forEach((c,index)=>{
       const name=index===0?'P':'Q';
       const planeName=index===0?'α':'β';
       const kind=levelType==='horizontal'?'горизонтальную':'фронтальную';
       const degenerateProj=levelType==='horizontal'?'₂':'₁';
-      const symbol=levelType==='horizontal'?'h':'f';
-      const planeASymbol=scheme.planeA?.name||'Σ';
-      const planeBSymbol=scheme.planeB?.name||'Θ';
-      const guideA={x:bounds.minX-18,y:c.level};
-      const guideB={x:bounds.maxX+18,y:c.level};
+      const primary=levelType==='horizontal'?'p2':'p1';
+      const xs=[
+        bounds.minX-18,bounds.maxX+18,c.P[primary].x,
+        ...(c.a?.[primary]||[]).map(p=>p.x),
+        ...(c.b?.[primary]||[]).map(p=>p.x)
+      ].filter(Number.isFinite);
+      const guideA={x:Math.min(...xs)-4,y:c.level};
+      const guideB={x:Math.max(...xs)+4,y:c.level};
 
       i=steps.length;
       push({
@@ -3530,16 +3597,17 @@
         textEntity(i,guideB,planeName+degenerateProj,'svg-note')
       ],{kind:'line',a:guideA,b:guideB});
 
+      addSectionForPlane(c.a,scheme.planeA,planeASymbol,index===0?['1','2']:['5','6'],planeName);
+      addSectionForPlane(c.b,scheme.planeB,planeBSymbol,index===0?['3','4']:['7','8'],planeName);
+
       i=steps.length;
       push({
-        title:'Построй сечения '+planeName+' с обеими плоскостями и получи '+name,
-        action:'На уровне '+planeName+degenerateProj+' найди точки на исходных элементах каждой заданной плоскости, по линиям связи дострой обе проекции линий сечения. Их пересечение даёт '+name+'.',
-        why:'Каждая линия сечения принадлежит и вспомогательной плоскости '+planeName+', и своей заданной плоскости. Поэтому их общая точка '+name+' принадлежит сразу обеим исходным плоскостям.',
-        measure:[name+' ∈ первая плоскость',name+' ∈ вторая плоскость'],
+        title:'Пересеки линии сечения '+planeName+' и получи '+name,
+        action:'На невырожденной проекции найди пересечение двух уже построенных линий сечения. Обозначь его '+name+(levelType==='horizontal'?'₁':'₂')+' и по линии связи перенеси на '+planeName+degenerateProj+', получив '+name+degenerateProj+'.',
+        why:'Обе линии лежат в одной вспомогательной плоскости '+planeName+', но каждая одновременно принадлежит одной из исходных плоскостей. Поэтому их общая точка '+name+' принадлежит обеим исходным плоскостям.',
+        measure:[name+' ∈ '+planeASymbol,name+' ∈ '+planeBSymbol],
         check:name+'₁ и '+name+'₂ появляются только после построения обеих линий сечения и находятся на одной линии связи.'
       },[
-        ...sectionDrawEntities(i,c.a,symbol+planeASymbol,index===0?['1','2']:['5','6']),
-        ...sectionDrawEntities(i,c.b,symbol+planeBSymbol,index===0?['3','4']:['7','8']),
         line(i,c.P.p2,c.P.p1,'construction-line'),
         point(i,c.P.p2,name+'₂','construction-dot'),
         point(i,c.P.p1,name+'₁','construction-dot')
