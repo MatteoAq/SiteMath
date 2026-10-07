@@ -548,9 +548,15 @@
     ];
     const through=scheme.pointLabel||'K';
     labels.push(through+'₁/'+through+'₂');
+    const isProjecting=def=>['frontal_projecting','horizontal_projecting'].includes(def?.type);
+    const sectionPoints=[];
+    if(!isProjecting(scheme.planeA)) sectionPoints.push('1/2','5/6');
+    if(!isProjecting(scheme.planeB)) sectionPoints.push('3/4','7/8');
     return {
       given:[...new Set(labels)].join(', '),
-      built:'α/β – вспомогательные секущие плоскости; 1–8 – точки построения их сечений; P/Q – общие точки; r – линия пересечения плоскостей; ℓ через '+through+' ∥ обеим плоскостям'
+      built:'α/β – вспомогательные секущие плоскости; '+
+        (sectionPoints.length?sectionPoints.join(', ')+' – точки построения сечений непроецирующих плоскостей; ':'')+
+        'P/Q – общие точки; r – линия пересечения плоскостей; ℓ через '+through+' ∥ обеим плоскостям'
     };
   }
 
