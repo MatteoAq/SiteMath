@@ -2858,7 +2858,10 @@
       if(!Number.isFinite(lineOther.y)||!Number.isFinite(planeOther.y))continue;
       if(dist2(lineOther,planeOther)<4)continue;
       const t=param(X);
-      if(Math.abs(t-kParam)<.03)continue;
+      // A competing pair only has to be distinct from K. Some photographed
+      // variants place the most convenient source-line crossing close to K,
+      // but it is still a valid visibility witness.
+      if(dist2(X,K)<3)continue;
       const side=t<kParam?0:1;
       const lineVisible=proj==='p1'
         ? lineOther.y<planeOther.y
