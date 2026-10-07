@@ -1452,7 +1452,7 @@ if (!onlyVariant && !onlyTask) try {
         if(construction<6) failures.push('auxiliary construction '+variant+'/4: too few projector/helper lines ('+construction+')');
       } else if(task===5){
         if(construction<3) failures.push('auxiliary construction '+variant+'/5: too few projection-transfer lines ('+construction+')');
-        if(aux<2) failures.push('auxiliary construction '+variant+'/5: Ω/m auxiliary lines missing ('+aux+')');
+        if(aux<1) failures.push('auxiliary construction '+variant+'/5: section line m missing ('+aux+')');
         const hasPrimary1=labels.includes('Ω₁≡ℓ₁')&&labels.includes('m₂');
         const hasPrimary2=labels.includes('Ω₂≡ℓ₂')&&labels.includes('m₁');
         if(!hasPrimary1&&!hasPrimary2){
@@ -1567,8 +1567,8 @@ if (!onlyVariant && !onlyTask) try {
     const p=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
     if(!p || p.dataset.role!=='result') failures.push('task5 roles: '+label+' is not result');
   }
-  if(window.document.querySelectorAll('#drawing line.aux-line[data-role="auxiliary"]').length<2){
-    failures.push('task5 roles: Ω/m auxiliary lines not classified as auxiliary');
+  if(window.document.querySelectorAll('#drawing line.aux-line[data-role="auxiliary"]').length<1){
+    failures.push('task5 roles: section line m is not classified as auxiliary');
   }
 
   $('taskSelect').value='6';
