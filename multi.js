@@ -1999,9 +1999,13 @@
     const src=scheme;
     const out=[];
     Object.entries(src.lines||{}).forEach(([name,L])=>{
-      out.push(line(step,{x:L.p2[0][0],y:L.p2[0][1]},{x:L.p2[1][0],y:L.p2[1][1]},'object-line'));
+      // The original given line is displayed in full until visibility is
+      // constructed. At the final step it must be replaced by the visible and
+      // hidden segments, rather than remain solid behind their dash gaps.
+      const marker=src.givenLine===name?{sourceGivenLine:true}:null;
+      out.push(line(step,{x:L.p2[0][0],y:L.p2[0][1]},{x:L.p2[1][0],y:L.p2[1][1]},'object-line',marker));
       out.push(textEntity(step,sourceLineLabelPoint(src,name,'p2',L),sourceLineDisplayName(name)+'₂','svg-label'));
-      out.push(line(step,{x:L.p1[0][0],y:L.p1[0][1]},{x:L.p1[1][0],y:L.p1[1][1]},'object-line'));
+      out.push(line(step,{x:L.p1[0][0],y:L.p1[0][1]},{x:L.p1[1][0],y:L.p1[1][1]},'object-line',marker));
       out.push(textEntity(step,sourceLineLabelPoint(src,name,'p1',L),sourceLineDisplayName(name)+'₁','svg-label'));
     });
     Object.entries(src.points||{}).forEach(([name,P])=>{
@@ -4046,7 +4050,9 @@
   }
 
   function animateCurrent(){
-    const nodes=[...svg.querySelectorAll('[data-active="1"].draw-line')];
+    // Animate continuous strokes only. Overriding strokeDasharray on a
+    // hidden-line destroys its 3/2 dashed visibility notation.
+    const nodes=[...svg.querySelectorAll('[data-active="1"].draw-line:not(.hidden-line)')];
     nodes.forEach((n,i)=>{
       const L=n.getTotalLength?n.getTotalLength():0;
       if(!L) return;
@@ -4058,7 +4064,7 @@
         n.style.strokeDashoffset='0';
       }));
     });
-    [...svg.querySelectorAll('[data-active="1"]')].filter(n=>!n.classList.contains('draw-line')).forEach(n=>{
+    [...svg.querySelectorAll('[data-active="1"]')].filter(n=>!n.classList.contains('draw-line')||n.classList.contains('hidden-line')).forEach(n=>{
       n.animate([{opacity:0},{opacity:1}],{duration:380,easing:'ease-out'});
     });
     const s=state.steps[state.step];
@@ -4415,9 +4421,17 @@
     svg.setAttribute('width',g.width+'mm');
     svg.setAttribute('height',g.height+'mm');
     drawGrid(g.width,g.height);
+    const visibilityDone=state.task===5 && state.steps
+      .slice(0,state.step+1).some(step=>step.title?.startsWith('Нанеси видимость ℓ'));
     state.steps.forEach((s,idx)=>{
       if(idx>state.step) return;
-      (s.entities||[]).forEach(e=>drawEntity(e,idx===state.step));
+      (s.entities||[]).forEach(e=>{
+        // Once line visibility is shown, the unbroken original ℓ would fill
+        // the gaps of every hidden stroke. Leave its labels and all other
+        // given geometry intact, but replace only that solid source stroke.
+        if(visibilityDone && e.sourceGivenLine) return;
+        drawEntity(e,idx===state.step);
+      });
     });
     renderExplanation();
     applyDrawingZoom();
