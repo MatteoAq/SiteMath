@@ -1000,6 +1000,62 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
   }
 });
 
+/* Mathematical cleanup of photographed traces.
+   If a plane is explicitly defined by parallel lines, both displayed
+   projections of those lines must be parallel. Old hand digitization can
+   differ by several degrees even though the printed condition is a∥b.
+   Preserve each segment midpoint/length and only regularize its direction. */
+(function normalizeDeclaredParallelLines(){
+  const normalizeProjection=(A,B,proj)=>{
+    const sa=A?.[proj],sb=B?.[proj];
+    if(!sa||!sb||sa.length<2||sb.length<2)return;
+    const vec=seg=>{
+      const dx=+seg[1][0]-+seg[0][0],dy=+seg[1][1]-+seg[0][1];
+      const len=Math.hypot(dx,dy);
+      return len>1e-9?{x:dx/len,y:dy/len,len}:null;
+    };
+    const ua=vec(sa),ub0=vec(sb);
+    if(!ua||!ub0)return;
+    let ub=ub0;
+    if(ua.x*ub.x+ua.y*ub.y<0) ub={x:-ub.x,y:-ub.y,len:ub.len};
+    let ax=ua.x+ub.x,ay=ua.y+ub.y;
+    const al=Math.hypot(ax,ay);
+    if(al<1e-9)return;
+    ax/=al;ay/=al;
+    const rebuild=(seg,len)=>{
+      const mx=(+seg[0][0]+ +seg[1][0])/2;
+      const my=(+seg[0][1]+ +seg[1][1])/2;
+      const hx=ax*len/2,hy=ay*len/2;
+      seg[0]=[mx-hx,my-hy];
+      seg[1]=[mx+hx,my+hy];
+    };
+    rebuild(sa,ua.len);
+    rebuild(sb,ub0.len);
+  };
+  const normalizeDef=def=>{
+    if(!def)return;
+    const type=def.planeType||def.type;
+    if(type!=='parallel_lines'||!def.lines)return;
+    const names=def.planeLines||Object.keys(def.lines).slice(0,2);
+    const A=def.lines[names[0]],B=def.lines[names[1]];
+    if(!A||!B)return;
+    normalizeProjection(A,B,'p1');
+    normalizeProjection(A,B,'p2');
+  };
+  Object.values(window.SITEMATH_SCHEMES||{}).forEach(group=>{
+    [4,5,6].forEach(task=>{
+      const scheme=group&&group['task'+task];
+      if(!scheme)return;
+      if(task===6){
+        normalizeDef(scheme.planeA);
+        normalizeDef(scheme.planeB);
+      }else{
+        normalizeDef(scheme);
+      }
+    });
+  });
+})();
+
 /* Verification state is stricter than "a trace exists".
    sourceId records provenance only. A scheme is verified only when the exact
    source image is currently available and has actually been rechecked. */
