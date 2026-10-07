@@ -195,6 +195,27 @@ for (const vp of viewports) {
       await page.waitForTimeout(70);
       await page.locator('#zoomFitBtn').click();
       await page.waitForTimeout(900);
+      const finalVisibility=await page.evaluate(()=>{
+        const wrap=document.querySelector('.paper-wrap');
+        const nodes=[...document.querySelectorAll('#drawing line.object-line, #drawing line.source-guide-line, #drawing line.construction-line, #drawing line.aux-line, #drawing line.answer-line, #drawing circle.point-dot, #drawing circle.source-guide-dot, #drawing circle.answer-dot, #drawing circle.construction-dot')];
+        const boxes=nodes.map(n=>n.getBoundingClientRect()).filter(r=>r.width+r.height>0);
+        if(!wrap||!boxes.length)return {visible:0,size:0};
+        const left=Math.min(...boxes.map(r=>r.left)),right=Math.max(...boxes.map(r=>r.right));
+        const top=Math.min(...boxes.map(r=>r.top)),bottom=Math.max(...boxes.map(r=>r.bottom));
+        const wr=wrap.getBoundingClientRect();
+        const iw=Math.max(0,Math.min(right,wr.right)-Math.max(left,wr.left));
+        const ih=Math.max(0,Math.min(bottom,wr.bottom)-Math.max(top,wr.top));
+        const area=Math.max(1,(right-left)*(bottom-top));
+        return {
+          visible:(iw*ih)/area,
+          size:Math.max((right-left)/wr.width,(bottom-top)/wr.height),
+          bounds:{left,right,top,bottom},
+          wrap:{left:wr.left,right:wr.right,top:wr.top,bottom:wr.bottom}
+        };
+      });
+      if(finalVisibility.visible<.45){
+        failures.push('final '+variant+'/'+task+': fitted construction is mostly outside the paper viewport '+JSON.stringify(finalVisibility));
+      }
       await page.screenshot({
         path:'mobile-screenshots/final-v'+String(Number(variant)).padStart(2,'0')+'-t'+task+'.png',
         fullPage:false
