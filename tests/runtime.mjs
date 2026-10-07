@@ -394,9 +394,9 @@ try {
     if(!k1||!k2) failures.push('variant12 raw source: K₁/K₂ missing');
     else {
       const x1=Number(k1.getAttribute('x')),x2=Number(k2.getAttribute('x'));
-      const expectedGap=raw6.pointK.p1[0]-raw6.pointK.p2[0];
-      if(Math.abs((x1-x2)-expectedGap)>1e-6){
-        failures.push('variant12 raw source: K projector was silently verticalized');
+      const expectedX=(raw6.pointK.p1[0]+raw6.pointK.p2[0])/2;
+      if(Math.abs(x1-expectedX)>1e-6||Math.abs(x2-expectedX)>1e-6){
+        failures.push('variant12 source: K₁/K₂ are not rectified onto one projector');
       }
     }
   }
