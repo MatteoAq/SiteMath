@@ -775,6 +775,9 @@ try {
         const names=def.planeLines||Object.keys(def.lines).slice(0,2);
         const lines=names.map(name=>def.lines[name]).filter(Boolean);
         for(const j of def.junctions){
+          if(j.p1 && j.p2 && Math.abs(+j.p1[0]-+j.p2[0])>.5){
+            failures.push('source junction '+variant+'/'+task+': p1/p2 are not on one projector');
+          }
           for(const L of lines){
             if(j.p1 && pointLineDistance(j.p1,L.p1)>1.1){
               failures.push('source junction '+variant+'/'+task+': p1 does not lie on defining line');
