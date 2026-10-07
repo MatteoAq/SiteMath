@@ -256,8 +256,8 @@ try {
   failures.push('task4 constructed result points: '+e.stack);
 }
 
-// Task 4 intersection conditions need an explicit chosen point T on the
-// already existing target object before ℓ is drawn through the given point.
+// Task 4 intersection conditions: choose one projection of T on an existing
+// target, derive the paired projection by a projector, only then draw ℓ.
 if (!onlyVariant && !onlyTask) try {
   for(const variant of variants){
     const scheme=window.SITEMATH_SCHEMES?.[variant]?.task4;
@@ -271,27 +271,35 @@ if (!onlyVariant && !onlyTask) try {
     $('firstBtn').click();
 
     const total=Number($('stepTotal').textContent)||1;
-    let sawT=false,sawLineAfterT=false;
+    const frames=[];
     for(let n=0;n<total;n++){
-      const title=$('stepTitle').textContent.trim();
-      const labels=[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent);
-      const hasT=labels.includes('T₁')||labels.includes('T₂');
-      const hasL=labels.includes('ℓ₁')||labels.includes('ℓ₂');
-
-      if(title.startsWith('Выбери точку T')||title.startsWith('Выбери T')){
-        sawT=true;
-        if(!labels.includes('T₁')||!labels.includes('T₂')){
-          failures.push('task4 intersection '+variant+': T projections missing on choice step');
-        }
-        if(hasL) failures.push('task4 intersection '+variant+': ℓ appears while T is only being chosen');
-      } else if(hasL && !sawLineAfterT){
-        if(!sawT) failures.push('task4 intersection '+variant+': ℓ drawn before target point T');
-        else sawLineAfterT=true;
-      }
-
+      frames.push({
+        title:$('stepTitle').textContent.trim(),
+        labels:[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent)
+      });
       if(n<total-1) $('nextBtn').click();
     }
-    if(!sawT||!sawLineAfterT) failures.push('task4 intersection '+variant+': incomplete T then ℓ construction chain');
+    const choose=frames.findIndex(f=>f.title.startsWith('Выбери T'));
+    const project=frames.findIndex(f=>f.title.startsWith('По линии связи получи T'));
+    const draw=frames.findIndex((f,i)=>i>project && (f.title.startsWith('Соедини ')||f.title.startsWith('Проведи ℓ')) && (f.labels.includes('ℓ₁')||f.labels.includes('ℓ₂')));
+
+    if(choose<0||project<0||draw<0||!(choose<project&&project<draw)){
+      failures.push('task4 intersection '+variant+': T -> paired T -> ℓ order missing');
+      continue;
+    }
+    const firstCount=['T₁','T₂'].filter(x=>frames[choose].labels.includes(x)).length;
+    if(firstCount!==1){
+      failures.push('task4 intersection '+variant+': choice step must contain exactly one T projection');
+    }
+    if(!frames[project].labels.includes('T₁')||!frames[project].labels.includes('T₂')){
+      failures.push('task4 intersection '+variant+': paired T projection missing after projector step');
+    }
+    if(frames.slice(0,draw).some(f=>f.labels.includes('ℓ₁')||f.labels.includes('ℓ₂'))){
+      failures.push('task4 intersection '+variant+': ℓ appears before T₁/T₂ are complete');
+    }
+    if(!frames[draw].labels.includes('ℓ₁')||!frames[draw].labels.includes('ℓ₂')){
+      failures.push('task4 intersection '+variant+': ℓ projections missing after T construction');
+    }
   }
 } catch(e) {
   failures.push('task4 intersection-point sequence regression: '+e.stack);
