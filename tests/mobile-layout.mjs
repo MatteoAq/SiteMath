@@ -189,6 +189,20 @@ for (const vp of viewports) {
         fullPage:false
       });
 
+      // Keep a direct visual regression for the working reference frame on the
+      // exact source we can currently recheck. It must appear only after the
+      // photographed source frame and include x12 plus y/z directions.
+      if(variant==='12'){
+        await page.evaluate(()=>document.querySelector('#nextBtn')?.click());
+        await page.waitForTimeout(60);
+        await page.locator('#zoomFitBtn').click();
+        await page.waitForTimeout(220);
+        await page.screenshot({
+          path:'mobile-screenshots/axes-v12-t'+task+'.png',
+          fullPage:false
+        });
+      }
+
       // Keep a final-frame capture as well. A source can be faithful while the
       // construction itself later drifts into a different topology.
       await page.evaluate(()=>document.querySelector('#lastBtn')?.click());
