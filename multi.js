@@ -3350,14 +3350,15 @@
     return {levelType,level,a,b,P,score};
   }
 
-  function sectionDrawEntities(step,sec,label){
+  function sectionDrawEntities(step,sec,label,pointNames){
     const out=[];
+    const named=Array.isArray(pointNames)&&pointNames.length===2&&sec?.refs?.length===2;
     const addProjection=(seg,idx)=>{
       if(!seg||!seg[0]||!seg[1])return;
       if(dist2(seg[0],seg[1])>.5){
         out.push(line(step,seg[0],seg[1],'aux-line'));
-        out.push(point(step,seg[0],'','construction-dot'));
-        out.push(point(step,seg[1],'','construction-dot'));
+        out.push(point(step,seg[0],named?pointNames[0]+idx:'','construction-dot'));
+        out.push(point(step,seg[1],named?pointNames[1]+idx:'','construction-dot'));
         out.push(textEntity(step,seg[1],label+idx,'svg-note'));
       } else {
         out.push(point(step,seg[0],label+idx,'construction-dot'));
@@ -3512,8 +3513,8 @@
         measure:[name+' ∈ первая плоскость',name+' ∈ вторая плоскость'],
         check:name+'₁ и '+name+'₂ появляются только после построения обеих линий сечения и находятся на одной линии связи.'
       },[
-        ...sectionDrawEntities(i,c.a,symbol+'Σ'),
-        ...sectionDrawEntities(i,c.b,symbol+'Θ'),
+        ...sectionDrawEntities(i,c.a,symbol+'Σ',index===0?['1','2']:['5','6']),
+        ...sectionDrawEntities(i,c.b,symbol+'Θ',index===0?['3','4']:['7','8']),
         line(i,c.P.p2,c.P.p1,'construction-line'),
         point(i,c.P.p2,name+'₂','construction-dot'),
         point(i,c.P.p1,name+'₁','construction-dot')
