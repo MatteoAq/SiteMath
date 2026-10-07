@@ -987,13 +987,15 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
 });
 
 /* Verification state is stricter than "a trace exists".
-   A scheme is verified only when the exact source image is still addressable. */
+   sourceId records provenance only. A scheme is verified only when the exact
+   source image is currently available and has actually been rechecked. */
 Object.entries(window.SITEMATH_SCHEMES||{}).forEach(([variant,group])=>{
   [4,5,6].forEach(task=>{
     const scheme=group&&group['task'+task];
     if(!scheme) return;
-    const hasSource=typeof scheme.sourceId==='string' && scheme.sourceId.trim().length>0;
-    scheme.sourceVerified=hasSource;
-    scheme.sourceRecheckRequired=!hasSource;
+    const hasSourceId=typeof scheme.sourceId==='string' && scheme.sourceId.trim().length>0;
+    const sourceAvailable=scheme.sourceAvailable===true;
+    scheme.sourceVerified=hasSourceId && sourceAvailable && scheme.sourceVerified===true;
+    scheme.sourceRecheckRequired=!scheme.sourceVerified;
   });
 });
