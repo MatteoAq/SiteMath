@@ -688,6 +688,34 @@ try {
   failures.push('task4 explicit point construction: '+e.stack);
 }
 
+// Task 4 must retain the actual plane symbol from the paper. Variants 06 and
+// 09 use Δ rather than Σ; generic solver text must not relabel them.
+if (!onlyVariant && !onlyTask) try {
+  for(const variant of ['06','09']){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='4';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+
+    const brief=($('problemGiven')?.textContent||'')+' '+($('problemFind')?.textContent||'');
+    if(!brief.includes('Δ')) failures.push('task4 plane symbol '+variant+': Δ missing from problem brief');
+
+    $('lastBtn').click();
+    const stepText=[
+      $('stepTitle')?.textContent||'',
+      $('stepAction')?.textContent||'',
+      $('stepWhy')?.textContent||'',
+      $('stepCheck')?.textContent||''
+    ].join(' ');
+    const scheme=window.SITEMATH_SCHEMES?.[variant]?.task4;
+    if(scheme?.operation?.type==='line_parallel_plane' && !stepText.includes('Δ')){
+      failures.push('task4 plane symbol '+variant+': solver relabeled Δ as Σ');
+    }
+  }
+} catch(e) {
+  failures.push('task4 plane-symbol regression: '+e.stack);
+}
+
 // Task 4: validate the "choose one point, derive the next one" sequence
 // across every currently digitized variant, including the separate point+line
 // construction path.
