@@ -1958,13 +1958,22 @@
     out.push(point(step,q1,'','source-guide-dot'));
   }
 
+  function sourceLineLabelPoint(owner,name,proj,L){
+    const custom=owner?.lineLabels?.[name]?.[proj];
+    if(custom && custom.length>=2) return {x:+custom[0],y:+custom[1]};
+    const seg=L?.[proj];
+    if(!seg||!seg.length)return {x:0,y:0};
+    const p=seg[seg.length-1];
+    return {x:+p[0]+4,y:+p[1]-2};
+  }
+
   function starterEntitiesFromScheme(scheme,step){
     const out=[];
     Object.entries(scheme.lines||{}).forEach(([name,L])=>{
       out.push(line(step,{x:L.p2[0][0],y:L.p2[0][1]},{x:L.p2[1][0],y:L.p2[1][1]},'object-line'));
-      out.push(textEntity(step,{x:L.p2[1][0]+4,y:L.p2[1][1]-2},name+'₂','svg-label'));
+      out.push(textEntity(step,sourceLineLabelPoint(scheme,name,'p2',L),name+'₂','svg-label'));
       out.push(line(step,{x:L.p1[0][0],y:L.p1[0][1]},{x:L.p1[1][0],y:L.p1[1][1]},'object-line'));
-      out.push(textEntity(step,{x:L.p1[1][0]+4,y:L.p1[1][1]-2},name+'₁','svg-label'));
+      out.push(textEntity(step,sourceLineLabelPoint(scheme,name,'p1',L),name+'₁','svg-label'));
     });
     Object.entries(scheme.points||{}).forEach(([name,P])=>{
       const x=(P.p1[0]+P.p2[0])/2;
@@ -2938,9 +2947,9 @@
     } else if(def.type==='line_point'){
       Object.entries(def.lines||{}).forEach(([name,L])=>{
         out.push(line(step,{x:L.p2[0][0],y:L.p2[0][1]},{x:L.p2[1][0],y:L.p2[1][1]},'object-line'));
-        out.push(textEntity(step,{x:L.p2[1][0]+3,y:L.p2[1][1]-2},name+'₂','svg-label'));
+        out.push(textEntity(step,sourceLineLabelPoint(def,name,'p2',L),name+'₂','svg-label'));
         out.push(line(step,{x:L.p1[0][0],y:L.p1[0][1]},{x:L.p1[1][0],y:L.p1[1][1]},'object-line'));
-        out.push(textEntity(step,{x:L.p1[1][0]+3,y:L.p1[1][1]-2},name+'₁','svg-label'));
+        out.push(textEntity(step,sourceLineLabelPoint(def,name,'p1',L),name+'₁','svg-label'));
       });
       Object.entries(def.points||{}).forEach(([name,P])=>{
         const q=normalizedPointRec(P);
@@ -2951,9 +2960,9 @@
     } else if(def.lines){
       Object.entries(def.lines).forEach(([name,L])=>{
         out.push(line(step,{x:L.p2[0][0],y:L.p2[0][1]},{x:L.p2[1][0],y:L.p2[1][1]},'object-line'));
-        out.push(textEntity(step,{x:L.p2[1][0]+3,y:L.p2[1][1]-2},name+'₂','svg-label'));
+        out.push(textEntity(step,sourceLineLabelPoint(def,name,'p2',L),name+'₂','svg-label'));
         out.push(line(step,{x:L.p1[0][0],y:L.p1[0][1]},{x:L.p1[1][0],y:L.p1[1][1]},'object-line'));
-        out.push(textEntity(step,{x:L.p1[1][0]+3,y:L.p1[1][1]-2},name+'₁','svg-label'));
+        out.push(textEntity(step,sourceLineLabelPoint(def,name,'p1',L),name+'₁','svg-label'));
       });
       if(def.junctions&&def.junctions.length){
         // Preserve only projectors that are explicitly present in the traced
