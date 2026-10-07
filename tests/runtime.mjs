@@ -395,7 +395,7 @@ if (!onlyVariant && !onlyTask) try {
       }
       $('nextBtn').click();
       labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
-      for(const axisLabel of ['x₁₂','y','z']){
+      for(const axisLabel of ['x₁₂','y','z','Π₁','Π₂']){
         if(!labels.includes(axisLabel)) failures.push('diagram axes '+variant+'/'+task+': missing '+axisLabel);
       }
       const axes=window.document.querySelectorAll('#drawing line.axis[data-role="construction"]').length;
