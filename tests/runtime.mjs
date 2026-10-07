@@ -1082,9 +1082,13 @@ if (!onlyVariant && !onlyTask) try {
     if(source().length!==2){
       failures.push('task5 occlusion '+variant+': original ℓ should have two source projections');
     }
+    const coincident=()=>[...window.document.querySelectorAll('#drawing line[data-source-coincident-aux="1"]')];
     $('lastBtn').click();
     if(source().length!==0){
       failures.push('task5 occlusion '+variant+': original solid ℓ survives behind final visibility');
+    }
+    if(coincident().length!==0){
+      failures.push('task5 occlusion '+variant+': solid Ω guide survives underneath dashed ℓ');
     }
     const hidden=[...window.document.querySelectorAll('#drawing line.hidden-line')];
     if(hidden.length<1){
@@ -1098,8 +1102,8 @@ if (!onlyVariant && !onlyTask) try {
       failures.push('task5 occlusion '+variant+': given-line labels disappeared');
     }
     $('prevBtn').click();
-    if(source().length!==2){
-      failures.push('task5 occlusion '+variant+': stepping back did not restore the given line');
+    if(source().length!==2||coincident().length!==1){
+      failures.push('task5 occlusion '+variant+': stepping back did not restore the given line and Ω guide');
     }
   }
 } catch (e) {
