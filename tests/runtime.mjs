@@ -377,6 +377,35 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('source exact guide count: '+e.stack);
 }
 
+// Diagram tasks 4-6 use a complete two-plane reference frame after the
+// source-only step: x12 plus explicit y/z directions. These are construction
+// guides and must never leak into the photographed source frame.
+if (!onlyVariant && !onlyTask) try {
+  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  for(const variant of photographed){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    for(const task of [4,5,6]){
+      $('taskSelect').value=String(task);
+      $('taskSelect').dispatchEvent(new window.Event('change'));
+      $('firstBtn').click();
+      let labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+      for(const axisLabel of ['x₁₂','y','z']){
+        if(labels.includes(axisLabel)) failures.push('diagram axes '+variant+'/'+task+': '+axisLabel+' leaked into source frame');
+      }
+      $('nextBtn').click();
+      labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+      for(const axisLabel of ['x₁₂','y','z']){
+        if(!labels.includes(axisLabel)) failures.push('diagram axes '+variant+'/'+task+': missing '+axisLabel);
+      }
+      const axes=window.document.querySelectorAll('#drawing line.axis[data-role="construction"]').length;
+      if(axes<2) failures.push('diagram axes '+variant+'/'+task+': expected horizontal and vertical construction axes, got '+axes);
+    }
+  }
+} catch(e) {
+  failures.push('diagram reference axes: '+e.stack);
+}
+
 // Every photographed task 4 must show the real construction path. For a plane
 // defined by a point and a line, keep the teacher's 1-2-3-4 sequence instead of
 // inventing a second source line. Task 6 must keep both auxiliary projections.
