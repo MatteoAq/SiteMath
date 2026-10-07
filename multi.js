@@ -3014,14 +3014,65 @@
     const l1=toSeg(lrec.p1),l2=toSeg(lrec.p2);
     const vis1=segmentVisibility(lrec,plane,'p1',K1);
     const vis2=segmentVisibility(lrec,plane,'p2',K2);
+    const witness1=task5VisibilityWitness(refs,lrec,'p1',K1);
+    const witness2=task5VisibilityWitness(refs,lrec,'p2',K2);
+
+    if(witness1){
+      i=steps.length;
+      const relation=witness1.lineVisible
+        ? 'точка 3 линии ℓ выше конкурирующей точки 4 плоскости'
+        : 'точка 4 плоскости выше конкурирующей точки 3 линии ℓ';
+      push({
+        title:'Видимость на Π₁: построй конкурирующие точки 3 и 4',
+        action:'На Π₁ возьми пересечение ℓ₁ с '+witness1.ref.name+'₁. В этой проекции 3₁ и 4₁ совпадают. По одной линии связи найди 3₂ на ℓ₂ и 4₂ на '+witness1.ref.name+'₂.',
+        why:'Для вида сверху сравниваются высоты z двух разных пространственных точек с одной горизонтальной проекцией. Здесь '+relation+', поэтому именно этот объект виден на соответствующей стороне от K.',
+        measure:['3₁ ≡ 4₁','3₂ ∈ ℓ₂','4₂ ∈ '+witness1.ref.name+'₂'],
+        check:'3₁/4₁ совпадают, а 3₂ и 4₂ находятся на одной линии связи и на своих исходных прямых.'
+      },[
+        ...segmentExtensionEntities(i,lrec.p1,witness1.X),
+        ...segmentExtensionEntities(i,witness1.ref.rec.p1,witness1.X),
+        ...segmentExtensionEntities(i,lrec.p2,witness1.lineOther),
+        ...segmentExtensionEntities(i,witness1.ref.rec.p2,witness1.planeOther),
+        point(i,witness1.X,'3₁≡4₁','construction-dot'),
+        line(i,witness1.X,witness1.lineOther,'construction-line'),
+        line(i,witness1.X,witness1.planeOther,'construction-line'),
+        point(i,witness1.lineOther,'3₂','construction-dot'),
+        point(i,witness1.planeOther,'4₂','construction-dot')
+      ]);
+    }
+
+    if(witness2){
+      i=steps.length;
+      const relation=witness2.lineVisible
+        ? 'точка 5 линии ℓ находится ближе к наблюдателю, чем точка 6 плоскости'
+        : 'точка 6 плоскости находится ближе к наблюдателю, чем точка 5 линии ℓ';
+      push({
+        title:'Видимость на Π₂: построй конкурирующие точки 5 и 6',
+        action:'На Π₂ возьми пересечение ℓ₂ с '+witness2.ref.name+'₂. Здесь 5₂ и 6₂ совпадают. По линии связи найди 5₁ на ℓ₁ и 6₁ на '+witness2.ref.name+'₁.',
+        why:'Для фронтальной проекции сравнивается удаление y от Π₂. Здесь '+relation+', что определяет видимость участка ℓ₂ по эту сторону от K.',
+        measure:['5₂ ≡ 6₂','5₁ ∈ ℓ₁','6₁ ∈ '+witness2.ref.name+'₁'],
+        check:'5₂/6₂ совпадают, а 5₁ и 6₁ лежат на одной линии связи и на своих исходных прямых.'
+      },[
+        ...segmentExtensionEntities(i,lrec.p2,witness2.X),
+        ...segmentExtensionEntities(i,witness2.ref.rec.p2,witness2.X),
+        ...segmentExtensionEntities(i,lrec.p1,witness2.lineOther),
+        ...segmentExtensionEntities(i,witness2.ref.rec.p1,witness2.planeOther),
+        point(i,witness2.X,'5₂≡6₂','construction-dot'),
+        line(i,witness2.X,witness2.lineOther,'construction-line'),
+        line(i,witness2.X,witness2.planeOther,'construction-line'),
+        point(i,witness2.lineOther,'5₁','construction-dot'),
+        point(i,witness2.planeOther,'6₁','construction-dot')
+      ]);
+    }
+
     i=steps.length;
     const p1a=l1[0],p1b=l1[1],p2a=l2[0],p2b=l2[1];
     push({
-      title:'Определи видимость ℓ методом конкурирующих точек',
-      action:'По обе стороны K сравни глубину точки ℓ и точки плоскости с той же проекцией. Ближний к наблюдателю объект остаётся сплошным, дальний участок ℓ проводится штриховой линией.',
-      why:'На Π₁ сравниваются высоты z, на Π₂ – удаления y от фронтальной плоскости. Точка K разделяет участки, где знак этой разности меняется.',
-      measure:['Π₁: сравнить z линии и плоскости','Π₂: сравнить y линии и плоскости'],
-      check:'В K видимость может смениться, но сама K остаётся общей точкой.'
+      title:'Нанеси видимость ℓ по результату конкурирующих точек',
+      action:'Используй сравнение 3/4 для Π₁ и 5/6 для Π₂. После точки пересечения K взаимное положение линии и плоскости меняется, поэтому на противоположной стороне K видимость меняется.',
+      why:'Сплошным остаётся участок ℓ, точка которого ближе к наблюдателю, чем конкурирующая точка плоскости. Штриховым показывается участок, закрытый плоскостью.',
+      measure:['Π₁: сравнение z через 3₂/4₂','Π₂: сравнение y через 5₁/6₁'],
+      check:'Граница смены видимости совпадает с K; никакой участок не помечается видимым без построенных конкурирующих точек.'
     },[
       line(i,p1a,K1,vis1[0]?'answer-line':'hidden-line'),
       line(i,K1,p1b,vis1[1]?'answer-line':'hidden-line'),
