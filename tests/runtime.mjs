@@ -207,17 +207,17 @@ try {
   const checks={
     '03':{
       4:['a₁','a₂','b₁','b₂','A₁','A₂'],
-      5:['a₁','a₂','f₁','f₂','l₁','l₂'],
+      5:['a₁','a₂','f₁','f₂','ℓ₁','ℓ₂'],
       6:['A₁','A₂','B₁','B₂','C₁','C₂','a₁','a₂','b₁','b₂','K₁','K₂']
     },
     '06':{
       4:['m₁','m₂','n₁','n₂','D₁','D₂'],
-      5:['a₁','a₂','b₁','b₂','l₁','l₂'],
+      5:['a₁','a₂','b₁','b₂','ℓ₁','ℓ₂'],
       6:['a₁','a₂','b₁','b₂','A₁','A₂','B₁','B₂','C₁','C₂','K₁','K₂']
     },
     '09':{
       4:['b₁','b₂','A₁','A₂','B₁','B₂'],
-      5:['a₁','a₂','b₁','b₂','l₁','l₂'],
+      5:['a₁','a₂','b₁','b₂','ℓ₁','ℓ₂'],
       6:['a₁','a₂','b₁','b₂','h₁','h₂','h′₁','h′₂','K₁','K₂']
     }
   };
@@ -422,7 +422,7 @@ try {
   $('taskSelect').dispatchEvent(new window.Event('change'));
   $('firstBtn').click();
   const labels5=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
-  for(const x of ['A₁','A₂','B₁','B₂','C₁','C₂','l₁','l₂']) if(!labels5.includes(x)) failures.push('variant12/task5: missing '+x);
+  for(const x of ['A₁','A₂','B₁','B₂','C₁','C₂','ℓ₁','ℓ₂']) if(!labels5.includes(x)) failures.push('variant12/task5: missing '+x);
 
   $('taskSelect').value='6';
   $('taskSelect').dispatchEvent(new window.Event('change'));
@@ -438,10 +438,12 @@ try {
 if (!onlyVariant && !onlyTask) try {
   const photographed=variants;
 
+  const sourceDisplayName=name=>name==='l'?'ℓ':name;
   function expectedFromPlaneDef(def,out){
     if(!def) return;
     if(def.lines) for(const name of Object.keys(def.lines)) {
-      out.push(name+'₁',name+'₂');
+      const shown=sourceDisplayName(name);
+      out.push(shown+'₁',shown+'₂');
     }
     if(def.points) for(const name of Object.keys(def.points)) {
       out.push(name+'₁',name+'₂');
@@ -473,7 +475,10 @@ if (!onlyVariant && !onlyTask) try {
         const k=scheme.pointLabel||'K';
         if(scheme.pointK||scheme.pointThrough) expected.push(k+'₁',k+'₂');
       }else{
-        if(scheme.lines) for(const name of Object.keys(scheme.lines)) expected.push(name+'₁',name+'₂');
+        if(scheme.lines) for(const name of Object.keys(scheme.lines)) {
+          const shown=sourceDisplayName(name);
+          expected.push(shown+'₁',shown+'₂');
+        }
         if(scheme.points) for(const name of Object.keys(scheme.points)) expected.push(name+'₁',name+'₂');
       }
       for(const label of [...new Set(expected)]){
@@ -711,16 +716,24 @@ if (!onlyVariant && !onlyTask) try {
     const brief=($('problemGiven')?.textContent||'')+' '+($('problemFind')?.textContent||'');
     if(!brief.includes('Δ')) failures.push('task4 plane symbol '+variant+': Δ missing from problem brief');
 
-    $('lastBtn').click();
-    const stepText=[
-      $('stepTitle')?.textContent||'',
-      $('stepAction')?.textContent||'',
-      $('stepWhy')?.textContent||'',
-      $('stepCheck')?.textContent||''
-    ].join(' ');
+    $('firstBtn').click();
+    const total=Number($('stepTotal').textContent)||1;
+    let allStepText='';
+    for(let n=0;n<total;n++){
+      allStepText+=' '+[
+        $('stepTitle')?.textContent||'',
+        $('stepAction')?.textContent||'',
+        $('stepWhy')?.textContent||'',
+        $('stepCheck')?.textContent||''
+      ].join(' ');
+      if(n<total-1) $('nextBtn').click();
+    }
     const scheme=window.SITEMATH_SCHEMES?.[variant]?.task4;
-    if(scheme?.operation?.type==='line_parallel_plane' && !stepText.includes('Δ')){
-      failures.push('task4 plane symbol '+variant+': solver relabeled Δ as Σ');
+    if(scheme?.operation?.type==='line_parallel_plane' && !allStepText.includes('Δ')){
+      failures.push('task4 plane symbol '+variant+': Δ missing from solver steps');
+    }
+    if(allStepText.includes('Σ')){
+      failures.push('task4 plane symbol '+variant+': generic Σ leaked into Δ variant');
     }
   }
 } catch(e) {
