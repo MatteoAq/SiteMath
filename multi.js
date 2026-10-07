@@ -3092,7 +3092,7 @@
       measure:['Ω'+pIdx+' ≡ ℓ'+pIdx],
       check:'Прямая ℓ полностью принадлежит Ω.'
     },[
-      line(i,lPrimary[0],lPrimary[1],'aux-line'),
+      line(i,lPrimary[0],lPrimary[1],'aux-line',{sourceCoincidentAux:true}),
       textEntity(i,lerp2(lPrimary[0],lPrimary[1],.18),'Ω'+pIdx+'≡ℓ'+pIdx,'svg-label')
     ],{kind:'line',a:lPrimary[0],b:lPrimary[1]});
 
@@ -4067,7 +4067,8 @@
         class:'draw-line '+e.cls+(active?' active-line':''),
         'data-active':active?'1':'0',
         'data-role':e.role||lineRole(e.cls),
-        'data-source-given-line':e.sourceGivenLine?'1':null
+        'data-source-given-line':e.sourceGivenLine?'1':null,
+        'data-source-coincident-aux':e.sourceCoincidentAux?'1':null
       });
       if(e.arrow) n.setAttribute('marker-end','url(#axisArrow)');
       svg.append(n);
@@ -4482,10 +4483,10 @@
     state.steps.forEach((s,idx)=>{
       if(idx>state.step) return;
       (s.entities||[]).forEach(e=>{
-        // Once line visibility is shown, the unbroken original ℓ would fill
-        // the gaps of every hidden stroke. Leave its labels and all other
-        // given geometry intact, but replace only that solid source stroke.
-        if(visibilityDone && e.sourceGivenLine) return;
+        // Once visibility is shown, neither the original unbroken ℓ nor the
+        // coincident Ω guide may fill the gaps of hidden strokes. Preserve
+        // their labels and restore both lines when stepping backward.
+        if(visibilityDone && (e.sourceGivenLine||e.sourceCoincidentAux)) return;
         drawEntity(e,idx===state.step);
       });
     });
