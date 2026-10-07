@@ -560,6 +560,29 @@
     };
   }
 
+  function sourceCorrectionMax(scheme){
+    // The archived trace records the photographed geometry before relations
+    // were regularized for the mathematical solver. A large correction means
+    // the displayed source still needs manual re-tracing from the sheet.
+    if(!scheme?.sourceGeometry)return 0;
+    let max=0;
+    const compare=(raw,clean)=>{
+      if(typeof raw==='number' && typeof clean==='number'){
+        if(Number.isFinite(raw)&&Number.isFinite(clean)) max=Math.max(max,Math.abs(raw-clean));
+      } else if(Array.isArray(raw)&&Array.isArray(clean)){
+        raw.forEach((value,i)=>{if(i<clean.length)compare(value,clean[i]);});
+      } else if(raw&&clean&&typeof raw==='object'&&typeof clean==='object'){
+        Object.keys(raw).forEach(key=>{
+          if(key!=='sourceGeometry' && Object.prototype.hasOwnProperty.call(clean,key)){
+            compare(raw[key],clean[key]);
+          }
+        });
+      }
+    };
+    compare(scheme.sourceGeometry,scheme);
+    return max;
+  }
+
   function renderInputs(){
     const task=state.task;
     const holder=$('dynamicInputs');
@@ -620,6 +643,11 @@
                       ? 'перенесено с фото ранее; исходный файл сейчас недоступен для повторной точной сверки.'
                       : 'сохранена трассировка из прошлой работы; оригинальный файл сейчас недоступен для повторной сверки, поэтому её наклоны и точки не считаются подтверждёнными.'
               )+'</p>'+
+              (sourceCorrectionMax(knownScheme)>5
+                ? '<p><b>Требуется сверка:</b> исходная трассировка и математически выправленная схема отличаются до '+
+                  fmt(sourceCorrectionMax(knownScheme),1)+
+                  ' условных единиц. Точное совпадение чертежа с листком не подтверждено.</p>'
+                : '')+
               (roleSummary?'<p><b>На листе дано:</b> '+esc(roleSummary.given||'графическая схема')+'</p>'+
               '<p><b>Строится:</b> '+esc(roleSummary.built)+'</p>':'')
             : '<p><b>Статус:</b> исходного рисунка пока нет. Сайт не подставляет выдуманную геометрию.</p>') +
