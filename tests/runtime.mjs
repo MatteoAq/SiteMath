@@ -599,6 +599,89 @@ try {
   failures.push('task4 explicit point construction: '+e.stack);
 }
 
+// Task 4: validate the "choose one point, derive the next one" sequence
+// across every currently digitized variant, including the separate point+line
+// construction path.
+if (!onlyVariant && !onlyTask) try {
+  const present=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  for(const variant of present){
+    const scheme=window.SITEMATH_SCHEMES?.[variant]?.task4;
+    if(!scheme) continue;
+
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='4';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+
+    const total=Number($('stepTotal').textContent)||1;
+    const frames=[];
+    for(let n=0;n<total;n++){
+      frames.push({
+        title:$('stepTitle').textContent.trim(),
+        labels:[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent)
+      });
+      if(n<total-1) $('nextBtn').click();
+    }
+
+    const findTitle=prefix=>frames.findIndex(f=>f.title.startsWith(prefix));
+    if(scheme.planeType==='line_point'){
+      const pointName=scheme.planePoint||Object.keys(scheme.points||{})[0]||'A';
+      const hIdx=findTitle('Горизонталь h: проведи h₂ через '+pointName+'₂');
+      if(hIdx<0){
+        failures.push('task4 sequence '+variant+': horizontal through source '+pointName+' missing');
+      } else if(!frames[hIdx].labels.includes('1₂')){
+        failures.push('task4 sequence '+variant+': derived 1₂ missing from horizontal step');
+      }
+
+      const chooseF=findTitle('Выбери точку 3₁');
+      if(chooseF<0){
+        failures.push('task4 sequence '+variant+': explicit frontal seed 3₁ missing');
+      } else {
+        if(frames[chooseF].labels.includes('2₁')) failures.push('task4 sequence '+variant+': 2₁ appears before f₁ is drawn');
+        const next=frames[chooseF+1];
+        if(!next || !next.title.startsWith('Через 3₁ проведи f₁')){
+          failures.push('task4 sequence '+variant+': f₁ construction does not follow chosen 3₁');
+        } else if(!next.labels.includes('2₁')||!next.labels.includes('f₁')){
+          failures.push('task4 sequence '+variant+': derived 2₁/f₁ missing');
+        }
+      }
+    } else {
+      const chooseH=findTitle('Выбери точку 1₂');
+      if(chooseH<0){
+        failures.push('task4 sequence '+variant+': explicit horizontal seed 1₂ missing');
+      } else {
+        if(frames[chooseH].labels.includes('2₂')||frames[chooseH].labels.includes('h₂')){
+          failures.push('task4 sequence '+variant+': h₂/2₂ exists before horizontal is constructed');
+        }
+        const next=frames[chooseH+1];
+        if(!next || !next.title.startsWith('Через 1₂ проведи h₂')){
+          failures.push('task4 sequence '+variant+': h₂ construction does not follow chosen 1₂');
+        } else if(!next.labels.includes('2₂')||!next.labels.includes('h₂')){
+          failures.push('task4 sequence '+variant+': derived 2₂/h₂ missing');
+        }
+      }
+
+      const chooseF=findTitle('Выбери точку 3₁');
+      if(chooseF<0){
+        failures.push('task4 sequence '+variant+': explicit frontal seed 3₁ missing');
+      } else {
+        if(frames[chooseF].labels.includes('4₁')||frames[chooseF].labels.includes('f₁')){
+          failures.push('task4 sequence '+variant+': f₁/4₁ exists before frontal is constructed');
+        }
+        const next=frames[chooseF+1];
+        if(!next || !next.title.startsWith('Через 3₁ проведи f₁')){
+          failures.push('task4 sequence '+variant+': f₁ construction does not follow chosen 3₁');
+        } else if(!next.labels.includes('4₁')||!next.labels.includes('f₁')){
+          failures.push('task4 sequence '+variant+': derived 4₁/f₁ missing');
+        }
+      }
+    }
+  }
+} catch(e) {
+  failures.push('task4 all-variant point-sequence regression: '+e.stack);
+}
+
 // Generic task-4 greatest-slope construction must not fall back to an
 // analytically drawn line whose seed point appears in the same step.
 if (!onlyVariant && !onlyTask) try {
