@@ -2534,12 +2534,24 @@
       i=steps.length;
       const T=project3(target3),Q=project3(through3);
       push({
-        title:'Выбери точку T на фронтали f',
-        action:'На уже построенной фронтали отметь удобную точку T и построй обе её проекции.',
-        why:'Чтобы прямая через заданную точку пересекала фронталь, достаточно провести её через любую точку T этой фронтали.',
-        measure:['T₁ ∈ f₁','T₂ ∈ f₂'],
-        check:'T₁ и T₂ лежат на одной линии связи.'
-      },[point(i,T.p1,'T₁','construction-dot'),point(i,T.p2,'T₂','construction-dot'),line(i,T.p1,T.p2,'construction-line')]);
+        title:'Выбери T₁ на фронтали f₁',
+        action:'На уже построенной f₁ отметь удобную точку T₁.',
+        why:'Чтобы задать конкретную точку T фронтали, сначала достаточно выбрать одну её проекцию на существующей f₁. T₂ нельзя ставить независимо.',
+        measure:['T₁ ∈ f₁'],
+        check:'На этом шаге есть только T₁; T₂ ещё не построена.'
+      },[point(i,T.p1,'T₁','construction-dot')]);
+
+      i=steps.length;
+      push({
+        title:'По линии связи получи T₂ на f₂',
+        action:'Из T₁ проведи проектор до f₂. Пересечение обозначь T₂.',
+        why:'T₁ и T₂ – проекции одной точки фронтали, поэтому T₂ однозначно определяется линией связи и принадлежностью f₂.',
+        measure:['T₁↔T₂ – одна линия связи','T₂ ∈ f₂'],
+        check:'T₂ получена пересечением проектора с f₂, а не выбрана отдельно.'
+      },[
+        line(i,T.p1,T.p2,'construction-line'),
+        point(i,T.p2,'T₂','construction-dot')
+      ]);
 
       i=steps.length;
       push({
@@ -2558,14 +2570,25 @@
       i=steps.length;
       const T=project3(target3),Q=project3(through3);
       push({
-        title:'Выбери точку T на горизонтали h',
-        action:'На уже построенной горизонтали h отметь удобную точку T и согласуй T₁/T₂ линией связи.',
-        why:'Чтобы прямая через заданную точку пересекала горизонталь, достаточно провести её через любую точку T этой горизонтали.',
-        measure:['T₁ ∈ h₁','T₂ ∈ h₂'],
-        check:'T₁ и T₂ – проекции одной точки T горизонтали.'
+        title:'Выбери T₂ на горизонтали h₂',
+        action:'На уже построенной h₂ отметь удобную точку T₂.',
+        why:'Горизонталь уже построена, поэтому конкретную точку T сначала можно выбрать на её фронтальной проекции h₂. T₁ пока не задаётся.',
+        measure:['T₂ ∈ h₂'],
+        check:'На этом шаге есть только T₂; T₁ ещё не построена.'
       },[
-        point(i,T.p1,'T₁','construction-dot'),point(i,T.p2,'T₂','construction-dot'),
-        line(i,T.p1,T.p2,'construction-line')
+        point(i,T.p2,'T₂','construction-dot')
+      ]);
+
+      i=steps.length;
+      push({
+        title:'По линии связи получи T₁ на h₁',
+        action:'Из T₂ проведи проектор до h₁. Пересечение обозначь T₁.',
+        why:'T₁ и T₂ – проекции одной пространственной точки T, поэтому T₁ определяется линией связи и принадлежностью h₁.',
+        measure:['T₂↔T₁ – одна линия связи','T₁ ∈ h₁'],
+        check:'T₁ получена на h₁ проектором из T₂, а не выбрана отдельно.'
+      },[
+        line(i,T.p2,T.p1,'construction-line'),
+        point(i,T.p1,'T₁','construction-dot')
       ]);
 
       i=steps.length;
@@ -2586,12 +2609,25 @@
       const T=project3(target3),Q=project3(through3);
       i=steps.length;
       push({
-        title:'Выбери T на прямой '+op.target,
-        action:'Отметь удобную точку T на заданной прямой '+op.target+' и согласуй T₁/T₂ линией связи.',
-        why:'Будущая ℓ должна пересечь '+op.target+', поэтому T сразу выбирается общей точкой двух прямых.',
-        measure:['T ∈ '+op.target],
-        check:'T₁ лежит на '+op.target+'₁, T₂ – на '+op.target+'₂.'
-      },[point(i,T.p1,'T₁','construction-dot'),point(i,T.p2,'T₂','construction-dot'),line(i,T.p1,T.p2,'construction-line')]);
+        title:'Выбери T₁ на прямой '+op.target+'₁',
+        action:'На уже заданной '+op.target+'₁ отметь удобную точку T₁.',
+        why:'Будущая ℓ должна пересечь '+op.target+'. Сначала выбирается одна проекция общей точки T на существующей прямой, а вторая получается по линии связи.',
+        measure:['T₁ ∈ '+op.target+'₁'],
+        check:'На этом шаге есть только T₁; T₂ ещё не построена.'
+      },[point(i,T.p1,'T₁','construction-dot')]);
+
+      i=steps.length;
+      push({
+        title:'По линии связи получи T₂ на '+op.target+'₂',
+        action:'Из T₁ проведи проектор до '+op.target+'₂ и обозначь пересечение T₂.',
+        why:'T₂ определяется той же пространственной точкой T на заданной прямой '+op.target+', поэтому отдельно выбирать её нельзя.',
+        measure:['T₁↔T₂ – одна линия связи','T₂ ∈ '+op.target+'₂'],
+        check:'T₂ стоит на '+op.target+'₂ в пересечении с проектором из T₁.'
+      },[
+        line(i,T.p1,T.p2,'construction-line'),
+        point(i,T.p2,'T₂','construction-dot')
+      ]);
+
       i=steps.length;
       push({
         title:'Проведи ℓ через '+op.through+' и T',
