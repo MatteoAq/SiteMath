@@ -2053,7 +2053,9 @@
       line(step,{x:O.x,y:frame.top},{x:O.x,y:frame.bottom},'axis'),
       textEntity(step,{x:frame.a.x+2,y:frame.a.y-3},'x₁₂','svg-label'),
       textEntity(step,{x:O.x+3,y:frame.top+4},'z','svg-label'),
-      textEntity(step,{x:O.x+3,y:frame.bottom-2},'y','svg-label')
+      textEntity(step,{x:O.x+3,y:frame.bottom-2},'y','svg-label'),
+      textEntity(step,{x:frame.b.x-14,y:frame.top+4},'Π₂','svg-note'),
+      textEntity(step,{x:frame.b.x-14,y:frame.bottom-2},'Π₁','svg-note')
     ];
   }
 
