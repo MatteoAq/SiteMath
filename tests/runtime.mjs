@@ -603,7 +603,12 @@ if (!onlyVariant && !onlyTask) try {
       } else if(task===5){
         if(construction<3) failures.push('auxiliary construction '+variant+'/5: too few projection-transfer lines ('+construction+')');
         if(aux<2) failures.push('auxiliary construction '+variant+'/5: Ω/m auxiliary lines missing ('+aux+')');
-        for(const label of ['Ω₁≡ℓ₁','m₂','K₁','K₂']){
+        const hasPrimary1=labels.includes('Ω₁≡ℓ₁')&&labels.includes('m₂');
+        const hasPrimary2=labels.includes('Ω₂≡ℓ₂')&&labels.includes('m₁');
+        if(!hasPrimary1&&!hasPrimary2){
+          failures.push('auxiliary construction '+variant+'/5: neither valid Ω/m auxiliary projection pair is present');
+        }
+        for(const label of ['K₁','K₂']){
           if(!labels.includes(label)) failures.push('auxiliary construction '+variant+'/5: missing '+label);
         }
       } else {
