@@ -3335,6 +3335,40 @@
 
     diagramReferenceAxisStep(push,steps,scheme);
 
+    // A plane defined by a point and a line has only one source line. Before
+    // using two-line section constructions, explicitly create a second line
+    // inside that plane. Otherwise later section points would appear to come
+    // from an invisible helper.
+    [
+      {def:scheme.planeA,label:'первой плоскости'},
+      {def:scheme.planeB,label:'второй плоскости'}
+    ].forEach(item=>{
+      if(item.def?.type!=='line_point') return;
+      const refs=planeDefReferenceLines(item.def);
+      const generated=refs.find(r=>r.generated);
+      if(!generated?.rec) return;
+      const pointName=item.def.pointName||Object.keys(item.def.points||{})[0]||'A';
+      const lineName=item.def.lineName||Object.keys(item.def.lines||{})[0]||'a';
+      const T1={x:+generated.rec.p1[1][0],y:+generated.rec.p1[1][1]};
+      const T2={x:+generated.rec.p2[1][0],y:+generated.rec.p2[1][1]};
+      const A1={x:+generated.rec.p1[0][0],y:+generated.rec.p1[0][1]};
+      const A2={x:+generated.rec.p2[0][0],y:+generated.rec.p2[0][1]};
+      i=steps.length;
+      push({
+        title:'Дострой вторую линию '+pointName+'T в '+item.label,
+        action:'На заданной '+lineName+' выбери удобную точку T. Проведи линию связи T₁↔T₂, затем соедини '+pointName+'₁ с T₁ и '+pointName+'₂ с T₂.',
+        why:'Плоскость задана точкой '+pointName+' и прямой '+lineName+'. Для последующих сечений удобно явно построить ещё одну прямую '+pointName+'T, которая гарантированно лежит в этой плоскости. Точка T выбирается только на уже заданной '+lineName+'.',
+        measure:['T ∈ '+lineName,pointName+'T лежит в заданной плоскости'],
+        check:'T₁/T₂ лежат на соответствующих проекциях '+lineName+', а обе проекции '+pointName+'T проходят через '+pointName+'.'
+      },[
+        point(i,T2,'T₂','construction-dot'),
+        point(i,T1,'T₁','construction-dot'),
+        line(i,T2,T1,'construction-line'),
+        line(i,A2,T2,'aux-line'),textEntity(i,T2,pointName+'T₂','svg-note'),
+        line(i,A1,T1,'aux-line'),textEntity(i,T1,pointName+'T₁','svg-note')
+      ]);
+    });
+
     pair.forEach((c,index)=>{
       i=steps.length;
       const name=index===0?'P':'Q';
