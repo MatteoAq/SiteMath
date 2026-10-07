@@ -954,6 +954,7 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
     points:{D:{p2:[446,296],p1:[446,501]}},
     junctions:[{p2:[232,330],p1:[230,468]}],
     sourceVerified:true,
+    sourceAvailable:true,
     sourceId:"IMG_20260917_131638",
     operation:{type:"line_intersects_named",through:"D",target:"a",resultPoint:"A",relation:"behind_line"}
   },
@@ -969,6 +970,7 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
     },
     givenLine:"l",
     sourceVerified:true,
+    sourceAvailable:true,
     sourceId:"IMG_20260917_131638"
   },
   task6:{
@@ -982,6 +984,7 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
     },junctions:[{p2:[452,232],p1:[452,366]}]},
     pointK:{p2:[196,116],p1:[199,465]},
     sourceVerified:true,
+    sourceAvailable:true,
     sourceId:"IMG_20260917_131638"
   }
 });
