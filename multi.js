@@ -3451,9 +3451,8 @@
     let i=0;
     const sourceScheme=scheme?.sourceGeometry||scheme;
     const sourceThroughRec=sourceScheme.pointK||sourceScheme.pointThrough||throughRec;
-    const sourceThroughNorm=normalizedPointRec(sourceThroughRec);
-    const sourceK1={x:+sourceThroughNorm.p1[0],y:+sourceThroughNorm.p1[1]};
-    const sourceK2={x:+sourceThroughNorm.p2[0],y:+sourceThroughNorm.p2[1]};
+    const sourceK1={x:+sourceThroughRec.p1[0],y:+sourceThroughRec.p1[1]};
+    const sourceK2={x:+sourceThroughRec.p2[0],y:+sourceThroughRec.p2[1]};
     push({
       title:'Перенеси обе плоскости и точку '+throughLabel,
       action:'Сначала воспроизведи только исходные линии, исходные линии связи и точку '+throughLabel+' с листа.',
