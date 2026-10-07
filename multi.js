@@ -3160,8 +3160,9 @@
     const r1=vec2(P.p1,Q.p1),r2=vec2(P.p2,Q.p2);
     if(norm2(r1)<EPS||norm2(r2)<EPS)return null;
 
-    const K1={x:+throughRec.p1[0],y:+throughRec.p1[1]};
-    const K2={x:+throughRec.p2[0],y:+throughRec.p2[1]};
+    const throughNorm=normalizedPointRec(throughRec);
+    const K1={x:+throughNorm.p1[0],y:+throughNorm.p1[1]};
+    const K2={x:+throughNorm.p2[0],y:+throughNorm.p2[1]};
     const u1=unit2(r1),u2=unit2(r2),half=85;
     const k1a=add2(K1,mul2(u1,-half)),k1b=add2(K1,mul2(u1,half));
     const k2a=add2(K2,mul2(u2,-half)),k2b=add2(K2,mul2(u2,half));
@@ -3310,7 +3311,8 @@
     const throughRec=scheme.pointK||scheme.pointThrough;
     if(!throughRec) return {error:'В схеме задания 6 не указана исходная точка, через которую нужно провести прямую.'};
     const throughLabel=scheme.pointLabel||'K';
-    const K3=schemePoint3(throughRec);
+    const throughNorm=normalizedPointRec(throughRec);
+    const K3=schemePoint3(throughNorm);
     const K=project3(K3);
     const throughK=line3Extent(K3,inter.d,90);
     const kA=project3(throughK[0]),kB=project3(throughK[1]);
@@ -3320,9 +3322,9 @@
     const starter=[
       ...starterPlaneDefEntities(scheme.planeA,i,'Σ'),
       ...starterPlaneDefEntities(scheme.planeB,i,'Θ'),
-      line(i,{x:throughRec.p2[0],y:throughRec.p2[1]},{x:throughRec.p1[0],y:throughRec.p1[1]},'source-guide-line'),
-      point(i,{x:throughRec.p2[0],y:throughRec.p2[1]},throughLabel+'₂'),
-      point(i,{x:throughRec.p1[0],y:throughRec.p1[1]},throughLabel+'₁')
+      line(i,{x:throughNorm.p2[0],y:throughNorm.p2[1]},{x:throughNorm.p1[0],y:throughNorm.p1[1]},'source-guide-line'),
+      point(i,{x:throughNorm.p2[0],y:throughNorm.p2[1]},throughLabel+'₂'),
+      point(i,{x:throughNorm.p1[0],y:throughNorm.p1[1]},throughLabel+'₁')
     ];
     push({
       title:'Перенеси обе плоскости и точку '+throughLabel,
