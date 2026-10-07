@@ -346,6 +346,37 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('source frame semantic regression: '+e.stack);
 }
 
+// Source-only frames must not contain inferred projectors. The exact number of
+// given-guide lines is determined by explicitly stored source points/junctions.
+if (!onlyVariant && !onlyTask) try {
+  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const guideCountForDef=def=>{
+    if(!def)return 0;
+    const points=def.points?Object.keys(def.points).length:0;
+    const junctions=def.junctions?.length||0;
+    return points+junctions;
+  };
+  for(const variant of photographed){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    for(const task of [4,5,6]){
+      $('taskSelect').value=String(task);
+      $('taskSelect').dispatchEvent(new window.Event('change'));
+      $('firstBtn').click();
+      const scheme=window.SITEMATH_SCHEMES?.[variant]?.['task'+task];
+      const expected=task===6
+        ? guideCountForDef(scheme?.planeA)+guideCountForDef(scheme?.planeB)+((scheme?.pointK||scheme?.pointThrough)?1:0)
+        : guideCountForDef(scheme);
+      const actual=window.document.querySelectorAll('#drawing line.source-guide-line').length;
+      if(actual!==expected){
+        failures.push('source exact guides '+variant+'/'+task+': expected '+expected+', got '+actual);
+      }
+    }
+  }
+} catch(e) {
+  failures.push('source exact guide count: '+e.stack);
+}
+
 // Every photographed task 4 must show the real construction path. For a plane
 // defined by a point and a line, keep the teacher's 1-2-3-4 sequence instead of
 // inventing a second source line. Task 6 must keep both auxiliary projections.
