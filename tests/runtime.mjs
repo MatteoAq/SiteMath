@@ -26,6 +26,30 @@ const variants = [...$('variantSelect').options]
   .filter(v=>!onlyVariant || v===onlyVariant);
 const failures = [];
 
+// Drafting-line semantics are part of correctness: construction/auxiliary lines
+// stay thin and solid; only hidden geometry may be dashed; paper grid is not
+// displayed in the finished drafting field.
+try {
+  const css=fs.readFileSync('styles.css','utf8');
+  const firstRule=name=>{
+    const m=css.match(new RegExp('\\.'+name.replace('-','\\-')+'\\s*\\{([^}]*)\\}','s'));
+    return m?m[1]:'';
+  };
+  const aux=firstRule('aux-line');
+  const construction=firstRule('construction-line');
+  const hidden=firstRule('hidden-line');
+  const gridMinor=firstRule('grid-minor');
+  const gridMajor=firstRule('grid-major');
+  if(!/stroke-dasharray\s*:\s*none/i.test(aux)) failures.push('drafting style: auxiliary lines are not solid');
+  if(/stroke-dasharray\s*:\s*(?!none)[^;]+/i.test(construction)) failures.push('drafting style: construction lines are dashed');
+  if(!/stroke-dasharray\s*:\s*[^;]+/i.test(hidden)) failures.push('drafting style: hidden geometry is not dashed');
+  if(!/stroke\s*:\s*transparent/i.test(gridMinor)||!/stroke\s*:\s*transparent/i.test(gridMajor)){
+    failures.push('drafting style: background grid is visible');
+  }
+} catch(e) {
+  failures.push('drafting style regression: '+e.stack);
+}
+
 if (!onlyVariant && !onlyTask) {
   try {
     if ($('firstRunPicker').hidden) failures.push('first run: chooser is not shown with empty storage');
