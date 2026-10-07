@@ -388,6 +388,17 @@ try {
         failures.push('variant12 raw source: rendered task 6 a₂ direction comes from cleaned geometry');
       }
     }
+    const kLabels=[...window.document.querySelectorAll('#drawing text')];
+    const k1=kLabels.find(n=>n.textContent==='K₁');
+    const k2=kLabels.find(n=>n.textContent==='K₂');
+    if(!k1||!k2) failures.push('variant12 raw source: K₁/K₂ missing');
+    else {
+      const x1=Number(k1.getAttribute('x')),x2=Number(k2.getAttribute('x'));
+      const expectedGap=raw6.pointK.p1[0]-raw6.pointK.p2[0];
+      if(Math.abs((x1-x2)-expectedGap)>1e-6){
+        failures.push('variant12 raw source: K projector was silently verticalized');
+      }
+    }
   }
 } catch(e) {
   failures.push('variant12 raw-source rendering regression: '+e.stack);
