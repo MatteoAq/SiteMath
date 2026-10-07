@@ -3370,16 +3370,33 @@
     });
 
     pair.forEach((c,index)=>{
-      i=steps.length;
       const name=index===0?'P':'Q';
-      const kind=levelType==='horizontal'?'горизонтальное':'фронтальное';
+      const planeName=index===0?'α':'β';
+      const kind=levelType==='horizontal'?'горизонтальную':'фронтальную';
+      const degenerateProj=levelType==='horizontal'?'₂':'₁';
       const symbol=levelType==='horizontal'?'h':'f';
+      const guideA={x:bounds.minX-18,y:c.level};
+      const guideB={x:bounds.maxX+18,y:c.level};
+
+      i=steps.length;
       push({
-        title:(index===0?'Первое':'Второе')+' вспомогательное '+kind+' сечение',
-        action:'На выбранном уровне построй линии сечения обеих заданных плоскостей. Их одноимённые проекции получай через исходные элементы и тонкие проекторы.',
-        why:'Пересечение двух линий одного вспомогательного уровня даёт точку '+name+', одновременно принадлежащую обеим плоскостям.',
+        title:'Выбери вспомогательную плоскость '+planeName,
+        action:'Проведи '+planeName+degenerateProj+' параллельно x₁₂ на удобном уровне. Это свободный выбор вспомогательной '+kind+' плоскости – уровень не берётся из готовой точки.',
+        why:'Для поиска линии пересечения двух плоскостей можно взять любую вспомогательную плоскость выбранного семейства. Сначала явно задаётся её уровень, и только после этого строятся точки пересечения.',
+        measure:[planeName+degenerateProj+' ∥ x₁₂'],
+        check:'На этом шаге ещё нет точки '+name+' – задан только уровень вспомогательной плоскости.'
+      },[
+        line(i,guideA,guideB,'aux-line'),
+        textEntity(i,guideB,planeName+degenerateProj,'svg-note')
+      ],{kind:'line',a:guideA,b:guideB});
+
+      i=steps.length;
+      push({
+        title:'Построй сечения '+planeName+' с обеими плоскостями и получи '+name,
+        action:'На уровне '+planeName+degenerateProj+' найди точки на исходных элементах каждой заданной плоскости, по линиям связи дострой обе проекции линий сечения. Их пересечение даёт '+name+'.',
+        why:'Каждая линия сечения принадлежит и вспомогательной плоскости '+planeName+', и своей заданной плоскости. Поэтому их общая точка '+name+' принадлежит сразу обеим исходным плоскостям.',
         measure:[name+' ∈ первая плоскость',name+' ∈ вторая плоскость'],
-        check:name+'₁ и '+name+'₂ находятся на одной линии связи.'
+        check:name+'₁ и '+name+'₂ появляются только после построения обеих линий сечения и находятся на одной линии связи.'
       },[
         ...sectionDrawEntities(i,c.a,symbol+'Σ'),
         ...sectionDrawEntities(i,c.b,symbol+'Θ'),
