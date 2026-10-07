@@ -4011,7 +4011,8 @@
         x1:e.a.x,y1:e.a.y,x2:e.b.x,y2:e.b.y,
         class:'draw-line '+e.cls+(active?' active-line':''),
         'data-active':active?'1':'0',
-        'data-role':e.role||lineRole(e.cls)
+        'data-role':e.role||lineRole(e.cls),
+        'data-source-given-line':e.sourceGivenLine?'1':null
       });
       if(e.arrow) n.setAttribute('marker-end','url(#axisArrow)');
       svg.append(n);
