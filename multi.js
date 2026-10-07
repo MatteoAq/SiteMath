@@ -3757,7 +3757,11 @@
     const visibleH=Math.max(20,vb.maxY-vb.minY);
     const fitW=availableW/(visibleW*cssMm);
     const fitH=availableH/(visibleH*cssMm);
-    return Math.max(.06,Math.min(1,fitW,fitH));
+    // Some legitimate descriptive-geometry constructions intersect far outside
+    // the compact source drawing (especially nearly parallel planes/lines).
+    // Fit must be allowed below 6%, otherwise the whole result can remain
+    // off-screen even after pressing "Вписать".
+    return Math.max(.005,Math.min(1,fitW,fitH));
   }
 
   function focusVisibleDrawing(){
@@ -3796,7 +3800,7 @@
     const z=drawingZoom();
     svg.style.width=(g.width*cssMm*z)+'px';
     svg.style.height=(g.height*cssMm*z)+'px';
-    $('zoomLabel').textContent=Math.round(z*100)+'%';
+    $('zoomLabel').textContent=(z<.1?(z*100).toFixed(1):Math.round(z*100))+'%';
     if(state.screenZoom===null){
       requestAnimationFrame(()=>{
         focusVisibleDrawing();
@@ -3819,7 +3823,7 @@
     const ay=anchor&&Number.isFinite(anchor.y)?anchor.y:wrap.clientHeight/2;
     const contentX=(wrap.scrollLeft+ax-padX)/prev;
     const contentY=(wrap.scrollTop+ay-padY)/prev;
-    state.screenZoom=Math.max(.06,Math.min(6,next));
+    state.screenZoom=Math.max(.005,Math.min(6,next));
     applyDrawingZoom();
     wrap.scrollLeft=Math.max(0,contentX*state.screenZoom-ax+padX);
     wrap.scrollTop=Math.max(0,contentY*state.screenZoom-ay+padY);
