@@ -345,10 +345,9 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('task4 result-point derivation regression: '+e.stack);
 }
 
-// The photographed source frame must use the untouched trace, even though
-// solver geometry is regularized later. Variant 12 has the exact paper source
-// available; task 6 deliberately has slightly skewed traced parallel lines, so
-// it distinguishes the paper trace from the cleaned solver copy.
+// Keep the digitized trace immutable, but render the mathematically valid
+// reconstruction of that trace. Camera/pixel skew must not make a printed
+// a∥b relation look non-parallel or move a common point off its projector.
 try {
   const raw4=window.SITEMATH_SCHEMES?.['12']?.task4?.sourceGeometry;
   const raw6=window.SITEMATH_SCHEMES?.['12']?.task6?.sourceGeometry;
@@ -364,12 +363,13 @@ try {
       failures.push('variant12 raw source: refined paper trace for task 4 changed');
     }
 
-    const expected=raw6.planeA?.lines?.a?.p2;
-    if(!expected || expected[0][0]!==22 || expected[0][1]!==227 || expected[1][0]!==305 || expected[1][1]!==143){
+    const rawA2=raw6.planeA?.lines?.a?.p2;
+    const cleanA2=cleaned6.planeA?.lines?.a?.p2;
+    if(!rawA2 || rawA2[0][0]!==22 || rawA2[0][1]!==227 || rawA2[1][0]!==305 || rawA2[1][1]!==143){
       failures.push('variant12 raw source: original task 6 a₂ trace changed');
     }
-    if(JSON.stringify(expected)===JSON.stringify(cleaned6.planeA?.lines?.a?.p2)){
-      failures.push('variant12 raw source: task 6 cleanup no longer distinguishable from source trace');
+    if(JSON.stringify(rawA2)===JSON.stringify(cleanA2)){
+      failures.push('variant12 raw source: task 6 cleanup no longer distinguishable from trace');
     }
 
     $('variantSelect').value='12';
@@ -378,29 +378,29 @@ try {
     $('taskSelect').dispatchEvent(new window.Event('change'));
     $('firstBtn').click();
     const objects=[...window.document.querySelectorAll('#drawing line.object-line')];
-    if(objects.length<8) failures.push('variant12 raw source: task 6 source object lines missing');
+    if(objects.length<8) failures.push('variant12 source reconstruction: task 6 source object lines missing');
     else {
       const a2=objects[0];
       const dx=Number(a2.getAttribute('x2'))-Number(a2.getAttribute('x1'));
       const dy=Number(a2.getAttribute('y2'))-Number(a2.getAttribute('y1'));
-      const rawDx=expected[1][0]-expected[0][0],rawDy=expected[1][1]-expected[0][1];
-      if(Math.abs(dx*rawDy-dy*rawDx)>1e-6){
-        failures.push('variant12 raw source: rendered task 6 a₂ direction comes from cleaned geometry');
+      const cleanDx=cleanA2[1][0]-cleanA2[0][0],cleanDy=cleanA2[1][1]-cleanA2[0][1];
+      if(Math.abs(dx*cleanDy-dy*cleanDx)>1e-6){
+        failures.push('variant12 source reconstruction: rendered a₂ is not the constrained geometry');
       }
     }
     const k1=window.document.querySelector('#drawing circle[data-label="K₁"]');
     const k2=window.document.querySelector('#drawing circle[data-label="K₂"]');
-    if(!k1||!k2) failures.push('variant12 raw source: K₁/K₂ missing');
+    if(!k1||!k2) failures.push('variant12 source reconstruction: K₁/K₂ missing');
     else {
       const x1=Number(k1.getAttribute('cx')),x2=Number(k2.getAttribute('cx'));
       const expectedX=(raw6.pointK.p1[0]+raw6.pointK.p2[0])/2;
       if(Math.abs(x1-expectedX)>1e-6||Math.abs(x2-expectedX)>1e-6){
-        failures.push('variant12 source: K₁/K₂ are not rectified onto one projector');
+        failures.push('variant12 source reconstruction: K₁/K₂ are not on one projector');
       }
     }
   }
 } catch(e) {
-  failures.push('variant12 raw-source rendering regression: '+e.stack);
+  failures.push('variant12 source-reconstruction regression: '+e.stack);
 }
 
 // Variant 12 regression: intersecting defining lines must include their common projector,
