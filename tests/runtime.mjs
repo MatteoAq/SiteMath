@@ -260,7 +260,7 @@ try {
 // an explicit helper point N on an already existing line/plane; the answer
 // point must not exist while N is only being chosen.
 if (!onlyVariant && !onlyTask) try {
-  const present=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const present=variants;
   for(const variant of present){
     const scheme=window.SITEMATH_SCHEMES?.[variant]?.task4;
     const resultName=scheme?.operation?.resultPoint;
@@ -336,7 +336,7 @@ try {
 // Every photographed graphical task must render the exact named source objects,
  // not anonymous substitute strips.
 if (!onlyVariant && !onlyTask) try {
-  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const photographed=variants;
 
   function expectedFromPlaneDef(def,out){
     if(!def) return;
@@ -396,7 +396,7 @@ if (!onlyVariant && !onlyTask) try {
 // First frame of every photographed diagram task must contain only what is
 // printed in the source sheet: given geometry plus printed source projectors.
 if (!onlyVariant && !onlyTask) try {
-  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const photographed=variants;
   for(const variant of photographed){
     $('variantSelect').value=variant;
     $('variantSelect').dispatchEvent(new window.Event('change'));
@@ -472,7 +472,7 @@ if (!onlyVariant && !onlyTask) try {
  // operations reference real source objects and both task-6 plane definitions
  // contain enough data for the selected representation.
 if (!onlyVariant && !onlyTask) try {
-  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const photographed=variants;
   for(const variant of photographed){
     const data=window.SITEMATH_DATA?.variants?.[variant];
     const group=window.SITEMATH_SCHEMES?.[variant];
@@ -521,7 +521,7 @@ if (!onlyVariant && !onlyTask) try {
 // Source-only frames must not contain inferred projectors. The exact number of
 // given-guide lines is determined by explicitly stored source points/junctions.
 if (!onlyVariant && !onlyTask) try {
-  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const photographed=variants;
   const guideCountForDef=def=>{
     if(!def)return 0;
     const points=def.points?Object.keys(def.points).length:0;
@@ -553,7 +553,7 @@ if (!onlyVariant && !onlyTask) try {
 // source-only step: x12 plus explicit y/z directions. These are construction
 // guides and must never leak into the photographed source frame.
 if (!onlyVariant && !onlyTask) try {
-  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const photographed=variants;
   for(const variant of photographed){
     $('variantSelect').value=variant;
     $('variantSelect').dispatchEvent(new window.Event('change'));
@@ -603,7 +603,7 @@ try {
 // across every currently digitized variant, including the separate point+line
 // construction path.
 if (!onlyVariant && !onlyTask) try {
-  const present=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const present=variants;
   for(const variant of present){
     const scheme=window.SITEMATH_SCHEMES?.[variant]?.task4;
     if(!scheme) continue;
@@ -685,7 +685,7 @@ if (!onlyVariant && !onlyTask) try {
 // Generic task-4 greatest-slope construction must not fall back to an
 // analytically drawn line whose seed point appears in the same step.
 if (!onlyVariant && !onlyTask) try {
-  const present=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const present=variants;
   for(const variant of present){
     const scheme=window.SITEMATH_SCHEMES?.[variant]?.task4;
     if(!scheme || scheme.planeType==='line_point') continue;
@@ -732,7 +732,7 @@ try {
 // Task 5 visibility must be demonstrated by actual competing points, not
 // assigned analytically with no construction on the sheet.
 if (!onlyVariant && !onlyTask) try {
-  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const photographed=variants;
   for(const variant of photographed){
     $('variantSelect').value=variant;
     $('variantSelect').dispatchEvent(new window.Event('change'));
@@ -772,7 +772,7 @@ try {
 // planes before the corresponding common points P/Q. This catches "point from
 // nowhere" regressions beyond the single variant used in the focused test.
 if (!onlyVariant && !onlyTask) try {
-  const present=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const present=variants;
   for(const variant of present){
     $('variantSelect').value=variant;
     $('variantSelect').dispatchEvent(new window.Event('change'));
@@ -847,7 +847,7 @@ try {
 // defined by a point and a line, keep the teacher's 1-2-3-4 sequence instead of
 // inventing a second source line. Task 6 must keep both auxiliary projections.
 if (!onlyVariant && !onlyTask) try {
-  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const photographed=variants;
   const genericLabels=['1₂','2₂','1₁','2₁','3₁','4₁','3₂','4₂','S₁','S₂','ЛС₁','ЛС₂'];
   const linePointLabels=['1₂','1₁','2₁','3₁','2₂','3₂','4₁','4₂','ЛС₁','ЛС₂'];
   for(const variant of photographed){
@@ -919,7 +919,7 @@ if (!onlyVariant && !onlyTask) try {
  // Step 1 must stay source-only; by the final step each graphical task must
  // retain the projectors/auxiliary sections that explain how the result was built.
 if (!onlyVariant && !onlyTask) try {
-  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const photographed=variants;
   for(const variant of photographed){
     $('variantSelect').value=variant;
     $('variantSelect').dispatchEvent(new window.Event('change'));
