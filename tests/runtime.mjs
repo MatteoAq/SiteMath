@@ -637,6 +637,61 @@ try {
   failures.push('task6 explicit auxiliary-level regression: '+e.stack);
 }
 
+// Every currently digitized variant must introduce alpha/beta auxiliary
+// planes before the corresponding common points P/Q. This catches "point from
+// nowhere" regressions beyond the single variant used in the focused test.
+if (!onlyVariant && !onlyTask) try {
+  const present=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  for(const variant of present){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='6';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+
+    const total=Number($('stepTotal').textContent)||1;
+    const seen={alpha:false,beta:false,p:false,q:false};
+    for(let n=0;n<total;n++){
+      const title=$('stepTitle').textContent.trim();
+      const labels=[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent);
+
+      if(title==='Выбери вспомогательную плоскость α'){
+        seen.alpha=true;
+        if(labels.includes('P₁')||labels.includes('P₂')){
+          failures.push('task6 pedagogy '+variant+': P exists while alpha is only being chosen');
+        }
+      }
+      if(title.includes('получи P')){
+        if(!seen.alpha) failures.push('task6 pedagogy '+variant+': P constructed before alpha');
+        if(!labels.includes('P₁')||!labels.includes('P₂')){
+          failures.push('task6 pedagogy '+variant+': P projections missing on derivation step');
+        }
+        seen.p=true;
+      }
+      if(title==='Выбери вспомогательную плоскость β'){
+        seen.beta=true;
+        if(labels.includes('Q₁')||labels.includes('Q₂')){
+          failures.push('task6 pedagogy '+variant+': Q exists while beta is only being chosen');
+        }
+      }
+      if(title.includes('получи Q')){
+        if(!seen.beta) failures.push('task6 pedagogy '+variant+': Q constructed before beta');
+        if(!labels.includes('Q₁')||!labels.includes('Q₂')){
+          failures.push('task6 pedagogy '+variant+': Q projections missing on derivation step');
+        }
+        seen.q=true;
+      }
+
+      if(n<total-1) $('nextBtn').click();
+    }
+    if(!seen.alpha||!seen.beta||!seen.p||!seen.q){
+      failures.push('task6 pedagogy '+variant+': incomplete alpha/P/beta/Q construction sequence');
+    }
+  }
+} catch(e) {
+  failures.push('task6 all-variant auxiliary sequence regression: '+e.stack);
+}
+
 // Task 6 auxiliary section anchors are part of the construction. On a regular
 // two-plane case all eight defining section points must remain visible in the
 // final drawing, not just the derived P/Q points.
