@@ -574,6 +574,51 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('global graphical construction regression: '+e.stack);
 }
 
+// Auxiliary construction is part of the answer, not disposable UI decoration.
+ // Step 1 must stay source-only; by the final step each graphical task must
+ // retain the projectors/auxiliary sections that explain how the result was built.
+if (!onlyVariant && !onlyTask) try {
+  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  for(const variant of photographed){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    for(const task of [4,5,6]){
+      $('taskSelect').value=String(task);
+      $('taskSelect').dispatchEvent(new window.Event('change'));
+      $('firstBtn').click();
+
+      const sourceConstruction=window.document.querySelectorAll('#drawing line.construction-line').length;
+      const sourceAux=window.document.querySelectorAll('#drawing line.aux-line').length;
+      if(sourceConstruction!==0 || sourceAux!==0){
+        failures.push('auxiliary construction '+variant+'/'+task+': solution helpers leaked into source frame');
+      }
+
+      $('lastBtn').click();
+      const construction=window.document.querySelectorAll('#drawing line.construction-line').length;
+      const aux=window.document.querySelectorAll('#drawing line.aux-line').length;
+      const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+
+      if(task===4){
+        if(construction<6) failures.push('auxiliary construction '+variant+'/4: too few projector/helper lines ('+construction+')');
+      } else if(task===5){
+        if(construction<3) failures.push('auxiliary construction '+variant+'/5: too few projection-transfer lines ('+construction+')');
+        if(aux<2) failures.push('auxiliary construction '+variant+'/5: Ω/m auxiliary lines missing ('+aux+')');
+        for(const label of ['Ω₁≡ℓ₁','m₂','K₁','K₂']){
+          if(!labels.includes(label)) failures.push('auxiliary construction '+variant+'/5: missing '+label);
+        }
+      } else {
+        const task6=window.SITEMATH_SCHEMES?.[variant]?.task6;
+        const hasProjecting=[task6?.planeA?.type,task6?.planeB?.type].some(type=>type==='frontal_projecting'||type==='horizontal_projecting');
+        const minProjectors=hasProjecting?4:8;
+        if(construction<minProjectors) failures.push('auxiliary construction '+variant+'/6: too few projector/helper lines ('+construction+')');
+        if(aux<4) failures.push('auxiliary construction '+variant+'/6: two auxiliary section constructions are incomplete ('+aux+')');
+      }
+    }
+  }
+} catch(e) {
+  failures.push('auxiliary construction regression: '+e.stack);
+}
+
 // Tasks 4-6 expose the source statement as a compact Given/Find block.
 if (!onlyVariant && !onlyTask) try {
   for(const variant of ['03','08','12','18']){
