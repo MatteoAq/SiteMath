@@ -1995,7 +1995,8 @@
       out.push(textEntity(step,sourceLineLabelPoint(src,name,'p1',L),sourceLineDisplayName(name)+'₁','svg-label'));
     });
     Object.entries(src.points||{}).forEach(([name,P])=>{
-      const p2={x:+P.p2[0],y:+P.p2[1]},p1={x:+P.p1[0],y:+P.p1[1]};
+      const q=normalizedPointRec(P);
+      const p2={x:+q.p2[0],y:+q.p2[1]},p1={x:+q.p1[0],y:+q.p1[1]};
       out.push(line(step,p2,p1,'source-guide-line'));
       out.push(point(step,p2,name+'₂'));
       out.push(point(step,p1,name+'₁'));
@@ -2825,14 +2826,7 @@
 
   function appendABCPlaneEntities(out,scheme,step){
     if(scheme.planeType!=='ABC') return;
-    const raw=name=>{
-      const P=scheme.points[name];
-      return {
-        p2:[+P.p2[0],+P.p2[1]],
-        p1:[+P.p1[0],+P.p1[1]]
-      };
-    };
-    const A=raw('A'),B=raw('B'),C=raw('C');
+    const A=normalizedPointRec(scheme.points.A),B=normalizedPointRec(scheme.points.B),C=normalizedPointRec(scheme.points.C);
     [['A','B',A,B],['B','C',B,C],['C','A',C,A]].forEach(row=>{
       out.push(line(step,{x:row[2].p2[0],y:row[2].p2[1]},{x:row[3].p2[0],y:row[3].p2[1]},'object-line'));
       out.push(line(step,{x:row[2].p1[0],y:row[2].p1[1]},{x:row[3].p1[0],y:row[3].p1[1]},'object-line'));
@@ -3164,7 +3158,8 @@
     if(def.type==='ABC'){
       const pseudo={planeType:'ABC',points:def.points};
       Object.entries(def.points).forEach(([name,P])=>{
-        const p2={x:+P.p2[0],y:+P.p2[1]},p1={x:+P.p1[0],y:+P.p1[1]};
+        const q=normalizedPointRec(P);
+        const p2={x:+q.p2[0],y:+q.p2[1]},p1={x:+q.p1[0],y:+q.p1[1]};
         out.push(line(step,p2,p1,'source-guide-line'));
         out.push(point(step,p2,name+'₂'));
         out.push(point(step,p1,name+'₁'));
@@ -3178,7 +3173,8 @@
         out.push(textEntity(step,sourceLineLabelPoint(def,name,'p1',L),sourceLineDisplayName(name)+'₁','svg-label'));
       });
       Object.entries(def.points||{}).forEach(([name,P])=>{
-        const p2={x:+P.p2[0],y:+P.p2[1]},p1={x:+P.p1[0],y:+P.p1[1]};
+        const q=normalizedPointRec(P);
+        const p2={x:+q.p2[0],y:+q.p2[1]},p1={x:+q.p1[0],y:+q.p1[1]};
         out.push(line(step,p2,p1,'source-guide-line'));
         out.push(point(step,p2,name+'₂'));
         out.push(point(step,p1,name+'₁'));
@@ -3455,8 +3451,9 @@
     let i=0;
     const sourceScheme=scheme?.sourceGeometry||scheme;
     const sourceThroughRec=sourceScheme.pointK||sourceScheme.pointThrough||throughRec;
-    const sourceK1={x:+sourceThroughRec.p1[0],y:+sourceThroughRec.p1[1]};
-    const sourceK2={x:+sourceThroughRec.p2[0],y:+sourceThroughRec.p2[1]};
+    const sourceThroughNorm=normalizedPointRec(sourceThroughRec);
+    const sourceK1={x:+sourceThroughNorm.p1[0],y:+sourceThroughNorm.p1[1]};
+    const sourceK2={x:+sourceThroughNorm.p2[0],y:+sourceThroughNorm.p2[1]};
     push({
       title:'Перенеси обе плоскости и точку '+throughLabel,
       action:'Сначала воспроизведи только исходные линии, исходные линии связи и точку '+throughLabel+' с листа.',
@@ -3733,8 +3730,9 @@
     let i=0;
     const sourceScheme=scheme?.sourceGeometry||scheme;
     const sourceThrough=sourceScheme.pointK||sourceScheme.pointThrough||throughRec;
-    const sourceP2={x:+sourceThrough.p2[0],y:+sourceThrough.p2[1]};
-    const sourceP1={x:+sourceThrough.p1[0],y:+sourceThrough.p1[1]};
+    const sourceThroughNorm=normalizedPointRec(sourceThrough);
+    const sourceP2={x:+sourceThroughNorm.p2[0],y:+sourceThroughNorm.p2[1]};
+    const sourceP1={x:+sourceThroughNorm.p1[0],y:+sourceThroughNorm.p1[1]};
     const starter=[
       ...starterPlaneDefEntities(sourceScheme.planeA,i,planeASymbol),
       ...starterPlaneDefEntities(sourceScheme.planeB,i,planeBSymbol),
