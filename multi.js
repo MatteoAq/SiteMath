@@ -468,10 +468,11 @@
     if(state.task===4){
       let plane=notations[0];
       if(!plane){
-        if(scheme.planeType==='ABC') plane='Σ(ABC)';
-        else if(scheme.planeType==='line_point') plane='Σ('+(scheme.planeLine||'a')+','+(scheme.planePoint||'A')+')';
-        else if(scheme.planeType==='parallel_lines') plane='Σ('+(scheme.planeLines||[]).join('∥')+')';
-        else if(scheme.planeType==='intersecting_lines') plane='Σ('+(scheme.planeLines||[]).join('∩')+')';
+        const planeSymbol=scheme.name||'Σ';
+        if(scheme.planeType==='ABC') plane=planeSymbol+'(ABC)';
+        else if(scheme.planeType==='line_point') plane=planeSymbol+'('+(scheme.planePoint||'A')+';'+(scheme.planeLine||'a')+')';
+        else if(scheme.planeType==='parallel_lines') plane=planeSymbol+'('+(scheme.planeLines||[]).join('∥')+')';
+        else if(scheme.planeType==='intersecting_lines') plane=planeSymbol+'('+(scheme.planeLines||[]).join('∩')+')';
         else plane='плоскость по исходной схеме';
       }
       given='пл. '+plane+(scheme.operation?.through?'; т. '+scheme.operation.through:'');
@@ -2233,6 +2234,7 @@
   }
 
   function solveTask4Scheme(scheme,stored){
+    const planeSymbol=scheme?.name||'Σ';
     let plane;
     try { plane=planeFromScheme(scheme); }
     catch(err){ return {error:err.message}; }
@@ -2502,9 +2504,9 @@
       i=steps.length;
       const a=project3(L3[0]),b=project3(L3[1]);
       push({
-        title:'Через '+op.through+' проведи ℓ ∥ Σ',
+        title:'Через '+op.through+' проведи ℓ ∥ '+planeSymbol,
         action:'Через заданную точку проведи ℓ параллельно построенной горизонтали h плоскости.',
-        why:'Если прямая параллельна любой прямой, лежащей в плоскости, и сама не лежит в этой плоскости, выбранное направление принадлежит плоскости. Поэтому ℓ ∥ h даёт ℓ ∥ Σ.',
+        why:'Если прямая параллельна направлению, лежащему в плоскости, и сама не лежит в этой плоскости, её направление принадлежит плоскости. Поэтому ℓ ∥ h даёт ℓ ∥ '+planeSymbol+'.',
         measure:['ℓ₁ ∥ h₁','ℓ₂ ∥ h₂'],
         check:'Одноимённые проекции ℓ и h попарно параллельны.'
       },[
@@ -2626,8 +2628,8 @@
           let refWhere='на опорном объекте';
           if(op.relation==='above_named') refWhere='на прямой '+(op.target||'a');
           else if(['above_line','below_line','behind_line','front_of_line'].includes(op.relation)) refWhere='на построенной прямой ℓ';
-          else if(op.relation==='above_plane'||op.relation==='below_plane') refWhere='на горизонтали h плоскости Σ';
-          else if(op.relation==='front_of_plane') refWhere='на фронтали f плоскости Σ';
+          else if(op.relation==='above_plane'||op.relation==='below_plane') refWhere='на горизонтали h плоскости '+planeSymbol;
+          else if(op.relation==='front_of_plane') refWhere='на фронтали f плоскости '+planeSymbol;
           push({
             title:'Выбери вспомогательную точку N '+refWhere,
             action:'Отметь N₁ и N₂ '+refWhere+' и свяжи их тонкой линией проекционной связи.',
@@ -2660,14 +2662,14 @@
           relationText='перед прямой ℓ';
           why='Для положения перед прямой сохраняем x и z выбранной точки ℓ и увеличиваем y. Поэтому на Π₂ проекция сохраняет положение по высоте, а на Π₁ точка смещается вперёд по глубине.';
         } else if(op.relation==='above_plane'){
-          relationText='над плоскостью Σ';
-          why='Сначала находим точку плоскости с теми же x и y, затем увеличиваем только z. Так новая точка оказывается строго над Σ.';
+          relationText='над плоскостью '+planeSymbol;
+          why='Сначала находим точку плоскости с теми же x и y, затем увеличиваем только z. Так новая точка оказывается строго над '+planeSymbol+'.';
         } else if(op.relation==='front_of_plane'){
-          relationText='перед плоскостью Σ';
-          why='Сначала находим точку плоскости с теми же x и z, затем увеличиваем y. Так новая точка располагается перед Σ по направлению удаления от фронтальной плоскости проекций.';
+          relationText='перед плоскостью '+planeSymbol;
+          why='Сначала находим точку плоскости с теми же x и z, затем увеличиваем y. Так новая точка располагается перед '+planeSymbol+' по направлению удаления от фронтальной плоскости проекций.';
         } else {
-          relationText='под плоскостью Σ';
-          why='Сначала вертикалью находим точку плоскости с теми же x,y, затем уменьшаем z. Это даёт точку строго под Σ.';
+          relationText='под плоскостью '+planeSymbol;
+          why='Сначала вертикалью находим точку плоскости с теми же x,y, затем уменьшаем z. Это даёт точку строго под '+planeSymbol+'.';
         }
         let relationAction='От вспомогательной точки N отложи требуемое положение итоговой точки на той же линии проекционной связи. Условие не задаёт расстояние, поэтому смещение выбирается только для читаемости чертежа.';
         if(op.relation==='above_line' || op.relation==='below_line'){
