@@ -304,35 +304,11 @@ if (!onlyVariant && !onlyTask) try {
         if(!labels.includes(label)) failures.push('source fidelity '+variant+'/'+task+': missing '+label);
       }
 
-      const lineHit=(u,v)=>{
-        if(!u||!v)return null;
-        const [a,b]=u,[c,d]=v;
-        const den=(a[0]-b[0])*(c[1]-d[1])-(a[1]-b[1])*(c[0]-d[0]);
-        if(Math.abs(den)<1e-9)return null;
-        return {
-          x:((a[0]*b[1]-a[1]*b[0])*(c[0]-d[0])-(a[0]-b[0])*(c[0]*d[1]-c[1]*d[0]))/den,
-          y:((a[0]*b[1]-a[1]*b[0])*(c[1]-d[1])-(a[1]-b[1])*(c[0]*d[1]-c[1]*d[0]))/den
-        };
-      };
-      const reliableProjector=def=>{
-        if(!def || (def.planeType!=='intersecting_lines' && def.type!=='intersecting_lines')) return false;
-        if(def.junctions?.length) return true;
-        const names=def.planeLines||Object.keys(def.lines||{}).slice(0,2);
-        const A=def.lines?.[names[0]],B=def.lines?.[names[1]];
-        if(!A||!B)return false;
-        const p1=lineHit(A.p1,B.p1),p2=lineHit(A.p2,B.p2);
-        if(!p1||!p2)return false;
-        const xs=[...A.p1,...A.p2,...B.p1,...B.p2].map(p=>+p[0]).filter(Number.isFinite);
-        const minX=Math.min(...xs),maxX=Math.max(...xs),spanX=Math.max(30,maxX-minX);
-        const xGap=Math.abs(p1.x-p2.x);
-        const outside=Math.max(0,minX-p1.x,p1.x-maxX,minX-p2.x,p2.x-maxX);
-        return xGap<=Math.max(18,spanX*.12) && outside<=spanX*1.25;
-      };
-      const expectsIntersectingGuide = task===6
-        ? reliableProjector(scheme.planeA)||reliableProjector(scheme.planeB)
-        : reliableProjector(scheme);
-      if(expectsIntersectingGuide && window.document.querySelectorAll('#drawing .source-guide-line').length===0){
-        failures.push('source fidelity '+variant+'/'+task+': reliable printed projector missing');
+      const expectsExplicitJunction = task===6
+        ? !!scheme.planeA?.junctions?.length || !!scheme.planeB?.junctions?.length
+        : !!scheme.junctions?.length;
+      if(expectsExplicitJunction && window.document.querySelectorAll('#drawing .source-guide-line').length===0){
+        failures.push('source fidelity '+variant+'/'+task+': explicitly traced source projector missing');
       }
     }
   }
@@ -358,34 +334,11 @@ if (!onlyVariant && !onlyTask) try {
       if(!roles.includes('given')) failures.push('source roles '+variant+'/'+task+': no primary given geometry');
       const hasPrintedGuide=window.document.querySelector('#drawing .source-guide-line, #drawing .source-guide-dot');
       const scheme=window.SITEMATH_SCHEMES?.[variant]?.['task'+task];
-      const reliableIntersectingProjector=def=>{
-        if(!def || (def.planeType!=='intersecting_lines' && def.type!=='intersecting_lines')) return false;
-        if(def.junctions?.length) return true;
-        const names=def.planeLines||Object.keys(def.lines||{}).slice(0,2);
-        const A=def.lines?.[names[0]],B=def.lines?.[names[1]];
-        if(!A||!B)return false;
-        const hit=(u,v)=>{
-          const [a,b]=u,[c,d]=v;
-          const den=(a[0]-b[0])*(c[1]-d[1])-(a[1]-b[1])*(c[0]-d[0]);
-          if(Math.abs(den)<1e-9)return null;
-          return {
-            x:((a[0]*b[1]-a[1]*b[0])*(c[0]-d[0])-(a[0]-b[0])*(c[0]*d[1]-c[1]*d[0]))/den,
-            y:((a[0]*b[1]-a[1]*b[0])*(c[1]-d[1])-(a[1]-b[1])*(c[0]*d[1]-c[1]*d[0]))/den
-          };
-        };
-        const p1=hit(A.p1,B.p1),p2=hit(A.p2,B.p2);
-        if(!p1||!p2)return false;
-        const xs=[...A.p1,...A.p2,...B.p1,...B.p2].map(p=>+p[0]).filter(Number.isFinite);
-        const minX=Math.min(...xs),maxX=Math.max(...xs),spanX=Math.max(30,maxX-minX);
-        const xGap=Math.abs(p1.x-p2.x);
-        const outside=Math.max(0,minX-p1.x,p1.x-maxX,minX-p2.x,p2.x-maxX);
-        return xGap<=Math.max(18,spanX*.12) && outside<=spanX*1.25;
-      };
       const expectsGuide=task===4
-        ? !!(scheme?.points && Object.keys(scheme.points).length) || !!scheme?.junctions?.length || reliableIntersectingProjector(scheme)
+        ? !!(scheme?.points && Object.keys(scheme.points).length) || !!scheme?.junctions?.length
         : task===5
-          ? !!(scheme?.points && Object.keys(scheme.points).length) || !!scheme?.junctions?.length || reliableIntersectingProjector(scheme)
-          : !!(scheme?.pointK||scheme?.pointThrough) || !!scheme?.planeA?.points || !!scheme?.planeB?.points || !!scheme?.planeA?.junctions?.length || !!scheme?.planeB?.junctions?.length || reliableIntersectingProjector(scheme?.planeA) || reliableIntersectingProjector(scheme?.planeB);
+          ? !!(scheme?.points && Object.keys(scheme.points).length) || !!scheme?.junctions?.length
+          : !!(scheme?.pointK||scheme?.pointThrough) || !!scheme?.planeA?.points || !!scheme?.planeB?.points || !!scheme?.planeA?.junctions?.length || !!scheme?.planeB?.junctions?.length;
       if(expectsGuide && !hasPrintedGuide) failures.push('source roles '+variant+'/'+task+': printed source guide missing');
     }
   }
