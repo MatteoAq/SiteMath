@@ -756,6 +756,55 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('custom smoke: '+e.stack);
 }
 
+// Declared source-plane relations are mathematical constraints, not merely
+// captions. Parallel source lines must remain parallel in both projections;
+ // intersecting source lines must meet on one common projector.
+try {
+  const cross2=(u,v)=>u.x*v.y-u.y*v.x;
+  const dir=seg=>({x:+seg[1][0]-+seg[0][0],y:+seg[1][1]-+seg[0][1]});
+  const hit=(A,B)=>{
+    const [a,b]=A,[c,d]=B;
+    const den=(a[0]-b[0])*(c[1]-d[1])-(a[1]-b[1])*(c[0]-d[0]);
+    if(Math.abs(den)<1e-9)return null;
+    return {
+      x:((a[0]*b[1]-a[1]*b[0])*(c[0]-d[0])-(a[0]-b[0])*(c[0]*d[1]-c[1]*d[0]))/den,
+      y:((a[0]*b[1]-a[1]*b[0])*(c[1]-d[1])-(a[1]-b[1])*(c[0]*d[1]-c[1]*d[0]))/den
+    };
+  };
+  for(const [variant,group] of Object.entries(window.SITEMATH_SCHEMES||{})){
+    for(const task of [4,5,6]){
+      const scheme=group?.['task'+task];
+      if(!scheme)continue;
+      const defs=task===6?[scheme.planeA,scheme.planeB]:[scheme];
+      for(const def of defs){
+        const type=def?.planeType||def?.type;
+        if(!['parallel_lines','intersecting_lines'].includes(type)||!def.lines)continue;
+        const names=def.planeLines||Object.keys(def.lines).slice(0,2);
+        const A=def.lines[names[0]],B=def.lines[names[1]];
+        if(!A||!B)continue;
+        if(type==='parallel_lines'){
+          for(const proj of ['p1','p2']){
+            const da=dir(A[proj]),db=dir(B[proj]);
+            const den=Math.hypot(da.x,da.y)*Math.hypot(db.x,db.y)||1;
+            if(Math.abs(cross2(da,db))/den>1e-6){
+              failures.push('declared parallel '+variant+'/'+task+' '+proj+': defining lines are not parallel');
+            }
+          }
+        }else{
+          const p1=hit(A.p1,B.p1),p2=hit(A.p2,B.p2);
+          if(!p1||!p2){
+            failures.push('declared intersection '+variant+'/'+task+': projected lines do not intersect');
+          }else if(Math.abs(p1.x-p2.x)>.5){
+            failures.push('declared intersection '+variant+'/'+task+': projected intersections are not on one projector');
+          }
+        }
+      }
+    }
+  }
+} catch(e) {
+  failures.push('declared plane geometry regression: '+e.stack);
+}
+
 // Explicit source junctions are authoritative: every defining source line
 // must actually pass through the stored junction on both projections.
 try {
