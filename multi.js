@@ -2608,33 +2608,39 @@
       } else if(op.relation==='front_of_line' && ref3){
         R3={x:ref3.x,y:ref3.y+52,z:ref3.z};
       } else if(op.relation==='above_plane'){
-        const x=through3?through3.x:base.x+45;
-        const y=through3?through3.y:base.y+35;
-        const zp=planeZAt(plane,x,y);
-        if(zp!==null){
-          ref3={x:x,y:y,z:zp};
-          R3={x:x,y:y,z:zp+52};
-        }
+        ref3=lerp3(h3[0],h3[1],.68);
+        R3={x:ref3.x,y:ref3.y,z:ref3.z+52};
       } else if(op.relation==='front_of_plane'){
-        const x=through3?through3.x:base.x+45;
-        const z=through3?through3.z:base.z+25;
-        const yp=planeYAt(plane,x,z);
-        if(yp!==null){
-          ref3={x:x,y:yp,z:z};
-          R3={x:x,y:yp+52,z:z};
-        }
+        ref3=lerp3(f3[0],f3[1],.68);
+        R3={x:ref3.x,y:ref3.y+52,z:ref3.z};
       } else if(op.relation==='below_plane'){
-        const x=through3?through3.x:base.x+45;
-        const y=through3?through3.y:base.y+35;
-        const zp=planeZAt(plane,x,y);
-        if(zp!==null){
-          ref3={x:x,y:y,z:zp};
-          R3={x:x,y:y,z:zp-52};
-        }
+        ref3=lerp3(h3[0],h3[1],.68);
+        R3={x:ref3.x,y:ref3.y,z:ref3.z-52};
       }
 
       if(R3){
         const R=project3(R3),Ref=ref3?project3(ref3):null;
+
+        if(Ref){
+          i=steps.length;
+          let refWhere='на опорном объекте';
+          if(op.relation==='above_named') refWhere='на прямой '+(op.target||'a');
+          else if(['above_line','below_line','behind_line','front_of_line'].includes(op.relation)) refWhere='на построенной прямой ℓ';
+          else if(op.relation==='above_plane'||op.relation==='below_plane') refWhere='на горизонтали h плоскости Σ';
+          else if(op.relation==='front_of_plane') refWhere='на фронтали f плоскости Σ';
+          push({
+            title:'Выбери вспомогательную точку N '+refWhere,
+            action:'Отметь N₁ и N₂ '+refWhere+' и свяжи их тонкой линией проекционной связи.',
+            why:'Итоговую точку нельзя ставить непосредственно из вычисления. Сначала нужна видимая точка N на уже построенном объекте, относительно которой на чертеже откладывается требуемое положение.',
+            measure:['N₁↔N₂ – одна линия связи'],
+            check:'Обе проекции N принадлежат одному и тому же построенному объекту.'
+          },[
+            point(i,Ref.p1,'N₁','construction-dot'),
+            point(i,Ref.p2,'N₂','construction-dot'),
+            line(i,Ref.p2,Ref.p1,'construction-line')
+          ]);
+        }
+
         i=steps.length;
         let relationText='';
         let why='';
@@ -2663,13 +2669,13 @@
           relationText='под плоскостью Σ';
           why='Сначала вертикалью находим точку плоскости с теми же x,y, затем уменьшаем z. Это даёт точку строго под Σ.';
         }
-        let relationAction='Выбери удобное смещение в требуемом направлении. Условие не задаёт расстояние, поэтому его выбирают только для читаемости чертежа.';
+        let relationAction='От вспомогательной точки N отложи требуемое положение итоговой точки на той же линии проекционной связи. Условие не задаёт расстояние, поэтому смещение выбирается только для читаемости чертежа.';
         if(op.relation==='above_line' || op.relation==='below_line'){
-          relationAction=op.resultPoint+'₁ поставь непосредственно на ℓ₁. По этой линии связи '+op.resultPoint+'₂ располагается '+(op.relation==='above_line'?'выше':'ниже')+' соответствующей точки ℓ₂.';
+          relationAction=op.resultPoint+'₁ совмести с N₁ на ℓ₁. По этой линии связи '+op.resultPoint+'₂ располагается '+(op.relation==='above_line'?'выше':'ниже')+' N₂.';
         } else if(op.relation==='behind_line' || op.relation==='front_of_line'){
-          relationAction=op.resultPoint+'₂ поставь непосредственно на ℓ₂. По той же линии связи '+op.resultPoint+'₁ располагается '+(op.relation==='front_of_line'?'перед':'за')+' соответствующей точкой ℓ₁.';
+          relationAction=op.resultPoint+'₂ совмести с N₂ на ℓ₂. По той же линии связи '+op.resultPoint+'₁ располагается '+(op.relation==='front_of_line'?'перед':'за')+' N₁.';
         } else if(op.relation==='above_named'){
-          relationAction=op.resultPoint+'₁ поставь на '+(op.target||'a')+'₁. На той же линии связи '+op.resultPoint+'₂ располагается выше соответствующей точки '+(op.target||'a')+'₂.';
+          relationAction=op.resultPoint+'₁ совмести с N₁ на '+(op.target||'a')+'₁. На той же линии связи '+op.resultPoint+'₂ располагается выше N₂.';
         }
         push({
           title:'Построй '+op.resultPoint+' '+relationText,
@@ -2678,8 +2684,6 @@
           measure:['Величина смещения не задана условием – выбирается для читаемости чертежа.'],
           check:'Проверь совпадающую координату по соответствующей линии связи.'
         },[
-          Ref?point(i,Ref.p1,'','construction-dot'):null,
-          Ref?point(i,Ref.p2,'','construction-dot'):null,
           line(i,R.p1,R.p2,'construction-line'),
           point(i,R.p1,op.resultPoint+'₁','answer-dot'),
           point(i,R.p2,op.resultPoint+'₂','answer-dot')
