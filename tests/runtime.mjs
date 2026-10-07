@@ -346,6 +346,52 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('source frame semantic regression: '+e.stack);
 }
 
+// Variant-specific corrections recovered from the photographed sheets / prior
+// review must not drift back to generic templates.
+if (!onlyVariant && !onlyTask) try {
+  const G=window.SITEMATH_SCHEMES;
+  const check=(ok,msg)=>{if(!ok) failures.push('variant contract: '+msg);};
+
+  let q=G['04'];
+  check(q?.task4?.planeType==='ABC','04/4 must be Σ(ABC)');
+  check(q?.task4?.operation?.type==='line_intersects_horizontal' && q.task4.operation.through==='D','04/4 ℓ must go through D and intersect h');
+  check(q?.task6?.planeA?.type==='ABC','04/6 first plane must be ABC');
+  check(q?.task6?.planeB?.type==='intersecting_lines' && ['h','f'].every(x=>q.task6.planeB.lines?.[x]),'04/6 second plane must be Θ(h∩f)');
+  check(q?.task6?.pointLabel==='M','04/6 through-point must be M');
+
+  q=G['07'];
+  check(q?.task4?.planeType==='parallel_lines','07/4 plane must be a∥b');
+  check(q?.task4?.operation?.type==='line_parallel_plane' && q.task4.operation.through==='D','07/4 ℓ must be through D and parallel to plane');
+  check(q?.task4?.operation?.resultPoint==='A' && q.task4.operation.relation==='above_named' && q.task4.operation.target==='a','07/4 A must be above named line a');
+
+  q=G['08'];
+  check(q?.task4?.planeType==='line_point' && q.task4.planeLine==='a' && q.task4.planePoint==='A','08/4 must be Σ(A;a)');
+  check(q?.task6?.planeB?.type==='horizontal_projecting' && q.task6.planeB.name==='Δ' && q.task6.planeB.projection==='p1','08/6 second plane must be Δ(Δ₁)');
+
+  q=G['12'];
+  check(q?.task4?.planeType==='intersecting_lines' && q.task4.planeLines?.join(',')==='a,b','12/4 must be Σ(a∩b)');
+  check(q?.task4?.operation?.type==='line_intersects_named' && q.task4.operation.through==='D' && q.task4.operation.target==='a','12/4 ℓ must go through D and intersect a');
+  check(q?.task4?.operation?.resultPoint==='A' && q.task4.operation.relation==='behind_line','12/4 result A must be behind ℓ');
+  check(q?.task4?.junctions?.length===1,'12/4 photographed intersection projector missing');
+  check(q?.task5?.planeType==='ABC' && q.task5.givenLine==='l','12/5 must be ℓ × Σ(ABC)');
+  check(q?.task6?.planeA?.type==='parallel_lines' && ['a','b'].every(x=>q.task6.planeA.lines?.[x]),'12/6 first plane must be Σ(a∥b)');
+  check(q?.task6?.planeB?.type==='intersecting_lines' && ['h','f'].every(x=>q.task6.planeB.lines?.[x]),'12/6 second plane must be Θ(h∩f)');
+
+  q=G['13'];
+  check(q?.task4?.planeType==='parallel_lines','13/4 plane must be a∥b');
+  check(q?.task4?.operation?.type==='line_parallel_horizontal' && q.task4.operation.through==='D','13/4 ℓ must be through D and parallel to horizontal');
+  check(q?.task4?.operation?.resultPoint==='A' && q.task4.operation.relation==='above_plane','13/4 A must be above Σ');
+  check(q?.task6?.planeA?.type==='intersecting_lines' && q?.task6?.planeB?.type==='line_point','13/6 must be Σ(a∩b) × Θ(A;h)');
+
+  q=G['19'];
+  check(q?.task4?.planeType==='intersecting_lines','19/4 plane must be a∩b');
+  check(q?.task4?.operation?.type==='line_parallel_plane' && q.task4.operation.through==='B','19/4 ℓ must be through B and parallel to Σ');
+  check(q?.task4?.operation?.resultPoint==='A' && q.task4.operation.relation==='front_of_plane','19/4 A must be in front of Σ');
+  check(q?.task6?.planeA?.type==='intersecting_lines' && q?.task6?.planeB?.type==='ABC','19/6 must be Σ(a∩b) × Ω(ABC)');
+} catch(e) {
+  failures.push('variant-specific contract regression: '+e.stack);
+}
+
 // Every photographed variant must have a self-consistent graphical schema:
  // operations reference real source objects and both task-6 plane definitions
  // contain enough data for the selected representation.
