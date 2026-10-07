@@ -527,6 +527,62 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('source frame semantic regression: '+e.stack);
 }
 
+// Freeze the raw paper traces for every digitized variant. Solver cleanup,
+ // refactors and notation work may change derived geometry, but the copied
+ // source sheet is immutable unless that variant is explicitly retraced from
+ // its exact original photo.
+if (!onlyVariant && !onlyTask) try {
+  const expected={
+    '03':['1f2c1e40',1018],
+    '04':['2f31eb2c',959],
+    '05':['0553b07a',1017],
+    '06':['4066de66',1006],
+    '07':['0d133b97',1015],
+    '08':['136f8adf',878],
+    '09':['8a351d95',1007],
+    '10':['211b3839',978],
+    '11':['329d0144',847],
+    '12':['468c4cd2',1533],
+    '13':['ab2af3bb',1072],
+    '14':['5cd244bc',937],
+    '15':['aed4e407',902],
+    '17':['9048e1aa',1028],
+    '18':['6a2632fc',991],
+    '19':['b65274bf',1025]
+  };
+  const skip=new Set(['sourceVerified','sourceAvailable','sourceId','sourceRecheckRequired','sourceGeometry']);
+  const canon=value=>{
+    if(Array.isArray(value)) return value.map(canon);
+    if(value&&typeof value==='object'){
+      const out={};
+      for(const key of Object.keys(value).filter(k=>!skip.has(k)).sort()) out[key]=canon(value[key]);
+      return out;
+    }
+    return value;
+  };
+  const fnv=str=>{
+    let h=0x811c9dc5;
+    for(let i=0;i<str.length;i++){
+      h^=str.charCodeAt(i);
+      h=Math.imul(h,0x01000193)>>>0;
+    }
+    return (h>>>0).toString(16).padStart(8,'0');
+  };
+  for(const variant of variants){
+    const group=window.SITEMATH_SCHEMES?.[variant];
+    if(!group||!expected[variant]) continue;
+    const raw={};
+    for(const task of [4,5,6]) raw['task'+task]=canon(group['task'+task]?.sourceGeometry||group['task'+task]);
+    const serialized=JSON.stringify(canon(raw));
+    const [hash,len]=expected[variant];
+    if(serialized.length!==len||fnv(serialized)!==hash){
+      failures.push('source fingerprint '+variant+': raw paper trace changed without explicit retrace');
+    }
+  }
+} catch(e) {
+  failures.push('source fingerprint regression: '+e.stack);
+}
+
 // Variant-specific corrections recovered from the photographed sheets / prior
 // review must not drift back to generic templates.
 if (!onlyVariant && !onlyTask) try {
