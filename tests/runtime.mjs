@@ -304,6 +304,43 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('task4 result-point derivation regression: '+e.stack);
 }
 
+// The photographed source frame must use the untouched trace, even though
+// solver geometry is regularized later. Variant 12 has the exact paper source
+// available, so its raw line direction is a stable regression contract.
+try {
+  const raw=window.SITEMATH_SCHEMES?.['12']?.task4?.sourceGeometry;
+  const cleaned=window.SITEMATH_SCHEMES?.['12']?.task4;
+  if(!raw) failures.push('variant12 raw source: preserved sourceGeometry missing');
+  else {
+    const expected=raw.lines?.a?.p2;
+    if(!expected || expected[0][0]!==150 || expected[0][1]!==462 || expected[1][0]!==340 || expected[1][1]!==362){
+      failures.push('variant12 raw source: original a₂ trace changed');
+    }
+    if(JSON.stringify(raw.lines?.a?.p2)===JSON.stringify(cleaned.lines?.a?.p2)){
+      failures.push('variant12 raw source: cleanup no longer distinguishable from source trace');
+    }
+
+    $('variantSelect').value='12';
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='4';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+    const objects=[...window.document.querySelectorAll('#drawing line.object-line')];
+    if(objects.length<4) failures.push('variant12 raw source: source object lines missing');
+    else {
+      const a2=objects[0];
+      const dx=Number(a2.getAttribute('x2'))-Number(a2.getAttribute('x1'));
+      const dy=Number(a2.getAttribute('y2'))-Number(a2.getAttribute('y1'));
+      const rawDx=expected[1][0]-expected[0][0],rawDy=expected[1][1]-expected[0][1];
+      if(Math.abs(dx*rawDy-dy*rawDx)>1e-6){
+        failures.push('variant12 raw source: rendered a₂ direction comes from cleaned geometry');
+      }
+    }
+  }
+} catch(e) {
+  failures.push('variant12 raw-source rendering regression: '+e.stack);
+}
+
 // Variant 12 regression: intersecting defining lines must include their common projector,
 // and original named points must remain visible.
 try {
