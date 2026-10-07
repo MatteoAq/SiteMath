@@ -346,6 +346,56 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('source frame semantic regression: '+e.stack);
 }
 
+// Every photographed variant must have a self-consistent graphical schema:
+ // operations reference real source objects and both task-6 plane definitions
+ // contain enough data for the selected representation.
+if (!onlyVariant && !onlyTask) try {
+  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  for(const variant of photographed){
+    const data=window.SITEMATH_DATA?.variants?.[variant];
+    const group=window.SITEMATH_SCHEMES?.[variant];
+    if(!data||!group){
+      failures.push('schema completeness '+variant+': variant/group missing');
+      continue;
+    }
+    for(const task of [4,5,6]){
+      const scheme=group['task'+task];
+      if(!scheme || !data['task'+task]?.statement){
+        failures.push('schema completeness '+variant+'/'+task+': scheme or statement missing');
+        continue;
+      }
+      if(task===4){
+        const op=scheme.operation||{};
+        if(op.through && !scheme.points?.[op.through]) failures.push('schema completeness '+variant+'/4: through '+op.through+' missing');
+        if(op.target && !scheme.lines?.[op.target]) failures.push('schema completeness '+variant+'/4: target '+op.target+' missing');
+        if(op.resultPoint && scheme.points?.[op.resultPoint]) failures.push('schema completeness '+variant+'/4: result '+op.resultPoint+' incorrectly stored as source');
+      } else if(task===5){
+        const given=scheme.givenLine||'l';
+        if(!scheme.lines?.[given]) failures.push('schema completeness '+variant+'/5: given line '+given+' missing');
+      } else {
+        if(!(scheme.pointK||scheme.pointThrough)) failures.push('schema completeness '+variant+'/6: through point missing');
+        for(const [side,def] of [['A',scheme.planeA],['B',scheme.planeB]]){
+          if(!def){failures.push('schema completeness '+variant+'/6: plane '+side+' missing');continue;}
+          if(def.type==='ABC' && !['A','B','C'].every(x=>def.points?.[x])) failures.push('schema completeness '+variant+'/6: plane '+side+' ABC incomplete');
+          if(def.type==='line_point'){
+            const ln=def.lineName||Object.keys(def.lines||{})[0];
+            const pn=def.pointName||Object.keys(def.points||{})[0];
+            if(!def.lines?.[ln]||!def.points?.[pn]) failures.push('schema completeness '+variant+'/6: plane '+side+' line_point incomplete');
+          }
+          if(['parallel_lines','intersecting_lines'].includes(def.type) && Object.keys(def.lines||{}).length<2){
+            failures.push('schema completeness '+variant+'/6: plane '+side+' '+def.type+' incomplete');
+          }
+          if(['frontal_projecting','horizontal_projecting'].includes(def.type) && !def.line){
+            failures.push('schema completeness '+variant+'/6: plane '+side+' projecting line missing');
+          }
+        }
+      }
+    }
+  }
+} catch(e) {
+  failures.push('schema completeness regression: '+e.stack);
+}
+
 // Source-only frames must not contain inferred projectors. The exact number of
 // given-guide lines is determined by explicitly stored source points/junctions.
 if (!onlyVariant && !onlyTask) try {
