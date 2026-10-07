@@ -388,12 +388,11 @@ try {
         failures.push('variant12 raw source: rendered task 6 a₂ direction comes from cleaned geometry');
       }
     }
-    const kLabels=[...window.document.querySelectorAll('#drawing text')];
-    const k1=kLabels.find(n=>n.textContent==='K₁');
-    const k2=kLabels.find(n=>n.textContent==='K₂');
+    const k1=window.document.querySelector('#drawing circle[data-label="K₁"]');
+    const k2=window.document.querySelector('#drawing circle[data-label="K₂"]');
     if(!k1||!k2) failures.push('variant12 raw source: K₁/K₂ missing');
     else {
-      const x1=Number(k1.getAttribute('x')),x2=Number(k2.getAttribute('x'));
+      const x1=Number(k1.getAttribute('cx')),x2=Number(k2.getAttribute('cx'));
       const expectedX=(raw6.pointK.p1[0]+raw6.pointK.p2[0])/2;
       if(Math.abs(x1-expectedX)>1e-6||Math.abs(x2-expectedX)>1e-6){
         failures.push('variant12 source: K₁/K₂ are not rectified onto one projector');
