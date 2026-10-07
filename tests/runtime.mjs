@@ -306,34 +306,45 @@ if (!onlyVariant && !onlyTask) try {
 
 // The photographed source frame must use the untouched trace, even though
 // solver geometry is regularized later. Variant 12 has the exact paper source
-// available, so its raw line direction is a stable regression contract.
+// available; task 6 deliberately has slightly skewed traced parallel lines, so
+// it distinguishes the paper trace from the cleaned solver copy.
 try {
-  const raw=window.SITEMATH_SCHEMES?.['12']?.task4?.sourceGeometry;
-  const cleaned=window.SITEMATH_SCHEMES?.['12']?.task4;
-  if(!raw) failures.push('variant12 raw source: preserved sourceGeometry missing');
+  const raw4=window.SITEMATH_SCHEMES?.['12']?.task4?.sourceGeometry;
+  const raw6=window.SITEMATH_SCHEMES?.['12']?.task6?.sourceGeometry;
+  const cleaned6=window.SITEMATH_SCHEMES?.['12']?.task6;
+  if(!raw4||!raw6) failures.push('variant12 raw source: preserved sourceGeometry missing');
   else {
-    const expected=raw.lines?.a?.p2;
-    if(!expected || expected[0][0]!==150 || expected[0][1]!==462 || expected[1][0]!==340 || expected[1][1]!==362){
-      failures.push('variant12 raw source: original a₂ trace changed');
+    const a2raw4=raw4.lines?.a?.p2;
+    if(!a2raw4 ||
+       Math.abs(a2raw4[0][0]-162.309)>1e-9 ||
+       Math.abs(a2raw4[0][1]-371.433)>1e-9 ||
+       Math.abs(a2raw4[1][0]-351.309)>1e-9 ||
+       Math.abs(a2raw4[1][1]-257.433)>1e-9){
+      failures.push('variant12 raw source: refined paper trace for task 4 changed');
     }
-    if(JSON.stringify(raw.lines?.a?.p2)===JSON.stringify(cleaned.lines?.a?.p2)){
-      failures.push('variant12 raw source: cleanup no longer distinguishable from source trace');
+
+    const expected=raw6.planeA?.lines?.a?.p2;
+    if(!expected || expected[0][0]!==22 || expected[0][1]!==227 || expected[1][0]!==305 || expected[1][1]!==143){
+      failures.push('variant12 raw source: original task 6 a₂ trace changed');
+    }
+    if(JSON.stringify(expected)===JSON.stringify(cleaned6.planeA?.lines?.a?.p2)){
+      failures.push('variant12 raw source: task 6 cleanup no longer distinguishable from source trace');
     }
 
     $('variantSelect').value='12';
     $('variantSelect').dispatchEvent(new window.Event('change'));
-    $('taskSelect').value='4';
+    $('taskSelect').value='6';
     $('taskSelect').dispatchEvent(new window.Event('change'));
     $('firstBtn').click();
     const objects=[...window.document.querySelectorAll('#drawing line.object-line')];
-    if(objects.length<4) failures.push('variant12 raw source: source object lines missing');
+    if(objects.length<8) failures.push('variant12 raw source: task 6 source object lines missing');
     else {
       const a2=objects[0];
       const dx=Number(a2.getAttribute('x2'))-Number(a2.getAttribute('x1'));
       const dy=Number(a2.getAttribute('y2'))-Number(a2.getAttribute('y1'));
       const rawDx=expected[1][0]-expected[0][0],rawDy=expected[1][1]-expected[0][1];
       if(Math.abs(dx*rawDy-dy*rawDx)>1e-6){
-        failures.push('variant12 raw source: rendered a₂ direction comes from cleaned geometry');
+        failures.push('variant12 raw source: rendered task 6 a₂ direction comes from cleaned geometry');
       }
     }
   }
