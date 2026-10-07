@@ -583,6 +583,30 @@
     return max;
   }
 
+  function sourceIntersectionProjectorGap(scheme){
+    // Intersecting space lines must have coincident x coordinates for their
+    // intersection in the two projections. Large disagreement in the raw
+    // photograph trace makes automatic reconciliation unreliable.
+    const source=scheme?.sourceGeometry||scheme;
+    const defGap=def=>{
+      if((def?.planeType||def?.type)!=='intersecting_lines')return 0;
+      const names=def.planeLines||Object.keys(def.lines||{}).slice(0,2);
+      const A=def.lines?.[names[0]],B=def.lines?.[names[1]];
+      if(!A||!B)return 0;
+      const xHit=(a,b)=>{
+        const [p,q]=a,[r,t]=b;
+        const den=(p[0]-q[0])*(r[1]-t[1])-(p[1]-q[1])*(r[0]-t[0]);
+        if(Math.abs(den)<1e-9)return null;
+        return ((p[0]*q[1]-p[1]*q[0])*(r[0]-t[0])-
+          (p[0]-q[0])*(r[0]*t[1]-r[1]*t[0]))/den;
+      };
+      const x1=xHit(A.p1,B.p1),x2=xHit(A.p2,B.p2);
+      if(x1===null||x2===null)return Infinity;
+      return Number.isFinite(x1)&&Number.isFinite(x2)?Math.abs(x1-x2):Infinity;
+    };
+    return Math.max(defGap(source),defGap(source?.planeA),defGap(source?.planeB));
+  }
+
   function renderInputs(){
     const task=state.task;
     const holder=$('dynamicInputs');
@@ -647,6 +671,9 @@
                 ? '<p><b>Требуется сверка:</b> исходная трассировка и математически выправленная схема отличаются до '+
                   fmt(sourceCorrectionMax(knownScheme),1)+
                   ' условных единиц. Точное совпадение чертежа с листком не подтверждено.</p>'
+                : '')+
+              (sourceIntersectionProjectorGap(knownScheme)>30
+                ? '<p><b>Требуется проверка пересечения:</b> в исходной трассировке проекции пересекающихся прямых не определяют одну общую линию связи. Автоматически выправленный чертёж необходимо сверить с листком.</p>'
                 : '')+
               (roleSummary?'<p><b>На листе дано:</b> '+esc(roleSummary.given||'графическая схема')+'</p>'+
               '<p><b>Строится:</b> '+esc(roleSummary.built)+'</p>':'')
