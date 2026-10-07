@@ -40,9 +40,13 @@ try {
   const hidden=firstRule('hidden-line');
   const gridMinor=firstRule('grid-minor');
   const gridMajor=firstRule('grid-major');
-  if(!/stroke-dasharray\s*:\s*none/i.test(aux)) failures.push('drafting style: auxiliary lines are not solid');
-  if(/stroke-dasharray\s*:\s*(?!none)[^;]+/i.test(construction)) failures.push('drafting style: construction lines are dashed');
-  if(!/stroke-dasharray\s*:\s*[^;]+/i.test(hidden)) failures.push('drafting style: hidden geometry is not dashed');
+  const dashValue=rule=>{
+    const m=rule.match(/stroke-dasharray\s*:\s*([^;]+)/i);
+    return m?m[1].trim().toLowerCase():'';
+  };
+  if(dashValue(aux)!=='none') failures.push('drafting style: auxiliary lines are not solid');
+  if(dashValue(construction)!=='none') failures.push('drafting style: construction lines are dashed');
+  if(!dashValue(hidden) || dashValue(hidden)==='none') failures.push('drafting style: hidden geometry is not dashed');
   if(!/stroke\s*:\s*transparent/i.test(gridMinor)||!/stroke\s*:\s*transparent/i.test(gridMajor)){
     failures.push('drafting style: background grid is visible');
   }
