@@ -2275,30 +2275,36 @@
       const f0=project3(f3[0]),f1=project3(f3[1]);
       const ls0=project3(ls3[0]),ls1=project3(ls3[1]);
 
-      i=steps.length;
-      const hStep=hCut?[
-        ...segmentExtensionEntities(i,refs[0].rec[hCut.proj],hCut.primary[0]),
-        ...segmentExtensionEntities(i,refs[1].rec[hCut.proj],hCut.primary[1]),
-        line(i,hCut.primary[0],hCut.primary[1],'answer-line'),
-        point(i,hCut.primary[0],'1₂','construction-dot'),
-        point(i,hCut.primary[1],'2₂','construction-dot'),
-        textEntity(i,hCut.primary[1],'h₂','svg-label')
-      ]:[
-        line(i,h0.p2,h1.p2,'answer-line'),
-        point(i,h0.p2,'1₂','construction-dot'),point(i,h1.p2,'2₂','construction-dot'),
-        textEntity(i,h1.p2,'h₂','svg-label')
-      ];
-      push({
-        title:'Найди две точки горизонтали h₂',
-        action:'Проведи h₂ параллельно x₁₂ и отметь точки 1₂ и 2₂ там, где она пересекает две опорные линии плоскости.',
-        why:'У горизонтали z постоянно, поэтому h₂ горизонтальна. Точки 1 и 2 возникают на исходных элементах плоскости.',
-        measure:['h₂ ∥ x₁₂','1₂ и 2₂ лежат на опорных линиях плоскости'],
-        check:'Точки привязаны к исходному чертежу, а не поставлены произвольно.'
-      },hStep,{kind:'line',a:hCut?hCut.primary[0]:h0.p2,b:hCut?hCut.primary[1]:h1.p2});
-
-      i=steps.length;
       const hPrimary=hCut?hCut.primary:[h0.p2,h1.p2];
       const hPaired=hCut?hCut.paired:[h0.p1,h1.p1];
+
+      i=steps.length;
+      push({
+        title:'Выбери точку 1₂ на '+refs[0].name+'₂',
+        action:'На уже существующей линии '+refs[0].name+'₂ выбери удобную точку 1₂. Она задаёт, какую именно горизонталь плоскости будем строить.',
+        why:'Горизонталей в одной плоскости бесконечно много. Поэтому первая точка не вычисляется из условия – её разрешено выбрать, но только на линии, принадлежащей плоскости.',
+        measure:['1₂ ∈ '+refs[0].name+'₂'],
+        check:'1₂ должна лежать точно на '+refs[0].name+'₂. Никакой второй точки на этом шаге ещё нет.'
+      },[
+        ...(hCut?segmentExtensionEntities(i,refs[0].rec[hCut.proj],hPrimary[0]):[]),
+        point(i,hPrimary[0],'1₂','construction-dot')
+      ]);
+
+      i=steps.length;
+      push({
+        title:'Через 1₂ проведи h₂ ∥ x₁₂ и получи 2₂',
+        action:'Через 1₂ проведи h₂ параллельно x₁₂ до пересечения с '+refs[1].name+'₂. Полученное пересечение обозначь 2₂.',
+        why:'У горизонтали фронтальная проекция параллельна x₁₂. В отличие от 1₂, точка 2₂ уже не выбирается – она определяется пересечением построенной h₂ с другой линией плоскости.',
+        measure:['h₂ ∥ x₁₂','2₂ = h₂ ∩ '+refs[1].name+'₂'],
+        check:'2₂ появляется только после проведения h₂ и лежит на '+refs[1].name+'₂.'
+      },[
+        ...(hCut?segmentExtensionEntities(i,refs[1].rec[hCut.proj],hPrimary[1]):[]),
+        line(i,hPrimary[0],hPrimary[1],'answer-line'),
+        point(i,hPrimary[1],'2₂','construction-dot'),
+        textEntity(i,hPrimary[1],'h₂','svg-label')
+      ],{kind:'line',a:hPrimary[0],b:hPrimary[1]});
+
+      i=steps.length;
       push({
         title:'Перенеси 1₂ и 2₂ на Π₁ и получи h₁',
         action:'Из 1₂ и 2₂ проведи линии связи до соответствующих первых проекций опорных линий. Получи 1₁ и 2₁ и соедини их.',
@@ -2315,30 +2321,36 @@
         point(i,hPaired[0],'1₁','construction-dot'),point(i,hPaired[1],'2₁','construction-dot')
       ],{kind:'line',a:hPaired[0],b:hPaired[1]});
 
-      i=steps.length;
-      const fStep=fCut?[
-        ...segmentExtensionEntities(i,refs[0].rec[fCut.proj],fCut.primary[0]),
-        ...segmentExtensionEntities(i,refs[1].rec[fCut.proj],fCut.primary[1]),
-        line(i,fCut.primary[0],fCut.primary[1],'answer-line'),
-        point(i,fCut.primary[0],'3₁','construction-dot'),
-        point(i,fCut.primary[1],'4₁','construction-dot'),
-        textEntity(i,fCut.primary[1],'f₁','svg-label')
-      ]:[
-        line(i,f0.p1,f1.p1,'answer-line'),
-        point(i,f0.p1,'3₁','construction-dot'),point(i,f1.p1,'4₁','construction-dot'),
-        textEntity(i,f1.p1,'f₁','svg-label')
-      ];
-      push({
-        title:'Найди две точки фронтали f₁',
-        action:'Проведи f₁ параллельно x₁₂ и отметь 3₁ и 4₁ на пересечениях с двумя опорными линиями плоскости.',
-        why:'У фронтали y постоянно, поэтому f₁ горизонтальна. Обе точки берутся с исходных элементов плоскости.',
-        measure:['f₁ ∥ x₁₂','3₁ и 4₁ лежат на опорных линиях плоскости'],
-        check:'3₁/4₁ получены пересечениями.'
-      },fStep,{kind:'line',a:fCut?fCut.primary[0]:f0.p1,b:fCut?fCut.primary[1]:f1.p1});
-
-      i=steps.length;
       const fPrimary=fCut?fCut.primary:[f0.p1,f1.p1];
       const fPaired=fCut?fCut.paired:[f0.p2,f1.p2];
+
+      i=steps.length;
+      push({
+        title:'Выбери точку 3₁ на '+refs[0].name+'₁',
+        action:'На уже существующей линии '+refs[0].name+'₁ выбери удобную точку 3₁. Она задаёт конкретную фронталь этой плоскости.',
+        why:'Фронталей в плоскости тоже бесконечно много. Первую точку разрешено выбрать только на линии, принадлежащей плоскости.',
+        measure:['3₁ ∈ '+refs[0].name+'₁'],
+        check:'3₁ лежит на '+refs[0].name+'₁. Точка 4₁ пока не построена.'
+      },[
+        ...(fCut?segmentExtensionEntities(i,refs[0].rec[fCut.proj],fPrimary[0]):[]),
+        point(i,fPrimary[0],'3₁','construction-dot')
+      ]);
+
+      i=steps.length;
+      push({
+        title:'Через 3₁ проведи f₁ ∥ x₁₂ и получи 4₁',
+        action:'Через 3₁ проведи f₁ параллельно x₁₂ до пересечения с '+refs[1].name+'₁. Полученное пересечение обозначь 4₁.',
+        why:'У фронтали горизонтальная проекция параллельна x₁₂. Точка 4₁ однозначно получается пересечением, а не выбирается произвольно.',
+        measure:['f₁ ∥ x₁₂','4₁ = f₁ ∩ '+refs[1].name+'₁'],
+        check:'4₁ появляется только после проведения f₁ и лежит на '+refs[1].name+'₁.'
+      },[
+        ...(fCut?segmentExtensionEntities(i,refs[1].rec[fCut.proj],fPrimary[1]):[]),
+        line(i,fPrimary[0],fPrimary[1],'answer-line'),
+        point(i,fPrimary[1],'4₁','construction-dot'),
+        textEntity(i,fPrimary[1],'f₁','svg-label')
+      ],{kind:'line',a:fPrimary[0],b:fPrimary[1]});
+
+      i=steps.length;
       push({
         title:'Перенеси 3₁ и 4₁ на Π₂ и получи f₂',
         action:'Из 3₁ и 4₁ проведи линии связи до соответствующих вторых проекций опорных линий. Соедини 3₂ и 4₂.',
