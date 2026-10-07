@@ -1994,20 +1994,72 @@
 
   function diagramAxisFromScheme(scheme){
     const y1=[],y2=[],xs=[];
-    Object.values(scheme.lines||{}).forEach(L=>{
-      (L.p1||[]).forEach(p=>{xs.push(+p[0]);y1.push(+p[1]);});
-      (L.p2||[]).forEach(p=>{xs.push(+p[0]);y2.push(+p[1]);});
-    });
-    Object.values(scheme.points||{}).forEach(P=>{
-      if(P.p1){xs.push(+P.p1[0]);y1.push(+P.p1[1]);}
-      if(P.p2){xs.push(+P.p2[0]);y2.push(+P.p2[1]);}
-    });
+    const addPoint=(p,proj)=>{
+      if(!p||p.length<2)return;
+      xs.push(+p[0]);
+      (proj==='p1'?y1:y2).push(+p[1]);
+    };
+    const addDef=def=>{
+      if(!def)return;
+      Object.values(def.lines||{}).forEach(L=>{
+        (L.p1||[]).forEach(p=>addPoint(p,'p1'));
+        (L.p2||[]).forEach(p=>addPoint(p,'p2'));
+      });
+      Object.values(def.points||{}).forEach(P=>{
+        if(P.p1)addPoint(P.p1,'p1');
+        if(P.p2)addPoint(P.p2,'p2');
+      });
+      if(def.line){
+        const proj=def.type==='frontal_projecting'?'p2':'p1';
+        (def.line||[]).forEach(p=>addPoint(p,proj));
+      }
+    };
+    addDef(scheme);
+    addDef(scheme?.planeA);
+    addDef(scheme?.planeB);
+    const through=scheme?.pointK||scheme?.pointThrough;
+    if(through){
+      if(through.p1)addPoint(through.p1,'p1');
+      if(through.p2)addPoint(through.p2,'p2');
+    }
     if(!xs.length || !y1.length || !y2.length) return null;
     const y=(median(y1)+median(y2))/2;
+    const minX=Math.min(...xs),maxX=Math.max(...xs);
+    const allY=y1.concat(y2);
+    const originX=minX-18;
     return {
-      a:{x:Math.min(...xs)-18,y:y},
-      b:{x:Math.max(...xs)+18,y:y}
+      a:{x:minX-30,y:y},
+      b:{x:maxX+18,y:y},
+      O:{x:originX,y:y},
+      top:Math.min(...allY)-18,
+      bottom:Math.max(...allY)+18
     };
+  }
+
+  function diagramReferenceAxisEntities(step,frame){
+    if(!frame)return [];
+    const O=frame.O||{x:frame.a.x+12,y:frame.a.y};
+    return [
+      line(step,frame.a,frame.b,'axis'),
+      line(step,{x:O.x,y:frame.top},{x:O.x,y:frame.bottom},'axis'),
+      textEntity(step,{x:frame.a.x+2,y:frame.a.y-3},'x₁₂','svg-label'),
+      textEntity(step,{x:O.x+3,y:frame.top+4},'z','svg-label'),
+      textEntity(step,{x:O.x+3,y:frame.bottom-2},'y','svg-label')
+    ];
+  }
+
+  function diagramReferenceAxisStep(push,steps,scheme){
+    const frame=diagramAxisFromScheme(scheme);
+    if(!frame)return null;
+    const i=steps.length;
+    push({
+      title:'Нанеси рабочие оси x₁₂, y и z',
+      action:'После переноса исходной схемы проведи x₁₂ между Π₂ и Π₁. Слева добавь вертикальный ориентир: z вверх, y вниз. Это вспомогательная система направлений, а не часть напечатанного условия.',
+      why:'По x₁₂ контролируются горизонтали и фронтали, а направления y и z показывают, куда относятся горизонтальная и фронтальная проекции. Следующие линии связи строятся перпендикулярно x₁₂.',
+      measure:['x₁₂ – горизонтально','z – вверх от x₁₂','y – вниз от x₁₂'],
+      check:'Оси не заменяют исходные линии и появляются только после чистого исходного кадра.'
+    },diagramReferenceAxisEntities(i,frame),{kind:'line',a:frame.a,b:frame.b});
+    return frame;
   }
 
   function rightAngleMarkEntities(step,P,uRaw,vRaw,size){
@@ -2157,20 +2209,7 @@
 
     const base=plane.P;
 
-    const xAxis=diagramAxisFromScheme(scheme);
-    if(xAxis){
-      i=steps.length;
-      push({
-        title:'Нанеси рабочую ось x₁₂',
-        action:'Проведи горизонтальную ось x₁₂ между областями первых и вторых проекций. Это рабочая ось эпюра, а не исходная прямая из условия.',
-        why:'Преподаватель строит h₂ и f₁ относительно x₁₂. Поэтому ось должна быть видна до построения главных линий и не должна смешиваться с заданными линиями плоскости.',
-        measure:['x₁₂ – горизонтальная рабочая ось'],
-        check:'Исходные линии варианта остаются отдельными от x₁₂.'
-      },[
-        line(i,xAxis.a,xAxis.b,'axis'),
-        textEntity(i,{x:xAxis.a.x+3,y:xAxis.a.y-3},'x₁₂','svg-label')
-      ],{kind:'line',a:xAxis.a,b:xAxis.b});
-    }
+    const xAxis=diagramReferenceAxisStep(push,steps,scheme);
 
     let h3=null,f3=null,dh=null,df=null;
     const teacherBuild=scheme.planeType==='line_point'
@@ -2769,6 +2808,8 @@
       check:'ℓ₁/ℓ₂ и плоскость совпадают по форме с исходным вариантом.'
     },starter);
 
+    diagramReferenceAxisStep(push,steps,scheme);
+
     i=steps.length;
     push({
       title:'Заключи ℓ во вспомогательную проецирующую плоскость Ω',
@@ -3184,6 +3225,8 @@
       point(i,K1,throughLabel+'₁')
     ]);
 
+    diagramReferenceAxisStep(push,steps,scheme);
+
     pair.forEach((c,index)=>{
       i=steps.length;
       const name=index===0?'P':'Q';
@@ -3333,6 +3376,8 @@
       measure:['Плоскость Σ – первый набор','Плоскость Θ – второй набор',throughLabel+'₁/'+throughLabel+'₂ – одна линия связи'],
       check:'Стартовый рисунок совпадает с печатным условием.'
     },starter);
+
+    diagramReferenceAxisStep(push,steps,scheme);
 
     const linePA=planeLineAtPoint(A,P,levelType), linePB=planeLineAtPoint(B,P,levelType);
     const lineQA=planeLineAtPoint(A,Q,levelType), lineQB=planeLineAtPoint(B,Q,levelType);
