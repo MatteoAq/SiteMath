@@ -1932,6 +1932,25 @@
     const p2=lineIntersection2(toSeg(A.p2)[0],toSeg(A.p2)[1],toSeg(B.p2)[0],toSeg(B.p2)[1]);
     const p1=lineIntersection2(toSeg(A.p1)[0],toSeg(A.p1)[1],toSeg(B.p1)[0],toSeg(B.p1)[1]);
     if(!p1 || !p2) return;
+
+    // A real common point has p1/p2 on one projector. Old hand traces sometimes
+    // contain slightly noisy endpoints; averaging a small x error is harmless.
+    // A large mismatch means the trace is not reliable enough to reconstruct
+    // the printed projector. Do not invent a remote intersection: it can move
+    // the entire source drawing thousands of units away from the viewport.
+    const xs=[
+      ...A.p1.map(p=>+p[0]),...A.p2.map(p=>+p[0]),
+      ...B.p1.map(p=>+p[0]),...B.p2.map(p=>+p[0])
+    ].filter(Number.isFinite);
+    const minX=Math.min(...xs),maxX=Math.max(...xs);
+    const spanX=Math.max(30,maxX-minX);
+    const xGap=Math.abs(p1.x-p2.x);
+    const outside=Math.max(
+      0,minX-p1.x,p1.x-maxX,
+      minX-p2.x,p2.x-maxX
+    );
+    if(xGap>Math.max(18,spanX*.12) || outside>spanX*1.25) return;
+
     const x=(p1.x+p2.x)/2;
     const q2={x:x,y:p2.y}, q1={x:x,y:p1.y};
     out.push(line(step,q2,q1,'source-guide-line'));
