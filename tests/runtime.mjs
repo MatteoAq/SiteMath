@@ -925,6 +925,49 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('global graphical construction regression: '+e.stack);
 }
 
+// Task 6 must keep each variant's actual plane symbols. The second plane can
+// be Β, Ω, Δ or Γ; silently relabeling everything as Θ changes the source.
+if (!onlyVariant && !onlyTask) try {
+  for(const variant of variants){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='6';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('lastBtn').click();
+
+    const scheme=window.SITEMATH_SCHEMES?.[variant]?.task6;
+    const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+    for(const [side,def,fallback] of [['A',scheme?.planeA,'Σ'],['B',scheme?.planeB,'Θ']]){
+      const symbol=def?.name||fallback;
+      const hasSectionLabel=labels.some(x=>
+        x==='h'+symbol+'₁'||x==='h'+symbol+'₂'||
+        x==='f'+symbol+'₁'||x==='f'+symbol+'₂'
+      );
+      if(!hasSectionLabel){
+        failures.push('task6 plane symbol '+variant+'/'+side+': section label for '+symbol+' missing');
+      }
+    }
+  }
+
+  const expectedBriefs={
+    '11':['Σ(a∥b)','Γ(Γ₂)'],
+    '14':['Σ(a∩b)','Ω(Ω₁)'],
+    '15':['Σ(Σ₂)','Θ(ABC)']
+  };
+  for(const [variant,parts] of Object.entries(expectedBriefs)){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='6';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    const text=($('problemGiven')?.textContent||'')+' '+($('problemFind')?.textContent||'');
+    for(const part of parts){
+      if(!text.includes(part)) failures.push('task6 plane notation '+variant+': missing '+part);
+    }
+  }
+} catch(e) {
+  failures.push('task6 plane-symbol regression: '+e.stack);
+}
+
 // Auxiliary construction is part of the answer, not disposable UI decoration.
  // Step 1 must stay source-only; by the final step each graphical task must
  // retain the projectors/auxiliary sections that explain how the result was built.
