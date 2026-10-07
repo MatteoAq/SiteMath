@@ -569,6 +569,45 @@ try {
   failures.push('task6 line-point helper regression: '+e.stack);
 }
 
+// Task 5 visibility must be demonstrated by actual competing points, not
+// assigned analytically with no construction on the sheet.
+if (!onlyVariant && !onlyTask) try {
+  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  for(const variant of photographed){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='5';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('lastBtn').click();
+    const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+    for(const x of ['3₁≡4₁','3₂','4₂','5₂≡6₂','5₁','6₁']){
+      if(!labels.includes(x)) failures.push('task5 competing points '+variant+': missing '+x);
+    }
+  }
+} catch(e) {
+  failures.push('task5 competing-points regression: '+e.stack);
+}
+
+// Task 6: the arbitrary auxiliary level must be introduced before the common
+// point derived from it.
+try {
+  $('variantSelect').value='04';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='6';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('firstBtn').click(); // source
+  $('nextBtn').click();  // axes
+  $('nextBtn').click();  // alpha level
+  let labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+  if(!labels.includes('α₂')&&!labels.includes('α₁')) failures.push('task6 pedagogy 04: auxiliary alpha level missing');
+  if(labels.includes('P₁')||labels.includes('P₂')) failures.push('task6 pedagogy 04: P appears before alpha sections are built');
+  $('nextBtn').click();  // alpha sections -> P
+  labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+  if(!labels.includes('P₁')||!labels.includes('P₂')) failures.push('task6 pedagogy 04: P missing after alpha sections');
+} catch(e) {
+  failures.push('task6 explicit auxiliary-level regression: '+e.stack);
+}
+
 // Every photographed task 4 must show the real construction path. For a plane
 // defined by a point and a line, keep the teacher's 1-2-3-4 sequence instead of
 // inventing a second source line. Task 6 must keep both auxiliary projections.
