@@ -256,6 +256,54 @@ try {
   failures.push('task4 constructed result points: '+e.stack);
 }
 
+// Every task-4 result point is new construction data. It must be preceded by
+// an explicit helper point N on an already existing line/plane; the answer
+// point must not exist while N is only being chosen.
+if (!onlyVariant && !onlyTask) try {
+  const present=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  for(const variant of present){
+    const scheme=window.SITEMATH_SCHEMES?.[variant]?.task4;
+    const resultName=scheme?.operation?.resultPoint;
+    if(!resultName) continue;
+
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='4';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+
+    const total=Number($('stepTotal').textContent)||1;
+    let sawN=false,sawResultAfterN=false;
+    for(let n=0;n<total;n++){
+      const title=$('stepTitle').textContent.trim();
+      const labels=[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent);
+      const hasResult=labels.includes(resultName+'₁')||labels.includes(resultName+'₂');
+
+      if(title.startsWith('Выбери вспомогательную точку N')){
+        sawN=true;
+        if(!labels.includes('N₁')||!labels.includes('N₂')){
+          failures.push('task4 result derivation '+variant+': helper N projections missing');
+        }
+        if(hasResult){
+          failures.push('task4 result derivation '+variant+': '+resultName+' appears while N is only being chosen');
+        }
+      } else if(hasResult){
+        if(!sawN){
+          failures.push('task4 result derivation '+variant+': '+resultName+' appears before helper N');
+        } else {
+          sawResultAfterN=true;
+        }
+      }
+
+      if(n<total-1) $('nextBtn').click();
+    }
+    if(!sawN) failures.push('task4 result derivation '+variant+': helper N step missing');
+    if(!sawResultAfterN) failures.push('task4 result derivation '+variant+': final '+resultName+' missing after N');
+  }
+} catch(e) {
+  failures.push('task4 result-point derivation regression: '+e.stack);
+}
+
 // Variant 12 regression: intersecting defining lines must include their common projector,
 // and original named points must remain visible.
 try {
