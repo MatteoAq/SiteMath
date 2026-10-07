@@ -3343,6 +3343,8 @@
       if(!seg||!seg[0]||!seg[1])return;
       if(dist2(seg[0],seg[1])>.5){
         out.push(line(step,seg[0],seg[1],'aux-line'));
+        out.push(point(step,seg[0],'','construction-dot'));
+        out.push(point(step,seg[1],'','construction-dot'));
         out.push(textEntity(step,seg[1],label+idx,'svg-note'));
       } else {
         out.push(point(step,seg[0],label+idx,'construction-dot'));
