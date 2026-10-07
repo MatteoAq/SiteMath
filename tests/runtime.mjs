@@ -526,6 +526,45 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('diagram reference axes: '+e.stack);
 }
 
+// Construction pedagogy: arbitrary points must be introduced explicitly,
+ // never appear together with a later derived intersection.
+try {
+  $('variantSelect').value='04';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='4';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('firstBtn').click();        // source
+  $('nextBtn').click();         // axes
+  $('nextBtn').click();         // choose 1_2
+  let labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+  if(!labels.includes('1₂')) failures.push('task4 pedagogy 04: chosen 1₂ missing');
+  if(labels.includes('2₂')) failures.push('task4 pedagogy 04: derived 2₂ appears before h₂ is drawn');
+  if(labels.includes('h₂')) failures.push('task4 pedagogy 04: h₂ appears in point-choice step');
+  $('nextBtn').click();         // draw h2, derive 2_2
+  labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+  if(!labels.includes('2₂')||!labels.includes('h₂')) failures.push('task4 pedagogy 04: h₂/2₂ missing after construction');
+} catch(e) {
+  failures.push('task4 explicit point construction: '+e.stack);
+}
+
+// A task-6 plane given by point+line needs an explicit second in-plane helper
+// before section points are allowed to use it.
+try {
+  $('variantSelect').value='13';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='6';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('firstBtn').click();        // source
+  $('nextBtn').click();         // axes
+  $('nextBtn').click();         // AT helper
+  const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+  for(const x of ['T₁','T₂','AT₁','AT₂']){
+    if(!labels.includes(x)) failures.push('task6 line-point helper 13: missing '+x);
+  }
+} catch(e) {
+  failures.push('task6 line-point helper regression: '+e.stack);
+}
+
 // Every photographed task 4 must show the real construction path. For a plane
 // defined by a point and a line, keep the teacher's 1-2-3-4 sequence instead of
 // inventing a second source line. Task 6 must keep both auxiliary projections.
