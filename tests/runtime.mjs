@@ -551,6 +551,35 @@ try {
   failures.push('task4 explicit point construction: '+e.stack);
 }
 
+// Generic task-4 greatest-slope construction must not fall back to an
+// analytically drawn line whose seed point appears in the same step.
+if (!onlyVariant && !onlyTask) try {
+  const present=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  for(const variant of present){
+    const scheme=window.SITEMATH_SCHEMES?.[variant]?.task4;
+    if(!scheme || scheme.planeType==='line_point') continue;
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='4';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+    const titles=[];
+    const total=Number($('stepTotal').textContent)||1;
+    for(let n=0;n<total;n++){
+      titles.push($('stepTitle').textContent.trim());
+      if(n<total-1) $('nextBtn').click();
+    }
+    if(!titles.includes('Выбери точку S₁ на h₁')){
+      failures.push('task4 pedagogy '+variant+': greatest-slope seed S₁ is not introduced in a separate step');
+    }
+    if(titles.includes('Построй линию наибольшего ската ЛС₁')){
+      failures.push('task4 pedagogy '+variant+': analytic greatest-slope fallback is still exposed');
+    }
+  }
+} catch(e) {
+  failures.push('task4 greatest-slope explicit-seed regression: '+e.stack);
+}
+
 // A task-6 plane given by point+line needs an explicit second in-plane helper
 // before section points are allowed to use it.
 try {
