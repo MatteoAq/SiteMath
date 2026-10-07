@@ -3494,6 +3494,8 @@
       const kind=levelType==='horizontal'?'горизонтальную':'фронтальную';
       const degenerateProj=levelType==='horizontal'?'₂':'₁';
       const symbol=levelType==='horizontal'?'h':'f';
+      const planeASymbol=scheme.planeA?.name||'Σ';
+      const planeBSymbol=scheme.planeB?.name||'Θ';
       const guideA={x:bounds.minX-18,y:c.level};
       const guideB={x:bounds.maxX+18,y:c.level};
 
@@ -3517,8 +3519,8 @@
         measure:[name+' ∈ первая плоскость',name+' ∈ вторая плоскость'],
         check:name+'₁ и '+name+'₂ появляются только после построения обеих линий сечения и находятся на одной линии связи.'
       },[
-        ...sectionDrawEntities(i,c.a,symbol+'Σ',index===0?['1','2']:['5','6']),
-        ...sectionDrawEntities(i,c.b,symbol+'Θ',index===0?['3','4']:['7','8']),
+        ...sectionDrawEntities(i,c.a,symbol+planeASymbol,index===0?['1','2']:['5','6']),
+        ...sectionDrawEntities(i,c.b,symbol+planeBSymbol,index===0?['3','4']:['7','8']),
         line(i,c.P.p2,c.P.p1,'construction-line'),
         point(i,c.P.p2,name+'₂','construction-dot'),
         point(i,c.P.p1,name+'₁','construction-dot')
