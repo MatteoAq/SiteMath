@@ -600,6 +600,41 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('custom smoke: '+e.stack);
 }
 
+// Explicit source junctions are authoritative: every defining source line
+// must actually pass through the stored junction on both projections.
+try {
+  const pointLineDistance=(p,seg)=>{
+    const [a,b]=seg;
+    const dx=b[0]-a[0],dy=b[1]-a[1];
+    const den=Math.hypot(dx,dy)||1;
+    return Math.abs(dy*p[0]-dx*p[1]+b[0]*a[1]-b[1]*a[0])/den;
+  };
+  for(const [variant,group] of Object.entries(window.SITEMATH_SCHEMES||{})){
+    for(const task of [4,5,6]){
+      const scheme=group?.['task'+task];
+      if(!scheme) continue;
+      const defs=task===6?[scheme.planeA,scheme.planeB]:[scheme];
+      for(const def of defs){
+        if(!def?.junctions?.length || !def.lines) continue;
+        const names=def.planeLines||Object.keys(def.lines).slice(0,2);
+        const lines=names.map(name=>def.lines[name]).filter(Boolean);
+        for(const j of def.junctions){
+          for(const L of lines){
+            if(j.p1 && pointLineDistance(j.p1,L.p1)>1.1){
+              failures.push('source junction '+variant+'/'+task+': p1 does not lie on defining line');
+            }
+            if(j.p2 && pointLineDistance(j.p2,L.p2)>1.1){
+              failures.push('source junction '+variant+'/'+task+': p2 does not lie on defining line');
+            }
+          }
+        }
+      }
+    }
+  }
+} catch(e) {
+  failures.push('explicit source junction geometry: '+e.stack);
+}
+
 // Exact photographed-source invariants for variant 12 after re-tracing.
 try {
   const s12=window.SITEMATH_SCHEMES?.['12'];
