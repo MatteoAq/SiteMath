@@ -906,19 +906,42 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('task4 greatest-slope explicit-seed regression: '+e.stack);
 }
 
-// A task-6 plane given by point+line needs an explicit second in-plane helper
-// before section points are allowed to use it.
+// A task-6 plane given by point+line must build its second in-plane line
+// without assigning both projections of T at once.
 try {
   $('variantSelect').value='13';
   $('variantSelect').dispatchEvent(new window.Event('change'));
   $('taskSelect').value='6';
   $('taskSelect').dispatchEvent(new window.Event('change'));
-  $('firstBtn').click();        // source
-  $('nextBtn').click();         // axes
-  $('nextBtn').click();         // AT helper
-  const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
-  for(const x of ['T₁','T₂','AT₁','AT₂']){
-    if(!labels.includes(x)) failures.push('task6 line-point helper 13: missing '+x);
+  $('firstBtn').click();
+
+  const total=Number($('stepTotal').textContent)||1;
+  const frames=[];
+  for(let n=0;n<total;n++){
+    frames.push({
+      title:$('stepTitle').textContent.trim(),
+      labels:[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent)
+    });
+    if(n<total-1) $('nextBtn').click();
+  }
+  const choose=frames.findIndex(f=>f.title.startsWith('Выбери T₁'));
+  const project=frames.findIndex(f=>f.title.startsWith('По линии связи получи T₂'));
+  const join=frames.findIndex(f=>f.title.startsWith('Соедини A с T'));
+  if(choose<0||project<0||join<0||!(choose<project&&project<join)){
+    failures.push('task6 line-point helper 13: T₁ -> T₂ -> AT order missing');
+  } else {
+    if(!frames[choose].labels.includes('T₁')||frames[choose].labels.includes('T₂')){
+      failures.push('task6 line-point helper 13: T₂ appears while only T₁ is chosen');
+    }
+    if(!frames[project].labels.includes('T₂')){
+      failures.push('task6 line-point helper 13: projected T₂ missing');
+    }
+    for(const x of ['AT₁','AT₂']){
+      if(!frames[join].labels.includes(x)) failures.push('task6 line-point helper 13: missing '+x);
+    }
+    if(frames.slice(0,join).some(f=>f.labels.includes('AT₁')||f.labels.includes('AT₂'))){
+      failures.push('task6 line-point helper 13: AT appears before T₁/T₂ are complete');
+    }
   }
 } catch(e) {
   failures.push('task6 line-point helper regression: '+e.stack);
