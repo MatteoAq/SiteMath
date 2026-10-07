@@ -143,7 +143,7 @@ button { border: 0; border-radius: 11px; padding: 10px 12px; font-weight: 750; }
 .grid-minor { stroke: transparent; stroke-width: .18; }
 .grid-major { stroke: transparent; stroke-width: .28; }
 .axis { stroke: #37332e; stroke-width: .55; fill: none; }
-.construction-line { stroke: var(--construction); stroke-width: .32; fill: none; stroke-dasharray: 2 1.6; }
+.construction-line { stroke: var(--construction); stroke-width: .32; fill: none; stroke-dasharray: none; }
 .source-guide-line { stroke:#77716a; stroke-width:.28; fill:none; }
 .object-line { stroke: #26231f; stroke-width: .72; fill: none; }
 .answer-line { stroke: var(--blue); stroke-width: .72; fill: none; }
