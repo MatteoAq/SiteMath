@@ -1037,6 +1037,43 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('task5 all-variant construction sequence regression: '+e.stack);
 }
 
+// Once task 5 visibility is established, the unbroken given ℓ must not
+// remain behind the dashed occluded segments. Preserve ℓ until that moment.
+if (!onlyVariant && !onlyTask) try {
+  for (const variant of variants) {
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='5';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+    const source=()=>[...window.document.querySelectorAll('#drawing line[data-source-given-line="1"]')];
+    if(source().length!==2){
+      failures.push('task5 occlusion '+variant+': original ℓ should have two source projections');
+    }
+    $('lastBtn').click();
+    if(source().length!==0){
+      failures.push('task5 occlusion '+variant+': original solid ℓ survives behind final visibility');
+    }
+    const hidden=[...window.document.querySelectorAll('#drawing line.hidden-line')];
+    if(hidden.length<1){
+      failures.push('task5 occlusion '+variant+': no hidden segment in final visibility result');
+    }
+    if(hidden.some(line=>line.style.strokeDasharray)){
+      failures.push('task5 occlusion '+variant+': line animation replaced dashed stroke pattern');
+    }
+    const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+    if(!labels.includes('ℓ₁')||!labels.includes('ℓ₂')){
+      failures.push('task5 occlusion '+variant+': given-line labels disappeared');
+    }
+    $('prevBtn').click();
+    if(source().length!==2){
+      failures.push('task5 occlusion '+variant+': stepping back did not restore the given line');
+    }
+  }
+} catch (e) {
+  failures.push('task5 occlusion regression: '+e.stack);
+}
+
 // Task 5 visibility must be demonstrated by actual competing points, not
 // assigned analytically with no construction on the sheet.
 if (!onlyVariant && !onlyTask) try {
