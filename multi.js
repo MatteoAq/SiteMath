@@ -3095,27 +3095,44 @@
     if(!throughRec)return null;
     const bounds=task6SourceBounds(scheme);
     const hasFrontal=[scheme.planeA,scheme.planeB].some(d=>d?.type==='frontal_projecting');
-    const levelType=hasFrontal?'frontal':'horizontal';
-    const lo=levelType==='horizontal'?bounds.minY2:bounds.minY1;
-    const hi=levelType==='horizontal'?bounds.maxY2:bounds.maxY1;
-    const span=Math.max(30,hi-lo);
-    const candidates=[];
-    for(const frac of [.18,.26,.34,.42,.50,.58,.66,.74,.82]){
-      const level=lo+span*frac;
-      const c=task6SectionCandidate(scheme,levelType,level,bounds);
-      if(c)candidates.push(c);
+    const preferredLevelType=hasFrontal?'frontal':'horizontal';
+
+    // A plane can be defined by a source line that is itself a horizontal or
+    // frontal. In that case one family of level sections is parallel to the
+    // defining line and cannot be recovered by two visible intersections.
+    // Try the teacher-preferred family first, then the conjugate family before
+    // falling back to the analytic solver.
+    const choosePair=(levelType)=>{
+      const lo=levelType==='horizontal'?bounds.minY2:bounds.minY1;
+      const hi=levelType==='horizontal'?bounds.maxY2:bounds.maxY1;
+      const span=Math.max(30,hi-lo);
+      const candidates=[];
+      for(const frac of [.18,.26,.34,.42,.50,.58,.66,.74,.82]){
+        const level=lo+span*frac;
+        const c=task6SectionCandidate(scheme,levelType,level,bounds);
+        if(c)candidates.push(c);
+      }
+      candidates.sort((a,b)=>a.score-b.score);
+      if(!candidates.length)return null;
+      const first=candidates[0];
+      let second=candidates.find(c=>
+        Math.abs(c.level-first.level)>span*.22 &&
+        dist2(c.P.p1,first.P.p1)>12 &&
+        dist2(c.P.p2,first.P.p2)>12
+      );
+      if(!second)second=candidates.find(c=>Math.abs(c.level-first.level)>span*.15);
+      if(!second)return null;
+      return {levelType,pair:[first,second].sort((a,b)=>a.level-b.level)};
+    };
+
+    let picked=choosePair(preferredLevelType);
+    if(!picked){
+      const alternate=preferredLevelType==='horizontal'?'frontal':'horizontal';
+      picked=choosePair(alternate);
     }
-    candidates.sort((a,b)=>a.score-b.score);
-    if(!candidates.length)return null;
-    const first=candidates[0];
-    let second=candidates.find(c=>
-      Math.abs(c.level-first.level)>span*.22 &&
-      dist2(c.P.p1,first.P.p1)>12 &&
-      dist2(c.P.p2,first.P.p2)>12
-    );
-    if(!second)second=candidates.find(c=>Math.abs(c.level-first.level)>span*.15);
-    if(!second)return null;
-    const pair=[first,second].sort((a,b)=>a.level-b.level);
+    if(!picked)return null;
+    const levelType=picked.levelType;
+    const pair=picked.pair;
     const P=pair[0].P,Q=pair[1].P;
     const r1=vec2(P.p1,Q.p1),r2=vec2(P.p2,Q.p2);
     if(norm2(r1)<EPS||norm2(r2)<EPS)return null;
