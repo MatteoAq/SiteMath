@@ -503,7 +503,7 @@
   }
 
   function sourcePairNames(names){
-    return names.map(n=>n+'₁/'+n+'₂').join(', ');
+    return names.map(n=>sourceLineDisplayName(n)+'₁/'+sourceLineDisplayName(n)+'₂').join(', ');
   }
 
   function planeDefSourceLabels(def){
@@ -1972,6 +1972,10 @@
     out.push(point(step,q1,'','source-guide-dot'));
   }
 
+  function sourceLineDisplayName(name){
+    return name==='l'?'ℓ':name;
+  }
+
   function sourceLineLabelPoint(owner,name,proj,L){
     const custom=owner?.lineLabels?.[name]?.[proj];
     if(custom && custom.length>=2) return {x:+custom[0],y:+custom[1]};
@@ -1986,9 +1990,9 @@
     const out=[];
     Object.entries(src.lines||{}).forEach(([name,L])=>{
       out.push(line(step,{x:L.p2[0][0],y:L.p2[0][1]},{x:L.p2[1][0],y:L.p2[1][1]},'object-line'));
-      out.push(textEntity(step,sourceLineLabelPoint(src,name,'p2',L),name+'₂','svg-label'));
+      out.push(textEntity(step,sourceLineLabelPoint(src,name,'p2',L),sourceLineDisplayName(name)+'₂','svg-label'));
       out.push(line(step,{x:L.p1[0][0],y:L.p1[0][1]},{x:L.p1[1][0],y:L.p1[1][1]},'object-line'));
-      out.push(textEntity(step,sourceLineLabelPoint(src,name,'p1',L),name+'₁','svg-label'));
+      out.push(textEntity(step,sourceLineLabelPoint(src,name,'p1',L),sourceLineDisplayName(name)+'₁','svg-label'));
     });
     Object.entries(src.points||{}).forEach(([name,P])=>{
       const p2={x:+P.p2[0],y:+P.p2[1]},p1={x:+P.p1[0],y:+P.p1[1]};
@@ -3169,9 +3173,9 @@
     } else if(def.type==='line_point'){
       Object.entries(def.lines||{}).forEach(([name,L])=>{
         out.push(line(step,{x:L.p2[0][0],y:L.p2[0][1]},{x:L.p2[1][0],y:L.p2[1][1]},'object-line'));
-        out.push(textEntity(step,sourceLineLabelPoint(def,name,'p2',L),name+'₂','svg-label'));
+        out.push(textEntity(step,sourceLineLabelPoint(def,name,'p2',L),sourceLineDisplayName(name)+'₂','svg-label'));
         out.push(line(step,{x:L.p1[0][0],y:L.p1[0][1]},{x:L.p1[1][0],y:L.p1[1][1]},'object-line'));
-        out.push(textEntity(step,sourceLineLabelPoint(def,name,'p1',L),name+'₁','svg-label'));
+        out.push(textEntity(step,sourceLineLabelPoint(def,name,'p1',L),sourceLineDisplayName(name)+'₁','svg-label'));
       });
       Object.entries(def.points||{}).forEach(([name,P])=>{
         const p2={x:+P.p2[0],y:+P.p2[1]},p1={x:+P.p1[0],y:+P.p1[1]};
@@ -3182,9 +3186,9 @@
     } else if(def.lines){
       Object.entries(def.lines).forEach(([name,L])=>{
         out.push(line(step,{x:L.p2[0][0],y:L.p2[0][1]},{x:L.p2[1][0],y:L.p2[1][1]},'object-line'));
-        out.push(textEntity(step,sourceLineLabelPoint(def,name,'p2',L),name+'₂','svg-label'));
+        out.push(textEntity(step,sourceLineLabelPoint(def,name,'p2',L),sourceLineDisplayName(name)+'₂','svg-label'));
         out.push(line(step,{x:L.p1[0][0],y:L.p1[0][1]},{x:L.p1[1][0],y:L.p1[1][1]},'object-line'));
-        out.push(textEntity(step,sourceLineLabelPoint(def,name,'p1',L),name+'₁','svg-label'));
+        out.push(textEntity(step,sourceLineLabelPoint(def,name,'p1',L),sourceLineDisplayName(name)+'₁','svg-label'));
       });
       if(def.junctions&&def.junctions.length){
         // Preserve only projectors that are explicitly present in the traced
