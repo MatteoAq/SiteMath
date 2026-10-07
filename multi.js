@@ -1781,6 +1781,18 @@
     return a.y+(b.y-a.y)*(x-a.x)/(b.x-a.x);
   }
 
+  function segmentExtensionEntities(step,seg,P,cls){
+    if(!seg||!P)return [];
+    const s=toSeg(seg),a=s[0],b=s[1];
+    const d=vec2(a,b),dd=dot2(d,d);
+    if(dd<EPS)return [];
+    const t=dot2(vec2(a,P),d)/dd;
+    if(t>=-.01&&t<=1.01)return [];
+    const end=t<0?a:b;
+    if(dist2(end,P)<.5)return [];
+    return [line(step,end,P,cls||'construction-line')];
+  }
+
   function schemeLine3(rec){
     const xs=[
       rec.p1[0][0],rec.p1[1][0],rec.p2[0][0],rec.p2[1][0]
@@ -2129,6 +2141,7 @@
       measure:['h₂ ∥ x₁₂',pointName+'₂ ∈ h₂','1₂ ∈ '+lineName+'₂'],
       check:'h₂ проходит через исходную точку '+pointName+'₂, а не через произвольное место поля.'
     },[
+      ...segmentExtensionEntities(i,rec.p2,one2),
       line(i,A2,one2,'answer-line'),textEntity(i,one2,'h₂','svg-label'),
       point(i,one2,'1₂','construction-dot')
     ],{kind:'line',a:A2,b:one2});
@@ -2141,6 +2154,7 @@
       measure:['1₁1₂ – линия связи','h₁ = '+pointName+'₁1₁'],
       check:'1₁ лежит на '+lineName+'₁; '+pointName+'₁ и 1₁ соединены h₁.'
     },[
+      ...segmentExtensionEntities(i,rec.p1,one1),
       line(i,one2,one1,'construction-line'),point(i,one1,'1₁','construction-dot'),
       line(i,A1,one1,'answer-line'),textEntity(i,one1,'h₁','svg-label')
     ],{kind:'line',a:one2,b:one1});
@@ -2153,6 +2167,7 @@
       measure:['f₁ ∥ x₁₂','2₁ ∈ '+lineName+'₁','3₁ ∈ h₁'],
       check:'2₁ и 3₁ получены пересечениями, а не выбраны отдельно.'
     },[
+      ...segmentExtensionEntities(i,rec.p1,two1),
       line(i,two1,three1,'answer-line'),textEntity(i,two1,'f₁','svg-label'),
       point(i,two1,'2₁','construction-dot'),point(i,three1,'3₁','construction-dot')
     ],{kind:'line',a:two1,b:three1});
@@ -2165,6 +2180,7 @@
       measure:['2₁↔2₂ – одна линия связи','3₁↔3₂ – одна линия связи'],
       check:'2₂ лежит на '+lineName+'₂, 3₂ – на h₂.'
     },[
+      ...segmentExtensionEntities(i,rec.p2,two2),
       line(i,two1,two2,'construction-line'),point(i,two2,'2₂','construction-dot'),
       line(i,three1,three2,'construction-line'),point(i,three2,'3₂','construction-dot'),
       line(i,two2,three2,'answer-line'),textEntity(i,two2,'f₂','svg-label')
@@ -2178,6 +2194,7 @@
       measure:['ЛС₁ ⟂ h₁','4₁ ∈ '+lineName+'₁'],
       check:'У 3₁ должен быть прямой угол между h₁ и ЛС₁.'
     },[
+      ...segmentExtensionEntities(i,rec.p1,four1),
       line(i,three1,four1,'answer-line'),textEntity(i,four1,'ЛС₁','svg-label'),
       point(i,four1,'4₁','construction-dot'),
       ...rightAngleMarkEntities(i,three1,vec2(three1,A1),vec2(three1,four1),5)
@@ -2191,6 +2208,7 @@
       measure:['4₁↔4₂ – линия связи','ЛС₂ = 3₂4₂'],
       check:'4₂ лежит на '+lineName+'₂; 3₂ уже лежит на h₂.'
     },[
+      ...segmentExtensionEntities(i,rec.p2,four2),
       line(i,four1,four2,'construction-line'),point(i,four2,'4₂','construction-dot'),
       line(i,three2,four2,'answer-line'),textEntity(i,four2,'ЛС₂','svg-label')
     ],{kind:'line',a:four1,b:four2});
@@ -2258,6 +2276,8 @@
 
       i=steps.length;
       const hStep=hCut?[
+        ...segmentExtensionEntities(i,refs[0].rec[hCut.proj],hCut.primary[0]),
+        ...segmentExtensionEntities(i,refs[1].rec[hCut.proj],hCut.primary[1]),
         line(i,hCut.primary[0],hCut.primary[1],'answer-line'),
         point(i,hCut.primary[0],'1₂','construction-dot'),
         point(i,hCut.primary[1],'2₂','construction-dot'),
@@ -2285,6 +2305,8 @@
         measure:['1₂↔1₁ – линия связи','2₂↔2₁ – линия связи'],
         check:'1₁/2₁ принадлежат соответствующим исходным линиям.'
       },[
+        ...(hCut?segmentExtensionEntities(i,refs[0].rec[hCut.other],hPaired[0]):[]),
+        ...(hCut?segmentExtensionEntities(i,refs[1].rec[hCut.other],hPaired[1]):[]),
         line(i,hPaired[0],hPaired[1],'answer-line'),
         textEntity(i,hPaired[1],'h₁','svg-label'),
         line(i,hPrimary[0],hPaired[0],'construction-line'),
@@ -2294,6 +2316,8 @@
 
       i=steps.length;
       const fStep=fCut?[
+        ...segmentExtensionEntities(i,refs[0].rec[fCut.proj],fCut.primary[0]),
+        ...segmentExtensionEntities(i,refs[1].rec[fCut.proj],fCut.primary[1]),
         line(i,fCut.primary[0],fCut.primary[1],'answer-line'),
         point(i,fCut.primary[0],'3₁','construction-dot'),
         point(i,fCut.primary[1],'4₁','construction-dot'),
@@ -2321,6 +2345,8 @@
         measure:['3₁↔3₂ – линия связи','4₁↔4₂ – линия связи'],
         check:'3₂/4₂ принадлежат тем же исходным объектам.'
       },[
+        ...(fCut?segmentExtensionEntities(i,refs[0].rec[fCut.other],fPaired[0]):[]),
+        ...(fCut?segmentExtensionEntities(i,refs[1].rec[fCut.other],fPaired[1]):[]),
         line(i,fPaired[0],fPaired[1],'answer-line'),
         textEntity(i,fPaired[1],'f₂','svg-label'),
         line(i,fPrimary[0],fPaired[0],'construction-line'),
@@ -2363,6 +2389,7 @@
           measure:['S₁ ∈ h₁','ЛС₁ ⟂ h₁','5₁ ∈ '+ref.name+'₁'],
           check:'Прямой угол стоит у S₁, а 5₁ находится именно на исходной '+ref.name+'₁.'
         },[
+          ...segmentExtensionEntities(i,ref.rec.p1,T1),
           point(i,S1,'S₁','construction-dot'),
           line(i,S1,T1,'answer-line'),textEntity(i,T1,'ЛС₁','svg-label'),
           point(i,T1,'5₁','construction-dot'),
@@ -2377,6 +2404,7 @@
           measure:['S₁↔S₂ – линия связи','5₁↔5₂ – линия связи','ЛС₂ = S₂5₂'],
           check:'S₂ лежит на h₂, 5₂ – на '+ref.name+'₂.'
         },[
+          ...segmentExtensionEntities(i,ref.rec.p2,T2),
           line(i,S1,S2,'construction-line'),point(i,S2,'S₂','construction-dot'),
           line(i,T1,T2,'construction-line'),point(i,T2,'5₂','construction-dot'),
           line(i,S2,T2,'answer-line'),textEntity(i,T2,'ЛС₂','svg-label')
@@ -2841,6 +2869,10 @@
       measure:['1₁ = Ω₁ ∩ '+refs[0].name+'₁','2₁ = Ω₁ ∩ '+refs[1].name+'₁'],
       check:'Обе точки лежат на ℓ₁/Ω₁.'
     },[
+      ...segmentExtensionEntities(i,lrec.p1,I1),
+      ...segmentExtensionEntities(i,lrec.p1,I2),
+      ...segmentExtensionEntities(i,refs[0].rec.p1,I1),
+      ...segmentExtensionEntities(i,refs[1].rec.p1,I2),
       point(i,I1,'1₁','construction-dot'),
       point(i,I2,'2₁','construction-dot')
     ]);
@@ -2853,6 +2885,8 @@
       measure:['1₁↔1₂ – одна линия связи','2₁↔2₂ – одна линия связи'],
       check:'1₂ лежит на '+refs[0].name+'₂, 2₂ – на '+refs[1].name+'₂.'
     },[
+      ...segmentExtensionEntities(i,refs[0].rec.p2,I1p2),
+      ...segmentExtensionEntities(i,refs[1].rec.p2,I2p2),
       line(i,I1,I1p2,'construction-line'),point(i,I1p2,'1₂','construction-dot'),
       line(i,I2,I2p2,'construction-line'),point(i,I2p2,'2₂','construction-dot')
     ],{kind:'line',a:I1,b:I1p2});
@@ -2865,6 +2899,8 @@
       measure:['m₂ = 1₂2₂','K₂ = m₂ ∩ ℓ₂'],
       check:'K₂ одновременно лежит на m₂ и ℓ₂.'
     },[
+      ...segmentExtensionEntities(i,[I1p2,I2p2],K2),
+      ...segmentExtensionEntities(i,lrec.p2,K2),
       line(i,I1p2,I2p2,'aux-line'),textEntity(i,lerp2(I1p2,I2p2,.7),'m₂','svg-label'),
       point(i,K2,'K₂','answer-dot')
     ],{kind:'line',a:I1p2,b:I2p2});
@@ -3159,6 +3195,8 @@
     if(sec.refs&&sec.refs.length===2){
       for(let i=0;i<2;i++){
         const p2=sec.p2[i],p1=sec.p1[i];
+        if(sec.refs[i]?.rec?.p2) out.push(...segmentExtensionEntities(step,sec.refs[i].rec.p2,p2));
+        if(sec.refs[i]?.rec?.p1) out.push(...segmentExtensionEntities(step,sec.refs[i].rec.p1,p1));
         out.push(line(step,p2,p1,'construction-line'));
       }
     }
