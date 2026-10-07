@@ -154,7 +154,7 @@ window.SITEMATH_DATA = {
         plane:"ABC"
       },
       task6: {
-        statement:"Построить линию пересечения заданных плоскостей. Через т. K провести прямую ∥ обеим плоскостям.",
+        statement:"Построить линию пересечения пл. Σ(a∥b) и пл. Γ(Γ₂). Через т. K провести прямую ∥ обеим плоскостям.",
         planes:["a∥b","projecting"]
       }
     },
@@ -194,7 +194,7 @@ window.SITEMATH_DATA = {
         plane:"a∥b"
       },
       task6: {
-        statement:"Построить линию пересечения пл. Σ(a∩b) и второй заданной плоскости. Через т. K провести прямую ∥ обеим плоскостям.",
+        statement:"Построить линию пересечения пл. Σ(a∩b) и пл. Ω(Ω₁). Через т. K провести прямую ∥ обеим плоскостям.",
         planes:["a∩b","projecting"]
       }
     },
@@ -214,7 +214,7 @@ window.SITEMATH_DATA = {
         plane:"a∥b"
       },
       task6: {
-        statement:"Построить линию пересечения заданной плоскости Σ и пл. Θ(ABC). Через т. K провести прямую ∥ обеим плоскостям.",
+        statement:"Построить линию пересечения пл. Σ(Σ₂) и пл. Θ(ABC). Через т. K провести прямую ∥ обеим плоскостям.",
         planes:["projecting","ABC"]
       }
     },
@@ -1136,6 +1136,23 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
         normalizeDef(scheme);
       }
     });
+  });
+})();
+
+/* Preserve the actual plane symbols from each paper variant. These symbols
+   are used by the construction labels too; a second plane is not always Θ. */
+(function assignTask6PlaneNames(){
+  const names={
+    "03":["Σ","Θ"], "04":["Σ","Θ"], "05":["Σ","Θ"], "06":["Σ","Β"],
+    "07":["Σ","Ω"], "08":["Σ","Δ"], "09":["Σ","Θ"], "10":["Σ","Θ"],
+    "11":["Σ","Γ"], "12":["Σ","Θ"], "13":["Σ","Θ"], "14":["Σ","Ω"],
+    "15":["Σ","Θ"], "17":["Σ","Θ"], "18":["Σ","Θ"], "19":["Σ","Ω"]
+  };
+  Object.entries(names).forEach(([variant,pair])=>{
+    const scheme=window.SITEMATH_SCHEMES?.[variant]?.task6;
+    if(!scheme)return;
+    if(scheme.planeA) scheme.planeA.name=pair[0];
+    if(scheme.planeB) scheme.planeB.name=pair[1];
   });
 })();
 
