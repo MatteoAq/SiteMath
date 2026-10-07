@@ -608,6 +608,26 @@ try {
   failures.push('task6 explicit auxiliary-level regression: '+e.stack);
 }
 
+// Task 6 auxiliary section anchors are part of the construction. On a regular
+// two-plane case all eight defining section points must remain visible in the
+// final drawing, not just the derived P/Q points.
+try {
+  $('variantSelect').value='04';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='6';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('lastBtn').click();
+  const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+  for(let n=1;n<=8;n++){
+    for(const idx of ['₁','₂']){
+      const label=String(n)+idx;
+      if(!labels.includes(label)) failures.push('task6 auxiliary anchors 04: missing '+label);
+    }
+  }
+} catch(e) {
+  failures.push('task6 auxiliary anchor labels: '+e.stack);
+}
+
 // Every photographed task 4 must show the real construction path. For a plane
 // defined by a point and a line, keep the teacher's 1-2-3-4 sequence instead of
 // inventing a second source line. Task 6 must keep both auxiliary projections.
