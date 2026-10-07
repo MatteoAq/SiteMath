@@ -666,6 +666,27 @@ try {
   failures.push('explicit source junction geometry: '+e.stack);
 }
 
+// A historical trace is not source verification. At this checkpoint only
+// variant 12 has an exact original image that is still addressable and was
+// rechecked directly. Do not let metadata drift turn other traces into PASS.
+try {
+  for(const [variant,group] of Object.entries(window.SITEMATH_SCHEMES||{})){
+    for(const task of [4,5,6]){
+      const scheme=group?.['task'+task];
+      if(!scheme) continue;
+      if(variant==='12'){
+        if(!scheme.sourceVerified || scheme.sourceRecheckRequired){
+          failures.push('source verification 12/'+task+': exact original should be verified');
+        }
+      } else if(scheme.sourceVerified){
+        failures.push('source verification '+variant+'/'+task+': historical trace falsely marked verified');
+      }
+    }
+  }
+} catch(e) {
+  failures.push('source verification state: '+e.stack);
+}
+
 // Exact photographed-source invariants for variant 12 after re-tracing.
 try {
   const s12=window.SITEMATH_SCHEMES?.['12'];
