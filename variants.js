@@ -1156,6 +1156,20 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
 
 /* Preserve the actual plane symbols from each paper variant. These symbols
    are used by the construction labels too; a second plane is not always Θ. */
+(function assignTask4PlaneNames(){
+  const names={
+    "03":"Σ","04":"Σ","05":"Σ","06":"Δ","07":"Σ","08":"Σ",
+    "09":"Δ","10":"Σ","11":"Σ","12":"Σ","13":"Σ","14":"Σ",
+    "15":"Σ","17":"Σ","18":"Σ","19":"Σ"
+  };
+  Object.entries(names).forEach(([variant,name])=>{
+    const scheme=window.SITEMATH_SCHEMES?.[variant]?.task4;
+    if(!scheme)return;
+    scheme.name=name;
+    if(scheme.sourceGeometry) scheme.sourceGeometry.name=name;
+  });
+})();
+
 (function assignTask6PlaneNames(){
   const names={
     "03":["Σ","Θ"], "04":["Σ","Θ"], "05":["Σ","Θ"], "06":["Σ","Β"],
