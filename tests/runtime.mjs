@@ -1037,6 +1037,29 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('task5 all-variant construction sequence regression: '+e.stack);
 }
 
+// Warn about large mathematical corrections of an unverified paper trace:
+ // such a drawing must not be passed off as a faithful copy of the sheet.
+if (!onlyVariant && !onlyTask) try {
+  $('variantSelect').value='10';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='5';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  const warning=$('dynamicInputs').textContent;
+  if(!warning.includes('Требуется сверка')||!warning.includes('20,8')){
+    failures.push('source correction warning: variant 10/5 must disclose its substantial trace correction');
+  }
+
+  $('variantSelect').value='12';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='4';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  if($('dynamicInputs').textContent.includes('Требуется сверка')){
+    failures.push('source correction warning: refined 12/4 should not be flagged as a large displacement');
+  }
+} catch(e) {
+  failures.push('source correction warning regression: '+e.stack);
+}
+
 // Once task 5 visibility is established, the unbroken given ℓ must not
 // remain behind the dashed occluded segments. Preserve ℓ until that moment.
 if (!onlyVariant && !onlyTask) try {
