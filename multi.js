@@ -1986,7 +1986,11 @@
   }
 
   function starterEntitiesFromScheme(scheme,step){
-    const src=scheme?.sourceGeometry||scheme;
+    // sourceGeometry keeps the immutable trace/provenance. The visible source
+    // frame uses the relation-constrained copy (parallel/intersecting lines
+    // regularized from that trace), so a photographed skew cannot make the
+    // displayed givens mathematically contradict their printed condition.
+    const src=scheme;
     const out=[];
     Object.entries(src.lines||{}).forEach(([name,L])=>{
       out.push(line(step,{x:L.p2[0][0],y:L.p2[0][1]},{x:L.p2[1][0],y:L.p2[1][1]},'object-line'));
@@ -2079,7 +2083,7 @@
   }
 
   function diagramReferenceAxisStep(push,steps,scheme){
-    const frame=diagramAxisFromScheme(scheme?.sourceGeometry||scheme);
+    const frame=diagramAxisFromScheme(scheme);
     if(!frame)return null;
     const i=steps.length;
     push({
@@ -3451,7 +3455,7 @@
     const planeASymbol=scheme.planeA?.name||'Σ';
     const planeBSymbol=scheme.planeB?.name||'Θ';
     let i=0;
-    const sourceScheme=scheme?.sourceGeometry||scheme;
+    const sourceScheme=scheme;
     const sourceThroughRec=sourceScheme.pointK||sourceScheme.pointThrough||throughRec;
     const sourceThroughNorm=normalizedPointRec(sourceThroughRec);
     const sourceK1={x:+sourceThroughNorm.p1[0],y:+sourceThroughNorm.p1[1]};
@@ -3730,7 +3734,7 @@
     const planeASymbol=scheme.planeA?.name||'Σ';
     const planeBSymbol=scheme.planeB?.name||'Θ';
     let i=0;
-    const sourceScheme=scheme?.sourceGeometry||scheme;
+    const sourceScheme=scheme;
     const sourceThrough=sourceScheme.pointK||sourceScheme.pointThrough||throughRec;
     const sourceThroughNorm=normalizedPointRec(sourceThrough);
     const sourceP2={x:+sourceThroughNorm.p2[0],y:+sourceThroughNorm.p2[1]};
