@@ -729,6 +729,67 @@ try {
   failures.push('task6 line-point helper regression: '+e.stack);
 }
 
+// Task 5 must expose the complete manual construction order in every
+// digitized variant: Ω first, then section points 1/2, then m and K, then
+// competing points, and only after that the final visibility strokes.
+if (!onlyVariant && !onlyTask) try {
+  for(const variant of variants){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='5';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+
+    const total=Number($('stepTotal').textContent)||1;
+    let sawOmega=false,saw12=false,sawK=false,saw34=false,saw56=false,sawVisibility=false;
+    for(let n=0;n<total;n++){
+      const title=$('stepTitle').textContent.trim();
+      const labels=[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent);
+
+      if(title.startsWith('Заключи ℓ во вспомогательную')){
+        sawOmega=true;
+        if(labels.some(x=>/^1[₁₂]$|^2[₁₂]$|^K[₁₂]$/.test(x))){
+          failures.push('task5 sequence '+variant+': derived points exist while Ω is only introduced');
+        }
+      }
+      if(title.startsWith('Найди 1')){
+        if(!sawOmega) failures.push('task5 sequence '+variant+': section points 1/2 before Ω');
+        if(!labels.some(x=>/^1[₁₂]$/.test(x))||!labels.some(x=>/^2[₁₂]$/.test(x))){
+          failures.push('task5 sequence '+variant+': section points 1/2 missing on derivation step');
+        }
+        if(labels.some(x=>/^K[₁₂]$/.test(x))) failures.push('task5 sequence '+variant+': K appears before m');
+        saw12=true;
+      }
+      if(title.startsWith('Построй m')){
+        if(!saw12) failures.push('task5 sequence '+variant+': m/K before section points 1/2');
+        if(!labels.some(x=>/^K[₁₂]$/.test(x))) failures.push('task5 sequence '+variant+': first K projection missing');
+        sawK=true;
+      }
+      if(title.startsWith('Видимость на Π₁')){
+        if(!sawK) failures.push('task5 sequence '+variant+': competing 3/4 before K');
+        for(const x of ['3₁≡4₁','3₂','4₂']) if(!labels.includes(x)) failures.push('task5 sequence '+variant+': missing '+x);
+        saw34=true;
+      }
+      if(title.startsWith('Видимость на Π₂')){
+        if(!sawK) failures.push('task5 sequence '+variant+': competing 5/6 before K');
+        for(const x of ['5₂≡6₂','5₁','6₁']) if(!labels.includes(x)) failures.push('task5 sequence '+variant+': missing '+x);
+        saw56=true;
+      }
+      if(title.startsWith('Нанеси видимость ℓ')){
+        if(!saw34||!saw56) failures.push('task5 sequence '+variant+': final visibility drawn before both competing-point constructions');
+        sawVisibility=true;
+      }
+
+      if(n<total-1) $('nextBtn').click();
+    }
+    if(!sawOmega||!saw12||!sawK||!saw34||!saw56||!sawVisibility){
+      failures.push('task5 sequence '+variant+': incomplete Ω/1-2/K/3-4/5-6/visibility chain');
+    }
+  }
+} catch(e) {
+  failures.push('task5 all-variant construction sequence regression: '+e.stack);
+}
+
 // Task 5 visibility must be demonstrated by actual competing points, not
 // assigned analytically with no construction on the sheet.
 if (!onlyVariant && !onlyTask) try {
