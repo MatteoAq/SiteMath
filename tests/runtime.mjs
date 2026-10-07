@@ -1027,22 +1027,56 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('task5 competing-points regression: '+e.stack);
 }
 
-// Task 6: the arbitrary auxiliary level must be introduced before the common
-// point derived from it.
+// Task 6: the arbitrary auxiliary level, section anchor points and paired
+// projections must appear in construction order before the common point P.
 try {
   $('variantSelect').value='04';
   $('variantSelect').dispatchEvent(new window.Event('change'));
   $('taskSelect').value='6';
   $('taskSelect').dispatchEvent(new window.Event('change'));
-  $('firstBtn').click(); // source
-  $('nextBtn').click();  // axes
-  $('nextBtn').click();  // alpha level
-  let labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
-  if(!labels.includes('α₂')&&!labels.includes('α₁')) failures.push('task6 pedagogy 04: auxiliary alpha level missing');
-  if(labels.includes('P₁')||labels.includes('P₂')) failures.push('task6 pedagogy 04: P appears before alpha sections are built');
-  $('nextBtn').click();  // alpha sections -> P
-  labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
-  if(!labels.includes('P₁')||!labels.includes('P₂')) failures.push('task6 pedagogy 04: P missing after alpha sections');
+  $('firstBtn').click();
+
+  const total=Number($('stepTotal').textContent)||1;
+  const frames=[];
+  for(let n=0;n<total;n++){
+    frames.push({
+      title:$('stepTitle').textContent.trim(),
+      labels:[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent)
+    });
+    if(n<total-1) $('nextBtn').click();
+  }
+  const idx=prefix=>frames.findIndex(f=>f.title.startsWith(prefix));
+  const alpha=idx('Выбери вспомогательную плоскость α');
+  const aPrimary=frames.findIndex(f=>f.title.startsWith('На α')&&f.title.includes('1')&&f.title.includes('2'));
+  const aPaired=idx('Перенеси 1');
+  const bPrimary=frames.findIndex(f=>f.title.startsWith('На α')&&f.title.includes('3')&&f.title.includes('4'));
+  const bPaired=idx('Перенеси 3');
+  const p=frames.findIndex(f=>f.title.startsWith('Пересеки линии сечения α')&&f.title.includes('P'));
+
+  if(alpha<0) failures.push('task6 pedagogy 04: auxiliary alpha level missing');
+  if([aPrimary,aPaired,bPrimary,bPaired,p].some(x=>x<0)){
+    failures.push('task6 pedagogy 04: incomplete 1/2 -> 3/4 -> P construction chain');
+  } else {
+    if(!(alpha<aPrimary && aPrimary<aPaired && aPaired<bPrimary && bPrimary<bPaired && bPaired<p)){
+      failures.push('task6 pedagogy 04: alpha section construction order is wrong');
+    }
+    for(const n of [1,2]){
+      if(!frames[aPrimary].labels.includes(String(n)+'₂')) failures.push('task6 pedagogy 04: missing '+n+'₂ on primary alpha/Σ step');
+      if(frames[aPrimary].labels.includes(String(n)+'₁')) failures.push('task6 pedagogy 04: paired '+n+'₁ appears too early');
+      if(!frames[aPaired].labels.includes(String(n)+'₁')) failures.push('task6 pedagogy 04: missing paired '+n+'₁');
+    }
+    for(const n of [3,4]){
+      if(!frames[bPrimary].labels.includes(String(n)+'₂')) failures.push('task6 pedagogy 04: missing '+n+'₂ on primary alpha/Θ step');
+      if(frames[bPrimary].labels.includes(String(n)+'₁')) failures.push('task6 pedagogy 04: paired '+n+'₁ appears too early');
+      if(!frames[bPaired].labels.includes(String(n)+'₁')) failures.push('task6 pedagogy 04: missing paired '+n+'₁');
+    }
+    if(frames.slice(0,p).some(f=>f.labels.includes('P₁')||f.labels.includes('P₂'))){
+      failures.push('task6 pedagogy 04: P appears before both section lines are complete');
+    }
+    if(!frames[p].labels.includes('P₁')||!frames[p].labels.includes('P₂')){
+      failures.push('task6 pedagogy 04: P missing after both section lines');
+    }
+  }
 } catch(e) {
   failures.push('task6 explicit auxiliary-level regression: '+e.stack);
 }
