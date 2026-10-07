@@ -1977,9 +1977,10 @@
       appendABCPlaneEntities(out,scheme,step);
     }
     if(scheme.junctions&&scheme.junctions.length){
+      // A source projector is part of the printed source only when it was
+      // explicitly traced from the photographed sheet. Do not infer one merely
+      // because the mathematical plane is defined by intersecting lines.
       appendSourceJunctions(out,scheme.junctions,step);
-    } else if(scheme.planeType==='intersecting_lines'){
-      appendIntersectingLineProjector(out,scheme.lines,scheme.planeLines,step);
     }
     return out;
   }
@@ -2914,9 +2915,10 @@
         out.push(textEntity(step,{x:L.p1[1][0]+3,y:L.p1[1][1]-2},name+'₁','svg-label'));
       });
       if(def.junctions&&def.junctions.length){
+        // Preserve only projectors that are explicitly present in the traced
+        // source. A mathematically implied projector is construction data, not
+        // automatically part of the original printed drawing.
         appendSourceJunctions(out,def.junctions,step);
-      } else if(def.type==='intersecting_lines'){
-        appendIntersectingLineProjector(out,def.lines,Object.keys(def.lines).slice(0,2),step);
       }
     } else if(def.line){
       const seg=toSeg(def.line);
