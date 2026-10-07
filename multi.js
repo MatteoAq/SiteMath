@@ -3446,6 +3446,8 @@
     const throughLabel=scheme.pointLabel||'K';
 
     const steps=[],push=(m,e,t)=>steps.push(Object.assign({},m,{entities:e||[],tool:t||null}));
+    const planeASymbol=scheme.planeA?.name||'Σ';
+    const planeBSymbol=scheme.planeB?.name||'Θ';
     let i=0;
     const sourceScheme=scheme?.sourceGeometry||scheme;
     const sourceThroughRec=sourceScheme.pointK||sourceScheme.pointThrough||throughRec;
@@ -3459,8 +3461,8 @@
       measure:['Исходные толстые линии не заменяй вспомогательными.','Исходные тонкие проекторы сохраняй тонкими.'],
       check:'На первом шаге нет ни P/Q, ни линии пересечения r, ни новой прямой через '+throughLabel+'.'
     },[
-      ...starterPlaneDefEntities(sourceScheme.planeA,i,'Σ'),
-      ...starterPlaneDefEntities(sourceScheme.planeB,i,'Θ'),
+      ...starterPlaneDefEntities(sourceScheme.planeA,i,planeASymbol),
+      ...starterPlaneDefEntities(sourceScheme.planeB,i,planeBSymbol),
       line(i,sourceK2,sourceK1,'source-guide-line'),
       point(i,sourceK2,throughLabel+'₂'),
       point(i,sourceK1,throughLabel+'₁')
@@ -3671,7 +3673,7 @@
       title:'Перенеси обе плоскости и точку '+throughLabel,
       action:'Сначала воспроизведи исходные проекции двух плоскостей и заданную точку '+throughLabel+' без изменения наклонов.',
       why:'Положение линий на варианте является исходными данными. Решение строится уже поверх них.',
-      measure:['Плоскость Σ – первый набор','Плоскость Θ – второй набор',throughLabel+'₁/'+throughLabel+'₂ – одна линия связи'],
+      measure:['Плоскость '+planeASymbol+' – первый набор','Плоскость '+planeBSymbol+' – второй набор',throughLabel+'₁/'+throughLabel+'₂ – одна линия связи'],
       check:'Стартовый рисунок совпадает с печатным условием.'
     },starter);
 
@@ -3689,15 +3691,15 @@
       i=steps.length;
       push({
         title:'Первое вспомогательное горизонтальное сечение',
-        action:'Проведи вспомогательную горизонтальную плоскость уровня через будущую точку P. Она пересекает Σ и Θ по двум горизонталям.',
-        why:'Две горизонтали лежат в одной вспомогательной плоскости. Их пересечение P принадлежит одновременно Σ и Θ.',
+        action:'Проведи вспомогательную горизонтальную плоскость уровня через будущую точку P. Она пересекает '+planeASymbol+' и '+planeBSymbol+' по двум горизонталям.',
+        why:'Две горизонтали лежат в одной вспомогательной плоскости. Их пересечение P принадлежит одновременно '+planeASymbol+' и '+planeBSymbol+'.',
         measure:['На Π₂ обе горизонтали имеют один уровень z.','На Π₁ строятся их действительные направления.'],
         check:'P₁ – пересечение горизонталей обеих плоскостей.'
       },[
-        line(i,pA0.p2,pA1.p2,'construction-line'),textEntity(i,pA1.p2,'hΣ₂','svg-note'),
-        line(i,pB0.p2,pB1.p2,'construction-line'),textEntity(i,pB1.p2,'hΘ₂','svg-note'),
-        line(i,pA0.p1,pA1.p1,'aux-line'),textEntity(i,pA1.p1,'hΣ₁','svg-label'),
-        line(i,pB0.p1,pB1.p1,'aux-line'),textEntity(i,pB1.p1,'hΘ₁','svg-label'),
+        line(i,pA0.p2,pA1.p2,'construction-line'),textEntity(i,pA1.p2,'h'+planeASymbol+'₂','svg-note'),
+        line(i,pB0.p2,pB1.p2,'construction-line'),textEntity(i,pB1.p2,'h'+planeBSymbol+'₂','svg-note'),
+        line(i,pA0.p1,pA1.p1,'aux-line'),textEntity(i,pA1.p1,'h'+planeASymbol+'₁','svg-label'),
+        line(i,pB0.p1,pB1.p1,'aux-line'),textEntity(i,pB1.p1,'h'+planeBSymbol+'₁','svg-label'),
         line(i,pA0.p2,pA0.p1,'construction-line'),line(i,pA1.p2,pA1.p1,'construction-line'),
         line(i,pB0.p2,pB0.p1,'construction-line'),line(i,pB1.p2,pB1.p1,'construction-line'),
         point(i,pp.p1,'P₁','construction-dot'),
@@ -3710,13 +3712,13 @@
         title:'Второе вспомогательное горизонтальное сечение',
         action:'На другом уровне повтори построение и получи вторую общую точку Q.',
         why:'Две различные общие точки однозначно задают линию пересечения плоскостей.',
-        measure:['Q ∈ Σ','Q ∈ Θ'],
+        measure:['Q ∈ '+planeASymbol,'Q ∈ '+planeBSymbol],
         check:'Q₁/Q₂ находятся на одной линии связи.'
       },[
-        line(i,qA0.p2,qA1.p2,'construction-line'),textEntity(i,qA1.p2,'hΣ₂','svg-note'),
-        line(i,qB0.p2,qB1.p2,'construction-line'),textEntity(i,qB1.p2,'hΘ₂','svg-note'),
-        line(i,qA0.p1,qA1.p1,'aux-line'),textEntity(i,qA1.p1,'hΣ₁','svg-label'),
-        line(i,qB0.p1,qB1.p1,'aux-line'),textEntity(i,qB1.p1,'hΘ₁','svg-label'),
+        line(i,qA0.p2,qA1.p2,'construction-line'),textEntity(i,qA1.p2,'h'+planeASymbol+'₂','svg-note'),
+        line(i,qB0.p2,qB1.p2,'construction-line'),textEntity(i,qB1.p2,'h'+planeBSymbol+'₂','svg-note'),
+        line(i,qA0.p1,qA1.p1,'aux-line'),textEntity(i,qA1.p1,'h'+planeASymbol+'₁','svg-label'),
+        line(i,qB0.p1,qB1.p1,'aux-line'),textEntity(i,qB1.p1,'h'+planeBSymbol+'₁','svg-label'),
         line(i,qA0.p2,qA0.p1,'construction-line'),line(i,qA1.p2,qA1.p1,'construction-line'),
         line(i,qB0.p2,qB0.p1,'construction-line'),line(i,qB1.p2,qB1.p1,'construction-line'),
         point(i,qq.p1,'Q₁','construction-dot'),
@@ -3732,10 +3734,10 @@
         measure:['На Π₁ фронтали имеют одинаковый уровень y.'],
         check:'P принадлежит обеим плоскостям.'
       },[
-        line(i,pA0.p1,pA1.p1,'construction-line'),textEntity(i,pA1.p1,'fΣ₁','svg-note'),
-        line(i,pB0.p1,pB1.p1,'construction-line'),textEntity(i,pB1.p1,'fΘ₁','svg-note'),
-        line(i,pA0.p2,pA1.p2,'aux-line'),textEntity(i,pA1.p2,'fΣ₂','svg-label'),
-        line(i,pB0.p2,pB1.p2,'aux-line'),textEntity(i,pB1.p2,'fΘ₂','svg-label'),
+        line(i,pA0.p1,pA1.p1,'construction-line'),textEntity(i,pA1.p1,'f'+planeASymbol+'₁','svg-note'),
+        line(i,pB0.p1,pB1.p1,'construction-line'),textEntity(i,pB1.p1,'f'+planeBSymbol+'₁','svg-note'),
+        line(i,pA0.p2,pA1.p2,'aux-line'),textEntity(i,pA1.p2,'f'+planeASymbol+'₂','svg-label'),
+        line(i,pB0.p2,pB1.p2,'aux-line'),textEntity(i,pB1.p2,'f'+planeBSymbol+'₂','svg-label'),
         line(i,pA0.p1,pA0.p2,'construction-line'),line(i,pA1.p1,pA1.p2,'construction-line'),
         line(i,pB0.p1,pB0.p2,'construction-line'),line(i,pB1.p1,pB1.p2,'construction-line'),
         point(i,pp.p1,'P₁','construction-dot'),point(i,pp.p2,'P₂','construction-dot'),
@@ -3746,13 +3748,13 @@
         title:'Второе вспомогательное фронтальное сечение',
         action:'Повтори на другом уровне y и получи Q.',
         why:'P и Q задают искомую линию пересечения.',
-        measure:['Q ∈ Σ и Θ'],
+        measure:['Q ∈ '+planeASymbol+' и '+planeBSymbol],
         check:'Q₁/Q₂ согласованы линией связи.'
       },[
-        line(i,qA0.p1,qA1.p1,'construction-line'),textEntity(i,qA1.p1,'fΣ₁','svg-note'),
-        line(i,qB0.p1,qB1.p1,'construction-line'),textEntity(i,qB1.p1,'fΘ₁','svg-note'),
-        line(i,qA0.p2,qA1.p2,'aux-line'),textEntity(i,qA1.p2,'fΣ₂','svg-label'),
-        line(i,qB0.p2,qB1.p2,'aux-line'),textEntity(i,qB1.p2,'fΘ₂','svg-label'),
+        line(i,qA0.p1,qA1.p1,'construction-line'),textEntity(i,qA1.p1,'f'+planeASymbol+'₁','svg-note'),
+        line(i,qB0.p1,qB1.p1,'construction-line'),textEntity(i,qB1.p1,'f'+planeBSymbol+'₁','svg-note'),
+        line(i,qA0.p2,qA1.p2,'aux-line'),textEntity(i,qA1.p2,'f'+planeASymbol+'₂','svg-label'),
+        line(i,qB0.p2,qB1.p2,'aux-line'),textEntity(i,qB1.p2,'f'+planeBSymbol+'₂','svg-label'),
         line(i,qA0.p1,qA0.p2,'construction-line'),line(i,qA1.p1,qA1.p2,'construction-line'),
         line(i,qB0.p1,qB0.p2,'construction-line'),line(i,qB1.p1,qB1.p2,'construction-line'),
         point(i,qq.p1,'Q₁','construction-dot'),point(i,qq.p2,'Q₂','construction-dot'),
@@ -3765,7 +3767,7 @@
       title:'Соедини P и Q – это линия пересечения r',
       action:'Проведи r₁ через P₁,Q₁ и r₂ через P₂,Q₂.',
       why:'Линия, проходящая через две общие точки плоскостей, целиком принадлежит обеим плоскостям.',
-      measure:['r = Σ ∩ Θ'],
+      measure:['r = '+planeASymbol+' ∩ '+planeBSymbol],
       check:'P и Q лежат на обеих проекциях r.'
     },[
       line(i,pp.p1,qq.p1,'answer-line'),textEntity(i,qq.p1,'r₁','svg-label'),
@@ -3774,23 +3776,23 @@
 
     i=steps.length;
     push({
-      title:'Через '+throughLabel+' проведи прямую k ∥ обеим плоскостям',
-      action:'Через '+throughLabel+'₁ проведи k₁ ∥ r₁, а через '+throughLabel+'₂ – k₂ ∥ r₂.',
-      why:'Общее направление двух непараллельных плоскостей – направление их линии пересечения r. Поэтому прямая, параллельная r, параллельна одновременно Σ и Θ.',
-      measure:['k₁ ∥ r₁','k₂ ∥ r₂'],
-      check:'Направления k и r совпадают на обеих проекциях.'
+      title:'Через '+throughLabel+' проведи ℓ ∥ обеим плоскостям',
+      action:'Через '+throughLabel+'₁ проведи ℓ₁ ∥ r₁, а через '+throughLabel+'₂ – ℓ₂ ∥ r₂.',
+      why:'Общее направление двух непараллельных плоскостей – направление их линии пересечения r. Поэтому прямая, параллельная r, параллельна одновременно '+planeASymbol+' и '+planeBSymbol+'.',
+      measure:['ℓ₁ ∥ r₁','ℓ₂ ∥ r₂'],
+      check:'Направления ℓ и r совпадают на обеих проекциях.'
     },[
-      line(i,kA.p1,kB.p1,'answer-line'),textEntity(i,kB.p1,'k₁','svg-label'),
-      line(i,kA.p2,kB.p2,'answer-line'),textEntity(i,kB.p2,'k₂','svg-label')
+      line(i,kA.p1,kB.p1,'answer-line'),textEntity(i,kB.p1,'ℓ₁','svg-label'),
+      line(i,kA.p2,kB.p2,'answer-line'),textEntity(i,kB.p2,'ℓ₂','svg-label')
     ],{kind:'line',a:kA.p1,b:kB.p1});
 
     i=steps.length;
     push({
       title:'Финальная проверка задания 6',
-      action:'Проверь две общие точки линии r и попарную параллельность проекций k и r.',
+      action:'Проверь две общие точки линии r и попарную параллельность проекций ℓ и r.',
       why:'Это одновременно подтверждает линию пересечения и требуемое направление прямой через '+throughLabel+'.',
-      measure:['P,Q ∈ Σ и Θ','k ∥ r'],
-      check:'k проходит через '+throughLabel+' и не обязана лежать ни в одной из плоскостей.'
+      measure:['P,Q ∈ '+planeASymbol+' и '+planeBSymbol,'ℓ ∥ r'],
+      check:'ℓ проходит через '+throughLabel+' и не обязана лежать ни в одной из плоскостей.'
     },[]);
 
     const norm=normalizeSteps(steps,210,170);
