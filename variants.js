@@ -1056,6 +1056,89 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
   });
 })();
 
+/* Mathematical cleanup of declared intersecting-line planes.
+   For true intersecting spatial lines, the intersections of their first and
+   second projections must lie on one projector (the same x). Photo perspective
+   and rough tracing can break that condition, sometimes pushing one computed
+   intersection thousands of units away. We keep every source segment's slope
+   and x-span, and only apply the smallest vertical translations needed to make
+   both projected intersections share one x. */
+(function normalizeDeclaredIntersectingLines(){
+  const hit=(A,B)=>{
+    if(!A||!B||A.length<2||B.length<2)return null;
+    const [a,b]=A,[c,d]=B;
+    const den=(a[0]-b[0])*(c[1]-d[1])-(a[1]-b[1])*(c[0]-d[0]);
+    if(Math.abs(den)<1e-9)return null;
+    return {
+      x:((a[0]*b[1]-a[1]*b[0])*(c[0]-d[0])-(a[0]-b[0])*(c[0]*d[1]-c[1]*d[0]))/den,
+      y:((a[0]*b[1]-a[1]*b[0])*(c[1]-d[1])-(a[1]-b[1])*(c[0]*d[1]-c[1]*d[0]))/den
+    };
+  };
+  const lineY=(seg,x)=>{
+    const dx=+seg[1][0]-+seg[0][0];
+    if(Math.abs(dx)<1e-9)return (+seg[0][1]+ +seg[1][1])/2;
+    return +seg[0][1]+(+seg[1][1]-+seg[0][1])*(x-+seg[0][0])/dx;
+  };
+  const reasonable=(x,A,B)=>{
+    const xs=[...A,...B].map(p=>+p[0]).filter(Number.isFinite);
+    if(!xs.length||!Number.isFinite(x))return false;
+    const lo=Math.min(...xs),hi=Math.max(...xs),span=Math.max(20,hi-lo);
+    return x>=lo-span*.65 && x<=hi+span*.65;
+  };
+  const shiftPairToX=(A,B,x,targetY)=>{
+    if(!Number.isFinite(x))return;
+    const ya=lineY(A,x),yb=lineY(B,x);
+    if(!Number.isFinite(ya)||!Number.isFinite(yb))return;
+    const y=Number.isFinite(targetY)?targetY:(ya+yb)/2;
+    const da=y-ya,db=y-yb;
+    for(const p of A)p[1]=+p[1]+da;
+    for(const p of B)p[1]=+p[1]+db;
+  };
+  const normalizeDef=def=>{
+    if(!def)return;
+    const type=def.planeType||def.type;
+    if(type!=='intersecting_lines'||!def.lines)return;
+    const names=def.planeLines||Object.keys(def.lines).slice(0,2);
+    const A=def.lines[names[0]],B=def.lines[names[1]];
+    if(!A||!B)return;
+    const h1=hit(A.p1,B.p1),h2=hit(A.p2,B.p2);
+    const explicit=def.junctions&&def.junctions.length?def.junctions[0]:null;
+    let x;
+    if(explicit?.p1&&explicit?.p2){
+      x=(+explicit.p1[0]+ +explicit.p2[0])/2;
+    }else{
+      const r1=h1&&reasonable(h1.x,A.p1,B.p1);
+      const r2=h2&&reasonable(h2.x,A.p2,B.p2);
+      if(r1&&r2)x=(h1.x+h2.x)/2;
+      else if(r1)x=h1.x;
+      else if(r2)x=h2.x;
+      else{
+        const xs=[...A.p1,...B.p1,...A.p2,...B.p2].map(p=>+p[0]).filter(Number.isFinite).sort((a,b)=>a-b);
+        if(!xs.length)return;
+        x=xs[Math.floor(xs.length/2)];
+      }
+    }
+    shiftPairToX(A.p1,B.p1,x,explicit?.p1?+explicit.p1[1]:null);
+    shiftPairToX(A.p2,B.p2,x,explicit?.p2?+explicit.p2[1]:null);
+    if(explicit?.p1&&explicit?.p2){
+      explicit.p1[0]=x;
+      explicit.p2[0]=x;
+    }
+  };
+  Object.values(window.SITEMATH_SCHEMES||{}).forEach(group=>{
+    [4,5,6].forEach(task=>{
+      const scheme=group&&group['task'+task];
+      if(!scheme)return;
+      if(task===6){
+        normalizeDef(scheme.planeA);
+        normalizeDef(scheme.planeB);
+      }else{
+        normalizeDef(scheme);
+      }
+    });
+  });
+})();
+
 /* Verification state is stricter than "a trace exists".
    sourceId records provenance only. A scheme is verified only when the exact
    source image is currently available and has actually been rechecked. */
