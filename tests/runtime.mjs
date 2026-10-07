@@ -973,6 +973,47 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('task6 all-variant auxiliary sequence regression: '+e.stack);
 }
 
+// Task 6: the final parallel line through the given point may only appear
+// after r = P Q has actually been constructed.
+if (!onlyVariant && !onlyTask) try {
+  for(const variant of variants){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='6';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+
+    const total=Number($('stepTotal').textContent)||1;
+    let sawR=false,sawFinal=false;
+    for(let n=0;n<total;n++){
+      const title=$('stepTitle').textContent.trim();
+      const labels=[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent);
+      const hasR=labels.includes('r₁')||labels.includes('r₂');
+      const hasL=labels.includes('ℓ₁')||labels.includes('ℓ₂');
+
+      if(title.startsWith('Соедини P и Q')){
+        if(!labels.includes('r₁')||!labels.includes('r₂')){
+          failures.push('task6 final direction '+variant+': r projections missing');
+        }
+        if(hasL) failures.push('task6 final direction '+variant+': ℓ appears in r-construction step');
+        sawR=true;
+      }
+      if(title.startsWith('Через ') && title.includes('проведи ℓ')){
+        if(!sawR) failures.push('task6 final direction '+variant+': ℓ constructed before r');
+        if(!labels.includes('ℓ₁')||!labels.includes('ℓ₂')){
+          failures.push('task6 final direction '+variant+': final ℓ projections missing');
+        }
+        sawFinal=true;
+      }
+
+      if(n<total-1) $('nextBtn').click();
+    }
+    if(!sawR||!sawFinal) failures.push('task6 final direction '+variant+': incomplete r then ℓ chain');
+  }
+} catch(e) {
+  failures.push('task6 final-direction sequence regression: '+e.stack);
+}
+
 // Task 6 auxiliary-section anchors are part of the construction, not hidden
 // solver data. Every non-projecting plane contributes two traced section points
 // for alpha and two for beta; their paired projections must remain visible.
