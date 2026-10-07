@@ -1981,28 +1981,29 @@
   }
 
   function starterEntitiesFromScheme(scheme,step){
+    const src=scheme?.sourceGeometry||scheme;
     const out=[];
-    Object.entries(scheme.lines||{}).forEach(([name,L])=>{
+    Object.entries(src.lines||{}).forEach(([name,L])=>{
       out.push(line(step,{x:L.p2[0][0],y:L.p2[0][1]},{x:L.p2[1][0],y:L.p2[1][1]},'object-line'));
-      out.push(textEntity(step,sourceLineLabelPoint(scheme,name,'p2',L),name+'₂','svg-label'));
+      out.push(textEntity(step,sourceLineLabelPoint(src,name,'p2',L),name+'₂','svg-label'));
       out.push(line(step,{x:L.p1[0][0],y:L.p1[0][1]},{x:L.p1[1][0],y:L.p1[1][1]},'object-line'));
-      out.push(textEntity(step,sourceLineLabelPoint(scheme,name,'p1',L),name+'₁','svg-label'));
+      out.push(textEntity(step,sourceLineLabelPoint(src,name,'p1',L),name+'₁','svg-label'));
     });
-    Object.entries(scheme.points||{}).forEach(([name,P])=>{
+    Object.entries(src.points||{}).forEach(([name,P])=>{
       const x=(P.p1[0]+P.p2[0])/2;
       const p2={x:x,y:P.p2[1]},p1={x:x,y:P.p1[1]};
       out.push(line(step,p2,p1,'source-guide-line'));
       out.push(point(step,p2,name+'₂'));
       out.push(point(step,p1,name+'₁'));
     });
-    if(scheme.planeType==='ABC'){
-      appendABCPlaneEntities(out,scheme,step);
+    if(src.planeType==='ABC'){
+      appendABCPlaneEntities(out,src,step);
     }
-    if(scheme.junctions&&scheme.junctions.length){
+    if(src.junctions&&src.junctions.length){
       // A source projector is part of the printed source only when it was
       // explicitly traced from the photographed sheet. Do not infer one merely
       // because the mathematical plane is defined by intersecting lines.
-      appendSourceJunctions(out,scheme.junctions,step);
+      appendSourceJunctions(out,src.junctions,step);
     }
     return out;
   }
@@ -2073,7 +2074,7 @@
   }
 
   function diagramReferenceAxisStep(push,steps,scheme){
-    const frame=diagramAxisFromScheme(scheme);
+    const frame=diagramAxisFromScheme(scheme?.sourceGeometry||scheme);
     if(!frame)return null;
     const i=steps.length;
     push({
@@ -3438,6 +3439,11 @@
 
     const steps=[],push=(m,e,t)=>steps.push(Object.assign({},m,{entities:e||[],tool:t||null}));
     let i=0;
+    const sourceScheme=scheme?.sourceGeometry||scheme;
+    const sourceThroughRec=sourceScheme.pointK||sourceScheme.pointThrough||throughRec;
+    const sourceThroughNorm=normalizedPointRec(sourceThroughRec);
+    const sourceK1={x:+sourceThroughNorm.p1[0],y:+sourceThroughNorm.p1[1]};
+    const sourceK2={x:+sourceThroughNorm.p2[0],y:+sourceThroughNorm.p2[1]};
     push({
       title:'Перенеси обе плоскости и точку '+throughLabel,
       action:'Сначала воспроизведи только исходные линии, исходные линии связи и точку '+throughLabel+' с листа.',
@@ -3445,11 +3451,11 @@
       measure:['Исходные толстые линии не заменяй вспомогательными.','Исходные тонкие проекторы сохраняй тонкими.'],
       check:'На первом шаге нет ни P/Q, ни линии пересечения r, ни новой прямой через '+throughLabel+'.'
     },[
-      ...starterPlaneDefEntities(scheme.planeA,i,'Σ'),
-      ...starterPlaneDefEntities(scheme.planeB,i,'Θ'),
-      line(i,K2,K1,'source-guide-line'),
-      point(i,K2,throughLabel+'₂'),
-      point(i,K1,throughLabel+'₁')
+      ...starterPlaneDefEntities(sourceScheme.planeA,i,'Σ'),
+      ...starterPlaneDefEntities(sourceScheme.planeB,i,'Θ'),
+      line(i,sourceK2,sourceK1,'source-guide-line'),
+      point(i,sourceK2,throughLabel+'₂'),
+      point(i,sourceK1,throughLabel+'₁')
     ]);
 
     diagramReferenceAxisStep(push,steps,scheme);
