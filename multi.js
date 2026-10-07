@@ -1784,9 +1784,10 @@
   function segmentExtensionEntities(step,seg,P,cls){
     if(!seg||!P)return [];
     const s=toSeg(seg),a=s[0],b=s[1];
-    const d=vec2(a,b),dd=dot2(d,d);
+    const d=vec2(a,b),dd=d.x*d.x+d.y*d.y;
     if(dd<EPS)return [];
-    const t=dot2(vec2(a,P),d)/dd;
+    const ap=vec2(a,P);
+    const t=(ap.x*d.x+ap.y*d.y)/dd;
     if(t>=-.01&&t<=1.01)return [];
     const end=t<0?a:b;
     if(dist2(end,P)<.5)return [];
@@ -2818,9 +2819,10 @@
   function segmentOutsideScore(seg,P){
     if(!seg||!P)return 0;
     const s=toSeg(seg),a=s[0],b=s[1];
-    const d=vec2(a,b),dd=dot2(d,d);
+    const d=vec2(a,b),dd=d.x*d.x+d.y*d.y;
     if(dd<EPS)return 0;
-    const t=dot2(vec2(a,P),d)/dd;
+    const ap=vec2(a,P);
+    const t=(ap.x*d.x+ap.y*d.y)/dd;
     return t<0?-t:(t>1?t-1:0);
   }
 
