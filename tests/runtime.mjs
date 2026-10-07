@@ -823,20 +823,30 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('task6 all-variant auxiliary sequence regression: '+e.stack);
 }
 
-// Task 6 auxiliary section anchors are part of the construction. On a regular
-// two-plane case all eight defining section points must remain visible in the
-// final drawing, not just the derived P/Q points.
-try {
-  $('variantSelect').value='04';
-  $('variantSelect').dispatchEvent(new window.Event('change'));
-  $('taskSelect').value='6';
-  $('taskSelect').dispatchEvent(new window.Event('change'));
-  $('lastBtn').click();
-  const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
-  for(let n=1;n<=8;n++){
-    for(const idx of ['₁','₂']){
-      const label=String(n)+idx;
-      if(!labels.includes(label)) failures.push('task6 auxiliary anchors 04: missing '+label);
+// Task 6 auxiliary-section anchors are part of the construction, not hidden
+// solver data. Every non-projecting plane contributes two traced section points
+// for alpha and two for beta; their paired projections must remain visible.
+if (!onlyVariant && !onlyTask) try {
+  const isProjecting=def=>['frontal_projecting','horizontal_projecting'].includes(def?.type);
+  for(const variant of variants){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='6';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('lastBtn').click();
+
+    const scheme=window.SITEMATH_SCHEMES?.[variant]?.task6;
+    const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+    const expected=[];
+    if(!isProjecting(scheme?.planeA)) expected.push('1','2','5','6');
+    if(!isProjecting(scheme?.planeB)) expected.push('3','4','7','8');
+    for(const n of expected){
+      for(const idx of ['₁','₂']){
+        const label=n+idx;
+        if(!labels.includes(label)){
+          failures.push('task6 auxiliary anchors '+variant+': missing '+label);
+        }
+      }
     }
   }
 } catch(e) {
