@@ -3657,14 +3657,16 @@
     const kA=project3(throughK[0]),kB=project3(throughK[1]);
 
     const steps=[],push=(m,e,t)=>steps.push(Object.assign({},m,{entities:e||[],tool:t||null}));
+    const planeASymbol=scheme.planeA?.name||'Σ';
+    const planeBSymbol=scheme.planeB?.name||'Θ';
     let i=0;
     const sourceScheme=scheme?.sourceGeometry||scheme;
     const sourceThrough=sourceScheme.pointK||sourceScheme.pointThrough||throughRec;
     const sourceP2={x:+sourceThrough.p2[0],y:+sourceThrough.p2[1]};
     const sourceP1={x:+sourceThrough.p1[0],y:+sourceThrough.p1[1]};
     const starter=[
-      ...starterPlaneDefEntities(sourceScheme.planeA,i,'Σ'),
-      ...starterPlaneDefEntities(sourceScheme.planeB,i,'Θ'),
+      ...starterPlaneDefEntities(sourceScheme.planeA,i,planeASymbol),
+      ...starterPlaneDefEntities(sourceScheme.planeB,i,planeBSymbol),
       line(i,sourceP2,sourceP1,'source-guide-line'),
       point(i,sourceP2,throughLabel+'₂'),
       point(i,sourceP1,throughLabel+'₁')
