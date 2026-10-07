@@ -140,8 +140,8 @@ button { border: 0; border-radius: 11px; padding: 10px 12px; font-weight: 750; }
 .source-body li + li { margin-top: 6px; }
 
 /* SVG */
-.grid-minor { stroke: var(--paper-line); stroke-width: .18; }
-.grid-major { stroke: var(--paper-major); stroke-width: .28; }
+.grid-minor { stroke: transparent; stroke-width: .18; }
+.grid-major { stroke: transparent; stroke-width: .28; }
 .axis { stroke: #37332e; stroke-width: .55; fill: none; }
 .construction-line { stroke: var(--construction); stroke-width: .32; fill: none; stroke-dasharray: 2 1.6; }
 .source-guide-line { stroke:#77716a; stroke-width:.28; fill:none; }
@@ -225,7 +225,7 @@ select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(184,79,58
   .transport-controls { flex-wrap: wrap; justify-content: flex-end; }
 }
 
-.aux-line { stroke: #7b6a8a; stroke-width: .42; fill: none; stroke-dasharray: 4 1.5; }
+.aux-line { stroke: #7b6a8a; stroke-width: .30; fill: none; stroke-dasharray: none; opacity:.9; }
 .hidden-line { stroke: #285f78; stroke-width: .68; fill: none; stroke-dasharray: 3 2; }
 .construction-dot { fill: var(--construction); }
 .source-guide-dot { fill:#77716a; }
@@ -729,8 +729,8 @@ a { color:#7c3aed; }
 .stage-toolbar { border-bottom-color:rgba(117,83,132,.14); }
 .step-badge { color:#9b286f; }
 .explain-grid section { border-top-color:#dfd1e4; }
-.grid-minor { stroke:#eadfed; }
-.grid-major { stroke:#d7c2df; }
+.grid-minor { stroke:transparent; }
+.grid-major { stroke:transparent; }
 .axis { stroke:#352a3c; }
 .object-line { stroke:#34293a; }
 .answer-line,.answer-dot { stroke:#7c3aed; fill:#7c3aed; }
@@ -2295,8 +2295,8 @@ body { color:var(--ui-text); }
 }
 
 
-/* Drafting semantics: projectors/construction guides are thin continuous lines.
-   Dashed lines are reserved for hidden geometry or explicitly auxiliary sections. */
+/* Drafting semantics: projectors, continuations and auxiliary construction are thin continuous lines.
+   Dashed styling is reserved only for hidden geometry. */
 .construction-line {
   stroke-dasharray:none;
 }
