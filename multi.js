@@ -2828,6 +2828,43 @@
     });
   }
 
+  function task5VisibilityWitness(refs,lrec,proj,K){
+    const other=proj==='p1'?'p2':'p1';
+    const lPrimary=toSeg(lrec[proj]);
+    const dir=vec2(lPrimary[0],lPrimary[1]);
+    const den=dir.x*dir.x+dir.y*dir.y;
+    if(den<EPS)return null;
+    const param=P=>((P.x-lPrimary[0].x)*dir.x+(P.y-lPrimary[0].y)*dir.y)/den;
+    const kParam=param(K);
+    let best=null;
+    for(const ref of refs){
+      if(!ref?.rec?.[proj]||!ref?.rec?.[other])continue;
+      const rPrimary=toSeg(ref.rec[proj]);
+      const X=lineIntersection2(lPrimary[0],lPrimary[1],rPrimary[0],rPrimary[1]);
+      if(!X)continue;
+      const lineOther={x:X.x,y:lineY(lrec[other],X.x)};
+      const planeOther={x:X.x,y:lineY(ref.rec[other],X.x)};
+      if(!Number.isFinite(lineOther.y)||!Number.isFinite(planeOther.y))continue;
+      if(dist2(lineOther,planeOther)<4)continue;
+      const t=param(X);
+      if(Math.abs(t-kParam)<.03)continue;
+      const side=t<kParam?0:1;
+      const lineVisible=proj==='p1'
+        ? lineOther.y<planeOther.y
+        : lineOther.y>planeOther.y;
+      const score=
+        segmentOutsideScore(lrec[proj],X)+
+        segmentOutsideScore(ref.rec[proj],X)+
+        segmentOutsideScore(lrec[other],lineOther)+
+        segmentOutsideScore(ref.rec[other],planeOther)+
+        Math.abs(t-kParam)*.02;
+      if(!best||score<best.score){
+        best={proj,other,X,lineOther,planeOther,ref,side,lineVisible,score};
+      }
+    }
+    return best;
+  }
+
   function segmentOutsideScore(seg,P){
     if(!seg||!P)return 0;
     const s=toSeg(seg),a=s[0],b=s[1];
