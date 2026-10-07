@@ -1053,8 +1053,17 @@ if (!onlyVariant && !onlyTask) try {
   $('variantSelect').dispatchEvent(new window.Event('change'));
   $('taskSelect').value='4';
   $('taskSelect').dispatchEvent(new window.Event('change'));
-  if($('dynamicInputs').textContent.includes('Требуется сверка')){
-    failures.push('source correction warning: refined 12/4 should not be flagged as a large displacement');
+  if($('dynamicInputs').textContent.includes('Требуется сверка') ||
+     $('dynamicInputs').textContent.includes('Требуется проверка пересечения')){
+    failures.push('source correction warning: refined 12/4 should not be flagged as an inconsistent source');
+  }
+
+  $('variantSelect').value='14';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='6';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  if(!$('dynamicInputs').textContent.includes('Требуется проверка пересечения')){
+    failures.push('source intersection warning: variant 14/6 has a large raw projector mismatch');
   }
 } catch(e) {
   failures.push('source correction warning regression: '+e.stack);
