@@ -2819,7 +2819,14 @@
 
   function appendABCPlaneEntities(out,scheme,step){
     if(scheme.planeType!=='ABC') return;
-    const A=normalizedPointRec(scheme.points.A),B=normalizedPointRec(scheme.points.B),C=normalizedPointRec(scheme.points.C);
+    const raw=name=>{
+      const P=scheme.points[name];
+      return {
+        p2:[+P.p2[0],+P.p2[1]],
+        p1:[+P.p1[0],+P.p1[1]]
+      };
+    };
+    const A=raw('A'),B=raw('B'),C=raw('C');
     [['A','B',A,B],['B','C',B,C],['C','A',C,A]].forEach(row=>{
       out.push(line(step,{x:row[2].p2[0],y:row[2].p2[1]},{x:row[3].p2[0],y:row[3].p2[1]},'object-line'));
       out.push(line(step,{x:row[2].p1[0],y:row[2].p1[1]},{x:row[3].p1[0],y:row[3].p1[1]},'object-line'));
