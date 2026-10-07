@@ -857,6 +857,27 @@ try {
   failures.push('task6 line-point helper regression: '+e.stack);
 }
 
+// Printed task-5 source uses script ell. Internal key "l" must never leak
+// into the visible source frame or role summary.
+if (!onlyVariant && !onlyTask) try {
+  for(const variant of variants){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='5';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+    const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+    if(!labels.includes('ℓ₁')||!labels.includes('ℓ₂')){
+      failures.push('task5 line notation '+variant+': ℓ₁/ℓ₂ missing from source frame');
+    }
+    if(labels.includes('l₁')||labels.includes('l₂')){
+      failures.push('task5 line notation '+variant+': internal Latin l leaked into source frame');
+    }
+  }
+} catch(e) {
+  failures.push('task5 line-notation regression: '+e.stack);
+}
+
 // Task 5 must expose the complete manual construction order in every
 // digitized variant: Ω first, then section points 1/2, then m and K, then
 // competing points, and only after that the final visibility strokes.
