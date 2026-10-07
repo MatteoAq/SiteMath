@@ -1000,6 +1000,21 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
   }
 });
 
+/* Preserve the traced paper drawing before any mathematical regularization.
+   The source frame must stay faithful to the photographed sheet. Solvers may
+   use cleaned geometry internally, but the user's copied givens must not move
+   just because a trace is slightly skewed by photo perspective. */
+(function preserveTracedSourceGeometry(){
+  const clone=value=>JSON.parse(JSON.stringify(value));
+  Object.values(window.SITEMATH_SCHEMES||{}).forEach(group=>{
+    [4,5,6].forEach(task=>{
+      const scheme=group&&group['task'+task];
+      if(!scheme||scheme.sourceGeometry)return;
+      scheme.sourceGeometry=clone(scheme);
+    });
+  });
+})();
+
 /* Mathematical cleanup of photographed traces.
    If a plane is explicitly defined by parallel lines, both displayed
    projections of those lines must be parallel. Old hand digitization can
@@ -1153,6 +1168,8 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
     if(!scheme)return;
     if(scheme.planeA) scheme.planeA.name=pair[0];
     if(scheme.planeB) scheme.planeB.name=pair[1];
+    if(scheme.sourceGeometry?.planeA) scheme.sourceGeometry.planeA.name=pair[0];
+    if(scheme.sourceGeometry?.planeB) scheme.sourceGeometry.planeB.name=pair[1];
   });
 })();
 
