@@ -3502,15 +3502,35 @@
       const A2={x:+generated.rec.p2[0][0],y:+generated.rec.p2[0][1]};
       i=steps.length;
       push({
-        title:'Дострой вторую линию '+pointName+'T в '+item.label,
-        action:'На заданной '+lineName+' выбери удобную точку T. Проведи линию связи T₁↔T₂, затем соедини '+pointName+'₁ с T₁ и '+pointName+'₂ с T₂.',
-        why:'Плоскость задана точкой '+pointName+' и прямой '+lineName+'. Для последующих сечений удобно явно построить ещё одну прямую '+pointName+'T, которая гарантированно лежит в этой плоскости. Точка T выбирается только на уже заданной '+lineName+'.',
-        measure:['T ∈ '+lineName,pointName+'T лежит в заданной плоскости'],
-        check:'T₁/T₂ лежат на соответствующих проекциях '+lineName+', а обе проекции '+pointName+'T проходят через '+pointName+'.'
+        title:'Выбери T₁ на '+lineName+'₁',
+        action:'На уже заданной проекции '+lineName+'₁ отметь удобную точку T₁.',
+        why:'Для построения второй прямой плоскости сначала достаточно выбрать одну проекцию точки T на существующей прямой '+lineName+'. Вторая проекция пока не назначается произвольно.',
+        measure:['T₁ ∈ '+lineName+'₁'],
+        check:'На этом шаге есть только выбранная T₁; T₂ и '+pointName+'T ещё не построены.'
       },[
-        point(i,T2,'T₂','construction-dot'),
-        point(i,T1,'T₁','construction-dot'),
-        line(i,T2,T1,'construction-line'),
+        point(i,T1,'T₁','construction-dot')
+      ]);
+
+      i=steps.length;
+      push({
+        title:'По линии связи получи T₂ на '+lineName+'₂',
+        action:'Из T₁ проведи проектор до '+lineName+'₂. Точку пересечения обозначь T₂.',
+        why:'T₁ и T₂ должны быть проекциями одной пространственной точки T, поэтому T₂ определяется линией связи и принадлежностью заданной прямой '+lineName+'.',
+        measure:['T₁↔T₂ – одна линия связи','T₂ ∈ '+lineName+'₂'],
+        check:'T₂ не выбирается отдельно: она стоит в пересечении проектора из T₁ с '+lineName+'₂.'
+      },[
+        line(i,T1,T2,'construction-line'),
+        point(i,T2,'T₂','construction-dot')
+      ]);
+
+      i=steps.length;
+      push({
+        title:'Соедини '+pointName+' с T – получи вторую прямую плоскости',
+        action:'Соедини '+pointName+'₁ с T₁ и '+pointName+'₂ с T₂.',
+        why:'Две пространственные точки '+pointName+' и T задают прямую '+pointName+'T. Обе точки принадлежат исходной плоскости, поэтому вся '+pointName+'T также лежит в ней и может использоваться в следующих сечениях.',
+        measure:[pointName+'T₁ = '+pointName+'₁T₁',pointName+'T₂ = '+pointName+'₂T₂'],
+        check:'Обе проекции '+pointName+'T проходят через соответствующие проекции '+pointName+' и T.'
+      },[
         line(i,A2,T2,'aux-line'),textEntity(i,T2,pointName+'T₂','svg-note'),
         line(i,A1,T1,'aux-line'),textEntity(i,T1,pointName+'T₁','svg-note')
       ]);
