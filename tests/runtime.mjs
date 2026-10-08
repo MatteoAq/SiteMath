@@ -813,6 +813,39 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('task4 plane-symbol regression: '+e.stack);
 }
 
+// "Дано / Найти" already exists for graphical tasks and is mandatory.
+ // Do not duplicate it in the UI, but never allow later refactors to hide or
+ // empty it for a digitized variant.
+if (!onlyVariant && !onlyTask) try {
+  for(const variant of variants){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    for(const task of [4,5,6]){
+      $('taskSelect').value=String(task);
+      $('taskSelect').dispatchEvent(new window.Event('change'));
+      const brief=$('problemBrief');
+      const given=($('problemGiven')?.textContent||'').trim();
+      const find=($('problemFind')?.textContent||'').trim();
+      if(!brief || brief.hidden){
+        failures.push('problem brief '+variant+'/'+task+': Дано/Найти block is hidden');
+      }
+      if(!given) failures.push('problem brief '+variant+'/'+task+': Дано is empty');
+      if(!find) failures.push('problem brief '+variant+'/'+task+': Найти is empty');
+      if(task===4 && !/пл\./i.test(given)){
+        failures.push('problem brief '+variant+'/4: Дано does not identify the source plane');
+      }
+      if(task===5 && (!/пл\./i.test(given) || !/ℓ/.test(given))){
+        failures.push('problem brief '+variant+'/5: Дано must contain plane and ℓ');
+      }
+      if(task===6 && (!/пл\./i.test(given) || !/[KM]/.test(given))){
+        failures.push('problem brief '+variant+'/6: Дано must contain both planes and the through-point');
+      }
+    }
+  }
+} catch(e) {
+  failures.push('problem brief regression: '+e.stack);
+}
+
 // Task 4: validate the "choose one point, derive the next one" sequence
 // across every currently digitized variant, including the separate point+line
 // construction path.
