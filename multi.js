@@ -1958,39 +1958,55 @@
 
   function normalizeSteps(steps,minimumWidth,minimumHeight){
     const pts=[];
+    const sourcePts=[];
+    const collect=(arr,target)=>arr.forEach(e=>collectEntityPoints(e,target));
     steps.forEach(st=>{
-      (st.entities||[]).forEach(e=>collectEntityPoints(e,pts));
-      (st.sourceEntities||[]).forEach(e=>collectEntityPoints(e,pts));
-    });
-    steps.forEach(st=>{
-      if(st.tool){ if(st.tool.a) pts.push(st.tool.a); if(st.tool.b) pts.push(st.tool.b); }
-    });
-
-    const good=pts.filter(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y));
-    const minimumW=minimumWidth||180,minimumH=minimumHeight||145,margin=18;
-    if(!good.length) return {width:minimumW,height:minimumH,shift:{x:0,y:0},scale:1};
-
-    const minX=Math.min(...good.map(p=>p.x)),maxX=Math.max(...good.map(p=>p.x));
-    const minY=Math.min(...good.map(p=>p.y)),maxY=Math.max(...good.map(p=>p.y));
-    const dx=margin-minX,dy=margin-minY;
-
-    // Do not scale photographed source coordinates here. Scaling the whole final
-    // solution by its furthest future construction made the first/source step tiny.
-    // The mobile viewer now fits the *currently visible* construction instead.
-    steps.forEach(st=>{
-      (st.entities||[]).forEach(e=>shiftEntity(e,dx,dy));
-      (st.sourceEntities||[]).forEach(e=>shiftEntity(e,dx,dy));
+      collect(st.entities||[],pts);
+      collect(st.sourceEntities||[],pts);
       if(st.tool){
-        if(st.tool.a) st.tool.a=shiftPoint(st.tool.a,dx,dy);
-        if(st.tool.b) st.tool.b=shiftPoint(st.tool.b,dx,dy);
+        if(st.tool.a)pts.push(st.tool.a);
+        if(st.tool.b)pts.push(st.tool.b);
       }
     });
+    collect(steps[0]?.sourceEntities||steps[0]?.entities||[],sourcePts);
+    const valid=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y);
+    const good=pts.filter(valid),raw=sourcePts.filter(valid);
+    const minimumW=minimumWidth||180,minimumH=minimumHeight||145,margin=18;
+    if(!good.length)return {width:minimumW,height:minimumH,shift:{x:0,y:0},scale:1};
 
+    // Graphical problems have no stated numerical scale. Choose ONE similarity
+    // factor for the entire source and every constructed object, so the given
+    // figure fits a real notebook area (~33 cells across its longer side).
+    // Never snap source endpoints individually: that corrupts angles and
+    // incidence. Raw photographed sourceGeometry stays immutable.
+    const spanOf=(list,key)=>Math.max(...list.map(p=>p[key]))-Math.min(...list.map(p=>p[key]));
+    const span=Math.max(spanOf(raw.length?raw:good,'x'),spanOf(raw.length?raw:good,'y'));
+    const scale=Math.min(1,165/Math.max(1,span));
+    const minX=Math.min(...good.map(p=>p.x)),maxX=Math.max(...good.map(p=>p.x));
+    const minY=Math.min(...good.map(p=>p.y)),maxY=Math.max(...good.map(p=>p.y));
+    const dx=ceilToGrid(margin-minX*scale),dy=ceilToGrid(margin-minY*scale);
+    const move=p=>p?{x:p.x*scale+dx,y:p.y*scale+dy}:p;
+    const transform=e=>{
+      if(e.a)e.a=move(e.a);
+      if(e.b)e.b=move(e.b);
+      if(e.p)e.p=move(e.p);
+      if(e.c)e.c=move(e.c);
+      if(Number.isFinite(e.r))e.r*=scale;
+      if(e.offset)e.offset={x:e.offset.x*scale,y:e.offset.y*scale};
+    };
+    steps.forEach(st=>{
+      (st.entities||[]).forEach(transform);
+      (st.sourceEntities||[]).forEach(transform);
+      if(st.tool){
+        if(st.tool.a)st.tool.a=move(st.tool.a);
+        if(st.tool.b)st.tool.b=move(st.tool.b);
+      }
+    });
     return {
-      width:Math.max(minimumW,maxX-minX+2*margin),
-      height:Math.max(minimumH,maxY-minY+2*margin),
+      width:ceilToGrid(Math.max(minimumW,(maxX-minX)*scale+2*margin)),
+      height:ceilToGrid(Math.max(minimumH,(maxY-minY)*scale+2*margin)),
       shift:{x:dx,y:dy},
-      scale:1
+      scale
     };
   }
 
@@ -2816,7 +2832,7 @@
     },[]);
 
     const norm=normalizeSteps(steps,200,155);
-    return {width:norm.width,height:norm.height,O:{x:0,y:0},steps:steps,diagramPending:false};
+    return {width:norm.width,height:norm.height,O:{x:0,y:0},steps:steps,diagramPending:false,paperScale:norm.scale};
   }
 
 
@@ -3227,7 +3243,7 @@
     ]);
 
     const norm=normalizeSteps(steps,200,165);
-    return {width:norm.width,height:norm.height,O:{x:0,y:0},steps:steps,diagramPending:false};
+    return {width:norm.width,height:norm.height,O:{x:0,y:0},steps:steps,diagramPending:false,paperScale:norm.scale};
   }
 
   function planeFromDef(def){
@@ -3793,7 +3809,7 @@
     },[]);
 
     const norm=normalizeSteps(steps,210,170);
-    return {width:norm.width,height:norm.height,O:{x:0,y:0},steps,diagramPending:false,graphicalConstruction:true};
+    return {width:norm.width,height:norm.height,O:{x:0,y:0},steps,diagramPending:false,graphicalConstruction:true,paperScale:norm.scale};
   }
 
   function intersectionPlanes(p1,p2){
@@ -4016,7 +4032,7 @@
     },[]);
 
     const norm=normalizeSteps(steps,210,170);
-    return {width:norm.width,height:norm.height,O:{x:0,y:0},steps:steps,diagramPending:false};
+    return {width:norm.width,height:norm.height,O:{x:0,y:0},steps:steps,diagramPending:false,paperScale:norm.scale};
   }
 
   function solveDiagramTask(task,stored){
@@ -4497,6 +4513,7 @@
     const g=state.geometry;
     svg.replaceChildren();
     svg.setAttribute('viewBox','0 0 '+g.width+' '+g.height);
+    svg.setAttribute('data-paper-scale',String(g.paperScale||1));
     svg.setAttribute('width',g.width+'mm');
     svg.setAttribute('height',g.height+'mm');
     drawGrid(g.width,g.height);
@@ -4589,9 +4606,9 @@
       $('gridValue').textContent='5 мм = 0,5 см';
       $('sheetSize').textContent=Math.round(solved.width)+' × '+Math.round(solved.height)+' мм';
     } else {
-      $('scaleValue').textContent='по исходной схеме';
-      $('gridValue').textContent='вспомогательная';
-      $('sheetSize').textContent='авто';
+      $('scaleValue').textContent='условный, пропорции сохранены';
+      $('gridValue').textContent='5 мм – для переноса в тетрадь';
+      $('sheetSize').textContent=Math.round(solved.width)+' × '+Math.round(solved.height)+' мм';
     }
     $('diagramStatus').textContent=solved.diagramPending?'нужна исходная схема':'решаются автоматически';
     renderDrawing();
