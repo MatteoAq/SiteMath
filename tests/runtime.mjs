@@ -573,7 +573,7 @@ if (!onlyVariant && !onlyTask) try {
     };
     const addDef=def=>{
       Object.values(def?.lines||{}).forEach(addLine);
-      if(def?.type==='ABC'){
+      if(def?.type==='ABC'||def?.planeType==='ABC'){
         for(const [a,b] of [['A','B'],['B','C'],['C','A']]){
           for(const proj of ['p2','p1']){
             const A=def.points[a][proj],B=def.points[b][proj];
