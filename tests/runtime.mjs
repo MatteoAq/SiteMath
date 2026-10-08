@@ -418,7 +418,8 @@ try {
     else {
       const x1=Number(k1.getAttribute('cx')),x2=Number(k2.getAttribute('cx'));
       const rawGap=raw6.pointK.p1[0]-raw6.pointK.p2[0];
-      if(Math.abs((x1-x2)-rawGap)>1e-6){
+      const paperScale=Number(window.document.querySelector('#drawing')?.getAttribute('data-paper-scale'))||1;
+      if(Math.abs((x1-x2)-rawGap*paperScale)>1e-6){
         failures.push('variant12 source reconstruction: raw K projector gap must remain unchanged on initial frame');
       }
     }
@@ -602,15 +603,16 @@ if (!onlyVariant && !onlyTask) try {
     }
     if(!expected.length)continue;
     const start=actual[0];
-    const dx=Number(start.getAttribute('x1'))-expected[0].x;
-    const dy=Number(start.getAttribute('y1'))-expected[0].y;
+    const paperScale=Number(window.document.querySelector('#drawing')?.getAttribute('data-paper-scale'))||1;
+    const dx=Number(start.getAttribute('x1'))-expected[0].x*paperScale;
+    const dy=Number(start.getAttribute('y1'))-expected[0].y*paperScale;
     const same=(v,w)=>Math.abs(Number(v)-Number(w))<.001;
     expected.forEach((ref,i)=>{
       const el=actual[i];
-      if(!same(el.getAttribute('x1'),ref.x+dx) ||
-         !same(el.getAttribute('y1'),ref.y+dy) ||
-         !same(el.getAttribute('x2'),ref.X+dx) ||
-         !same(el.getAttribute('y2'),ref.Y+dy)){
+      if(!same(el.getAttribute('x1'),ref.x*paperScale+dx) ||
+         !same(el.getAttribute('y1'),ref.y*paperScale+dy) ||
+         !same(el.getAttribute('x2'),ref.X*paperScale+dx) ||
+         !same(el.getAttribute('y2'),ref.Y*paperScale+dy)){
         failures.push('variant12/'+task+': first-frame object line '+i+' differs from photographed trace');
       }
     });
@@ -620,8 +622,8 @@ if (!onlyVariant && !onlyTask) try {
       for(const [proj,sub] of [['p1','₁'],['p2','₂']]){
         const el=window.document.querySelector('#drawing circle[data-label="'+name+sub+'"]');
         const point=record[proj];
-        if(!el || !same(el.getAttribute('cx'),point[0]+dx) ||
-           !same(el.getAttribute('cy'),point[1]+dy)){
+        if(!el || !same(el.getAttribute('cx'),point[0]*paperScale+dx) ||
+           !same(el.getAttribute('cy'),point[1]*paperScale+dy)){
           failures.push('variant12/'+task+': raw first-frame '+name+sub+' was normalized or misplaced');
         }
       }
@@ -1749,6 +1751,45 @@ try {
 } catch (e) {
   failures.push('grid regression: '+e.stack);
 }
+
+try {
+
+  // The notebook overlay must remain a real 5 mm coordinate instrument,
+  // with transfer marks independent of the photographed source entities.
+  $('variantSelect').value='12';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='4';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('firstBtn').click();
+  const paperScale=Number($('drawing').getAttribute('data-paper-scale'));
+  if(!Number.isFinite(paperScale)||paperScale<=0||paperScale>1){
+    failures.push('notebook transfer: invalid uniform paper scale');
+  }
+  if($('notebookTransfer')?.hidden || !$('notebookTransferRows')?.querySelector('table')){
+    failures.push('notebook transfer: no source endpoint coordinates');
+  }
+  if(!$('drawing').querySelector('.notebook-origin') || !$('drawing').querySelector('.notebook-endpoint')){
+    failures.push('notebook transfer: reference origin/endpoints are missing');
+  }
+  const sourceLines=[...$('drawing').querySelectorAll('line.object-line')];
+  const sourceData=window.SITEMATH_SCHEMES['12'].task4.sourceGeometry;
+  const actual=sourceLines.find(x=>x.getAttribute('class')?.includes('object-line'));
+  const raw=sourceData.lines.a.p2;
+  if(actual){
+    const vx=+actual.getAttribute('x2')- +actual.getAttribute('x1');
+    const vy=+actual.getAttribute('y2')- +actual.getAttribute('y1');
+    const ux=raw[1][0]-raw[0][0],uy=raw[1][1]-raw[0][1];
+    if(Math.abs(vx*uy-vy*ux)>1e-5)failures.push('notebook transfer: source angle distorted');
+  }
+  $('notebookTransferMarkers').checked=false;
+  $('notebookTransferMarkers').dispatchEvent(new window.Event('change'));
+  if($('drawing').querySelector('.notebook-origin,.notebook-endpoint')){
+    failures.push('notebook transfer: annotations cannot be hidden');
+  }
+  $('notebookTransferMarkers').checked=true;
+  $('notebookTransferMarkers').dispatchEvent(new window.Event('change'));
+
+} catch(e){failures.push('notebook transfer regression: '+e.stack);}
 
 // Custom-data UI smoke test, including the profile-line special case in task 3.
 if (!onlyVariant && !onlyTask) try {
