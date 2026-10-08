@@ -4731,6 +4731,7 @@
   $('zoomOutBtn').addEventListener('click',()=>setDrawingZoom('out'));
   $('zoomFitBtn').addEventListener('click',()=>setDrawingZoom('fit'));
   $('zoom100Btn').addEventListener('click',()=>setDrawingZoom('100'));
+  $('notebookTransferMarkers')?.addEventListener('change',renderDrawing);
   $('zoomInBtn').addEventListener('click',()=>setDrawingZoom('in'));
   $('mobileFitBtn').addEventListener('click',()=>setDrawingZoom('fit'));
   $('mobileSetupBtn').addEventListener('click',openMobileSetup);
