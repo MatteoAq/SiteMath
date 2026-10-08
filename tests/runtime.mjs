@@ -544,6 +544,81 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('source frame semantic regression: '+e.stack);
 }
 
+// The photographed first frame must use exact raw coordinates, not solver
+// regularization. Compare each source object line after a common viewport shift,
+// and each original named point before moving beyond the first step.
+if (!onlyVariant && !onlyTask) try {
+  const group=window.SITEMATH_SCHEMES?.['12'];
+  const xy=rec=>[{x:rec[0][0],y:rec[0][1],X:rec[1][0],Y:rec[1][1]}];
+  const expectedLines=(task,raw)=>{
+    const out=[];
+    const addLine=rec=>{
+      for(const proj of ['p2','p1']){
+        const line=rec[proj];
+        if(line)out.push(...xy(line));
+      }
+    };
+    const addDef=def=>{
+      Object.values(def?.lines||{}).forEach(addLine);
+      if(def?.type==='ABC'){
+        for(const [a,b] of [['A','B'],['B','C'],['C','A']]){
+          for(const proj of ['p2','p1']){
+            const A=def.points[a][proj],B=def.points[b][proj];
+            out.push({x:A[0],y:A[1],X:B[0],Y:B[1]});
+          }
+        }
+      }
+    };
+    if(task===6){
+      addDef(raw.planeA);addDef(raw.planeB);
+    } else addDef(raw);
+    return out;
+  };
+  for(const task of [4,5,6]){
+    $('variantSelect').value='12';
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value=String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+    const raw=group?.['task'+task]?.sourceGeometry;
+    if(!raw){failures.push('variant12/'+task+': raw sourceGeometry is missing');continue;}
+    const expected=expectedLines(task,raw);
+    const actual=[...window.document.querySelectorAll('#drawing line.object-line')];
+    if(expected.length!==actual.length){
+      failures.push('variant12/'+task+': source lines '+actual.length+' != '+expected.length);
+      continue;
+    }
+    if(!expected.length)continue;
+    const start=actual[0];
+    const dx=Number(start.getAttribute('x1'))-expected[0].x;
+    const dy=Number(start.getAttribute('y1'))-expected[0].y;
+    const same=(v,w)=>Math.abs(Number(v)-Number(w))<.001;
+    expected.forEach((ref,i)=>{
+      const el=actual[i];
+      if(!same(el.getAttribute('x1'),ref.x+dx) ||
+         !same(el.getAttribute('y1'),ref.y+dy) ||
+         !same(el.getAttribute('x2'),ref.X+dx) ||
+         !same(el.getAttribute('y2'),ref.Y+dy)){
+        failures.push('variant12/'+task+': first-frame object line '+i+' differs from photographed trace');
+      }
+    });
+    const rawPoints=task===4?raw.points:task===5?raw.points:{K:raw.pointK};
+    for(const [name,record] of Object.entries(rawPoints||{})){
+      if(!record?.p1||!record?.p2)continue;
+      for(const [proj,sub] of [['p1','₁'],['p2','₂']]){
+        const el=window.document.querySelector('#drawing circle[data-label="'+name+sub+'"]');
+        const point=record[proj];
+        if(!el || !same(el.getAttribute('cx'),point[0]+dx) ||
+           !same(el.getAttribute('cy'),point[1]+dy)){
+          failures.push('variant12/'+task+': raw first-frame '+name+sub+' was normalized or misplaced');
+        }
+      }
+    }
+  }
+} catch(e){
+  failures.push('exact photographed first-frame regression: '+e.stack);
+}
+
 // Freeze the raw paper traces for every digitized variant. Solver cleanup,
  // refactors and notation work may change derived geometry, but the copied
  // source sheet is immutable unless that variant is explicitly retraced from
