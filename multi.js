@@ -4614,6 +4614,9 @@
     svg.setAttribute('data-paper-scale',String(g.paperScale||1));
     svg.setAttribute('width',g.width+'mm');
     svg.setAttribute('height',g.height+'mm');
+    // A fit-to-screen zoom must never change the printed 5 mm cell size.
+    svg.style.setProperty('--drawing-paper-width',g.width+'mm');
+    svg.style.setProperty('--drawing-paper-height',g.height+'mm');
     drawGrid(g.width,g.height);
     const visibilityDone=state.task===5 && state.steps
       .slice(0,state.step+1).some(step=>step.title?.startsWith('Нанеси видимость ℓ'));
