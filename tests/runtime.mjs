@@ -27,8 +27,8 @@ const variants = [...$('variantSelect').options]
 const failures = [];
 
 // Drafting-line semantics are part of correctness: construction/auxiliary lines
-// stay thin and solid; only hidden geometry may be dashed; paper grid is not
-// displayed in the finished drafting field.
+// stay thin and solid; only hidden geometry may be dashed. The paper grid is
+// visible again and represents the 5 mm drafting cell used by coordinate tasks.
 try {
   const css=fs.readFileSync('styles.css','utf8');
   const firstRule=name=>{
@@ -44,11 +44,22 @@ try {
     const m=rule.match(/stroke-dasharray\s*:\s*([^;]+)/i);
     return m?m[1].trim().toLowerCase():'';
   };
+  const visibleStroke=rule=>{
+    const m=rule.match(/stroke\s*:\s*([^;]+)/i);
+    if(!m) return false;
+    const v=m[1].trim().toLowerCase();
+    return v!=='transparent' && v!=='none' && v!=='rgba(0,0,0,0)' && v!=='#0000';
+  };
   if(dashValue(aux)!=='none') failures.push('drafting style: auxiliary lines are not solid');
   if(dashValue(construction)!=='none') failures.push('drafting style: construction lines are dashed');
   if(!dashValue(hidden) || dashValue(hidden)==='none') failures.push('drafting style: hidden geometry is not dashed');
-  if(!/stroke\s*:\s*transparent/i.test(gridMinor)||!/stroke\s*:\s*transparent/i.test(gridMajor)){
-    failures.push('drafting style: background grid is visible');
+  if(!visibleStroke(gridMinor)||!visibleStroke(gridMajor)){
+    failures.push('drafting style: 5 mm background grid is hidden');
+  }
+  const printBlock=(css.match(/@media\s+print\s*\{([\s\S]*?)\n\}/i)||[])[1]||'';
+  if(/\.grid-minor[\s\S]*?stroke\s*:\s*transparent/i.test(printBlock) ||
+     /\.grid-major[\s\S]*?stroke\s*:\s*transparent/i.test(printBlock)){
+    failures.push('drafting style: print/PDF hides the 5 mm grid');
   }
 } catch(e) {
   failures.push('drafting style regression: '+e.stack);
