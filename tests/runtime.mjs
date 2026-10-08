@@ -1776,21 +1776,27 @@ try {
         failures.push('grid alignment 12/'+task+': minor/major pattern origin mismatch');
       }
     }
-    const dots=[...svg.querySelectorAll('circle')].filter(el=>el.hasAttribute('cx')&&el.hasAttribute('cy'));
-    if(!dots.length)failures.push('grid alignment 12/'+task+': no source dots');
-    else {
-      const aligned=dots.some(el=>{
-        const a=(Number(el.getAttribute('cx'))-x)/5;
-        const b=(Number(el.getAttribute('cy'))-y)/5;
-        return Math.abs(a-Math.round(a))<.000001 &&
-          Math.abs(b-Math.round(b))<.000001;
-      });
-      if(!aligned)failures.push('grid alignment 12/'+task+': grid does not coincide with any given point');
+    // Any given point may lie between cell crossings. The *reference axes*
+    // must coincide with full, straight grid lines, as in a squared notebook.
+    // The original geometry is never rounded to individual cells.
+    if(!svg.querySelector('line.object-line')){
+      failures.push('grid alignment 12/'+task+': given geometry missing');
     }
     if($('notebookTransfer')||svg.querySelector('.notebook-origin,.notebook-endpoint,.notebook-grid-offset')){
       failures.push('grid alignment 12/'+task+': unnecessary copy overlay remains');
     }
     $('nextBtn').click();
+    const axes=[...svg.querySelectorAll('line.axis')];
+    const nearGrid=(value,offset)=>{
+      const k=(value-offset)/5;
+      return Math.abs(k-Math.round(k))<1e-6;
+    };
+    const v=axes.find(e=>Math.abs(Number(e.getAttribute('x1'))-Number(e.getAttribute('x2')))<1e-6);
+    const h=axes.find(e=>Math.abs(Number(e.getAttribute('y1'))-Number(e.getAttribute('y2')))<1e-6);
+    if(!v||!h)failures.push('grid alignment 12/'+task+': reference axes missing');
+    else if(!nearGrid(Number(v.getAttribute('x1')),x)||!nearGrid(Number(h.getAttribute('y1')),y)){
+      failures.push('grid alignment 12/'+task+': x12 or z axis is between grid lines');
+    }
     if(Math.abs(Number(svg.getAttribute('data-grid-phase-x'))-x)>1e-8 ||
        Math.abs(Number(svg.getAttribute('data-grid-phase-y'))-y)>1e-8){
       failures.push('grid alignment 12/'+task+': background grid jumps between steps');
