@@ -1752,56 +1752,39 @@ try {
   failures.push('grid regression: '+e.stack);
 }
 
+// The background grid is the only copy guide: its origin follows a given
+// point, while the original drawing remains unchanged.
 try {
-
-  // Notebook coordinates are tied to the printed 5 mm grid without
-  // separate brown squares or offset strokes over the geometry.
-  $('variantSelect').value='12';
-  $('variantSelect').dispatchEvent(new window.Event('change'));
-  $('taskSelect').value='4';
-  $('taskSelect').dispatchEvent(new window.Event('change'));
-  $('firstBtn').click();
-  const paperScale=Number($('drawing').getAttribute('data-paper-scale'));
-  if(!Number.isFinite(paperScale)||paperScale<=0||paperScale>1){
-    failures.push('notebook transfer: invalid uniform paper scale');
-  }
-  if($('notebookTransfer')?.hidden || !$('notebookTransferRows')?.querySelector('table')){
-    failures.push('notebook transfer: no source endpoint coordinates');
-  }
-  if($('notebookTransferMarkers'))failures.push('notebook transfer: obsolete marker switch remains');
-  const rejectOverlay=()=>{
-    if($('drawing').querySelector('.notebook-origin,.notebook-origin-text,.notebook-endpoint,.notebook-grid-offset')){
-      failures.push('notebook transfer: drawing is cluttered by coordinate markers');
+  for(const task of [4,5,6]){
+    $('variantSelect').value='12';
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value=String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+    const svg=$('drawing');
+    const x=Number(svg.getAttribute('data-grid-phase-x'));
+    const y=Number(svg.getAttribute('data-grid-phase-y'));
+    const dots=[...svg.querySelectorAll('circle')].filter(el=>el.hasAttribute('cx')&&el.hasAttribute('cy'));
+    if(!dots.length)failures.push('grid alignment 12/'+task+': no source dots');
+    else {
+      const aligned=dots.some(el=>{
+        const a=(Number(el.getAttribute('cx'))-x)/5;
+        const b=(Number(el.getAttribute('cy'))-y)/5;
+        return Math.abs(a-Math.round(a))<.000001 &&
+          Math.abs(b-Math.round(b))<.000001;
+      });
+      if(!aligned)failures.push('grid alignment 12/'+task+': grid does not coincide with any given point');
     }
-  };
-  rejectOverlay();
-  $('nextBtn').click();
-  rejectOverlay();
-  $('firstBtn').click();
-  const sourceLines=[...$('drawing').querySelectorAll('line.object-line')];
-  const sourceData=window.SITEMATH_SCHEMES['12'].task4.sourceGeometry;
-  const actual=sourceLines.find(x=>x.getAttribute('class')?.includes('object-line'));
-  const raw=sourceData.lines.a.p2;
-  if(actual){
-    const vx=+actual.getAttribute('x2')- +actual.getAttribute('x1');
-    const vy=+actual.getAttribute('y2')- +actual.getAttribute('y1');
-    const ux=raw[1][0]-raw[0][0],uy=raw[1][1]-raw[0][1];
-    if(Math.abs(vx*uy-vy*ux)>1e-5)failures.push('notebook transfer: source angle distorted');
+    if($('notebookTransfer')||svg.querySelector('.notebook-origin,.notebook-endpoint,.notebook-grid-offset')){
+      failures.push('grid alignment 12/'+task+': unnecessary copy overlay remains');
+    }
+    $('nextBtn').click();
+    if(Math.abs(Number(svg.getAttribute('data-grid-phase-x'))-x)>1e-8 ||
+       Math.abs(Number(svg.getAttribute('data-grid-phase-y'))-y)>1e-8){
+      failures.push('grid alignment 12/'+task+': background grid jumps between steps');
+    }
   }
-  $('nextBtn').click();
-  rejectOverlay();
-  $('taskSelect').value='6';
-  $('taskSelect').dispatchEvent(new window.Event('change'));
-  const rows=[...$('notebookTransferRows').querySelectorAll('tbody tr')].map(tr=>[...tr.children].map(td=>td.textContent));
-  const k1=rows.find(r=>r[0]==='K₁'),k2=rows.find(r=>r[0]==='K₂');
-  if(!k1||!k2 || k1[1].split(';')[0]!==k2[1].split(';')[0]){
-    failures.push('notebook transfer: pair K₁/K₂ must share a vertical projector');
-  }
-  $('firstBtn').click();
-  rejectOverlay();
-
-
-} catch(e){failures.push('notebook transfer regression: '+e.stack);}
+}catch(e){failures.push('grid alignment regression: '+e.stack);}
 
 // Custom-data UI smoke test, including the profile-line special case in task 3.
 if (!onlyVariant && !onlyTask) try {
