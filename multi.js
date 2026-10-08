@@ -4509,6 +4509,91 @@
     wrap.addEventListener('pointercancel',release);
   }
 
+
+  // Notebook coordinates are referenced to a real intersection of the
+  // 5 mm background grid. Values may contain tenths of a cell: moving
+  // source endpoints onto integer intersections would falsify the drawing.
+  function notebookTransferData(){
+    const entities=state.steps?.[0]?.sourceEntities;
+    if(!entities?.length)return null;
+    const records=[],coords=[];
+    const add=(p)=>{if(p&&Number.isFinite(p.x)&&Number.isFinite(p.y))coords.push(p);};
+    entities.forEach((e,i)=>{
+      if(e.type==='line' && e.cls?.includes('object-line')){
+        const next=entities[i+1];
+        const label=next?.type==='text' ? next.label : null;
+        if(label && /[₁₂]/.test(label)){
+          records.push({label,a:e.a,b:e.b,kind:'line'});
+          add(e.a);add(e.b);
+        }
+      }
+      if(e.type==='point' && e.label && /[₁₂]/.test(e.label)){
+        records.push({label:e.label,p:e.p,kind:'point'});
+        add(e.p);
+      }
+    });
+    if(!coords.length)return null;
+    return {
+      records,
+      origin:{
+        x:Math.floor(Math.min(...coords.map(p=>p.x))/GRID)*GRID,
+        y:Math.floor(Math.min(...coords.map(p=>p.y))/GRID)*GRID
+      }
+    };
+  }
+
+  function renderNotebookTransfer(){
+    const panel=$('notebookTransfer'),holder=$('notebookTransferRows');
+    if(!panel||!holder)return;
+    const data=state.task>=4?notebookTransferData():null;
+    panel.hidden=!data;
+    holder.replaceChildren();
+    if(!data)return;
+    const table=document.createElement('table');
+    table.className='notebook-transfer-table';
+    const head=document.createElement('thead'),headRow=document.createElement('tr');
+    ['Объект','Начало / точка','Конец'].forEach(title=>{
+      const th=document.createElement('th');th.textContent=title;headRow.append(th);
+    });
+    head.append(headRow);table.append(head);
+    const body=document.createElement('tbody');
+    const cell=p=>{
+      if(!p)return '–';
+      const n=v=>(Math.round(v*10)/10).toLocaleString('ru-RU',{maximumFractionDigits:1});
+      return n((p.x-data.origin.x)/GRID)+'; '+n((p.y-data.origin.y)/GRID);
+    };
+    data.records.forEach(rec=>{
+      const tr=document.createElement('tr');
+      [rec.label,cell(rec.kind==='point'?rec.p:rec.a),cell(rec.b)].forEach(v=>{
+        const td=document.createElement('td');td.textContent=v;tr.append(td);
+      });
+      body.append(tr);
+    });
+    table.append(body);holder.append(table);
+  }
+
+  function drawNotebookTransferMarkers(){
+    if(state.task<4 || state.step!==0 || !$('notebookTransferMarkers')?.checked)return;
+    const data=notebookTransferData();
+    if(!data)return;
+    const o=data.origin;
+    svg.append(E('path',{d:'M '+(o.x-2)+' '+o.y+' h 4 M '+o.x+' '+(o.y-2)+' v 4',class:'notebook-origin'}));
+    svg.append(E('text',{x:o.x+2.2,y:o.y-2,class:'notebook-origin-text'},'0;0'));
+    const used=new Set();
+    data.records.forEach(rec=>{
+      const pts=rec.kind==='point'?[rec.p]:[rec.a,rec.b];
+      pts.forEach(p=>{
+        const key=Math.round(p.x*100)+'/'+Math.round(p.y*100);
+        if(used.has(key))return;
+        used.add(key);
+        svg.append(E('rect',{
+          x:p.x-.65,y:p.y-.65,width:1.3,height:1.3,
+          class:'notebook-endpoint'
+        }));
+      });
+    });
+  }
+
   function renderDrawing(){
     const g=state.geometry;
     svg.replaceChildren();
@@ -4531,6 +4616,8 @@
         drawEntity(e,idx===state.step);
       });
     });
+    renderNotebookTransfer();
+    drawNotebookTransferMarkers();
     renderExplanation();
     applyDrawingZoom();
     animateCurrent();
