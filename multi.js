@@ -4293,7 +4293,9 @@
     for(let i=0;i<=state.step;i++){
       const st=state.steps[i];
       if(!st) continue;
-      (st.entities||[]).forEach(e=>collectEntityPoints(e,pts));
+      const shown=(i===0 && state.step===0 && st.sourceEntities)
+        ? st.sourceEntities : st.entities||[];
+      shown.forEach(e=>collectEntityPoints(e,pts));
       if(st.tool){
         if(st.tool.a) pts.push(st.tool.a);
         if(st.tool.b) pts.push(st.tool.b);
