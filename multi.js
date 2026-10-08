@@ -4590,6 +4590,13 @@
         const key=Math.round(p.x*100)+'/'+Math.round(p.y*100);
         if(used.has(key))return;
         used.add(key);
+        const nearest={x:Math.round(p.x/GRID)*GRID,y:Math.round(p.y/GRID)*GRID};
+        if(Math.hypot(nearest.x-p.x,nearest.y-p.y)>.12){
+          svg.append(E('line',{
+            x1:nearest.x,y1:nearest.y,x2:p.x,y2:p.y,
+            class:'notebook-grid-offset'
+          }));
+        }
         svg.append(E('rect',{
           x:p.x-.65,y:p.y-.65,width:1.3,height:1.3,
           class:'notebook-endpoint'
