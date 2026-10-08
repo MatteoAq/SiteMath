@@ -140,8 +140,8 @@ button { border: 0; border-radius: 11px; padding: 10px 12px; font-weight: 750; }
 .source-body li + li { margin-top: 6px; }
 
 /* SVG */
-.grid-minor { stroke: transparent; stroke-width: .18; }
-.grid-major { stroke: transparent; stroke-width: .28; }
+.grid-minor { stroke: var(--paper-line); stroke-width: .18; }
+.grid-major { stroke: var(--paper-major); stroke-width: .28; }
 .axis { stroke: #37332e; stroke-width: .55; fill: none; }
 .construction-line { stroke: var(--construction); stroke-width: .32; fill: none; stroke-dasharray: none; }
 .source-guide-line { stroke:#77716a; stroke-width:.28; fill:none; }
@@ -729,8 +729,8 @@ a { color:#7c3aed; }
 .stage-toolbar { border-bottom-color:rgba(117,83,132,.14); }
 .step-badge { color:#9b286f; }
 .explain-grid section { border-top-color:#dfd1e4; }
-.grid-minor { stroke:transparent; }
-.grid-major { stroke:transparent; }
+.grid-minor { stroke:#eadfed; }
+.grid-major { stroke:#d7c2df; }
 .axis { stroke:#352a3c; }
 .object-line { stroke:#34293a; }
 .answer-line,.answer-dot { stroke:#7c3aed; fill:#7c3aed; }
@@ -2164,9 +2164,11 @@ body { color:var(--ui-text); }
     margin:0 !important;
     box-shadow:none !important;
   }
-  .grid-minor,
+  .grid-minor {
+    stroke:#e4e4e4 !important;
+  }
   .grid-major {
-    stroke:transparent !important;
+    stroke:#cfcfcf !important;
   }
   .tool-overlay {
     display:none !important;
