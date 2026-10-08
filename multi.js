@@ -4503,6 +4503,20 @@
   // so more of the original geometry lies on crossings of the paper grid.
   function drawingGridAnchor(){
     if(state.task<=3)return {x:0,y:0};
+
+    // The visible x₁₂ and z/y reference axes are the useful notebook rulers.
+    // Snap the EXISTING grid phase to their crossing, never to a random
+    // source point. Both axes then coincide with continuous grid lines.
+    // This keeps a stable phase even before the axes appear at step two.
+    const axisStep=state.steps?.find(step=>{
+      const a=(step.entities||[]).filter(e=>e.type==='line'&&e.cls==='axis');
+      return a.length>=2;
+    });
+    const axes=(axisStep?.entities||[]).filter(e=>e.type==='line'&&e.cls==='axis');
+    const vertical=axes.find(e=>Math.abs(e.a.x-e.b.x)<1e-6);
+    const horizontal=axes.find(e=>Math.abs(e.a.y-e.b.y)<1e-6);
+    if(vertical&&horizontal)return {x:vertical.a.x,y:horizontal.a.y};
+
     const first=state.steps?.[0];
     const entities=first?.sourceEntities||first?.entities||[];
     const candidates=[],points=[];
