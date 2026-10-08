@@ -4539,13 +4539,9 @@
       }
     });
     if(!coords.length)return null;
-    return {
-      records,
-      origin:{
-        x:Math.floor(Math.min(...coords.map(p=>p.x))/GRID)*GRID,
-        y:Math.floor(Math.min(...coords.map(p=>p.y))/GRID)*GRID
-      }
-    };
+    // The visible grid already begins at the top-left corner of the page.
+    // No auxiliary squares, crosses or offset strokes are necessary.
+    return {records,origin:{x:0,y:0}};
   }
 
   function renderNotebookTransfer(){
@@ -4578,34 +4574,6 @@
     table.append(body);holder.append(table);
   }
 
-  function drawNotebookTransferMarkers(){
-    if(state.task<4 || state.step!==1 || !$('notebookTransferMarkers')?.checked)return;
-    const data=notebookTransferData();
-    if(!data)return;
-    const o=data.origin;
-    svg.append(E('path',{d:'M '+(o.x-2)+' '+o.y+' h 4 M '+o.x+' '+(o.y-2)+' v 4',class:'notebook-origin'}));
-    svg.append(E('text',{x:o.x+2.2,y:o.y-2,class:'notebook-origin-text'},'0;0'));
-    const used=new Set();
-    data.records.forEach(rec=>{
-      const pts=rec.kind==='point'?[rec.p]:[rec.a,rec.b];
-      pts.forEach(p=>{
-        const key=Math.round(p.x*100)+'/'+Math.round(p.y*100);
-        if(used.has(key))return;
-        used.add(key);
-        const nearest={x:Math.round(p.x/GRID)*GRID,y:Math.round(p.y/GRID)*GRID};
-        if(Math.hypot(nearest.x-p.x,nearest.y-p.y)>.12){
-          svg.append(E('line',{
-            x1:nearest.x,y1:nearest.y,x2:p.x,y2:p.y,
-            class:'notebook-grid-offset'
-          }));
-        }
-        svg.append(E('rect',{
-          x:p.x-.65,y:p.y-.65,width:1.3,height:1.3,
-          class:'notebook-endpoint'
-        }));
-      });
-    });
-  }
 
   function renderDrawing(){
     const g=state.geometry;
@@ -4633,7 +4601,6 @@
       });
     });
     renderNotebookTransfer();
-    drawNotebookTransferMarkers();
     renderExplanation();
     applyDrawingZoom();
     animateCurrent();
@@ -4747,7 +4714,6 @@
   $('zoomOutBtn').addEventListener('click',()=>setDrawingZoom('out'));
   $('zoomFitBtn').addEventListener('click',()=>setDrawingZoom('fit'));
   $('zoom100Btn').addEventListener('click',()=>setDrawingZoom('100'));
-  $('notebookTransferMarkers')?.addEventListener('change',renderDrawing);
   $('zoomInBtn').addEventListener('click',()=>setDrawingZoom('in'));
   $('mobileFitBtn').addEventListener('click',()=>setDrawingZoom('fit'));
   $('mobileSetupBtn').addEventListener('click',openMobileSetup);
