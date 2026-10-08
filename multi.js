@@ -4059,12 +4059,17 @@
     return {width:190,height:120,O:{x:95,y:60},steps:steps,diagramPending:true};
   }
 
-  function drawGrid(width,height){
+  function drawGrid(width,height,anchor){
+    const phase=anchor||{x:0,y:0};
+    const ox=((phase.x%GRID)+GRID)%GRID;
+    const oy=((phase.y%GRID)+GRID)%GRID;
+    svg.setAttribute('data-grid-phase-x',String(ox));
+    svg.setAttribute('data-grid-phase-y',String(oy));
     const defs=E('defs');
-    const minor=E('pattern',{id:'minorGrid',width:GRID,height:GRID,patternUnits:'userSpaceOnUse'});
+    const minor=E('pattern',{id:'minorGrid',x:ox,y:oy,width:GRID,height:GRID,patternUnits:'userSpaceOnUse'});
     minor.append(E('path',{d:'M '+GRID+' 0 L 0 0 0 '+GRID,class:'grid-minor',fill:'none'}));
     defs.append(minor);
-    const major=E('pattern',{id:'majorGrid',width:GRID*5,height:GRID*5,patternUnits:'userSpaceOnUse'});
+    const major=E('pattern',{id:'majorGrid',x:ox,y:oy,width:GRID*5,height:GRID*5,patternUnits:'userSpaceOnUse'});
     major.append(E('rect',{width:GRID*5,height:GRID*5,fill:'url(#minorGrid)'}));
     major.append(E('path',{d:'M '+GRID*5+' 0 L 0 0 0 '+GRID*5,class:'grid-major',fill:'none'}));
     defs.append(major);
@@ -4512,68 +4517,20 @@
   }
 
 
-  // Notebook coordinates are referenced to a real intersection of the
-  // 5 mm background grid. Values may contain tenths of a cell: moving
-  // source endpoints onto integer intersections would falsify the drawing.
-  function notebookTransferData(){
-    const initial=state.steps?.[0];
-    if(!initial?.sourceEntities?.length)return null;
-    // The clean plane geometry is used for notebook plotting. Photographed
-    // skew (e.g. K₁ and K₂ with slightly different x) is not copied as an
-    // impossible spatial projector. Raw source is still shown at step zero.
-    const entities=initial.entities;
-    const records=[],coords=[];
-    const add=(p)=>{if(p&&Number.isFinite(p.x)&&Number.isFinite(p.y))coords.push(p);};
-    entities.forEach((e,i)=>{
-      if(e.type==='line' && e.cls?.includes('object-line')){
-        const next=entities[i+1];
-        const label=next?.type==='text' ? next.label : null;
-        if(label && /[₁₂]/.test(label)){
-          records.push({label,a:e.a,b:e.b,kind:'line'});
-          add(e.a);add(e.b);
-        }
-      }
-      if(e.type==='point' && e.label && /[₁₂]/.test(e.label)){
-        records.push({label:e.label,p:e.p,kind:'point'});
-        add(e.p);
-      }
-    });
-    if(!coords.length)return null;
-    // The visible grid already begins at the top-left corner of the page.
-    // No auxiliary squares, crosses or offset strokes are necessary.
-    return {records,origin:{x:0,y:0}};
+  // Align the EXISTING 5 mm grid under a source point. Never snap,
+  // round, translate or rescale individual original drawing objects.
+  // One anchor fixes the grid phase without introducing visual guides.
+  function drawingGridAnchor(){
+    if(state.task<=3)return {x:0,y:0};
+    const first=state.steps?.[0];
+    const entities=first?.sourceEntities||first?.entities||[];
+    const landmark=entities.find(e=>e.type==='point' && e.p &&
+      Number.isFinite(e.p.x) && Number.isFinite(e.p.y));
+    const edge=entities.find(e=>e.type==='line' && e.a &&
+      Number.isFinite(e.a.x) && Number.isFinite(e.a.y));
+    const p=landmark?.p||edge?.a;
+    return p?{x:p.x,y:p.y}:{x:0,y:0};
   }
-
-  function renderNotebookTransfer(){
-    const panel=$('notebookTransfer'),holder=$('notebookTransferRows');
-    if(!panel||!holder)return;
-    const data=state.task>=4?notebookTransferData():null;
-    panel.hidden=!data;
-    holder.replaceChildren();
-    if(!data)return;
-    const table=document.createElement('table');
-    table.className='notebook-transfer-table';
-    const head=document.createElement('thead'),headRow=document.createElement('tr');
-    ['Объект','Начало / точка','Конец'].forEach(title=>{
-      const th=document.createElement('th');th.textContent=title;headRow.append(th);
-    });
-    head.append(headRow);table.append(head);
-    const body=document.createElement('tbody');
-    const cell=p=>{
-      if(!p)return '–';
-      const n=v=>(Math.round(v*10)/10).toLocaleString('ru-RU',{maximumFractionDigits:1});
-      return n((p.x-data.origin.x)/GRID)+'; '+n((p.y-data.origin.y)/GRID);
-    };
-    data.records.forEach(rec=>{
-      const tr=document.createElement('tr');
-      [rec.label,cell(rec.kind==='point'?rec.p:rec.a),cell(rec.b)].forEach(v=>{
-        const td=document.createElement('td');td.textContent=v;tr.append(td);
-      });
-      body.append(tr);
-    });
-    table.append(body);holder.append(table);
-  }
-
 
   function renderDrawing(){
     const g=state.geometry;
@@ -4585,7 +4542,7 @@
     // A fit-to-screen zoom must never change the printed 5 mm cell size.
     svg.style.setProperty('--drawing-paper-width',g.width+'mm');
     svg.style.setProperty('--drawing-paper-height',g.height+'mm');
-    drawGrid(g.width,g.height);
+    drawGrid(g.width,g.height,drawingGridAnchor());
     const visibilityDone=state.task===5 && state.steps
       .slice(0,state.step+1).some(step=>step.title?.startsWith('Нанеси видимость ℓ'));
     state.steps.forEach((s,idx)=>{
@@ -4600,7 +4557,6 @@
         drawEntity(e,idx===state.step);
       });
     });
-    renderNotebookTransfer();
     renderExplanation();
     applyDrawingZoom();
     animateCurrent();
