@@ -364,9 +364,9 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('task4 result-point derivation regression: '+e.stack);
 }
 
-// Keep the digitized trace immutable, but render the mathematically valid
-// reconstruction of that trace. Camera/pixel skew must not make a printed
-// a∥b relation look non-parallel or move a common point off its projector.
+// First frame shows the exact digitized source; the solver-constrained
+// geometry appears only when construction begins. Never silently use corrected
+// line slopes or normalize scanned source projector coordinates at step zero.
 try {
   const raw4=window.SITEMATH_SCHEMES?.['12']?.task4?.sourceGeometry;
   const raw6=window.SITEMATH_SCHEMES?.['12']?.task6?.sourceGeometry;
@@ -402,9 +402,14 @@ try {
       const a2=objects[0];
       const dx=Number(a2.getAttribute('x2'))-Number(a2.getAttribute('x1'));
       const dy=Number(a2.getAttribute('y2'))-Number(a2.getAttribute('y1'));
+      const rawDx=rawA2[1][0]-rawA2[0][0],rawDy=rawA2[1][1]-rawA2[0][1];
       const cleanDx=cleanA2[1][0]-cleanA2[0][0],cleanDy=cleanA2[1][1]-cleanA2[0][1];
-      if(Math.abs(dx*cleanDy-dy*cleanDx)>1e-6){
-        failures.push('variant12 source reconstruction: rendered a₂ is not the constrained geometry');
+      if(Math.abs(dx*rawDy-dy*rawDx)>1e-6){
+        failures.push('variant12 source reconstruction: initial a₂ must use raw photographed direction');
+      }
+      if(Math.abs(rawDx*cleanDy-rawDy*cleanDx)>1e-6 &&
+         Math.abs(dx*cleanDy-dy*cleanDx)<1e-6){
+        failures.push('variant12 source reconstruction: solver direction leaked into initial frame');
       }
     }
     const k1=window.document.querySelector('#drawing circle[data-label="K₁"]');
@@ -412,9 +417,16 @@ try {
     if(!k1||!k2) failures.push('variant12 source reconstruction: K₁/K₂ missing');
     else {
       const x1=Number(k1.getAttribute('cx')),x2=Number(k2.getAttribute('cx'));
-      if(Math.abs(x1-x2)>1e-6){
-        failures.push('variant12 source reconstruction: K₁/K₂ are not on one projector');
+      const rawGap=raw6.pointK.p1[0]-raw6.pointK.p2[0];
+      if(Math.abs((x1-x2)-rawGap)>1e-6){
+        failures.push('variant12 source reconstruction: raw K projector gap must remain unchanged on initial frame');
       }
+    }
+    $('nextBtn').click();
+    const c1=[...window.document.querySelectorAll('#drawing circle[data-label="K₁"]')].at(-1);
+    const c2=[...window.document.querySelectorAll('#drawing circle[data-label="K₂"]')].at(-1);
+    if(!c1||!c2||Math.abs(Number(c1.getAttribute('cx'))-Number(c2.getAttribute('cx')))>1e-6){
+      failures.push('variant12 source reconstruction: solver K projections not aligned after original frame');
     }
   }
 } catch(e) {
