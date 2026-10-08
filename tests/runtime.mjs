@@ -1679,7 +1679,7 @@ if (!onlyVariant && !onlyTask) try {
   $('variantSelect').dispatchEvent(new window.Event('change'));
   $('taskSelect').value='4';
   $('taskSelect').dispatchEvent(new window.Event('change'));
-  if(!$('dynamicInputs').textContent.includes('недоступен')) failures.push('source status 03: unavailable recheck not disclosed');
+  if(!$('dynamicInputs').textContent.includes('не подтверждено бумажным оригиналом') || !$('dynamicInputs').textContent.includes('текст условия')) failures.push('source status 03: unverified condition and points not disclosed');
 } catch(e) {
   failures.push('source role/status regression: '+e.stack);
 }
