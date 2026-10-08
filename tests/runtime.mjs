@@ -1764,6 +1764,18 @@ try {
     const svg=$('drawing');
     const x=Number(svg.getAttribute('data-grid-phase-x'));
     const y=Number(svg.getAttribute('data-grid-phase-y'));
+    const layers=[...svg.querySelectorAll('rect[fill^="url(#"]')];
+    if(layers.length!==2 ||
+       layers[0].getAttribute('fill')!=='url(#minorGrid)' ||
+       layers[1].getAttribute('fill')!=='url(#majorGrid)'){
+      failures.push('grid alignment 12/'+task+': grid patterns not composed in one coordinate system');
+    }
+    for(const p of [svg.querySelector('#minorGrid'),svg.querySelector('#majorGrid')]){
+      if(!p || Math.abs(Number(p.getAttribute('x'))-x)>1e-6 ||
+        Math.abs(Number(p.getAttribute('y'))-y)>1e-6){
+        failures.push('grid alignment 12/'+task+': minor/major pattern origin mismatch');
+      }
+    }
     const dots=[...svg.querySelectorAll('circle')].filter(el=>el.hasAttribute('cx')&&el.hasAttribute('cy'));
     if(!dots.length)failures.push('grid alignment 12/'+task+': no source dots');
     else {
