@@ -2170,8 +2170,8 @@
     if(!frame)return null;
     const i=steps.length;
     push({
-      title:'Нанеси рабочие оси x₁₂, y и z',
-      action:'После переноса исходной схемы проведи x₁₂ между Π₂ и Π₁. Слева добавь вертикальный ориентир: z вверх, y вниз. При погрешности фотографии дальнейшие построения используют геометрически выправленную копию; исходный кадр сохраняется отдельно.',
+      title:'Перенеси схему по клеткам и нанеси оси',
+      action:'По таблице «Перенос исходного чертежа по клеткам» нанеси заданные прямые и точки на тетрадную сетку, считая клетки от отметки 0;0. Затем проведи x₁₂ между Π₂ и Π₁ и обозначь направления z вверх, y вниз. Для ручного построения используй согласованные проекции (в отличие от перекошенных на фото); исходник сохранился на первом кадре.',
       why:'По x₁₂ контролируются горизонтали и фронтали, а направления y и z показывают, куда относятся горизонтальная и фронтальная проекции. Следующие линии связи строятся перпендикулярно x₁₂.',
       measure:['x₁₂ – горизонтально','z – вверх от x₁₂','y – вниз от x₁₂'],
       check:'Оси не заменяют исходные линии и появляются только после чистого исходного кадра.'
@@ -4514,8 +4514,12 @@
   // 5 mm background grid. Values may contain tenths of a cell: moving
   // source endpoints onto integer intersections would falsify the drawing.
   function notebookTransferData(){
-    const entities=state.steps?.[0]?.sourceEntities;
-    if(!entities?.length)return null;
+    const initial=state.steps?.[0];
+    if(!initial?.sourceEntities?.length)return null;
+    // The clean plane geometry is used for notebook plotting. Photographed
+    // skew (e.g. K₁ and K₂ with slightly different x) is not copied as an
+    // impossible spatial projector. Raw source is still shown at step zero.
+    const entities=initial.entities;
     const records=[],coords=[];
     const add=(p)=>{if(p&&Number.isFinite(p.x)&&Number.isFinite(p.y))coords.push(p);};
     entities.forEach((e,i)=>{
@@ -4573,7 +4577,7 @@
   }
 
   function drawNotebookTransferMarkers(){
-    if(state.task<4 || state.step!==0 || !$('notebookTransferMarkers')?.checked)return;
+    if(state.task<4 || state.step!==1 || !$('notebookTransferMarkers')?.checked)return;
     const data=notebookTransferData();
     if(!data)return;
     const o=data.origin;
