@@ -1754,8 +1754,8 @@ try {
 
 try {
 
-  // The notebook overlay must remain a real 5 mm coordinate instrument,
-  // with transfer marks independent of the photographed source entities.
+  // Notebook coordinates are tied to the printed 5 mm grid without
+  // separate brown squares or offset strokes over the geometry.
   $('variantSelect').value='12';
   $('variantSelect').dispatchEvent(new window.Event('change'));
   $('taskSelect').value='4';
@@ -1768,13 +1768,15 @@ try {
   if($('notebookTransfer')?.hidden || !$('notebookTransferRows')?.querySelector('table')){
     failures.push('notebook transfer: no source endpoint coordinates');
   }
-  if($('drawing').querySelector('.notebook-origin,.notebook-endpoint')){
-    failures.push('notebook transfer: original source frame was annotated');
-  }
+  if($('notebookTransferMarkers'))failures.push('notebook transfer: obsolete marker switch remains');
+  const rejectOverlay=()=>{
+    if($('drawing').querySelector('.notebook-origin,.notebook-origin-text,.notebook-endpoint,.notebook-grid-offset')){
+      failures.push('notebook transfer: drawing is cluttered by coordinate markers');
+    }
+  };
+  rejectOverlay();
   $('nextBtn').click();
-  if(!$('drawing').querySelector('.notebook-origin') || !$('drawing').querySelector('.notebook-endpoint')){
-    failures.push('notebook transfer: reference origin/endpoints are missing on the grid transfer step');
-  }
+  rejectOverlay();
   $('firstBtn').click();
   const sourceLines=[...$('drawing').querySelectorAll('line.object-line')];
   const sourceData=window.SITEMATH_SCHEMES['12'].task4.sourceGeometry;
@@ -1787,13 +1789,7 @@ try {
     if(Math.abs(vx*uy-vy*ux)>1e-5)failures.push('notebook transfer: source angle distorted');
   }
   $('nextBtn').click();
-  $('notebookTransferMarkers').checked=false;
-  $('notebookTransferMarkers').dispatchEvent(new window.Event('change'));
-  if($('drawing').querySelector('.notebook-origin,.notebook-endpoint')){
-    failures.push('notebook transfer: annotations cannot be hidden');
-  }
-  $('notebookTransferMarkers').checked=true;
-  $('notebookTransferMarkers').dispatchEvent(new window.Event('change'));
+  rejectOverlay();
   $('taskSelect').value='6';
   $('taskSelect').dispatchEvent(new window.Event('change'));
   const rows=[...$('notebookTransferRows').querySelectorAll('tbody tr')].map(tr=>[...tr.children].map(td=>td.textContent));
@@ -1802,9 +1798,7 @@ try {
     failures.push('notebook transfer: pair K₁/K₂ must share a vertical projector');
   }
   $('firstBtn').click();
-  if($('drawing').querySelector('.notebook-grid-offset')){
-    failures.push('notebook transfer: offset guides leaked into photographed first frame');
-  }
+  rejectOverlay();
 
 
 } catch(e){failures.push('notebook transfer regression: '+e.stack);}
