@@ -109,6 +109,17 @@ for (const vp of viewports) {
   if(!printGrid.minor.ok||!printGrid.major.ok){
     failures.push(vp.name+': print/PDF hides 5 mm grid '+JSON.stringify(printGrid));
   }
+  const printScale=await page.evaluate(()=>{
+    const svg=document.querySelector('#drawing');
+    const w=parseFloat(svg?.getAttribute('width'));
+    const h=parseFloat(svg?.getAttribute('height'));
+    const rect=svg?.getBoundingClientRect();
+    return {expectedWidth:w*96/25.4,expectedHeight:h*96/25.4,width:rect?.width,height:rect?.height};
+  });
+  if(Math.abs(printScale.width-printScale.expectedWidth)>1 ||
+     Math.abs(printScale.height-printScale.expectedHeight)>1){
+    failures.push(vp.name+': print grid was changed by screen Fit/Zoom '+JSON.stringify(printScale));
+  }
   await page.emulateMedia({media:'screen'});
 
   await page.locator('#mobileSetupBtn').click();
