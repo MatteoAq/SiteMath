@@ -4048,13 +4048,15 @@
     minor.append(E('path',{d:'M '+GRID+' 0 L 0 0 0 '+GRID,class:'grid-minor',fill:'none'}));
     defs.append(minor);
     const major=E('pattern',{id:'majorGrid',x:ox,y:oy,width:GRID*5,height:GRID*5,patternUnits:'userSpaceOnUse'});
-    major.append(E('rect',{width:GRID*5,height:GRID*5,fill:'url(#minorGrid)'}));
     major.append(E('path',{d:'M '+GRID*5+' 0 L 0 0 0 '+GRID*5,class:'grid-major',fill:'none'}));
     defs.append(major);
     const marker=E('marker',{id:'axisArrow',viewBox:'0 0 10 10',refX:'8',refY:'5',markerWidth:'4',markerHeight:'4',orient:'auto-start-reverse'});
     marker.append(E('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#37332e'}));
     defs.append(marker);
     svg.append(defs);
+    // Compose both patterns on the same root user-space grid. Nesting the
+    // 5 mm pattern inside the shifted 25 mm tile applies a second offset.
+    svg.append(E('rect',{x:0,y:0,width,height,fill:'url(#minorGrid)'}));
     svg.append(E('rect',{x:0,y:0,width,height,fill:'url(#majorGrid)'}));
   }
 
