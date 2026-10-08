@@ -2365,6 +2365,7 @@ body { color:var(--ui-text); }
 .notebook-origin { stroke:#6b4c34; stroke-width:.75; fill:none; pointer-events:none; }
 .notebook-origin-text { fill:#6b4c34; font-size:4px; font-weight:650; pointer-events:none; }
 .notebook-endpoint { fill:none; stroke:#be7548; stroke-width:.42; pointer-events:none; }
+.notebook-grid-offset { stroke:#be7548; stroke-width:.24; stroke-dasharray:.6 .5; pointer-events:none; }
 @media print {
   .notebook-transfer { break-inside:avoid; }
   .notebook-origin, .notebook-endpoint { stroke:#555 !important; }
