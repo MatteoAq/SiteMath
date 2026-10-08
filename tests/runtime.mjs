@@ -1794,6 +1794,18 @@ try {
   }
   $('notebookTransferMarkers').checked=true;
   $('notebookTransferMarkers').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='6';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  const rows=[...$('notebookTransferRows').querySelectorAll('tbody tr')].map(tr=>[...tr.children].map(td=>td.textContent));
+  const k1=rows.find(r=>r[0]==='K₁'),k2=rows.find(r=>r[0]==='K₂');
+  if(!k1||!k2 || k1[1].split(';')[0]!==k2[1].split(';')[0]){
+    failures.push('notebook transfer: pair K₁/K₂ must share a vertical projector');
+  }
+  $('firstBtn').click();
+  if($('drawing').querySelector('.notebook-grid-offset')){
+    failures.push('notebook transfer: offset guides leaked into photographed first frame');
+  }
+
 
 } catch(e){failures.push('notebook transfer regression: '+e.stack);}
 
