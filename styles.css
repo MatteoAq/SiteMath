@@ -2352,7 +2352,6 @@ body { color:var(--ui-text); }
 }
 .notebook-transfer summary { cursor:pointer; font-weight:750; }
 .notebook-transfer p { line-height:1.5; margin:9px 0; }
-.notebook-transfer-switch { display:flex; align-items:center; gap:8px; margin:10px 0; }
 .notebook-transfer-rows { overflow-x:auto; max-width:100%; }
 .notebook-transfer-table { border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums; }
 .notebook-transfer-table th, .notebook-transfer-table td {
@@ -2362,14 +2361,8 @@ body { color:var(--ui-text); }
   white-space:nowrap;
 }
 .notebook-transfer-table th { font-size:12px; }
-.notebook-origin { stroke:#6b4c34; stroke-width:.75; fill:none; pointer-events:none; }
-.notebook-origin-text { fill:#6b4c34; font-size:4px; font-weight:650; pointer-events:none; }
-.notebook-endpoint { fill:none; stroke:#be7548; stroke-width:.42; pointer-events:none; }
-.notebook-grid-offset { stroke:#be7548; stroke-width:.24; stroke-dasharray:.6 .5; pointer-events:none; }
 @media print {
   .notebook-transfer { break-inside:avoid; }
-  .notebook-origin, .notebook-endpoint { stroke:#555 !important; }
-  .notebook-origin-text { fill:#555 !important; }
 }
 
 /* Printing always restores the actual millimetre geometry, irrespective
