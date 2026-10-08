@@ -1958,55 +1958,33 @@
 
   function normalizeSteps(steps,minimumWidth,minimumHeight){
     const pts=[];
-    const sourcePts=[];
-    const collect=(arr,target)=>arr.forEach(e=>collectEntityPoints(e,target));
     steps.forEach(st=>{
-      collect(st.entities||[],pts);
-      collect(st.sourceEntities||[],pts);
+      (st.entities||[]).forEach(e=>collectEntityPoints(e,pts));
+      (st.sourceEntities||[]).forEach(e=>collectEntityPoints(e,pts));
       if(st.tool){
         if(st.tool.a)pts.push(st.tool.a);
         if(st.tool.b)pts.push(st.tool.b);
       }
     });
-    collect(steps[0]?.sourceEntities||steps[0]?.entities||[],sourcePts);
-    const valid=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y);
-    const good=pts.filter(valid),raw=sourcePts.filter(valid);
+    const good=pts.filter(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y));
     const minimumW=minimumWidth||180,minimumH=minimumHeight||145,margin=18;
     if(!good.length)return {width:minimumW,height:minimumH,shift:{x:0,y:0},scale:1};
-
-    // Graphical problems have no stated numerical scale. Choose ONE similarity
-    // factor for the entire source and every constructed object, so the given
-    // figure fits a real notebook area (~33 cells across its longer side).
-    // Never snap source endpoints individually: that corrupts angles and
-    // incidence. Raw photographed sourceGeometry stays immutable.
-    const spanOf=(list,key)=>Math.max(...list.map(p=>p[key]))-Math.min(...list.map(p=>p[key]));
-    const span=Math.max(spanOf(raw.length?raw:good,'x'),spanOf(raw.length?raw:good,'y'));
-    const scale=Math.min(1,165/Math.max(1,span));
     const minX=Math.min(...good.map(p=>p.x)),maxX=Math.max(...good.map(p=>p.x));
     const minY=Math.min(...good.map(p=>p.y)),maxY=Math.max(...good.map(p=>p.y));
-    const dx=ceilToGrid(margin-minX*scale),dy=ceilToGrid(margin-minY*scale);
-    const move=p=>p?{x:p.x*scale+dx,y:p.y*scale+dy}:p;
-    const transform=e=>{
-      if(e.a)e.a=move(e.a);
-      if(e.b)e.b=move(e.b);
-      if(e.p)e.p=move(e.p);
-      if(e.c)e.c=move(e.c);
-      if(Number.isFinite(e.r))e.r*=scale;
-      if(e.offset)e.offset={x:e.offset.x*scale,y:e.offset.y*scale};
-    };
+    const dx=margin-minX,dy=margin-minY;
     steps.forEach(st=>{
-      (st.entities||[]).forEach(transform);
-      (st.sourceEntities||[]).forEach(transform);
+      (st.entities||[]).forEach(e=>shiftEntity(e,dx,dy));
+      (st.sourceEntities||[]).forEach(e=>shiftEntity(e,dx,dy));
       if(st.tool){
-        if(st.tool.a)st.tool.a=move(st.tool.a);
-        if(st.tool.b)st.tool.b=move(st.tool.b);
+        if(st.tool.a)st.tool.a=shiftPoint(st.tool.a,dx,dy);
+        if(st.tool.b)st.tool.b=shiftPoint(st.tool.b,dx,dy);
       }
     });
     return {
-      width:ceilToGrid(Math.max(minimumW,(maxX-minX)*scale+2*margin)),
-      height:ceilToGrid(Math.max(minimumH,(maxY-minY)*scale+2*margin)),
+      width:Math.max(minimumW,maxX-minX+2*margin),
+      height:Math.max(minimumH,maxY-minY+2*margin),
       shift:{x:dx,y:dy},
-      scale
+      scale:1
     };
   }
 
@@ -4517,19 +4495,50 @@
   }
 
 
-  // Align the EXISTING 5 mm grid under a source point. Never snap,
-  // round, translate or rescale individual original drawing objects.
-  // One anchor fixes the grid phase without introducing visual guides.
+  // Move the existing 5 mm grid, not the source drawing. Prefer an
+  // original named point or a documented intersection over the arbitrary
+  // end of a traced line. Choose the best anchor for all available givens,
+  // so more of the original geometry lies on crossings of the paper grid.
   function drawingGridAnchor(){
     if(state.task<=3)return {x:0,y:0};
     const first=state.steps?.[0];
     const entities=first?.sourceEntities||first?.entities||[];
-    const landmark=entities.find(e=>e.type==='point' && e.p &&
-      Number.isFinite(e.p.x) && Number.isFinite(e.p.y));
-    const edge=entities.find(e=>e.type==='line' && e.a &&
-      Number.isFinite(e.a.x) && Number.isFinite(e.a.y));
-    const p=landmark?.p||edge?.a;
-    return p?{x:p.x,y:p.y}:{x:0,y:0};
+    const candidates=[],points=[];
+    const add=(p,weight,isPoint)=>{
+      if(!p || !Number.isFinite(p.x) || !Number.isFinite(p.y))return;
+      const item={p,weight};
+      points.push(item);
+      if(isPoint)candidates.push(item);
+    };
+    for(const e of entities){
+      if(e.type==='point'){
+        add(e.p,e.label?12:4,true);
+      }else if(e.type==='line' && e.cls?.includes('object-line')){
+        add(e.a,1,false);
+        add(e.b,1,false);
+      }
+    }
+    // In line-only schemes segment endpoints are the available placement
+    // reference. On the next steps, keep exactly the same phase.
+    if(!candidates.length)candidates.push(...points);
+    if(!candidates.length)return {x:0,y:0};
+    const periodic=v=>((v%GRID)+GRID)%GRID;
+    const wrappedDistance=(value,phase)=>{
+      const diff=Math.abs(periodic(value)-periodic(phase));
+      return Math.min(diff,GRID-diff);
+    };
+    let best=candidates[0],bestScore=-Infinity;
+    for(const anchor of candidates){
+      let score=0;
+      for(const item of points){
+        const dx=wrappedDistance(item.p.x,anchor.p.x);
+        const dy=wrappedDistance(item.p.y,anchor.p.y);
+        const d2=dx*dx+dy*dy;
+        score+=item.weight*Math.exp(-d2/(2*.85*.85));
+      }
+      if(score>bestScore+1e-9){bestScore=score;best=anchor;}
+    }
+    return {x:best.p.x,y:best.p.y};
   }
 
   function renderDrawing(){
