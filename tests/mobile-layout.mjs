@@ -14,6 +14,32 @@ const browser = await chromium.launch({headless:true});
 const failures = [];
 fs.mkdirSync('mobile-screenshots',{recursive:true});
 
+async function gridState(page){
+  return page.evaluate(() => {
+    const minor=document.querySelector('#drawing .grid-minor');
+    const major=document.querySelector('#drawing .grid-major');
+    const minorPattern=document.querySelector('#drawing #minorGrid');
+    const majorPattern=document.querySelector('#drawing #majorGrid');
+    const visible=el=>{
+      if(!el) return {ok:false,stroke:null};
+      const stroke=getComputedStyle(el).stroke;
+      return {
+        ok:!!stroke && stroke!=='none' && stroke!=='transparent' &&
+           stroke!=='rgba(0, 0, 0, 0)' && stroke!=='rgba(0,0,0,0)',
+        stroke
+      };
+    };
+    return {
+      minor:visible(minor),
+      major:visible(major),
+      minorWidth:Number(minorPattern?.getAttribute('width')),
+      minorHeight:Number(minorPattern?.getAttribute('height')),
+      majorWidth:Number(majorPattern?.getAttribute('width')),
+      majorHeight:Number(majorPattern?.getAttribute('height'))
+    };
+  });
+}
+
 async function visibleOverflow(page,label){
   const result = await page.evaluate(() => {
     const vw = document.documentElement.clientWidth;
@@ -69,7 +95,21 @@ for (const vp of viewports) {
   await page.waitForTimeout(100);
 
   await visibleOverflow(page,vp.name+' drawing');
+  const screenGrid=await gridState(page);
+  if(!screenGrid.minor.ok||!screenGrid.major.ok){
+    failures.push(vp.name+': 5 mm grid is not visible '+JSON.stringify(screenGrid));
+  }
+  if(screenGrid.minorWidth!==5||screenGrid.minorHeight!==5||screenGrid.majorWidth!==25||screenGrid.majorHeight!==25){
+    failures.push(vp.name+': wrong grid pattern size '+JSON.stringify(screenGrid));
+  }
   await page.screenshot({path:'mobile-screenshots/'+vp.name+'-drawing.png',fullPage:false});
+
+  await page.emulateMedia({media:'print'});
+  const printGrid=await gridState(page);
+  if(!printGrid.minor.ok||!printGrid.major.ok){
+    failures.push(vp.name+': print/PDF hides 5 mm grid '+JSON.stringify(printGrid));
+  }
+  await page.emulateMedia({media:'screen'});
 
   await page.locator('#mobileSetupBtn').click();
   await page.waitForTimeout(280);
