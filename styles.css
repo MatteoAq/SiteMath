@@ -2371,3 +2371,13 @@ body { color:var(--ui-text); }
   .notebook-origin, .notebook-endpoint { stroke:#555 !important; }
   .notebook-origin-text { fill:#555 !important; }
 }
+
+/* Printing always restores the actual millimetre geometry, irrespective
+   of the Fit/Zoom level used while viewing the SVG on a phone. */
+@media print {
+  #drawing {
+    width:var(--drawing-paper-width) !important;
+    height:var(--drawing-paper-height) !important;
+    max-width:none !important;
+  }
+}
