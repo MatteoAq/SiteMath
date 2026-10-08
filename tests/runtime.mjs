@@ -1768,9 +1768,14 @@ try {
   if($('notebookTransfer')?.hidden || !$('notebookTransferRows')?.querySelector('table')){
     failures.push('notebook transfer: no source endpoint coordinates');
   }
-  if(!$('drawing').querySelector('.notebook-origin') || !$('drawing').querySelector('.notebook-endpoint')){
-    failures.push('notebook transfer: reference origin/endpoints are missing');
+  if($('drawing').querySelector('.notebook-origin,.notebook-endpoint')){
+    failures.push('notebook transfer: original source frame was annotated');
   }
+  $('nextBtn').click();
+  if(!$('drawing').querySelector('.notebook-origin') || !$('drawing').querySelector('.notebook-endpoint')){
+    failures.push('notebook transfer: reference origin/endpoints are missing on the grid transfer step');
+  }
+  $('firstBtn').click();
   const sourceLines=[...$('drawing').querySelectorAll('line.object-line')];
   const sourceData=window.SITEMATH_SCHEMES['12'].task4.sourceGeometry;
   const actual=sourceLines.find(x=>x.getAttribute('class')?.includes('object-line'));
@@ -1781,6 +1786,7 @@ try {
     const ux=raw[1][0]-raw[0][0],uy=raw[1][1]-raw[0][1];
     if(Math.abs(vx*uy-vy*ux)>1e-5)failures.push('notebook transfer: source angle distorted');
   }
+  $('nextBtn').click();
   $('notebookTransferMarkers').checked=false;
   $('notebookTransferMarkers').dispatchEvent(new window.Event('change'));
   if($('drawing').querySelector('.notebook-origin,.notebook-endpoint')){
