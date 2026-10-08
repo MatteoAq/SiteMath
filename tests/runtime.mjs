@@ -1725,6 +1725,64 @@ try {
   failures.push('variant18 mapping: '+e.stack);
 }
 
+// Audit the provenance AND structural consistency of every programmed
+// task. Solver success does not prove any handwritten assignment was copied
+// correctly. Only readable, independently cross-checked source material
+// may set sourceVerified=true.
+try {
+  const schemes=window.SITEMATH_SCHEMES||{};
+  const originalVariant=window.SITEMATH_DATA.variants||{};
+  const complete=Object.keys(originalVariant).filter(v=>schemes[v] && [4,5,6].every(k=>schemes[v]['task'+k]));
+  if(complete.length!==16)failures.push('assignment audit: expected 16 digitized variants, got '+complete.length);
+  for(const v of complete){
+    for(const task of [4,5,6]){
+      const g=schemes[v]['task'+task];
+      const info=originalVariant[v]['task'+task];
+      if(!info?.statement)failures.push('assignment audit '+v+'/'+task+': no preserved condition text');
+      if(g.sourceVerified && !(v==='12' && g.sourceId==='IMG_20260917_131638')){
+        failures.push('assignment audit '+v+'/'+task+': unverified original incorrectly marked verified');
+      }
+      if(task===4){
+        if(g.planeType==='line_point' && (!g.lines?.[g.planeLine] || !g.points?.[g.planePoint])){
+          failures.push('assignment audit '+v+'/4: point-and-line plane source is incomplete');
+        }
+        if(g.planeType==='parallel_lines' && !(g.planeLines||[]).every(key=>g.lines?.[key])){
+          failures.push('assignment audit '+v+'/4: parallel defining lines missing');
+        }
+        if(g.planeType==='intersecting_lines' && !(g.planeLines||[]).every(key=>g.lines?.[key])){
+          failures.push('assignment audit '+v+'/4: intersecting defining lines missing');
+        }
+        const op=g.operation;
+        if(op?.through && !g.points?.[op.through]){
+          failures.push('assignment audit '+v+'/4: named source point '+op.through+' is absent');
+        }
+        if(op?.type==='line_intersects_named' && !g.lines?.[op.target]){
+          failures.push('assignment audit '+v+'/4: named target line '+op.target+' is absent');
+        }
+      }else if(task===5){
+        if(g.planeType==='ABC' && !['A','B','C'].every(k=>g.points?.[k])){
+          failures.push('assignment audit '+v+'/5: ABC defining points missing');
+        }
+        if(g.givenLine && !g.lines?.[g.givenLine]){
+          failures.push('assignment audit '+v+'/5: intersecting line '+g.givenLine+' missing');
+        }
+      }else {
+        if(!g.planeA||!g.planeB){
+          failures.push('assignment audit '+v+'/6: two defining planes required');
+        }
+        if(!(g.pointK||g.pointThrough)){
+          failures.push('assignment audit '+v+'/6: given point K/M missing');
+        }
+      }
+    }
+  }
+  if(schemes['06']?.task4?.sourceVerified){
+    failures.push('assignment audit 06/4: contested condition cannot be source-verified');
+  }
+} catch(e){
+  failures.push('assignment source audit: '+e.stack);
+}
+
 // Regression: coordinate drawings use the visible 5 mm paper grid as the actual metric grid.
 try {
   $('variantSelect').value = '10';
