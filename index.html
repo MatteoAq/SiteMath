@@ -172,6 +172,14 @@
           <svg id="drawing" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Пошаговый чертёж"></svg>
         </div>
 
+        <details id="notebookTransfer" class="notebook-transfer" hidden>
+          <summary>Перенос исходного чертежа по клеткам</summary>
+          <p>Исходная схема пропорционально уменьшена до удобного формата тетради. За начало отсчёта возьми отметку <b>0;0</b> на сетке. В таблице: количество клеток вправо и вниз. Одна клетка – 5 мм; десятая клетки – 0,5 мм. Соедини отмеченные концы прямых, а точки из таблицы перенеси на обе проекции.</p>
+          <p>Это вспомогательный масштаб для переноса, а не размеры из задания. Исходные углы, точки пересечения и пропорции сохраняются. Не округляй положения концов до целых клеток.</p>
+          <label class="notebook-transfer-switch"><input type="checkbox" id="notebookTransferMarkers" checked> Показывать на чертеже отметку 0;0 и концы линий</label>
+          <div id="notebookTransferRows" class="notebook-transfer-rows"></div>
+        </details>
+
         <div class="legend">
           <span><i class="swatch object"></i>исходные линии</span>
           <span><i class="swatch source-guide"></i>исходные линии связи</span>
