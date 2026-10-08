@@ -316,6 +316,38 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('task4 intersection-point sequence regression: '+e.stack);
 }
 
+// A chosen T is not merely on some parallel level line: it must lie on
+// the exact h or f that was constructed and labeled earlier in task 4.
+if(!onlyVariant&&!onlyTask)try {
+  const point=(label)=>{
+    const el=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
+    return el?{x:Number(el.getAttribute('cx')),y:Number(el.getAttribute('cy'))}:null;
+  };
+  const onLine=(p,a,b)=>{
+    if(!p||!a||!b)return false;
+    const dx=b.x-a.x,dy=b.y-a.y;
+    const len=Math.hypot(dx,dy);
+    return len>1e-8 && Math.abs(dx*(p.y-a.y)-dy*(p.x-a.x))/len<1e-4;
+  };
+  for(const variant of variants){
+    const kind=window.SITEMATH_SCHEMES?.[variant]?.task4?.operation?.type;
+    if(kind!=='line_intersects_frontale'&&kind!=='line_intersects_horizontal')continue;
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='4';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('lastBtn').click();
+    const marks=kind==='line_intersects_frontale'
+      ? [['T₁','3₁','4₁'],['T₂','3₂','4₂']]
+      : [['T₂','1₂','2₂'],['T₁','1₁','2₁']];
+    for(const [t,a,b] of marks){
+      if(!onLine(point(t),point(a),point(b))){
+        failures.push('task4 geometric membership '+variant+': '+t+' is not on the built '+(kind==='line_intersects_frontale'?'frontale':'horizontal'));
+      }
+    }
+  }
+}catch(e){failures.push('task4 named-level intersection membership: '+e.stack);}
+
 // Every task-4 result point is new construction data. It must be preceded by
 // an explicit helper point N on an already existing line/plane; the answer
 // point must not exist while N is only being chosen.
