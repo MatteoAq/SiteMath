@@ -1958,7 +1958,10 @@
 
   function normalizeSteps(steps,minimumWidth,minimumHeight){
     const pts=[];
-    steps.forEach(st=>(st.entities||[]).forEach(e=>collectEntityPoints(e,pts)));
+    steps.forEach(st=>{
+      (st.entities||[]).forEach(e=>collectEntityPoints(e,pts));
+      (st.sourceEntities||[]).forEach(e=>collectEntityPoints(e,pts));
+    });
     steps.forEach(st=>{
       if(st.tool){ if(st.tool.a) pts.push(st.tool.a); if(st.tool.b) pts.push(st.tool.b); }
     });
@@ -1976,6 +1979,7 @@
     // The mobile viewer now fits the *currently visible* construction instead.
     steps.forEach(st=>{
       (st.entities||[]).forEach(e=>shiftEntity(e,dx,dy));
+      (st.sourceEntities||[]).forEach(e=>shiftEntity(e,dx,dy));
       if(st.tool){
         if(st.tool.a) st.tool.a=shiftPoint(st.tool.a,dx,dy);
         if(st.tool.b) st.tool.b=shiftPoint(st.tool.b,dx,dy);
@@ -2046,11 +2050,9 @@
     return {x:+p[0]+4,y:+p[1]-2};
   }
 
-  function starterEntitiesFromScheme(scheme,step){
-    // sourceGeometry keeps the immutable trace/provenance. The visible source
-    // frame uses the relation-constrained copy (parallel/intersecting lines
-    // regularized from that trace), so a photographed skew cannot make the
-    // displayed givens mathematically contradict their printed condition.
+  function starterEntitiesFromScheme(scheme,step,exactSource){
+    // Raw original is rendered only at step zero; the later solver trace is
+    // geometrically regularized without mutating photographed coordinates.
     const src=scheme;
     const out=[];
     Object.entries(src.lines||{}).forEach(([name,L])=>{
@@ -2064,14 +2066,14 @@
       out.push(textEntity(step,sourceLineLabelPoint(src,name,'p1',L),sourceLineDisplayName(name)+'₁','svg-label'));
     });
     Object.entries(src.points||{}).forEach(([name,P])=>{
-      const q=normalizedPointRec(P);
+      const q=exactSource?P:normalizedPointRec(P);
       const p2={x:+q.p2[0],y:+q.p2[1]},p1={x:+q.p1[0],y:+q.p1[1]};
       out.push(line(step,p2,p1,'source-guide-line'));
       out.push(point(step,p2,name+'₂'));
       out.push(point(step,p1,name+'₁'));
     });
     if(src.planeType==='ABC'){
-      appendABCPlaneEntities(out,src,step);
+      appendABCPlaneEntities(out,src,step,exactSource);
     }
     if(src.junctions&&src.junctions.length){
       // A source projector is part of the printed source only when it was
@@ -2153,7 +2155,7 @@
     const i=steps.length;
     push({
       title:'Нанеси рабочие оси x₁₂, y и z',
-      action:'После переноса исходной схемы проведи x₁₂ между Π₂ и Π₁. Слева добавь вертикальный ориентир: z вверх, y вниз. Это вспомогательная система направлений, а не часть напечатанного условия.',
+      action:'После переноса исходной схемы проведи x₁₂ между Π₂ и Π₁. Слева добавь вертикальный ориентир: z вверх, y вниз. При погрешности фотографии дальнейшие построения используют геометрически выправленную копию; исходный кадр сохраняется отдельно.',
       why:'По x₁₂ контролируются горизонтали и фронтали, а направления y и z показывают, куда относятся горизонтальная и фронтальная проекции. Следующие линии связи строятся перпендикулярно x₁₂.',
       measure:['x₁₂ – горизонтально','z – вверх от x₁₂','y – вниз от x₁₂'],
       check:'Оси не заменяют исходные линии и появляются только после чистого исходного кадра.'
@@ -2323,6 +2325,7 @@
       measure:['Тонкие линии связи проводи перпендикулярно направлению между одноимёнными проекциями.','Сохраняй взаимное положение исходных линий.'],
       check:'До начала решения на листе должны быть только те объекты, которые напечатаны в условии.'
     },starterEntitiesFromScheme(scheme,i));
+    if(scheme.sourceGeometry)steps[0].sourceEntities=starterEntitiesFromScheme(scheme.sourceGeometry,0,true);
 
     const base=plane.P;
 
@@ -2929,9 +2932,10 @@
     return out;
   }
 
-  function appendABCPlaneEntities(out,scheme,step){
+  function appendABCPlaneEntities(out,scheme,step,exactSource){
     if(scheme.planeType!=='ABC') return;
-    const A=normalizedPointRec(scheme.points.A),B=normalizedPointRec(scheme.points.B),C=normalizedPointRec(scheme.points.C);
+    const get=p=>exactSource?p:normalizedPointRec(p);
+    const A=get(scheme.points.A),B=get(scheme.points.B),C=get(scheme.points.C);
     [['A','B',A,B],['B','C',B,C],['C','A',C,A]].forEach(row=>{
       out.push(line(step,{x:row[2].p2[0],y:row[2].p2[1]},{x:row[3].p2[0],y:row[3].p2[1]},'object-line'));
       out.push(line(step,{x:row[2].p1[0],y:row[2].p1[1]},{x:row[3].p1[0],y:row[3].p1[1]},'object-line'));
@@ -3081,6 +3085,7 @@
       measure:['Сохраняй пары индексов 1 и 2.','Тонкие вертикали – линии проекционной связи.'],
       check:'ℓ₁/ℓ₂ и плоскость совпадают по форме с исходным вариантом.'
     },starter);
+    if(scheme.sourceGeometry)steps[0].sourceEntities=starterEntitiesFromScheme(scheme.sourceGeometry,0,true);
 
     diagramReferenceAxisStep(push,steps,scheme);
 
@@ -3258,18 +3263,18 @@
     throw new Error('Неизвестный тип плоскости '+def.type);
   }
 
-  function starterPlaneDefEntities(def,step,prefix){
+  function starterPlaneDefEntities(def,step,prefix,exactSource){
     const out=[],pre=prefix||'';
     if(def.type==='ABC'){
       const pseudo={planeType:'ABC',points:def.points};
       Object.entries(def.points).forEach(([name,P])=>{
-        const q=normalizedPointRec(P);
+        const q=exactSource?P:normalizedPointRec(P);
         const p2={x:+q.p2[0],y:+q.p2[1]},p1={x:+q.p1[0],y:+q.p1[1]};
         out.push(line(step,p2,p1,'source-guide-line'));
         out.push(point(step,p2,name+'₂'));
         out.push(point(step,p1,name+'₁'));
       });
-      appendABCPlaneEntities(out,pseudo,step);
+      appendABCPlaneEntities(out,pseudo,step,exactSource);
     } else if(def.type==='line_point'){
       Object.entries(def.lines||{}).forEach(([name,L])=>{
         out.push(line(step,{x:L.p2[0][0],y:L.p2[0][1]},{x:L.p2[1][0],y:L.p2[1][1]},'object-line'));
@@ -3278,7 +3283,7 @@
         out.push(textEntity(step,sourceLineLabelPoint(def,name,'p1',L),sourceLineDisplayName(name)+'₁','svg-label'));
       });
       Object.entries(def.points||{}).forEach(([name,P])=>{
-        const q=normalizedPointRec(P);
+        const q=exactSource?P:normalizedPointRec(P);
         const p2={x:+q.p2[0],y:+q.p2[1]},p1={x:+q.p1[0],y:+q.p1[1]};
         out.push(line(step,p2,p1,'source-guide-line'));
         out.push(point(step,p2,name+'₂'));
@@ -3306,6 +3311,21 @@
     return out;
   }
 
+
+  function rawTask6StarterEntities(scheme,step,label){
+    const raw=scheme.sourceGeometry;
+    if(!raw)return null;
+    const through=raw.pointK||raw.pointThrough;
+    if(!through?.p1||!through?.p2)return null;
+    const p1={x:+through.p1[0],y:+through.p1[1]};
+    const p2={x:+through.p2[0],y:+through.p2[1]};
+    return [
+      ...starterPlaneDefEntities(raw.planeA,step,raw.planeA?.name||'Σ',true),
+      ...starterPlaneDefEntities(raw.planeB,step,raw.planeB?.name||'Θ',true),
+      line(step,p2,p1,'source-guide-line'),
+      point(step,p2,label+'₂'),point(step,p1,label+'₁')
+    ];
+  }
 
   function planeDefReferenceLines(def){
     if(!def) return [];
@@ -3574,6 +3594,7 @@
       point(i,sourceK2,throughLabel+'₂'),
       point(i,sourceK1,throughLabel+'₁')
     ]);
+    if(scheme.sourceGeometry)steps[0].sourceEntities=rawTask6StarterEntities(scheme,0,throughLabel);
 
     diagramReferenceAxisStep(push,steps,scheme);
 
@@ -3874,6 +3895,7 @@
       measure:['Плоскость '+planeASymbol+' – первый набор','Плоскость '+planeBSymbol+' – второй набор',throughLabel+'₁/'+throughLabel+'₂ – одна линия связи'],
       check:'Стартовый рисунок совпадает с печатным условием.'
     },starter);
+    if(scheme.sourceGeometry)steps[0].sourceEntities=rawTask6StarterEntities(scheme,0,throughLabel);
 
     diagramReferenceAxisStep(push,steps,scheme);
 
@@ -4482,7 +4504,9 @@
       .slice(0,state.step+1).some(step=>step.title?.startsWith('Нанеси видимость ℓ'));
     state.steps.forEach((s,idx)=>{
       if(idx>state.step) return;
-      (s.entities||[]).forEach(e=>{
+      const entities=idx===0 && state.step===0 && s.sourceEntities
+        ? s.sourceEntities : s.entities||[];
+      entities.forEach(e=>{
         // Once visibility is shown, neither the original unbroken ℓ nor the
         // coincident Ω guide may fill the gaps of hidden strokes. Preserve
         // their labels and restore both lines when stepping backward.
