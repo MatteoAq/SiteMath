@@ -348,7 +348,7 @@ window.SITEMATH_SCHEMES = {
       points:{
         D:{p2:[445,383],p1:[445,546]}
       },
-      sourceVerified:true,
+      sourceVerified:false,
       operation:{type:"line_intersects_named",through:"D",target:"a",resultPoint:"A",relation:"behind_line"}
     }
   },
@@ -558,7 +558,7 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
       l:{p2:[[215,420],[556,340]],p1:[[220,530],[540,682]]}
     },
     givenLine:"l",
-    sourceVerified:true
+    sourceVerified:false
   },
   task6:{
     planeA:{type:"parallel_lines",lines:{
@@ -570,7 +570,7 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
       f:{p2:[[390,455],[565,323]],p1:[[365,545],[570,545]]}
     }},
     pointK:{p2:[195,326],p1:[195,641]},
-    sourceVerified:true
+    sourceVerified:false
   }
 });
 
@@ -843,7 +843,7 @@ Object.assign(window.SITEMATH_SCHEMES, {
         b:{p2:[[178,150],[350,205]],p1:[[172,287],[360,273]]}
       },
       points:{A:{p2:[92,104],p1:[92,270]}},
-      sourceVerified:true,
+      sourceVerified:false,
       operation:{type:"line_intersects_named",through:"A",target:"a",resultPoint:"B",relation:"below_plane"}
     },
     task5:{
@@ -853,7 +853,7 @@ Object.assign(window.SITEMATH_SCHEMES, {
         a:{p2:[[185,190],[335,105]],p1:[[165,355],[330,250]]},
         l:{p2:[[160,205],[350,150]],p1:[[150,320],[350,390]]}
       },
-      givenLine:"l",sourceVerified:true
+      givenLine:"l",sourceVerified:false
     },
     task6:{
       planeA:{type:"ABC",points:{
@@ -866,7 +866,7 @@ Object.assign(window.SITEMATH_SCHEMES, {
         b:{p2:[[410,195],[535,112]],p1:[[395,280],[540,350]]}
       }},
       pointK:{p2:[190,92],p1:[190,380]},
-      sourceVerified:true
+      sourceVerified:false
     }
   },
   "06": {
@@ -877,7 +877,7 @@ Object.assign(window.SITEMATH_SCHEMES, {
         n:{p2:[[105,165],[330,116]],p1:[[105,215],[330,328]]}
       },
       points:{D:{p2:[420,120],p1:[420,350]}},
-      sourceVerified:true,
+      sourceVerified:false,
       operation:{type:"line_parallel_plane",through:"D",resultPoint:"A",relation:"front_of_line"}
     },
     task5:{
@@ -887,7 +887,7 @@ Object.assign(window.SITEMATH_SCHEMES, {
         b:{p2:[[135,120],[300,220]],p1:[[145,260],[320,345]]},
         l:{p2:[[140,205],[365,150]],p1:[[145,290],[350,390]]}
       },
-      givenLine:"l",sourceVerified:true
+      givenLine:"l",sourceVerified:false
     },
     task6:{
       planeA:{type:"intersecting_lines",lines:{
@@ -900,7 +900,7 @@ Object.assign(window.SITEMATH_SCHEMES, {
         C:{p2:[575,180],p1:[575,315]}
       }},
       pointK:{p2:[175,90],p1:[175,375]},
-      sourceVerified:true
+      sourceVerified:false
     }
   },
   "09": {
@@ -913,7 +913,7 @@ Object.assign(window.SITEMATH_SCHEMES, {
         A:{p2:[95,102],p1:[95,315]},
         B:{p2:[410,118],p1:[410,282]}
       },
-      sourceVerified:true,
+      sourceVerified:false,
       operation:{type:"line_parallel_horizontal",through:"B",resultPoint:"E",relation:"below_line"}
     },
     task5:{
@@ -923,7 +923,7 @@ Object.assign(window.SITEMATH_SCHEMES, {
         b:{p2:[[105,150],[320,245]],p1:[[105,260],[330,325]]},
         l:{p2:[[110,215],[355,205]],p1:[[105,338],[355,388]]}
       },
-      givenLine:"l",sourceVerified:true
+      givenLine:"l",sourceVerified:false
     },
     task6:{
       planeA:{type:"intersecting_lines",lines:{
@@ -935,7 +935,7 @@ Object.assign(window.SITEMATH_SCHEMES, {
         "h′":{p2:[[350,185],[565,185]],p1:[[350,345],[565,295]]}
       }},
       pointK:{p2:[430,85],p1:[430,385]},
-      sourceVerified:true
+      sourceVerified:false
     }
   }
 });
