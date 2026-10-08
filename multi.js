@@ -2588,7 +2588,9 @@
         line(i,a.p2,b.p2,'answer-line'),textEntity(i,b.p2,'ℓ₂','svg-label')
       ],{kind:'line',a:a.p1,b:b.p1});
     } else if(op.type==='line_intersects_frontale' && through3){
-      target3=add3(base,mul3(normalize3(df),38));
+      // T must actually lie on the *constructed* frontale f, not merely
+      // on another parallel frontale through an arbitrary base point.
+      target3=lerp3(f3[0],f3[1],.58);
       L3=[through3,target3];
       i=steps.length;
       const T=project3(target3),Q=project3(through3);
