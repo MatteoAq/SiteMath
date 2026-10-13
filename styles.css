@@ -2342,6 +2342,22 @@ body { color:var(--ui-text); }
 }
 
 
+.print-provenance { display:none; }
+@media print {
+  .print-provenance {
+    display:block !important;
+    margin:0 0 4mm;
+    padding:2mm 3mm;
+    border:1px solid #666;
+    background:#fff !important;
+    color:#111;
+    font:normal 10pt/1.35 Arial,sans-serif;
+    break-inside:avoid;
+  }
+  .print-provenance b, .print-provenance span { display:block; }
+  .print-provenance b { margin-bottom:1mm; }
+}
+
 /* Printing always restores the actual millimetre geometry, irrespective
    of the Fit/Zoom level used while viewing the SVG on a phone. */
 @media print {
