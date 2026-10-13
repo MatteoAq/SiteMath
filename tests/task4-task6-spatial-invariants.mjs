@@ -129,7 +129,9 @@ for(const variant of variants){
    const titles=t4.steps.map(st=>st.title||'');
    const chosen=titles.findIndex(x=>/^Выбери T[₁₂] на /.test(x));
    const paired=titles.findIndex(x=>/^По линии связи получи T[₁₂]/.test(x));
-   const joined=titles.findIndex(x=>x.startsWith('Соедини ')&&x.includes(' с T '));
+   const joined=titles.findIndex(x=>
+     (x.startsWith('Соедини ')&&x.includes(' с T ')) ||
+     (x.startsWith('Проведи ℓ через ')&&x.endsWith(' и T')));
    if(chosen<0||paired!==chosen+1||joined!==paired+1)
      errors.push(variant+'/4: T projections not separately chosen and transferred before drawing ℓ');
    else {
