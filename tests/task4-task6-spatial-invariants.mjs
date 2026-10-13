@@ -266,7 +266,16 @@ for(const variant of variants){
  }
  // With an explicitly constructed g, distant paper-plane intersections
  // must no longer cause the immense drawing extents observed previously.
- const compactLimit={ '04':1600,'06':700,'10':900,'12':2300 };
+ if(variant==='04'){
+   const B=def.task6.planeB,raw=def.task6.sourceGeometry?.planeB;
+   const g=W.__geometry.planeDefReferenceLines(B).find(r=>r.construction==='h-f-diagonal');
+   if(!B.shortBridgeEndpoint||raw?.shortBridgeEndpoint||
+      !g||Math.abs(g.rec.p1[1][0]-B.lines.f.p1[0][0])>1e-8)
+     errors.push('04/6: near g anchor not placed at the first real frontal endpoint');
+   if(W.__task6Probe.pair.some(sec=>!sec.b.refs?.some(r=>r.name==='g')))
+     errors.push('04/6: shorter g not used in both α and β');
+ }
+ const compactLimit={ '04':600,'06':700,'10':900,'12':2300 };
  if(compactLimit[variant]&&t6.width>compactLimit[variant])
    errors.push(variant+'/6: auxiliary section still excessive ('+t6.width.toFixed(1)+')');
 
