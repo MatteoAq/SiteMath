@@ -1381,8 +1381,11 @@ if (!onlyVariant && !onlyTask) try {
   $('variantSelect').dispatchEvent(new window.Event('change'));
   $('taskSelect').value='6';
   $('taskSelect').dispatchEvent(new window.Event('change'));
-  if(!$('dynamicInputs').textContent.includes('Требуется проверка пересечения')){
-    failures.push('source intersection warning: variant 14/6 has a large raw projector mismatch');
+  // The recovered full-size 14/6 original was re-traced. Its projector
+  // now intersects at the actual photographed crossing rather than at the
+  // old divergent placeholder coordinates.
+  if($('dynamicInputs').textContent.includes('Требуется проверка пересечения')){
+    failures.push('source intersection warning: 14/6 photographed plane remains geometrically inconsistent');
   }
 } catch(e) {
   failures.push('source correction warning regression: '+e.stack);
