@@ -667,14 +667,14 @@ if (!onlyVariant && !onlyTask) try {
 
 // Freeze the raw paper traces for every digitized variant. Solver cleanup,
  // refactors and notation work may change derived geometry, but the copied
- // source sheet is immutable unless that variant is explicitly retraced from
- // its exact original photo.
+ // Source fingerprints change only when a variant has been checked against
+ // its archived full-size paper original. Variants 06/19 were corrected 13.10.
 if (!onlyVariant && !onlyTask) try {
   const expected={
     '03':['1f2c1e40',1018],
     '04':['2f31eb2c',959],
     '05':['0553b07a',1017],
-    '06':['4066de66',1006],
+    '06':['267ac1ee',1006],
     '07':['0d133b97',1015],
     '08':['136f8adf',878],
     '09':['8a351d95',1007],
@@ -686,7 +686,7 @@ if (!onlyVariant && !onlyTask) try {
     '15':['aed4e407',902],
     '17':['9048e1aa',1028],
     '18':['6a2632fc',991],
-    '19':['b65274bf',1025]
+    '19':['835a02c6',1114]
   };
   const skip=new Set(['sourceVerified','sourceAvailable','sourceId','sourceRecheckRequired','sourceGeometry']);
   const canon=value=>{
