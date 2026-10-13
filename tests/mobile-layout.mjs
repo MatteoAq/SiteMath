@@ -105,6 +105,8 @@ for (const vp of viewports) {
   await page.screenshot({path:'mobile-screenshots/'+vp.name+'-drawing.png',fullPage:false});
 
   await page.emulateMedia({media:'print'});
+  const printHeader=await page.locator('#printProvenance').evaluate(el=>({visible:getComputedStyle(el).display!=='none',text:el.textContent.trim()}));
+  if(!printHeader.visible || !printHeader.text.includes('НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ')) failures.push(vp.name+': print/PDF omits unverified source provenance '+JSON.stringify(printHeader));
   const printGrid=await gridState(page);
   if(!printGrid.minor.ok||!printGrid.major.ok){
     failures.push(vp.name+': print/PDF hides 5 mm grid '+JSON.stringify(printGrid));
@@ -311,6 +313,17 @@ for (const vp of viewports) {
     });
   }
 
+  // The exact 06/4 input is disputed: the printed drawing must retain its warning.
+  await page.evaluate(()=>{
+    const v=document.querySelector('#variantSelect');
+    const t=document.querySelector('#taskSelect');
+    v.value='06';v.dispatchEvent(new Event('change'));
+    t.value='4';t.dispatchEvent(new Event('change'));
+  });
+  await page.emulateMedia({media:'print'});
+  const disputedPrint=await page.locator('#printProvenance').evaluate(el=>({visible:getComputedStyle(el).display!=='none',text:el.textContent.trim()}));
+  if(!disputedPrint.visible || !disputedPrint.text.includes('ОСПОРЕНО ПРЕПОДАВАТЕЛЕМ')) failures.push('print/PDF 06/4: teacher dispute missing '+JSON.stringify(disputedPrint));
+  await page.emulateMedia({media:'screen'});
   await context.close();
 }
 
