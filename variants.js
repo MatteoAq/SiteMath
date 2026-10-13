@@ -1324,6 +1324,10 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
   // split the minimum vertical shift across each pair of lines (at most
   // 5 source-coordinate units per endpoint). Keep endpoint X, slopes, all
   // unrelated given lines, photographed JPGs and solver data untouched.
+  // Solver-only pencil construction marker, not part of the printed
+  // sourceGeometry: 06/6 needs a near transversal g=TU inside Σ(a,b).
+  window.SITEMATH_SCHEMES["06"].task6.planeA.auxBridge='a-b';
+
   const task6PrintedCrossingProjectors=[
     ["04","planeB","h","f"],
     ["06","planeA","a","b"],
