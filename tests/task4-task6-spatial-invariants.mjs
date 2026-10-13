@@ -131,6 +131,14 @@ for(const variant of variants){
      }
    }
  }
+ // In these two original sheets the initially preferred horizontal levels
+ // push section endpoints far away. A frontal auxiliary pair is both exact
+ // and substantially more legible without modifying the given two planes.
+ if(variant==='10'||variant==='12'){
+   if(levelType!=='frontal')errors.push(variant+'/6: should use the shorter frontal auxiliary sections');
+   const maxWidth=variant==='10'?3000:4100;
+   if(t6.width>maxWidth)errors.push(variant+'/6: excessive construction width '+t6.width.toFixed(1));
+ }
  const P3=xyz(P),Q3=xyz(Q);
  const direction={x:Q3.x-P3.x,y:Q3.y-P3.y,z:Q3.z-P3.z};
  if(n(direction)<1e-5)errors.push(variant+'/6: common points coincide');
