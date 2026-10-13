@@ -956,13 +956,17 @@ if (!onlyVariant && !onlyTask) try {
     $('taskSelect').dispatchEvent(new window.Event('change'));
   };
   select('06',4);
+  if(!$('printProvenanceTitle').textContent.includes('06') || !$('printProvenanceTitle').textContent.includes('№4')) failures.push('print provenance 06/4: variant/task identification missing');
+  if(!$('printProvenanceStatus').textContent.includes('ОСПОРЕНО ПРЕПОДАВАТЕЛЕМ')) failures.push('print provenance 06/4: disputed source is printed without warning');
   if(!$('diagramWarning').textContent.includes('оспорено преподавателем')) failures.push('disputed 06/4: critical warning is missing');
   if(!$('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('disputed 06/4: brief appears verified');
   if(!$('variantNote').textContent.includes('НЕ ПРОВЕРЕНО')) failures.push('disputed 06/4: summary appears verified');
   select('03',5);
+  if(!$('printProvenanceStatus').textContent.includes('НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ')) failures.push('print provenance 03/5: unverified source is printed without warning');
   if(!$('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('unverified 03/5: brief appears verified');
   if(!$('diagramWarning').textContent.includes('Исходное условие НЕ проверено')) failures.push('unverified 03/5: warning is missing');
   select('12',4);
+  if(!$('printProvenanceStatus').textContent.includes('Методика') && !$('printProvenanceStatus').textContent.includes('методики')) failures.push('print provenance 12/4: construction not qualified');
   if($('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('verified 12/4: incorrect provenance warning');
   if($('diagramWarning').textContent.includes('Исходное условие НЕ проверено')) failures.push('verified 12/4: incorrectly labeled unsourced');
 } catch(e){ failures.push('visible input provenance: '+e.stack); }
