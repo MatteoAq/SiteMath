@@ -1187,6 +1187,42 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
   });
 })();
 
+/* Paper-sheet corrections from the full-resolution originals supplied on
+   2026-10-13. These are corrections to the actual source geometry, not UI
+   annotations. Keep the photographic trace and regularized working model in
+   agreement while preserving the given point and line identities. */
+(function correctPhotographedSchemes(){
+  const v06=window.SITEMATH_SCHEMES["06"]?.task4;
+  if(v06){
+    // IMG 1000022471.jpg: n₂ is the upper frontal line, m₂ the lower.
+    // The first projections were already correctly attributed:
+    // n₁ upper, m₁ lower. The old model had ONLY p2 swapped.
+    [v06,v06.sourceGeometry].filter(Boolean).forEach(s=>{
+      if(s.lines?.m?.p2 && s.lines?.n?.p2){
+        const frontalM=s.lines.m.p2;
+        s.lines.m.p2=s.lines.n.p2;
+        s.lines.n.p2=frontalM;
+      }
+    });
+  }
+
+  const v19=window.SITEMATH_SCHEMES["19"]?.task4;
+  if(v19){
+    // IMG 1000022473.jpg: the intersection projector is GIVEN on the sheet,
+    // explicitly named K₂ above and K₁ below.
+    const junction={
+      p2:[589.906,579.243],p1:[589.470,735.275],
+      label2:"K₂",label1:"K₁"
+    };
+    v19.junctions=[junction];
+    if(v19.sourceGeometry)
+      v19.sourceGeometry.junctions=[{
+        p2:junction.p2.slice(),p1:junction.p1.slice(),
+        label2:junction.label2,label1:junction.label1
+      }];
+  }
+})();
+
 /* Verification state is stricter than "a trace exists".
    sourceId records provenance only. A scheme is verified only when the exact
    source image is currently available and has actually been rechecked. */
