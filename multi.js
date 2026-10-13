@@ -3014,9 +3014,13 @@
     const xs=[...rec.p1,...rec.p2].map(p=>+p[0]);
     const lo=Math.min(...xs,K.x),hi=Math.max(...xs,K.x);
     if(!(hi-lo>EPS))return {p1:toSeg(rec.p1),p2:toSeg(rec.p2)};
-    const kBeyond=K.x<=Math.min(...xs)+EPS || K.x>=Math.max(...xs)-EPS;
-    const margin=kBeyond?Math.max(18,(hi-lo)*.1):0;
-    const xA=lo-margin,xB=hi+margin;
+    // Printed Π₁/Π₂ strokes can have different endpoints. Even if K lies
+    // inside their union, it can be only 1–2 mm from one extremity, leaving
+    // the opposite visibility segment practically invisible. Give K at
+    // least one readable continuation on BOTH sides of both projections.
+    const clearance=Math.max(20,(hi-lo)*.08);
+    const xA=Math.min(lo,K.x-clearance);
+    const xB=Math.max(hi,K.x+clearance);
     const result={};
     for(const proj of ['p1','p2']){
       result[proj]=[
