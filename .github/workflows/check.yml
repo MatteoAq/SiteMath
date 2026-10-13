@@ -43,9 +43,7 @@ jobs:
         run: |
           python3 -m http.server 4173 >/tmp/sitemath-http.log 2>&1 &
           echo $! > /tmp/sitemath-http.pid
-      - name: Run mobile browser layout checks and intermediate-step evidence
-        env:
-          STEPWISE_AUDIT: '1'
+      - name: Run mobile browser layout checks
         run: node tests/mobile-layout.mjs
       - name: Upload mobile screenshots
         if: always()
