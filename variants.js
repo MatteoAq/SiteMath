@@ -1298,6 +1298,21 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
       (det(p,q)*(r[1]-t[1])-(p[1]-q[1])*det(r,t))/den
     ];
   };
+  // 1000022482.jpg, task 6: the intersection of a and b in Θ
+  // is joined by a faint PRE-PRINTED projector. It belongs to the
+  // original givens, not to the later solution. The photographed x
+  // coordinates differ by ~1.2 source px; keep that raster discrepancy in
+  // sourceGeometry while the solver's already reconciled copy stays exact.
+  const v05t6=window.SITEMATH_SCHEMES["05"]?.task6;
+  if(v05t6){
+    for(const model of [v05t6,v05t6.sourceGeometry].filter(Boolean)){
+      const A=model.planeB?.lines?.a,B=model.planeB?.lines?.b;
+      if(!A||!B)continue;
+      const p1=projectedCross(A.p1,B.p1),p2=projectedCross(A.p2,B.p2);
+      if(p1&&p2)model.planeB.junctions=[{p1,p2}];
+    }
+  }
+
   [[v03t5,'a','f'],[v06t5,'a','b']].forEach(([scheme,a,b])=>{
     if(!scheme)return;
     [scheme,scheme.sourceGeometry].filter(Boolean).forEach(model=>{
