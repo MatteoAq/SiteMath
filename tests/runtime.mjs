@@ -682,7 +682,7 @@ if (!onlyVariant && !onlyTask) try {
     '11':['329d0144',847],
     '12':['468c4cd2',1533],
     '13':['ab2af3bb',1072],
-    '14':['5cd244bc',937],
+    '14':['d4d3057f',1046],
     '15':['aed4e407',902],
     '17':['9048e1aa',1028],
     '18':['6a2632fc',991],
@@ -999,6 +999,20 @@ if (!onlyVariant && !onlyTask) try {
     }
   }
 } catch(e){failures.push('photo 03/5 and 06/5 retrace: '+e.stack);}
+
+// In 14/6 the original a₁ rises to the right. The previous placeholder
+// had a₁ descending almost parallel to b₁, removing a finite intersection.
+if (!onlyVariant && !onlyTask) try {
+  const g=window.SITEMATH_SCHEMES['14'].task6;
+  const slope=seg=>(seg[1][1]-seg[0][1])/(seg[1][0]-seg[0][0]);
+  for(const model of [g,g.sourceGeometry]){
+    const A=model.planeA.lines.a,B=model.planeA.lines.b;
+    if(!(slope(A.p2)<0 && slope(A.p1)<-.4)) failures.push('14/6: original a₂/a₁ must rise right');
+    if(!(slope(B.p2)>.3 && slope(B.p1)>.3)) failures.push('14/6: original b₂/b₁ must descend right');
+    if(!(slope(model.planeB.line)<-.6)) failures.push('14/6: Ω₁ source line is wrongly sloped');
+    if(model.planeA.junctions?.length!==1) failures.push('14/6: original crossing projector missing');
+  }
+} catch(e){failures.push('14/6 original photograph retrace: '+e.stack);}
 
 // Verify the actual source geometry, not just warning text. The 06 photo
 // shows n₂ upper, m₂ lower, n₁ upper, m₁ lower; 19 has a named K projector.
