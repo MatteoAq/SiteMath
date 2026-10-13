@@ -947,6 +947,25 @@ if (!onlyVariant && !onlyTask) try {
   if(!$('variantNote').textContent.includes('доступен для сверки координат')) failures.push('numeric 12/1: exact source attribution missing');
 } catch(e){ failures.push('numeric source attribution: '+e.stack); }
 
+// In the supplied 11/6 paper original the K subscripts are printed in
+// the wrong order. Step 1 is a faithful copy; step 2 must explicitly correct
+// the projection names without moving the source point.
+if (!onlyVariant && !onlyTask) try {
+  $('variantSelect').value='11';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='6';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('firstBtn').click();
+  const height=name=>{
+    const node=window.document.querySelector('#drawing circle[data-label="'+name+'"]');
+    return node?Number(node.getAttribute('cy')):NaN;
+  };
+  if(!(height('K₁')<height('K₂'))) failures.push('11/6 original paper K₁/K₂ labels are not faithfully restored');
+  if(!$('stepAction').textContent.includes('переобозначь')) failures.push('11/6 paper typo has no construction explanation');
+  $('nextBtn').click();
+  if(!(height('K₂')<height('K₁'))) failures.push('11/6 corrected K projections are not properly indexed');
+} catch(e){failures.push('11/6 source labeling correction: '+e.stack);}
+
 // Verify the actual source geometry, not just warning text. The 06 photo
 // shows n₂ upper, m₂ lower, n₁ upper, m₁ lower; 19 has a named K projector.
 if (!onlyVariant && !onlyTask) try {
