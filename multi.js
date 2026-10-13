@@ -3385,11 +3385,13 @@
     if(!through?.p1||!through?.p2)return null;
     const p1={x:+through.p1[0],y:+through.p1[1]};
     const p2={x:+through.p2[0],y:+through.p2[1]};
+    const paperReversed=scheme.paperReversedKLabels===true;
     return [
       ...starterPlaneDefEntities(raw.planeA,step,raw.planeA?.name||'Σ',true),
       ...starterPlaneDefEntities(raw.planeB,step,raw.planeB?.name||'Θ',true),
       line(step,p2,p1,'source-guide-line'),
-      point(step,p2,label+'₂'),point(step,p1,label+'₁')
+      point(step,p2,label+(paperReversed?'₁':'₂')),
+      point(step,p1,label+(paperReversed?'₂':'₁'))
     ];
   }
 
@@ -3649,7 +3651,9 @@
     const sourceK2={x:+sourceThroughNorm.p2[0],y:+sourceThroughNorm.p2[1]};
     push({
       title:'Сверь обе исходные плоскости и точку '+throughLabel,
-      action:'На первом кадре сравни с листом обе плоскости, исходные проекторы и точку '+throughLabel+'. Перенеси их по фоновой сетке; на следующем шаге учитывай исправление небольших погрешностей проецирования исходной фотографии.',
+      action:'На первом кадре сравни с листом обе плоскости, исходные проекторы и точку '+throughLabel+'. Перенеси их по фоновой сетке.'+(scheme.paperReversedKLabels
+        ? ' В оригинале перепутаны индексы: верхняя проекция названа K₁, нижняя – K₂. Для корректного решения переобозначь верхнюю как K₂, нижнюю как K₁. Координаты точек не перемещай.'
+        : ' На следующих шагах учитывай небольшие погрешности проецирования исходной фотографии.'),
       why:'Наклоны и взаимное положение напечатанной схемы являются исходными данными. Вспомогательные сечения появятся только на следующих шагах.',
       measure:['Исходные толстые линии не заменяй вспомогательными.','Исходные тонкие проекторы сохраняй тонкими.'],
       check:'На первом шаге нет ни P/Q, ни линии пересечения r, ни новой прямой через '+throughLabel+'.'
