@@ -17,7 +17,7 @@ if(source.split(marker).length!==2)throw Error('solver instrumentation anchor ch
 if(source.split(bridgeMarker).length!==2)throw Error('task5 bridge probe anchor changed');
 W.eval(source
  .replace(bridgeMarker,'    window.__task5BridgeProbe={bridge,cut,refs,givenRefs};\n'+bridgeMarker)
- .replace(marker,`  window.__siteMathGeometryProbe={planeFromScheme,planeReferenceLines,task5AuxCandidate,segmentVisibility,task5VisibilityWitness,task5VisibilityExtents,solveTask5Scheme};\\n`+marker));
+ .replace(marker,`  window.__siteMathGeometryProbe={planeFromScheme,planeReferenceLines,task5AuxCandidate,segmentVisibility,task5VisibilityWitness,task5VisibilityExtents,solveTask5Scheme};\n`+marker));
 const audit=W.__siteMathGeometryProbe,issues=[],results=[];
 const norm=p=>Math.hypot(p.x,p.y,p.z);
 for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
