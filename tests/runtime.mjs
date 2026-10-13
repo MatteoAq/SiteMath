@@ -1405,50 +1405,60 @@ if (!onlyVariant && !onlyTask) try {
     $('firstBtn').click();
 
     const total=Number($('stepTotal').textContent)||1;
-    let sawOmega=false,saw12=false,sawK=false,saw34=false,saw56=false,sawVisibility=false;
+    let sawOmega=false,saw12=false,sawM=false,sawK=false,sawPairedK=false;
+    let saw34=false,saw56=false,sawVisibility=false;
     for(let n=0;n<total;n++){
       const title=$('stepTitle').textContent.trim();
       const labels=[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent);
-
+      const kCount=labels.filter(x=>/^K[₁₂]$/.test(x)).length;
       if(title.startsWith('Заключи ℓ во вспомогательную')){
         sawOmega=true;
-        if(labels.some(x=>/^1[₁₂]$|^2[₁₂]$|^K[₁₂]$/.test(x))){
+        if(labels.some(x=>/^1[₁₂]$|^2[₁₂]$|^K[₁₂]$/.test(x)))
           failures.push('task5 sequence '+variant+': derived points exist while Ω is only introduced');
-        }
       }
       if(title.startsWith('Найди 1')){
-        if(!sawOmega) failures.push('task5 sequence '+variant+': section points 1/2 before Ω');
-        if(!labels.some(x=>/^1[₁₂]$/.test(x))||!labels.some(x=>/^2[₁₂]$/.test(x))){
-          failures.push('task5 sequence '+variant+': section points 1/2 missing on derivation step');
-        }
-        if(labels.some(x=>/^K[₁₂]$/.test(x))) failures.push('task5 sequence '+variant+': K appears before m');
+        if(!sawOmega)failures.push('task5 sequence '+variant+': section points before Ω');
+        if(!labels.some(x=>/^1[₁₂]$/.test(x))||!labels.some(x=>/^2[₁₂]$/.test(x)))
+          failures.push('task5 sequence '+variant+': points 1/2 missing');
+        if(kCount)failures.push('task5 sequence '+variant+': K appears before m');
         saw12=true;
       }
       if(title.startsWith('Построй m')){
-        if(!saw12) failures.push('task5 sequence '+variant+': m/K before section points 1/2');
-        if(!labels.some(x=>/^K[₁₂]$/.test(x))) failures.push('task5 sequence '+variant+': first K projection missing');
+        if(!saw12)failures.push('task5 sequence '+variant+': m before sections 1/2');
+        if(!labels.some(x=>/^m[₁₂]$/.test(x)))failures.push('task5 sequence '+variant+': m missing');
+        if(kCount)failures.push('task5 sequence '+variant+': K created simultaneously with m');
+        sawM=true;
+      }
+      if(title.startsWith('Найди K')){
+        if(!sawM)failures.push('task5 sequence '+variant+': K before m');
+        if(kCount!==1)failures.push('task5 sequence '+variant+': first K must be the only K projection');
         sawK=true;
       }
+      if(title.startsWith('Перенеси K')){
+        if(!sawK)failures.push('task5 sequence '+variant+': paired K before first K');
+        if(kCount!==2)failures.push('task5 sequence '+variant+': K paired projection missing');
+        sawPairedK=true;
+      }
       if(title.startsWith('Видимость на Π₁')){
-        if(!sawK) failures.push('task5 sequence '+variant+': competing 3/4 before K');
-        for(const x of ['3₁≡4₁','3₂','4₂']) if(!labels.includes(x)) failures.push('task5 sequence '+variant+': missing '+x);
+        if(!sawPairedK)failures.push('task5 sequence '+variant+': competing 3/4 before both K projections');
+        for(const x of ['3₁≡4₁','3₂','4₂'])
+          if(!labels.includes(x))failures.push('task5 sequence '+variant+': missing '+x);
         saw34=true;
       }
       if(title.startsWith('Видимость на Π₂')){
-        if(!sawK) failures.push('task5 sequence '+variant+': competing 5/6 before K');
-        for(const x of ['5₂≡6₂','5₁','6₁']) if(!labels.includes(x)) failures.push('task5 sequence '+variant+': missing '+x);
+        if(!sawPairedK)failures.push('task5 sequence '+variant+': competing 5/6 before both K projections');
+        for(const x of ['5₂≡6₂','5₁','6₁'])
+          if(!labels.includes(x))failures.push('task5 sequence '+variant+': missing '+x);
         saw56=true;
       }
       if(title.startsWith('Нанеси видимость ℓ')){
-        if(!saw34||!saw56) failures.push('task5 sequence '+variant+': final visibility drawn before both competing-point constructions');
+        if(!saw34||!saw56)failures.push('task5 sequence '+variant+': visibility before competing points');
         sawVisibility=true;
       }
-
-      if(n<total-1) $('nextBtn').click();
+      if(n<total-1)$('nextBtn').click();
     }
-    if(!sawOmega||!saw12||!sawK||!saw34||!saw56||!sawVisibility){
-      failures.push('task5 sequence '+variant+': incomplete Ω/1-2/K/3-4/5-6/visibility chain');
-    }
+    if(!sawOmega||!saw12||!sawM||!sawK||!sawPairedK||!saw34||!saw56||!sawVisibility)
+      failures.push('task5 sequence '+variant+': incomplete Ω / 1-2 / m / K / paired K / competitors / visibility chain');
   }
 } catch(e) {
   failures.push('task5 all-variant construction sequence regression: '+e.stack);
@@ -1599,9 +1609,11 @@ try {
     if(frames.slice(0,p).some(f=>f.labels.includes('P₁')||f.labels.includes('P₂'))){
       failures.push('task6 pedagogy 04: P appears before both section lines are complete');
     }
-    if(!frames[p].labels.includes('P₁')||!frames[p].labels.includes('P₂')){
-      failures.push('task6 pedagogy 04: P missing after both section lines');
-    }
+    const pTransfer=idx('Перенеси P₁');
+    if(!frames[p].labels.includes('P₁')||frames[p].labels.includes('P₂'))
+      failures.push('task6 pedagogy 04: P must first appear only as P₁');
+    if(pTransfer!==p+1||!frames[pTransfer]?.labels.includes('P₂')||!frames[pTransfer]?.labels.includes('P₁'))
+      failures.push('task6 pedagogy 04: projector step must subsequently derive P₂');
   }
 } catch(e) {
   failures.push('task6 explicit auxiliary-level regression: '+e.stack);
@@ -1620,43 +1632,49 @@ if (!onlyVariant && !onlyTask) try {
     $('firstBtn').click();
 
     const total=Number($('stepTotal').textContent)||1;
-    const seen={alpha:false,beta:false,p:false,q:false};
+    const seen={alpha:false,beta:false,p:false,q:false,pTransfer:false,qTransfer:false};
+    let firstP=null,firstQ=null;
     for(let n=0;n<total;n++){
       const title=$('stepTitle').textContent.trim();
       const labels=[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent);
-
+      const has=name=>labels.filter(x=>x===name+'₁'||x===name+'₂');
       if(title==='Выбери вспомогательную плоскость α'){
         seen.alpha=true;
-        if(labels.includes('P₁')||labels.includes('P₂')){
-          failures.push('task6 pedagogy '+variant+': P exists while alpha is only being chosen');
-        }
+        if(has('P').length)failures.push('task6 pedagogy '+variant+': P before alpha section');
       }
-      if(title.includes('получи P')){
-        if(!seen.alpha) failures.push('task6 pedagogy '+variant+': P constructed before alpha');
-        if(!labels.includes('P₁')||!labels.includes('P₂')){
-          failures.push('task6 pedagogy '+variant+': P projections missing on derivation step');
-        }
+      if(title.startsWith('Пересеки линии сечения α и получи P')){
+        if(!seen.alpha||seen.p)failures.push('task6 pedagogy '+variant+': premature or duplicate P derivation');
+        if(has('P').length!==1)failures.push('task6 pedagogy '+variant+': only one first P projection may appear');
+        firstP=n;
         seen.p=true;
       }
-      if(title==='Выбери вспомогательную плоскость β'){
-        seen.beta=true;
-        if(labels.includes('Q₁')||labels.includes('Q₂')){
-          failures.push('task6 pedagogy '+variant+': Q exists while beta is only being chosen');
-        }
+      if(title.startsWith('Перенеси P')){
+        if(firstP===null||n!==firstP+1)failures.push('task6 pedagogy '+variant+': P projector not immediately after first P');
+        if(!labels.includes('P₁')||!labels.includes('P₂'))
+          failures.push('task6 pedagogy '+variant+': second P projection missing after projector');
+        seen.pTransfer=true;
       }
-      if(title.includes('получи Q')){
-        if(!seen.beta) failures.push('task6 pedagogy '+variant+': Q constructed before beta');
-        if(!labels.includes('Q₁')||!labels.includes('Q₂')){
-          failures.push('task6 pedagogy '+variant+': Q projections missing on derivation step');
-        }
+      if(title==='Выбери вспомогательную плоскость β'){
+        if(!seen.pTransfer)failures.push('task6 pedagogy '+variant+': beta before P projector');
+        seen.beta=true;
+        if(has('Q').length)failures.push('task6 pedagogy '+variant+': Q exists before beta section');
+      }
+      if(title.startsWith('Пересеки линии сечения β и получи Q')){
+        if(!seen.beta||seen.q)failures.push('task6 pedagogy '+variant+': premature or duplicate Q derivation');
+        if(has('Q').length!==1)failures.push('task6 pedagogy '+variant+': only one first Q projection may appear');
+        firstQ=n;
         seen.q=true;
       }
-
-      if(n<total-1) $('nextBtn').click();
+      if(title.startsWith('Перенеси Q')){
+        if(firstQ===null||n!==firstQ+1)failures.push('task6 pedagogy '+variant+': Q projector not immediately after first Q');
+        if(!labels.includes('Q₁')||!labels.includes('Q₂'))
+          failures.push('task6 pedagogy '+variant+': second Q projection missing after projector');
+        seen.qTransfer=true;
+      }
+      if(n<total-1)$('nextBtn').click();
     }
-    if(!seen.alpha||!seen.beta||!seen.p||!seen.q){
-      failures.push('task6 pedagogy '+variant+': incomplete alpha/P/beta/Q construction sequence');
-    }
+    if(Object.values(seen).some(x=>!x))
+      failures.push('task6 pedagogy '+variant+': incomplete alpha/P₁/P₂/beta/Q₁/Q₂ chain');
   }
 } catch(e) {
   failures.push('task6 all-variant auxiliary sequence regression: '+e.stack);
