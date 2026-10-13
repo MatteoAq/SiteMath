@@ -941,11 +941,35 @@ if (!onlyVariant && !onlyTask) try {
   $('variantSelect').dispatchEvent(new window.Event('change'));
   $('taskSelect').value='1';
   $('taskSelect').dispatchEvent(new window.Event('change'));
-  if(!$('variantNote').textContent.includes('недоступен для повторной сверки')) failures.push('numeric 03/1: false source-verification claim');
+  if(!$('variantNote').textContent.includes('доступен для сверки координат')) failures.push('numeric 03/1: recovered sheet not attributed');
   $('variantSelect').value='12';
   $('variantSelect').dispatchEvent(new window.Event('change'));
-  if(!$('variantNote').textContent.includes('сверены с доступным')) failures.push('numeric 12/1: exact source attribution missing');
+  if(!$('variantNote').textContent.includes('доступен для сверки координат')) failures.push('numeric 12/1: exact source attribution missing');
 } catch(e){ failures.push('numeric source attribution: '+e.stack); }
+
+// Verify the actual source geometry, not just warning text. The 06 photo
+// shows n₂ upper, m₂ lower, n₁ upper, m₁ lower; 19 has a named K projector.
+if (!onlyVariant && !onlyTask) try {
+  const six=window.SITEMATH_SCHEMES['06'].task4;
+  for(const model of [six,six.sourceGeometry]){
+    const M=model.lines.m,N=model.lines.n;
+    const mid=seg=>(seg[0][1]+seg[1][1])/2;
+    if(!(mid(N.p2)<mid(M.p2))) failures.push('06/4: n₂ is not above m₂');
+    if(!(mid(N.p1)<mid(M.p1))) failures.push('06/4: n₁ is not above m₁');
+  }
+  const nineteen=window.SITEMATH_SCHEMES['19'].task4;
+  for(const model of [nineteen,nineteen.sourceGeometry]){
+    const j=model.junctions?.[0];
+    if(j?.label1!=='K₁'||j?.label2!=='K₂') failures.push('19/4: given K₁/K₂ projector missing');
+  }
+  $('variantSelect').value='19';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='4';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('firstBtn').click();
+  const sourceLabels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+  if(!sourceLabels.includes('K₁') || !sourceLabels.includes('K₂')) failures.push('19/4: photographed K is absent from first frame');
+} catch(e){failures.push('photographic source corrections 06/19: '+e.stack);}
 
 // A provisional graphical trace must never present disputed input as verified.
 if (!onlyVariant && !onlyTask) try {
@@ -957,14 +981,16 @@ if (!onlyVariant && !onlyTask) try {
   };
   select('06',4);
   if(!$('printProvenanceTitle').textContent.includes('06') || !$('printProvenanceTitle').textContent.includes('№4')) failures.push('print provenance 06/4: variant/task identification missing');
-  if(!$('printProvenanceStatus').textContent.includes('ОСПОРЕНО ПРЕПОДАВАТЕЛЕМ')) failures.push('print provenance 06/4: disputed source is printed without warning');
-  if(!$('diagramWarning').textContent.includes('оспорено преподавателем')) failures.push('disputed 06/4: critical warning is missing');
+  if(!$('printProvenanceStatus').textContent.includes('НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ')) failures.push('print provenance 06/4: provisional method status missing');
+  if(!$('dynamicInputs').textContent.includes('верхняя фронтальная прямая – n₂')) failures.push('06/4: actual m/n geometry correction not shown');
+  if(!$('dynamicInputs').querySelector('a[href="./source-photos/variant-06/1000022471.jpg"]')) failures.push('06/4: archived original link is missing');
+  if($('diagramWarning').textContent.includes('оспорено преподавателем')) failures.push('06/4: obsolete and incorrect teacher dispute notice was restored');
   if(!$('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('disputed 06/4: brief appears verified');
   if(!$('variantNote').textContent.includes('НЕ ПРОВЕРЕНО')) failures.push('disputed 06/4: summary appears verified');
   select('03',5);
   if(!$('printProvenanceStatus').textContent.includes('НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ')) failures.push('print provenance 03/5: unverified source is printed without warning');
   if(!$('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('unverified 03/5: brief appears verified');
-  if(!$('diagramWarning').textContent.includes('Исходное условие НЕ проверено')) failures.push('unverified 03/5: warning is missing');
+  if(!$('diagramWarning').textContent.includes('Исходный лист восстановлен')) failures.push('unverified 03/5: recovered original status missing');
   select('12',4);
   if(!$('dynamicInputs').querySelector('a[href="./source-photos/variant-12/IMG_20260917_131638.jpg"]')) failures.push('source 12/4: direct archived original sheet link missing');
   if(!$('printProvenanceStatus').textContent.includes('Методика') && !$('printProvenanceStatus').textContent.includes('методики')) failures.push('print provenance 12/4: construction not qualified');
@@ -1772,7 +1798,7 @@ if (!onlyVariant && !onlyTask) try {
   $('variantSelect').dispatchEvent(new window.Event('change'));
   $('taskSelect').value='4';
   $('taskSelect').dispatchEvent(new window.Event('change'));
-  if(!$('dynamicInputs').textContent.includes('не подтверждено бумажным оригиналом') || !$('dynamicInputs').textContent.includes('текст условия')) failures.push('source status 03: unverified condition and points not disclosed');
+  if(!$('dynamicInputs').textContent.includes('исходный лист восстановлен') || !$('dynamicInputs').textContent.includes('Точная геометрия')) failures.push('source status 03: exact trace still needs comparison');
 } catch(e) {
   failures.push('source role/status regression: '+e.stack);
 }
