@@ -3355,8 +3355,80 @@
     const l1=visibilityGeometry.p1,l2=visibilityGeometry.p2;
     const vis1=segmentVisibility(lrec,plane,'p1',K1,l1);
     const vis2=segmentVisibility(lrec,plane,'p2',K2,l2);
-    const witness1=task5VisibilityWitness(givenRefs,lrec,'p1',K1);
+    let witness1=task5VisibilityWitness(givenRefs,lrec,'p1',K1);
     const witness2=task5VisibilityWitness(givenRefs,lrec,'p2',K2);
+    let witnessBridge=null;
+    // A *visibility* competitor must be a genuine point of the plane.
+    // In 19/5 the photographed source lines are almost parallel to ℓ₁;
+    // their projected crossing lies >1200 units away, even though K and
+    // the result are near the original sheet. Construct a transverse g=TU
+    // using two real points of the given (parallel) source lines.
+    if(scheme.planeType==='parallel_lines'&&witness1?.score>5 &&
+       givenRefs.length===2){
+      const A=givenRefs[0],B=givenRefs[1];
+      const xAt=(rec,f)=>rec.p1[0][0]+(rec.p1[1][0]-rec.p1[0][0])*f;
+      const xT=xAt(A.rec,.65),xU=xAt(B.rec,.35);
+      if(Math.abs(xT-xU)>8){
+        const g={
+          p1:[[xT,lineY(A.rec.p1,xT)],[xU,lineY(B.rec.p1,xU)]],
+          p2:[[xT,lineY(A.rec.p2,xT)],[xU,lineY(B.rec.p2,xU)]]
+        };
+        const smaller=task5VisibilityWitness([{name:'g',rec:g}],lrec,'p1',K1);
+        if(smaller&&smaller.score<witness1.score*.3 && smaller.score<3){
+          witness1=smaller;
+          witnessBridge={A,B,g};
+        }
+      }
+    }
+
+    if(witnessBridge){
+      const {A,B,g}=witnessBridge;
+      const T1={x:g.p1[0][0],y:g.p1[0][1]},T2={x:g.p2[0][0],y:g.p2[0][1]};
+      const U1={x:g.p1[1][0],y:g.p1[1][1]},U2={x:g.p2[1][0],y:g.p2[1][1]};
+      i=steps.length;
+      push({
+        title:'Выбери T₁ на '+A.name+'₁ для сравнения видимости',
+        action:'На исходной '+A.name+'₁ выбери точку T₁. Её T₂ пока не отмечай.',
+        why:'Точка T принадлежит первой из заданных параллельных прямых плоскости Σ.',
+        measure:['T₁ ∈ '+A.name+'₁'],
+        check:'T₁ существует только на Π₁.'
+      },[point(i,T1,'T₁','construction-dot')]);
+      i=steps.length;
+      push({
+        title:'Перенеси T₁ на '+A.name+'₂ и получи T₂ для сравнения видимости',
+        action:'Из T₁ подними линию связи до '+A.name+'₂, отметь T₂.',
+        why:'Два вида одной точки должны лежать на общем проекторе.',
+        measure:['T₁T₂ – линия связи'],
+        check:'T₂ получена после проектора, а не выбрана независимо.'
+      },[line(i,T1,T2,'construction-line'),point(i,T2,'T₂','construction-dot')]);
+      i=steps.length;
+      push({
+        title:'Выбери U₁ на '+B.name+'₁ для сравнения видимости',
+        action:'На второй заданной прямой '+B.name+'₁ выбери U₁.',
+        why:'Точка U принадлежит второй опорной прямой исходной плоскости Σ.',
+        measure:['U₁ ∈ '+B.name+'₁'],
+        check:'U₂ ещё не построена.'
+      },[point(i,U1,'U₁','construction-dot')]);
+      i=steps.length;
+      push({
+        title:'Перенеси U₁ на '+B.name+'₂ и получи U₂ для сравнения видимости',
+        action:'Линия связи из U₁ до '+B.name+'₂ определяет U₂.',
+        why:'Обе проекции U принадлежат одной пространственной прямой '+B.name+'.',
+        measure:['U₁U₂ – линия связи'],
+        check:'U₂ лежит на проекторе из U₁.'
+      },[line(i,U1,U2,'construction-line'),point(i,U2,'U₂','construction-dot')]);
+      i=steps.length;
+      push({
+        title:'Проведи g=TU для конкурирующих точек на Π₁',
+        action:'Проведи g₁=T₁U₁ и g₂=T₂U₂. Затем сравни её с ℓ₁.',
+        why:'Через T и U проходит прямая в исходной плоскости. Теперь можно получить близкую пару конкурирующих точек без огромных продолжений.',
+        measure:['g₁=T₁U₁','g₂=T₂U₂'],
+        check:'g проходит через две уже найденные пространственные точки Σ.'
+      },[
+        line(i,T1,U1,'aux-line'),textEntity(i,U1,'g₁','svg-label'),
+        line(i,T2,U2,'aux-line'),textEntity(i,U2,'g₂','svg-label')
+      ]);
+    }
 
     if(witness1){
       i=steps.length;
