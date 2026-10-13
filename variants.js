@@ -1326,6 +1326,8 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
   // unrelated given lines, photographed JPGs and solver data untouched.
   // Solver-only pencil construction marker, not part of the printed
   // sourceGeometry: 06/6 needs a near transversal g=TU inside Σ(a,b).
+  // Solver-only: select the nearer given frontal endpoint for 04/6 g.
+  window.SITEMATH_SCHEMES["04"].task6.planeB.shortBridgeEndpoint=true;
   window.SITEMATH_SCHEMES["06"].task6.planeA.auxBridge='a-b';
 
   const task6PrintedCrossingProjectors=[
