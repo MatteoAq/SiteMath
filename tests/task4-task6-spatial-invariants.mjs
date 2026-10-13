@@ -9,9 +9,9 @@ const m6="    const norm=normalizeSteps(steps,210,170);";
 if(code.split(m4).length!==2||code.split(m6).length!==3)
  throw new Error('solver probe anchors changed');
 code=code.replace(m4,'    window.__task4Probe={plane,h3,f3,L3,through3,target3};\n'+m4);
-const relationAnchor="      if(R3){\\n        const R=project3(R3),Ref=ref3?project3(ref3):null;";
+const relationAnchor="      if(R3){\n        const R=project3(R3),Ref=ref3?project3(ref3):null;";
 if(code.split(relationAnchor).length!==2)throw Error('task4 relation probe anchor');
-code=code.replace(relationAnchor,"      if(R3){\\n        window.__task4Relation={R3,ref3};\\n        const R=project3(R3),Ref=ref3?project3(ref3):null;");
+code=code.replace(relationAnchor,"      if(R3){\n        window.__task4Relation={R3,ref3};\n        const R=project3(R3),Ref=ref3?project3(ref3):null;");
 const graphEnd="    return {width:norm.width,height:norm.height,O:{x:0,y:0},steps,diagramPending:false,graphicalConstruction:true,paperScale:norm.scale};";
 const old=m6+"\n"+graphEnd;
 if(code.split(old).length!==2)throw new Error('graphical task 6 probe anchor changed');
