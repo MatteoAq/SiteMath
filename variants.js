@@ -1242,6 +1242,12 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
       s.sourceVerified=false; // checked only after exact per-task comparison
     });
   });
+  // IMG 1000022470.jpg, variant 11 task 6: the *paper* accidentally
+  // captions the upper K point as K₁ and the lower as K₂. Preserve these
+  // original labels in the first frame, then explicitly correct their
+  // projection indices for the mathematical construction.
+  const task11=window.SITEMATH_SCHEMES?.["11"]?.task6;
+  if(task11) task11.paperReversedKLabels=true;
   // The newly supplied image for 12 is a second source, beside the earlier
   // archived IMG_20260917_131638. Preserve the original verified source ID.
 })();
