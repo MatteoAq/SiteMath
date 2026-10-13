@@ -934,6 +934,26 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('task4 plane-symbol regression: '+e.stack);
 }
 
+// A provisional graphical trace must never present disputed input as verified.
+if (!onlyVariant && !onlyTask) try {
+  const select=(variant,task)=>{
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value=String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+  };
+  select('06',4);
+  if(!$('diagramWarning').textContent.includes('оспорено преподавателем')) failures.push('disputed 06/4: critical warning is missing');
+  if(!$('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('disputed 06/4: brief appears verified');
+  if(!$('variantNote').textContent.includes('НЕ ПРОВЕРЕНО')) failures.push('disputed 06/4: summary appears verified');
+  select('03',5);
+  if(!$('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('unverified 03/5: brief appears verified');
+  if(!$('diagramWarning').textContent.includes('Исходное условие НЕ проверено')) failures.push('unverified 03/5: warning is missing');
+  select('12',4);
+  if($('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('verified 12/4: incorrect provenance warning');
+  if($('diagramWarning').textContent.includes('Исходное условие НЕ проверено')) failures.push('verified 12/4: incorrectly labeled unsourced');
+} catch(e){ failures.push('visible input provenance: '+e.stack); }
+
 // "Дано / Найти" already exists for graphical tasks and is mandatory.
  // Do not duplicate it in the UI, but never allow later refactors to hide or
  // empty it for a digitized variant.
