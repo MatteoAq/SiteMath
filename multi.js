@@ -3149,9 +3149,37 @@
     catch(err){ return {error:err.message}; }
     const lrec=scheme.lines[scheme.givenLine||'l'];
     if(!lrec) return {error:'В оцифрованной схеме не найдена прямая ℓ.'};
-    const refs=planeReferenceLines(scheme);
-    if(refs.length<2) return {error:'Для плоскости не хватает двух опорных линий.'};
-
+    const givenRefs=planeReferenceLines(scheme);
+    if(givenRefs.length<2) return {error:'Для плоскости не хватает двух опорных линий.'};
+    let refs=givenRefs,bridge=null;
+    const regularCuts=['p1','p2'].map(side=>task5AuxCandidate(givenRefs,lrec,side))
+      .filter(Boolean).sort((a,b)=>a.score-b.score);
+    // A very shallow crossing of Ω with a given spatial line can put a
+    // pencil intersection thousands of millimetres away even when the
+    // actual K sits on the original sheet (17/5). Construct a legitimate
+    // additional line g=TU IN Σ, with T on a and U on b; then use a,g
+    // instead of those nearly parallel auxiliary cuts. Show T/U/g first.
+    if(scheme.planeType==='intersecting_lines'&&regularCuts.length&&
+       regularCuts[0].score>20&&givenRefs.length===2){
+      const A=givenRefs[0],B=givenRefs[1],fraction=.85;
+      const along=rec=>{
+        const seg=rec.p1;
+        return seg[0][0]+(seg[1][0]-seg[0][0])*fraction;
+      };
+      const xT=along(A.rec),xU=along(B.rec);
+      if(Math.abs(xU-xT)>6){
+        const g={p1:[[xT,lineY(A.rec.p1,xT)],[xU,lineY(B.rec.p1,xU)]],
+          p2:[[xT,lineY(A.rec.p2,xT)],[xU,lineY(B.rec.p2,xU)]]};
+        const alternative=[A,{name:'g',rec:g,auxiliary:true}];
+        const trial=['p1','p2'].map(side=>task5AuxCandidate(alternative,lrec,side))
+          .filter(Boolean).sort((a,b)=>a.score-b.score);
+        if(trial.length && trial[0].score<regularCuts[0].score*.25 &&
+           trial[0].score<10){
+          refs=alternative;
+          bridge={A,B,g};
+        }
+      }
+    }
     const candidates=[
       task5AuxCandidate(refs,lrec,'p1'),
       task5AuxCandidate(refs,lrec,'p2')
@@ -3179,7 +3207,7 @@
       : scheme.planeType==='line_point'
         ? 'заданную прямую '+(scheme.planeLine||Object.keys(scheme.lines||{})[0]||'a')+
           ' и точку '+(scheme.planePoint||Object.keys(scheme.points||{})[0]||'A')
-        : 'прямые '+refs.map(ref=>ref.name).join(', ');
+        : 'прямые '+givenRefs.map(ref=>ref.name).join(', ');
     push({
       title:'Сверь исходные проекции плоскости и ℓ',
       action:'Сверь с исходным листом '+sourcePlaneObjects+', прямую ℓ, подписи и напечатанные линии связи. Перенеси именно эти объекты на чертёж, сохранив их исходное взаимное положение. Остальные точки и линии будут получены на следующих шагах.',
@@ -3196,6 +3224,55 @@
     if(scheme.sourceGeometry)steps[0].sourceEntities=starterEntitiesFromScheme(scheme.sourceGeometry,0,true);
 
     diagramReferenceAxisStep(push,steps,scheme);
+
+    if(bridge){
+      const {A,B,g}=bridge;
+      const T1={x:g.p1[0][0],y:g.p1[0][1]},T2={x:g.p2[0][0],y:g.p2[0][1]};
+      const U1={x:g.p1[1][0],y:g.p1[1][1]},U2={x:g.p2[1][0],y:g.p2[1][1]};
+      i=steps.length;
+      push({
+        title:'Выбери T₁ на '+A.name+'₁ плоскости Σ',
+        action:'На заданной '+A.name+'₁ выбери T₁. Пока её фронтальную проекцию не ставь.',
+        why:'Любая точка заданной прямой '+A.name+' принадлежит исходной плоскости Σ.',
+        measure:['T₁ ∈ '+A.name+'₁'],
+        check:'Отмечена только T₁ на напечатанной линии.'
+      },[point(i,T1,'T₁','construction-dot')]);
+      i=steps.length;
+      push({
+        title:'По линии связи перенеси T₁ на '+A.name+'₂ и получи T₂',
+        action:'Из T₁ проведи проектор до '+A.name+'₂ и отметь T₂.',
+        why:'Парная проекция T₂ не выбирается произвольно.',
+        measure:['T₁T₂ – линия связи','T₂ ∈ '+A.name+'₂'],
+        check:'Обе проекции T имеют один x.'
+      },[line(i,T1,T2,'construction-line'),point(i,T2,'T₂','construction-dot')]);
+      i=steps.length;
+      push({
+        title:'Выбери U₁ на '+B.name+'₁ плоскости Σ',
+        action:'Выбери U₁ на второй исходной прямой '+B.name+'₁. Не ставь U₂ до переноса.',
+        why:'Прямая '+B.name+' также принадлежит Σ; точки T и U зададут ещё одну прямую этой плоскости.',
+        measure:['U₁ ∈ '+B.name+'₁'],
+        check:'Пока показана только U₁.'
+      },[point(i,U1,'U₁','construction-dot')]);
+      i=steps.length;
+      push({
+        title:'По линии связи перенеси U₁ на '+B.name+'₂ и получи U₂',
+        action:'Проведи линию связи из U₁ до '+B.name+'₂, обозначь U₂.',
+        why:'U₁ и U₂ принадлежат одной пространственной точке на исходной прямой.',
+        measure:['U₁U₂ – линия связи','U₂ ∈ '+B.name+'₂'],
+        check:'U₂ стоит на пересечении проектора с '+B.name+'₂.'
+      },[line(i,U1,U2,'construction-line'),point(i,U2,'U₂','construction-dot')]);
+      i=steps.length;
+      push({
+        title:'Соедини T и U – построй g₁ и g₂ плоскости Σ',
+        action:'Соедини T₁U₁ и T₂U₂. Это новая опорная прямая g=TU; исходную '+B.name+' не удаляй.',
+        why:'Любая прямая через две точки исходной плоскости лежит в той же плоскости. Она позволяет избежать далёкого вспомогательного пересечения.',
+        measure:['g₁=T₁U₁','g₂=T₂U₂'],
+        check:'g получена именно из ранее построенных проекций T и U.'
+      },[
+        line(i,T1,U1,'aux-line'),textEntity(i,U1,'g₁','svg-label'),
+        line(i,T2,U2,'aux-line'),textEntity(i,U2,'g₂','svg-label')
+      ]);
+    }
 
     i=steps.length;
     push({
@@ -3278,8 +3355,8 @@
     const l1=visibilityGeometry.p1,l2=visibilityGeometry.p2;
     const vis1=segmentVisibility(lrec,plane,'p1',K1,l1);
     const vis2=segmentVisibility(lrec,plane,'p2',K2,l2);
-    const witness1=task5VisibilityWitness(refs,lrec,'p1',K1);
-    const witness2=task5VisibilityWitness(refs,lrec,'p2',K2);
+    const witness1=task5VisibilityWitness(givenRefs,lrec,'p1',K1);
+    const witness2=task5VisibilityWitness(givenRefs,lrec,'p2',K2);
 
     if(witness1){
       i=steps.length;
