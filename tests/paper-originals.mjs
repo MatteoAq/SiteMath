@@ -340,6 +340,263 @@ for(const [variant,file,sha] of originalPhotos){
   if(actual!==sha)error.push('original photo SHA256 mismatch: '+path);
   checkedPhotos++;
 }
+// Independent visual audit of the *actual given line directions* on each
+// photographed original. + means falls as X increases on screen, - means
+// rises, 0 means horizontal. Entries are Π₂ / Π₁; the four entries are:
+// task 4, task 5, task 6 first plane, task 6 second plane.
+const photoLineDirections={
+  "10": [
+    {},
+    {
+      "a": "-/+",
+      "f": "+/0",
+      "l": "+/-"
+    },
+    {
+      "a": "+/+",
+      "b": "+/+"
+    },
+    {
+      "h": "0/+",
+      "f": "-/0"
+    }
+  ],
+  "11": [
+    {},
+    {
+      "l": "+/-"
+    },
+    {
+      "a": "-/+",
+      "b": "-/+"
+    },
+    {
+      "projector2": "0"
+    }
+  ],
+  "12": [
+    {
+      "a": "-/+",
+      "b": "+/+"
+    },
+    {
+      "l": "-/+"
+    },
+    {
+      "a": "-/+",
+      "b": "-/+"
+    },
+    {
+      "h": "0/+",
+      "f": "-/0"
+    }
+  ],
+  "14": [
+    {
+      "a": "-/+"
+    },
+    {
+      "a": "+/+",
+      "b": "+/+",
+      "l": "-/-"
+    },
+    {
+      "a": "-/-",
+      "b": "+/+"
+    },
+    {
+      "projector1": "-"
+    }
+  ],
+  "15": [
+    {
+      "a": "-/+"
+    },
+    {
+      "a": "+/+",
+      "b": "+/+",
+      "l": "-/-"
+    },
+    {
+      "projector2": "-"
+    },
+    {}
+  ],
+  "17": [
+    {
+      "m": "-/+",
+      "n": "-/+"
+    },
+    {
+      "a": "+/-",
+      "b": "-/+",
+      "l": "-/-"
+    },
+    {
+      "a": "-/0",
+      "b": "-/0"
+    },
+    {
+      "c": "+/-",
+      "h": "0/-"
+    }
+  ],
+  "18": [
+    {
+      "a": "+/+",
+      "b": "+/+"
+    },
+    {
+      "l": "0/+"
+    },
+    {
+      "a": "+/+",
+      "b": "-/-"
+    },
+    {
+      "c": "+/+",
+      "d": "-/-"
+    }
+  ],
+  "19": [
+    {
+      "a": "-/+",
+      "b": "+/+"
+    },
+    {
+      "a": "-/+",
+      "b": "-/+",
+      "l": "+/+"
+    },
+    {
+      "a": "-/-",
+      "b": "+/-"
+    },
+    {}
+  ],
+  "03": [
+    {
+      "a": "+/0",
+      "b": "+/0"
+    },
+    {
+      "a": "+/-",
+      "f": "-/0",
+      "l": "-/+"
+    },
+    {},
+    {
+      "a": "-/+",
+      "b": "+/-"
+    }
+  ],
+  "04": [
+    {},
+    {
+      "a": "+/+",
+      "b": "+/+",
+      "l": "-/+"
+    },
+    {},
+    {
+      "h": "0/-",
+      "f": "+/0"
+    }
+  ],
+  "05": [
+    {
+      "a": "+/0",
+      "b": "+/-"
+    },
+    {
+      "a": "+/-",
+      "f": "-/0",
+      "l": "-/+"
+    },
+    {},
+    {
+      "a": "-/-",
+      "b": "+/+"
+    }
+  ],
+  "06": [
+    {
+      "m": "-/+",
+      "n": "-/+"
+    },
+    {
+      "a": "-/-",
+      "b": "+/+",
+      "l": "+/+"
+    },
+    {
+      "a": "0/0",
+      "b": "-/-"
+    },
+    {}
+  ],
+  "08": [
+    {
+      "a": "+/+"
+    },
+    {
+      "l": "-/+"
+    },
+    {
+      "a": "-/-",
+      "b": "-/-"
+    },
+    {
+      "projector1": "+"
+    }
+  ],
+  "09": [
+    {
+      "b": "-/+"
+    },
+    {
+      "a": "+/+",
+      "b": "+/+",
+      "l": "0/+"
+    },
+    {
+      "a": "+/+",
+      "b": "-/-"
+    },
+    {
+      "h": "0/-",
+      "h′": "0/-"
+    }
+  ]
+};
+const direction=seg=>{
+  const [p,q]=seg;
+  const dx=q[0]-p[0],dy=q[1]-p[1];
+  if(Math.abs(dx)<1e-9)return 'vertical';
+  const slope=dy/dx;
+  return Math.abs(slope)<0.09?'0':slope>0?'+':'-';
+};
+for(const [variant,examples] of Object.entries(photoLineDirections)){
+  const group=win.SITEMATH_SCHEMES[variant];
+  const definitions=[
+    group.task4.sourceGeometry||group.task4,
+    group.task5.sourceGeometry||group.task5,
+    group.task6.sourceGeometry?.planeA||group.task6.planeA,
+    group.task6.sourceGeometry?.planeB||group.task6.planeB
+  ];
+  examples.forEach((expected,section)=>{
+    const source=definitions[section];
+    for(const [lineName,required] of Object.entries(expected)){
+      const actual=lineName.startsWith('projector')
+        ? direction(source.line)
+        : source.lines?.[lineName] ?
+          direction(source.lines[lineName].p2)+'/'+direction(source.lines[lineName].p1)
+          : 'missing';
+      if(required!==actual)
+        error.push(variant+'/'+[4,5,'6A','6B'][section]+' '+lineName+': paper '+required+', digital '+actual);
+    }
+  });
+}
 if(error.length){console.error(error.join('\n'));process.exitCode=1;}
 else console.log('Paper source audit OK: '+Object.keys(originalCoordinates).length+
   ' variants, 42 coordinate tasks / '+checkedCoord+' point records, '+
