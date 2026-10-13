@@ -725,7 +725,7 @@
     if(printTitle&&printStatus){
       printTitle.textContent=state.variant==='custom'
         ? 'Свои данные – задание №'+task
-        : variantDisplayLabel(state.variant)+' – задание №'+task;
+        : 'Вариант '+String(state.variant).padStart(2,'0')+' – задание №'+task;
       printStatus.textContent=state.variant==='custom'
         ? 'Исходные данные введены пользователем. Построение и методику необходимо проверить.'
         : task<=3
