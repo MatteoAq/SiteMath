@@ -287,6 +287,19 @@ for (const vp of viewports) {
         path:'mobile-screenshots/final-v'+String(Number(variant)).padStart(2,'0')+'-t'+task+'.png',
         fullPage:false
       });
+      // 17/5 used to be an almost blank sheet at 1.3% although K lay
+      // beside the given lines: the auxiliary points were >7000 units away.
+      // Its now explicitly constructed g=TU must preserve the first frame
+      // while giving a usable overview without needing local-focus mode.
+      if(variant==='17' && task===5){
+        const v=await page.evaluate(()=>({
+          zoom:Number(document.querySelector('#zoomLabel').textContent.replace('%','').replace(',','.')),
+          hasK1:!![...document.querySelectorAll('#drawing circle.answer-dot')].find(n=>n.getAttribute('data-label')==='K₁'),
+          hasK2:!![...document.querySelectorAll('#drawing circle.answer-dot')].find(n=>n.getAttribute('data-label')==='K₂')
+        }));
+        if(v.zoom<10||!v.hasK1||!v.hasK2)
+          failures.push('17/5: extra-long pencil cut or missing K still makes result unreadable '+JSON.stringify(v));
+      }
       // 12/6 has a genuinely distant intersection; full fit must remain
       // mathematically exact, while local focus must make the current pencil
       // operation readable and continue to follow Prev/Next steps.
