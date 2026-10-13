@@ -3005,8 +3005,30 @@
     return {x:x,y:lineY(rec.p1,x),z:-lineY(rec.p2,x)};
   }
 
-  function segmentVisibility(rec,plane,proj,K){
-    const seg=toSeg(rec[proj]);
+  // Visibility belongs to the whole spatial line, not just the short
+  // stroke printed on the photographed assignment. When K is outside that
+  // stroke, splitting A–K and K–B would draw two OVERLAPPING segments with
+  // incompatible visibility. Extend both projections using the same x range,
+  // keep K inside it, and draw exactly one segment on each side.
+  function task5VisibilityExtents(rec,K){
+    const xs=[...rec.p1,...rec.p2].map(p=>+p[0]);
+    const lo=Math.min(...xs,K.x),hi=Math.max(...xs,K.x);
+    if(!(hi-lo>EPS))return {p1:toSeg(rec.p1),p2:toSeg(rec.p2)};
+    const kBeyond=K.x<=Math.min(...xs)+EPS || K.x>=Math.max(...xs)-EPS;
+    const margin=kBeyond?Math.max(18,(hi-lo)*.1):0;
+    const xA=lo-margin,xB=hi+margin;
+    const result={};
+    for(const proj of ['p1','p2']){
+      result[proj]=[
+        {x:xA,y:lineY(rec[proj],xA)},
+        {x:xB,y:lineY(rec[proj],xB)}
+      ];
+    }
+    return result;
+  }
+
+  function segmentVisibility(rec,plane,proj,K,displaySegment){
+    const seg=displaySegment||toSeg(rec[proj]);
     const endA=seg[0],endB=seg[1];
     const k={x:K.x,y:proj==='p1'?lineY(rec.p1,K.x):lineY(rec.p2,K.x)};
     const mids=[lerp2(endA,k,.5),lerp2(k,endB,.5)];
@@ -3222,9 +3244,10 @@
       line(i,KOther,KPrimary,'construction-line'),point(i,KPrimary,'K'+pIdx,'answer-dot')
     ],{kind:'line',a:KOther,b:KPrimary});
 
-    const l1=toSeg(lrec.p1),l2=toSeg(lrec.p2);
-    const vis1=segmentVisibility(lrec,plane,'p1',K1);
-    const vis2=segmentVisibility(lrec,plane,'p2',K2);
+    const visibilityGeometry=task5VisibilityExtents(lrec,K1);
+    const l1=visibilityGeometry.p1,l2=visibilityGeometry.p2;
+    const vis1=segmentVisibility(lrec,plane,'p1',K1,l1);
+    const vis2=segmentVisibility(lrec,plane,'p2',K2,l2);
     const witness1=task5VisibilityWitness(refs,lrec,'p1',K1);
     const witness2=task5VisibilityWitness(refs,lrec,'p2',K2);
 
@@ -3280,7 +3303,7 @@
     const p1a=l1[0],p1b=l1[1],p2a=l2[0],p2b=l2[1];
     push({
       title:'Нанеси видимость ℓ по результату конкурирующих точек',
-      action:'Используй сравнение 3/4 для Π₁ и 5/6 для Π₂. После точки пересечения K взаимное положение линии и плоскости меняется, поэтому на противоположной стороне K видимость меняется.',
+      action:'Используй сравнение 3/4 для Π₁ и 5/6 для Π₂. Если K лежит за концом напечатанного штриха ℓ, продли прямую до K и немного за неё. Раздели продолженную линию в K на два НЕ перекрывающихся участка; на противоположной стороне K видимость меняется.',
       why:'Сплошным остаётся участок ℓ, точка которого ближе к наблюдателю, чем конкурирующая точка плоскости. Штриховым показывается участок, закрытый плоскостью.',
       measure:['Π₁: сравнение z через 3₂/4₂','Π₂: сравнение y через 5₁/6₁'],
       check:'Граница смены видимости совпадает с K; никакой участок не помечается видимым без построенных конкурирующих точек.'
