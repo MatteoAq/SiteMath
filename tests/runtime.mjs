@@ -597,81 +597,81 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('source frame semantic regression: '+e.stack);
 }
 
-// The photographed first frame must use exact raw coordinates, not solver
-// regularization. Compare each source object line after a common viewport shift,
-// and each original named point before moving beyond the first step.
+// All archived full-size originals must survive as exact raw coordinates
+// on the FIRST frame. Earlier only variant 12 had this protection, so a
+// mathematically normalized graph could silently replace other paper givens.
 if (!onlyVariant && !onlyTask) try {
-  const group=window.SITEMATH_SCHEMES?.['12'];
-  const xy=rec=>[{x:rec[0][0],y:rec[0][1],X:rec[1][0],Y:rec[1][1]}];
+  const xy=seg=>({x:seg[0][0],y:seg[0][1],X:seg[1][0],Y:seg[1][1]});
   const expectedLines=(task,raw)=>{
     const out=[];
-    const addLine=rec=>{
-      for(const proj of ['p2','p1']){
-        const line=rec[proj];
-        if(line)out.push(...xy(line));
-      }
-    };
     const addDef=def=>{
-      Object.values(def?.lines||{}).forEach(addLine);
-      if(def?.type==='ABC'||def?.planeType==='ABC'){
-        for(const [a,b] of [['A','B'],['B','C'],['C','A']]){
+      if(!def)return;
+      Object.values(def.lines||{}).forEach(rec=>{
+        for(const proj of ['p2','p1']) if(rec?.[proj])out.push(xy(rec[proj]));
+      });
+      if(def.type==='ABC'||def.planeType==='ABC'){
+        for(const [a,b] of [['A','B'],['B','C'],['C','A']])
           for(const proj of ['p2','p1']){
             const A=def.points[a][proj],B=def.points[b][proj];
             out.push({x:A[0],y:A[1],X:B[0],Y:B[1]});
           }
-        }
       }
+      // A projecting plane has a single source trace on Π₁ or Π₂.
+      if(def.line)out.push(xy(def.line));
     };
-    if(task===6){
-      addDef(raw.planeA);addDef(raw.planeB);
-    } else addDef(raw);
+    if(task===6){addDef(raw.planeA);addDef(raw.planeB);}
+    else addDef(raw);
     return out;
   };
-  for(const task of [4,5,6]){
-    $('variantSelect').value='12';
-    $('variantSelect').dispatchEvent(new window.Event('change'));
-    $('taskSelect').value=String(task);
-    $('taskSelect').dispatchEvent(new window.Event('change'));
-    $('firstBtn').click();
-    const raw=group?.['task'+task]?.sourceGeometry;
-    if(!raw){failures.push('variant12/'+task+': raw sourceGeometry is missing');continue;}
-    const expected=expectedLines(task,raw);
-    const actual=[...window.document.querySelectorAll('#drawing line.object-line')];
-    if(expected.length!==actual.length){
-      failures.push('variant12/'+task+': source lines '+actual.length+' != '+expected.length);
-      continue;
-    }
-    if(!expected.length)continue;
-    const start=actual[0];
-    const paperScale=Number(window.document.querySelector('#drawing')?.getAttribute('data-paper-scale'))||1;
-    const dx=Number(start.getAttribute('x1'))-expected[0].x*paperScale;
-    const dy=Number(start.getAttribute('y1'))-expected[0].y*paperScale;
-    const same=(v,w)=>Math.abs(Number(v)-Number(w))<.001;
-    expected.forEach((ref,i)=>{
-      const el=actual[i];
-      if(!same(el.getAttribute('x1'),ref.x*paperScale+dx) ||
-         !same(el.getAttribute('y1'),ref.y*paperScale+dy) ||
-         !same(el.getAttribute('x2'),ref.X*paperScale+dx) ||
-         !same(el.getAttribute('y2'),ref.Y*paperScale+dy)){
-        failures.push('variant12/'+task+': first-frame object line '+i+' differs from photographed trace');
+  const same=(v,w)=>Math.abs(Number(v)-Number(w))<.001;
+  const groups=Object.entries(window.SITEMATH_SCHEMES||{})
+    .filter(([variant,group])=>[4,5,6].every(task=>
+      group?.['task'+task]?.sourceAvailable===true &&
+      !!group?.['task'+task]?.sourceGeometry));
+  if(groups.length!==14)failures.push('exact original first-frame audit: expected 14 archived variants, found '+groups.length);
+  for(const [variant,group] of groups){
+    for(const task of [4,5,6]){
+      $('variantSelect').value=variant;
+      $('variantSelect').dispatchEvent(new window.Event('change'));
+      $('taskSelect').value=String(task);
+      $('taskSelect').dispatchEvent(new window.Event('change'));
+      $('firstBtn').click();
+      const raw=group['task'+task].sourceGeometry;
+      const expected=expectedLines(task,raw);
+      const actual=[...window.document.querySelectorAll('#drawing line.object-line')];
+      const key=variant+'/'+task;
+      if(expected.length!==actual.length){
+        failures.push(key+': first-frame paper lines '+actual.length+' != '+expected.length);
+        continue;
       }
-    });
-    const rawPoints=task===4?raw.points:task===5?raw.points:{K:raw.pointK};
-    for(const [name,record] of Object.entries(rawPoints||{})){
-      if(!record?.p1||!record?.p2)continue;
-      for(const [proj,sub] of [['p1','₁'],['p2','₂']]){
-        const el=window.document.querySelector('#drawing circle[data-label="'+name+sub+'"]');
-        const point=record[proj];
-        if(!el || !same(el.getAttribute('cx'),point[0]*paperScale+dx) ||
-           !same(el.getAttribute('cy'),point[1]*paperScale+dy)){
-          failures.push('variant12/'+task+': raw first-frame '+name+sub+' was normalized or misplaced');
+      if(!expected.length)continue;
+      const scale=Number($('drawing')?.getAttribute('data-paper-scale'))||1;
+      const dx=Number(actual[0].getAttribute('x1'))-expected[0].x*scale;
+      const dy=Number(actual[0].getAttribute('y1'))-expected[0].y*scale;
+      expected.forEach((ref,i)=>{
+        const el=actual[i];
+        if(!same(el.getAttribute('x1'),ref.x*scale+dx) ||
+           !same(el.getAttribute('y1'),ref.y*scale+dy) ||
+           !same(el.getAttribute('x2'),ref.X*scale+dx) ||
+           !same(el.getAttribute('y2'),ref.Y*scale+dy))
+          failures.push(key+': first-frame paper line '+i+' changed by solver normalization');
+      });
+      const names=task===6?{[group.task6.pointLabel||'K']:raw.pointK||raw.pointThrough}:(raw.points||{});
+      for(const [name,rec] of Object.entries(names)){
+        if(!rec?.p1||!rec?.p2)continue;
+        for(const [proj,sub] of [['p1','₁'],['p2','₂']]){
+          const reversed=task===6&&group.task6.paperReversedKLabels;
+          const label=name+(reversed?(sub==='₁'?'₂':'₁'):sub);
+          const el=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
+          const P=rec[proj];
+          if(!el||!same(el.getAttribute('cx'),P[0]*scale+dx) ||
+             !same(el.getAttribute('cy'),P[1]*scale+dy))
+            failures.push(key+': first-frame source point '+label+' moved or missing');
         }
       }
     }
   }
-} catch(e){
-  failures.push('exact photographed first-frame regression: '+e.stack);
-}
+} catch(e){failures.push('all original first-frame audit: '+e.stack);}
 
 // Freeze the raw paper traces for every digitized variant. Solver cleanup,
  // refactors and notation work may change derived geometry, but the copied
