@@ -671,10 +671,10 @@ if (!onlyVariant && !onlyTask) try {
  // its archived full-size paper original. Variants 06/19 were corrected 13.10.
 if (!onlyVariant && !onlyTask) try {
   const expected={
-    '03':['1f2c1e40',1018],
+    '03':['04d31578',1018],
     '04':['2f31eb2c',959],
     '05':['0553b07a',1017],
-    '06':['267ac1ee',1006],
+    '06':['248fd531',1005],
     '07':['0d133b97',1015],
     '08':['136f8adf',878],
     '09':['8a351d95',1007],
@@ -965,6 +965,32 @@ if (!onlyVariant && !onlyTask) try {
   $('nextBtn').click();
   if(!(height('K₂')<height('K₁'))) failures.push('11/6 corrected K projections are not properly indexed');
 } catch(e){failures.push('11/6 source labeling correction: '+e.stack);}
+
+// Derived line orientation matters: these were actual photographed
+// mistakes, not merely visual-label differences.
+if (!onlyVariant && !onlyTask) try {
+  const G=window.SITEMATH_SCHEMES;
+  const grade=seg=>(seg[1][1]-seg[0][1])/(seg[1][0]-seg[0][0]);
+  for(const model of [G['03'].task5,G['03'].task5.sourceGeometry]){
+    if(!(grade(model.lines.a.p2)>0 && grade(model.lines.f.p2)<0)){
+      failures.push('03/5: swapped a₂ and f₂ geometry was restored');
+    }
+    if(!(grade(model.lines.f.p1)<.15 && grade(model.lines.f.p1)>-.15)){
+      failures.push('03/5: frontal f₁ must remain almost horizontal');
+    }
+  }
+  for(const model of [G['06'].task5,G['06'].task5.sourceGeometry]){
+    if(!(grade(model.lines.b.p2)>1.4)){
+      failures.push('06/5: source b₂ must descend steeply to the right');
+    }
+    if(!(grade(model.lines.l.p2)>.2 && grade(model.lines.l.p1)>.2)){
+      failures.push('06/5: both given ℓ projections must descend right');
+    }
+    if(!(grade(model.lines.a.p2)<-.3 && grade(model.lines.a.p1)<-.1)){
+      failures.push('06/5: original a projections must rise to the right');
+    }
+  }
+} catch(e){failures.push('photo 03/5 and 06/5 retrace: '+e.stack);}
 
 // Verify the actual source geometry, not just warning text. The 06 photo
 // shows n₂ upper, m₂ lower, n₁ upper, m₁ lower; 19 has a named K projector.
