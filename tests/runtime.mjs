@@ -711,18 +711,18 @@ if (!onlyVariant && !onlyTask) try {
     '03':['9b145448',1224],
     '04':['e1bce982',959],
     '05':['87e8d6e9',1225],
-    '06':['cfc3302a',1107],
+    '06':['4863a733',1212],
     '07':['0d133b97',1015],
     '08':['136f8adf',878],
-    '09':['8a351d95',1007],
-    '10':['92c6b215',1083],
+    '09':['c1c8801f',1098],
+    '10':['4561d7bd',1184],
     '11':['329d0144',847],
     '12':['468c4cd2',1533],
     '13':['ab2af3bb',1072],
     '14':['d4d3057f',1046],
     '15':['aed4e407',902],
-    '17':['e63d2eb2',1131],
-    '18':['6a2632fc',991],
+    '17':['daa9f083',1231],
+    '18':['9fe69c8a',1199],
     '19':['27f74aca',1215]
   };
   const skip=new Set(['sourceVerified','sourceAvailable','sourceId','sourceRecheckRequired','sourceGeometry']);
@@ -790,6 +790,29 @@ if (!onlyVariant && !onlyTask) try {
         '05/6 printed a∩b source projector has wrong horizontal location');
       check(Math.abs(J.p1[1]-294)<2&&Math.abs(J.p2[1]-146)<2,
         '05/6 printed a∩b source projector has wrong vertical position');
+    }
+  }
+  // Each listed first-frame line of task 6 is a visibly photographed
+  // thin GIVEN crossing projector, not a later auxiliary solution.
+  const printedTask6Projectors={
+    '06':[['planeA',198,208,302,158]],
+    '09':[['planeA',174,188,311,151]],
+    '10':[['planeB',507,494,572,411]],
+    '17':[['planeB',534,528,611,472]],
+    '18':[['planeA',180,194,419,268],['planeB',380,385,407,270]]
+  };
+  for(const [variant,specs] of Object.entries(printedTask6Projectors)){
+    const data=G[variant]?.task6;
+    for(const [plane,x1,x2,y1,y2] of specs){
+      const source=data?.sourceGeometry?.[plane]?.junctions;
+      const solver=data?.[plane]?.junctions;
+      check(source?.length===1 && solver?.length===1,
+        variant+'/6: original crossing projector '+plane+' not retained on both copies');
+      const J=source?.[0];
+      if(!J?.p1||!J?.p2)continue;
+      check(Math.abs(J.p1[0]-x1)<2 && Math.abs(J.p2[0]-x2)<2 &&
+        Math.abs(J.p1[1]-y1)<2 && Math.abs(J.p2[1]-y2)<2,
+        variant+'/6: printed projector '+plane+' moved away from archived source crossing');
     }
   }
   q=G['07'];
