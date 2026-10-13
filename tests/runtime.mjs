@@ -673,18 +673,18 @@ if (!onlyVariant && !onlyTask) try {
   const expected={
     '03':['209940a4',1121],
     '04':['2f31eb2c',959],
-    '05':['f683ffc3',1017],
+    '05':['25bdc974',1121],
     '06':['cfc3302a',1107],
     '07':['0d133b97',1015],
     '08':['136f8adf',878],
     '09':['8a351d95',1007],
-    '10':['211b3839',978],
+    '10':['92c6b215',1083],
     '11':['329d0144',847],
     '12':['468c4cd2',1533],
     '13':['ab2af3bb',1072],
     '14':['d4d3057f',1046],
     '15':['aed4e407',902],
-    '17':['9048e1aa',1028],
+    '17':['e63d2eb2',1131],
     '18':['6a2632fc',991],
     '19':['835a02c6',1114]
   };
@@ -1037,6 +1037,19 @@ if (!onlyVariant && !onlyTask) try {
    }
  }
 } catch(e){failures.push('paper corrections 05/5, 03/6 and recovered source mapping: '+e.stack);}
+
+// Source photos of 10/5 and 17/5 contain a given projector between two
+// intersecting source lines. The old data had raw 121/47-unit dislocation.
+if (!onlyVariant && !onlyTask) try {
+ for(const variant of ['05','10','17']){
+  const g=window.SITEMATH_SCHEMES[variant].task5;
+  const raw=g.sourceGeometry;
+  const projectors=[raw.junctions?.[0],g.junctions?.[0]];
+  if(projectors.some(j=>!j?.p1||!j?.p2)) failures.push(variant+'/5: printed intersection projector missing');
+  const dx=Math.abs(g.junctions[0].p1[0]-g.junctions[0].p2[0]);
+  if(dx>0.001) failures.push(variant+'/5: Monge intersection not on one projector, gap '+dx);
+ }
+} catch(e){ failures.push('photographic 05/10/17 task5 projector audit: '+e.stack); }
 
 // Verify the actual source geometry, not just warning text. The 06 photo
 // shows n₂ upper, m₂ lower, n₁ upper, m₁ lower; 19 has a named K projector.
