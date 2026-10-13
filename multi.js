@@ -3692,10 +3692,22 @@
       return {levelType,pair:[first,second].sort((a,b)=>a.level-b.level)};
     };
 
-    let picked=choosePair(preferredLevelType);
-    if(!picked){
-      const alternate=preferredLevelType==='horizontal'?'frontal':'horizontal';
-      picked=choosePair(alternate);
+    // Both families are valid construction methods. A usable horizontal
+    // section can nevertheless send P/Q and all pencil extensions thousands
+    // of units away (notably 10/6 and 12/6), making the source drawing tiny.
+    // Compare how far each family's real section endpoints extend; do NOT
+    // translate the original paper geometry or invent nearby intersections.
+    const primary=choosePair(preferredLevelType);
+    const alternateType=preferredLevelType==='horizontal'?'frontal':'horizontal';
+    const alternative=choosePair(alternateType);
+    let picked=primary||alternative;
+    if(primary&&alternative){
+      const score=choice=>choice.pair.reduce((sum,sec)=>sum+sec.score,0);
+      const firstScore=score(primary),secondScore=score(alternative);
+      // Keep the traditional family when both are reasonable. Switch only
+      // for a materially shorter legitimate pencil construction.
+      if(firstScore>500 && secondScore<firstScore*.75)
+        picked=alternative;
     }
     if(!picked)return null;
     const levelType=picked.levelType;
