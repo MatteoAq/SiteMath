@@ -3661,6 +3661,22 @@
           refs.push({name:'g',rec:g,generated:true,construction:'h-f-diagonal'});
         }
       }
+      // The 06/6 Σ(a∩b) has a near-level source line; build a nearby
+      // auxiliary plane-contained diagonal to avoid remote level cuts.
+      if(def.auxBridge==='a-b'&&def.lines.a&&def.lines.b){
+        const A=def.lines.a,B=def.lines.b;
+        const xT=A.p1[0][0]+(A.p1[1][0]-A.p1[0][0])*.25;
+        const xU=B.p1[0][0]+(B.p1[1][0]-B.p1[0][0])*.85;
+        if(Math.abs(xT-xU)>8)
+          refs.push({
+            name:'g',
+            rec:{
+              p1:[[xT,lineY(A.p1,xT)],[xU,lineY(B.p1,xU)]],
+              p2:[[xT,lineY(A.p2,xT)],[xU,lineY(B.p2,xU)]]
+            },
+            generated:true,construction:'a-b-diagonal'
+          });
+      }
       return refs;
     }
     return [];
@@ -3976,56 +3992,59 @@
       ]);
     });
 
-    // A true h/f plane needs a separately constructed oblique reference.
-    // Neither the original h₂ nor f₁ can simply be intersected with a
-    // parallel arbitrary level. Show every selected/projected point before g.
+    // Construct any supplementary g=TU in the original plane before its
+    // use by α/β: both h/f and the near-horizontal a/b case need explicit
+    // point selection, projector transfer and pairwise connection.
     [
       {def:scheme.planeA,label:planeASymbol},
       {def:scheme.planeB,label:planeBSymbol}
     ].forEach(item=>{
-      const g=planeDefReferenceLines(item.def).find(ref=>ref.construction==='h-f-diagonal');
+      const g=planeDefReferenceLines(item.def).find(ref=>
+        ref.construction==='h-f-diagonal'||ref.construction==='a-b-diagonal');
       if(!g)return;
+      const lineA=g.construction==='h-f-diagonal'?'h':'a';
+      const lineB=g.construction==='h-f-diagonal'?'f':'b';
       const T1={x:g.rec.p1[0][0],y:g.rec.p1[0][1]};
       const T2={x:g.rec.p2[0][0],y:g.rec.p2[0][1]};
       const U1={x:g.rec.p1[1][0],y:g.rec.p1[1][1]};
       const U2={x:g.rec.p2[1][0],y:g.rec.p2[1][1]};
       i=steps.length;
       push({
-        title:'Выбери точку T₁ на h₁ плоскости '+item.label,
-        action:'На уже заданной h₁ выбери точку T₁. Вторая проекция ещё не построена.',
-        why:'Точка на прямой h принадлежит плоскости '+item.label+'; допустимо сначала выбрать одну её проекцию.',
-        measure:['T₁ ∈ h₁'],
+        title:'Выбери точку T₁ на '+lineA+'₁ плоскости '+item.label,
+        action:'На уже заданной '+lineA+'₁ выбери точку T₁. Вторая проекция ещё не построена.',
+        why:'Точка на прямой '+lineA+' принадлежит плоскости '+item.label+'; допустимо сначала выбрать одну её проекцию.',
+        measure:['T₁ ∈ '+lineA+'₁'],
         check:'T₂ не появляется до проведения линии связи.'
       },[
         point(i,T1,'T₁','construction-dot')
       ]);
       i=steps.length;
       push({
-        title:'По линии связи получи T₂ на h₂',
-        action:'Из T₁ проведи проектор до h₂; обозначь пересечение T₂.',
-        why:'T₁ и T₂ – проекции одной точки исходной горизонтали h.',
-        measure:['T₁T₂ – линия связи','T₂ ∈ h₂'],
-        check:'T₂ определяется h₂ и проектором из T₁.'
+        title:'По линии связи получи T₂ на '+lineA+'₂',
+        action:'Из T₁ проведи проектор до '+lineA+'₂; обозначь пересечение T₂.',
+        why:'T₁ и T₂ – проекции одной точки заданной прямой '+lineA+'.',
+        measure:['T₁T₂ – линия связи','T₂ ∈ '+lineA+'₂'],
+        check:'T₂ определяется '+lineA+'₂ и проектором из T₁.'
       },[
         line(i,T1,T2,'construction-line'),point(i,T2,'T₂','construction-dot')
       ]);
       i=steps.length;
       push({
-        title:'Выбери точку U₁ на f₁ плоскости '+item.label,
-        action:'На исходной f₁ выбери вторую точку U₁, отличную от T₁. Не размещай U₂ заранее.',
-        why:'Точка U принадлежит той же плоскости, поскольку лежит на её заданной фронтали f.',
-        measure:['U₁ ∈ f₁'],
+        title:'Выбери точку U₁ на '+lineB+'₁ плоскости '+item.label,
+        action:'На исходной '+lineB+'₁ выбери вторую точку U₁, отличную от T₁. Не размещай U₂ заранее.',
+        why:'Точка U принадлежит той же плоскости, поскольку лежит на заданной прямой '+lineB+'.',
+        measure:['U₁ ∈ '+lineB+'₁'],
         check:'Пока есть только U₁; второй проектор ещё не проведён.'
       },[
         point(i,U1,'U₁','construction-dot')
       ]);
       i=steps.length;
       push({
-        title:'По линии связи получи U₂ на f₂',
-        action:'Из U₁ подними линию связи до исходной f₂. Получи U₂.',
-        why:'Обе проекции U определяются одной точкой исходной фронтали.',
-        measure:['U₁U₂ – линия связи','U₂ ∈ f₂'],
-        check:'U₂ получена пересечением проектора из U₁ с f₂.'
+        title:'По линии связи получи U₂ на '+lineB+'₂',
+        action:'Из U₁ проведи линию связи до исходной '+lineB+'₂. Получи U₂.',
+        why:'Обе проекции U определяются одной точкой заданной прямой '+lineB+'.',
+        measure:['U₁U₂ – линия связи','U₂ ∈ '+lineB+'₂'],
+        check:'U₂ получена пересечением проектора из U₁ с '+lineB+'₂.'
       },[
         line(i,U1,U2,'construction-line'),point(i,U2,'U₂','construction-dot')
       ]);
