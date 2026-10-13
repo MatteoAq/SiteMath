@@ -3282,21 +3282,31 @@
 
     if(witness1){
       i=steps.length;
-      const relation=witness1.lineVisible
-        ? 'точка 3 линии ℓ выше конкурирующей точки 4 плоскости'
-        : 'точка 4 плоскости выше конкурирующей точки 3 линии ℓ';
       push({
-        title:'Видимость на Π₁: построй конкурирующие точки 3 и 4',
-        action:'На Π₁ возьми пересечение ℓ₁ с '+witness1.ref.name+'₁. В этой проекции 3₁ и 4₁ совпадают. По одной линии связи найди 3₂ на ℓ₂ и 4₂ на '+witness1.ref.name+'₂.',
-        why:'Для вида сверху сравниваются высоты z двух разных пространственных точек с одной горизонтальной проекцией. Здесь '+relation+', поэтому именно этот объект виден на соответствующей стороне от K.',
-        measure:['3₁ ≡ 4₁','3₂ ∈ ℓ₂','4₂ ∈ '+witness1.ref.name+'₂'],
-        check:'3₁/4₁ совпадают, а 3₂ и 4₂ находятся на одной линии связи и на своих исходных прямых.'
+        title:'Видимость на Π₁: отметь совпадающие 3₁≡4₁',
+        action:'На Π₁ найди пересечение ℓ₁ с '+witness1.ref.name+'₁. В одной проекции они совпадают: обозначь 3₁≡4₁. Парных точек 3₂/4₂ пока нет.',
+        why:'Для определения видимости сверху нужны две разные пространственные точки, которые имеют одинаковую горизонтальную проекцию.',
+        measure:['3₁≡4₁ = ℓ₁ ∩ '+witness1.ref.name+'₁'],
+        check:'Сначала показана только одна общая проекция, без готовых высот.'
       },[
         ...segmentExtensionEntities(i,lrec.p1,witness1.X),
         ...segmentExtensionEntities(i,witness1.ref.rec.p1,witness1.X),
+        point(i,witness1.X,'3₁≡4₁','construction-dot')
+      ]);
+
+      i=steps.length;
+      const relation1=witness1.lineVisible
+        ? '3₂ выше 4₂: прямая ℓ ближе к наблюдателю'
+        : '4₂ выше 3₂: плоскость закрывает прямую ℓ';
+      push({
+        title:'Перенеси 3₁≡4₁ на Π₂ – получи 3₂ и 4₂',
+        action:'Проведи из 3₁≡4₁ линию связи. Пересечение с ℓ₂ обозначь 3₂, а с '+witness1.ref.name+'₂ – 4₂. Сравни высоты этих точек.',
+        why:'Видимость на Π₁ определяется высотами z. Здесь '+relation1+'. Только теперь известно, какой участок ℓ₁ видим.',
+        measure:['3₂ ∈ ℓ₂','4₂ ∈ '+witness1.ref.name+'₂','3₁≡4₁'],
+        check:'3₂ и 4₂ выведены по одному проектору из построенного совпадения 3₁≡4₁.'
+      },[
         ...segmentExtensionEntities(i,lrec.p2,witness1.lineOther),
         ...segmentExtensionEntities(i,witness1.ref.rec.p2,witness1.planeOther),
-        point(i,witness1.X,'3₁≡4₁','construction-dot'),
         line(i,witness1.X,witness1.lineOther,'construction-line'),
         line(i,witness1.X,witness1.planeOther,'construction-line'),
         point(i,witness1.lineOther,'3₂','construction-dot'),
@@ -3306,21 +3316,31 @@
 
     if(witness2){
       i=steps.length;
-      const relation=witness2.lineVisible
-        ? 'точка 5 линии ℓ находится ближе к наблюдателю, чем точка 6 плоскости'
-        : 'точка 6 плоскости находится ближе к наблюдателю, чем точка 5 линии ℓ';
       push({
-        title:'Видимость на Π₂: построй конкурирующие точки 5 и 6',
-        action:'На Π₂ возьми пересечение ℓ₂ с '+witness2.ref.name+'₂. Здесь 5₂ и 6₂ совпадают. По линии связи найди 5₁ на ℓ₁ и 6₁ на '+witness2.ref.name+'₁.',
-        why:'Для фронтальной проекции сравнивается удаление y от Π₂. Здесь '+relation+', что определяет видимость участка ℓ₂ по эту сторону от K.',
-        measure:['5₂ ≡ 6₂','5₁ ∈ ℓ₁','6₁ ∈ '+witness2.ref.name+'₁'],
-        check:'5₂/6₂ совпадают, а 5₁ и 6₁ лежат на одной линии связи и на своих исходных прямых.'
+        title:'Видимость на Π₂: отметь совпадающие 5₂≡6₂',
+        action:'На Π₂ найди пересечение ℓ₂ с '+witness2.ref.name+'₂. Обозначь совпадающие проекции 5₂≡6₂. До переноса на Π₁ глубины неизвестны.',
+        why:'Для определения видимости спереди нужны две разные пространственные точки с общей фронтальной проекцией.',
+        measure:['5₂≡6₂ = ℓ₂ ∩ '+witness2.ref.name+'₂'],
+        check:'На этом шаге есть только совпадающая фронтальная проекция 5₂≡6₂.'
       },[
         ...segmentExtensionEntities(i,lrec.p2,witness2.X),
         ...segmentExtensionEntities(i,witness2.ref.rec.p2,witness2.X),
+        point(i,witness2.X,'5₂≡6₂','construction-dot')
+      ]);
+
+      i=steps.length;
+      const relation2=witness2.lineVisible
+        ? '5₁ ближе к наблюдателю, чем 6₁: ℓ видима'
+        : '6₁ ближе к наблюдателю, чем 5₁: ℓ закрыта плоскостью';
+      push({
+        title:'Перенеси 5₂≡6₂ на Π₁ – получи 5₁ и 6₁',
+        action:'Из 5₂≡6₂ проведи линию связи к ℓ₁ и '+witness2.ref.name+'₁. Отметь соответственно 5₁ и 6₁; сравни их удаление от Π₂.',
+        why:'Фронтальная видимость определяется глубиной y. Здесь '+relation2+'. Вывод делается после построения обеих первых проекций.',
+        measure:['5₁ ∈ ℓ₁','6₁ ∈ '+witness2.ref.name+'₁','5₂≡6₂'],
+        check:'5₁ и 6₁ получены на одном проекторе; их положение на Π₁ объясняет видимость на Π₂.'
+      },[
         ...segmentExtensionEntities(i,lrec.p1,witness2.lineOther),
         ...segmentExtensionEntities(i,witness2.ref.rec.p1,witness2.planeOther),
-        point(i,witness2.X,'5₂≡6₂','construction-dot'),
         line(i,witness2.X,witness2.lineOther,'construction-line'),
         line(i,witness2.X,witness2.planeOther,'construction-line'),
         point(i,witness2.lineOther,'5₁','construction-dot'),
