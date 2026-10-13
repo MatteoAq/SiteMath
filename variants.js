@@ -1407,6 +1407,51 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
     }
   }
 
+  // 03/6 and 19/6: the photographed Π₁ and Π₂ intersections visibly
+  // lie on the SAME pre-printed projector. The earlier digital traces
+  // incorrectly separated them by 29/36 source units. Recover both
+  // defining planes from the actual photographed endpoints instead.
+  const sectionRetraces=[
+    ["03","planeB",{
+      a:{p2:[[392,178],[546,96]],p1:[[392,335],[551,366]]},
+      b:{p2:[[391,99],[546,202]],p1:[[403,402],[541,286]]}
+    }],
+    ["19","planeA",{
+      a:{p2:[[524,944],[642,914]],p1:[[520,1086],[658,1019]]},
+      b:{p2:[[543,922],[659,963]],p1:[[516,1067],[660,1045]]}
+    }]
+  ];
+  for(const [variant,plane,lines] of sectionRetraces){
+    const model=window.SITEMATH_SCHEMES[variant]?.task6;
+    if(!model)continue;
+    for(const s of [model,model.sourceGeometry].filter(Boolean)){
+      const p=s[plane];
+      if(!p?.lines)continue;
+      for(const [name,L] of Object.entries(lines)){
+        if(p.lines[name])p.lines[name]={
+          p2:L.p2.map(q=>q.slice()),
+          p1:L.p1.map(q=>q.slice())
+        };
+      }
+      if(variant==="19")s.pointK={p2:[605,902],p1:[605,1110]};
+    }
+    // Only the mathematically computed copy is adjusted by the very small
+    // horizontal projector error introduced by raster/photo perspective.
+    const A=model[plane].lines.a,B=model[plane].lines.b;
+    const p2=projectedCross(A.p2,B.p2);
+    if(p2){
+      const yAt=(L,x)=>L[0][1]+(L[1][1]-L[0][1])*(x-L[0][0])/(L[1][0]-L[0][0]);
+      const dy=yAt(A.p1,p2[0])-yAt(B.p1,p2[0]);
+      B.p1.forEach(p=>p[1]+=dy);
+    }
+    for(const s of [model,model.sourceGeometry].filter(Boolean)){
+      const A=s[plane].lines.a,B=s[plane].lines.b;
+      const p1=projectedCross(A.p1,B.p1);
+      const p2=projectedCross(A.p2,B.p2);
+      if(p1&&p2)s[plane].junctions=[{p1,p2}];
+    }
+  }
+
   const v19=window.SITEMATH_SCHEMES["19"]?.task4;
   if(v19){
     // IMG 1000022473.jpg: the intersection projector is GIVEN on the sheet,
