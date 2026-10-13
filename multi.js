@@ -717,6 +717,27 @@
         $('taskStatement').textContent = info.statement || DATA.tasks[task].short;
       }
     }
+    // The controls panel (including the on-screen source warning) is hidden
+    // in print/PDF. Carry the actual selected assignment's provenance into
+    // the print-only header so an unverified result cannot look certified.
+    const printTitle=$('printProvenanceTitle');
+    const printStatus=$('printProvenanceStatus');
+    if(printTitle&&printStatus){
+      printTitle.textContent=state.variant==='custom'
+        ? 'Свои данные – задание №'+task
+        : variantDisplayLabel(state.variant)+' – задание №'+task;
+      printStatus.textContent=state.variant==='custom'
+        ? 'Исходные данные введены пользователем. Построение и методику необходимо проверить.'
+        : task<=3
+          ? (state.variant==='12'
+            ? 'Координаты сверены с доступным бумажным листом. Методика построения требует проверки.'
+            : 'НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ: координаты сохранены из архивной записи и могут отличаться от бумажного листа.')
+          : disputedTask
+            ? 'ОСПОРЕНО ПРЕПОДАВАТЕЛЕМ: в условии задания №4 перепутаны исходные точки. Чертёж предварительный, использовать как проверенное решение нельзя.'
+            : !currentScheme||disputedSource
+              ? 'НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ: формулировка, точки и линии могут быть неверными. Чертёж предварительный, использовать как проверенное решение нельзя.'
+              : 'Исходные данные сверены с доступным оригиналом. Правильность построения и методики ещё требует проверки.';
+    }
     holder.querySelectorAll('.coord-input').forEach(i=>i.addEventListener('change',()=>rebuild(true)));
     updateMobileSummary();
     syncChoicePickers();
