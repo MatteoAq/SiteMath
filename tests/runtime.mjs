@@ -656,6 +656,35 @@ if (!onlyVariant && !onlyTask) try {
            !same(el.getAttribute('y2'),ref.Y*scale+dy))
           failures.push(key+': first-frame paper line '+i+' changed by solver normalization');
       });
+      // Projectors printed on the assignment sheet must also remain at their
+      // raw coordinates. Guide-count checks alone could miss moved projectors.
+      const guides=[];
+      const addGuides=def=>{
+        for(const rec of Object.values(def?.points||{}))
+          if(rec?.p1&&rec?.p2)
+            guides.push({x:rec.p2[0],y:rec.p2[1],X:rec.p1[0],Y:rec.p1[1]});
+        for(const rec of def?.junctions||[])
+          if(rec?.p1&&rec?.p2)
+            guides.push({x:rec.p2[0],y:rec.p2[1],X:rec.p1[0],Y:rec.p1[1]});
+      };
+      if(task===6){
+        addGuides(raw.planeA);
+        addGuides(raw.planeB);
+        const K=raw.pointK||raw.pointThrough;
+        if(K?.p1&&K?.p2)
+          guides.push({x:K.p2[0],y:K.p2[1],X:K.p1[0],Y:K.p1[1]});
+      }else addGuides(raw);
+      const drawnGuides=[...window.document.querySelectorAll('#drawing line.source-guide-line')];
+      if(drawnGuides.length!==guides.length)
+        failures.push(key+': original projector count '+drawnGuides.length+' != '+guides.length);
+      else guides.forEach((ref,i)=>{
+        const el=drawnGuides[i];
+        if(!same(el.getAttribute('x1'),ref.x*scale+dx) ||
+           !same(el.getAttribute('y1'),ref.y*scale+dy) ||
+           !same(el.getAttribute('x2'),ref.X*scale+dx) ||
+           !same(el.getAttribute('y2'),ref.Y*scale+dy))
+          failures.push(key+': source projector '+i+' changed by solver normalization');
+      });
       const names=task===6?{[group.task6.pointLabel||'K']:raw.pointK||raw.pointThrough}:(raw.points||{});
       for(const [name,rec] of Object.entries(names)){
         if(!rec?.p1||!rec?.p2)continue;
