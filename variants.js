@@ -1313,6 +1313,32 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
     }
   }
 
+  // Additional pencil-thin projectors visibly printed beside the
+  // intersecting plane-defining lines on these archived full sheets:
+  // 06: 1000022471; 09: 1000022475; 10: 1000022486;
+  // 17: 1000022485; 18: 1000022474 (BOTH planes).
+  // Use intersections in the untouched photographed raster coordinates,
+  // not solver-generated nearest intersections. The source may show a
+  // small perspective/digitization slant; do not silently alter its lines.
+  const task6PrintedCrossingProjectors=[
+    ["06","planeA","a","b"],
+    ["09","planeA","a","b"],
+    ["10","planeB","h","f"],
+    ["17","planeB","c","h"],
+    ["18","planeA","a","b"],
+    ["18","planeB","c","d"]
+  ];
+  for(const [variant,plane,a,b] of task6PrintedCrossingProjectors){
+    const scheme=window.SITEMATH_SCHEMES[variant]?.task6;
+    if(!scheme)continue;
+    for(const model of [scheme,scheme.sourceGeometry].filter(Boolean)){
+      const A=model[plane]?.lines?.[a],B=model[plane]?.lines?.[b];
+      if(!A||!B)continue;
+      const p1=projectedCross(A.p1,B.p1),p2=projectedCross(A.p2,B.p2);
+      if(p1&&p2)model[plane].junctions=[{p1,p2}];
+    }
+  }
+
   [[v03t5,'a','f'],[v06t5,'a','b']].forEach(([scheme,a,b])=>{
     if(!scheme)return;
     [scheme,scheme.sourceGeometry].filter(Boolean).forEach(model=>{
