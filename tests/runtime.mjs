@@ -2293,6 +2293,76 @@ try {
   failures.push('axis/construction guide regression: '+e.stack);
 }
 
+// Full independent numeric geometry audit for all digitized variants,
+// including archival-only 07/13. This checks the actual drawn points and
+// displayed 3D lengths/angles, not merely that the page rendered.
+if (!onlyVariant && !onlyTask) try {
+  const data=window.SITEMATH_DATA.variants;
+  const tolerance=(actual,expected,context,eps=.025)=>{
+    if(!Number.isFinite(actual)||Math.abs(actual-expected)>eps)
+      failures.push('numeric Monge '+context+': drawn '+actual+', required '+expected);
+  };
+  const dot=label=>{
+    const el=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
+    return el?{x:Number(el.getAttribute('cx')),y:Number(el.getAttribute('cy'))}:null;
+  };
+  const choose=(variant,task)=>{
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value=String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('lastBtn').click();
+  };
+  for(const variant of variants){
+    for(const task of [1,2,3]){
+      choose(variant,task);
+      const O=dot('O'),n=task===1?'ABCDE':task===2?'AB':'ABC';
+      const values=data[variant]['task'+task];
+      if(!O){failures.push('numeric Monge '+variant+'/'+task+': origin missing');continue;}
+      for(const label of n){
+        const p=values[label];
+        const q1=dot(label+'₁'),q2=dot(label+'₂');
+        if(!q1||!q2){failures.push('numeric Monge '+variant+'/'+task+'/'+label+': projection missing');continue;}
+        tolerance(q1.x,q2.x,variant+'/'+task+'/'+label+' same projector x');
+        tolerance(q1.x-O.x,-p[0],variant+'/'+task+'/'+label+' x₁');
+        tolerance(q1.y-O.y,p[1],variant+'/'+task+'/'+label+' y₁');
+        tolerance(q2.y-O.y,-p[2],variant+'/'+task+'/'+label+' z₂');
+        if(task===1){
+          const q3=dot(label+'₃');
+          if(!q3){failures.push('numeric Monge '+variant+'/1/'+label+': profile projection missing');continue;}
+          tolerance(q3.x-O.x,p[1],variant+'/1/'+label+' y₃');
+          tolerance(q3.y-O.y,-p[2],variant+'/1/'+label+' z₃');
+        }
+      }
+      if(task===2){
+        const A=values.A,B=values.B,d=B.map((x,i)=>x-A[i]);
+        const length=Math.hypot(...d),alpha=Math.asin(Math.abs(d[2])/length)*180/Math.PI;
+        const beta=Math.asin(Math.abs(d[1])/length)*180/Math.PI;
+        const displayed=$('stepMeasure').textContent;
+        const expected=[['AB =',length],['α(AB,Π₁) =',alpha],['β(AB,Π₂) =',beta]];
+        for(const [prefix,value] of expected){
+          const q=displayed.indexOf(prefix);
+          const match=q<0?null:displayed.slice(q+prefix.length).match(/^\s*([0-9]+(?:[,.][0-9]+)?)/);
+          if(!match){failures.push('numeric Monge '+variant+'/2: '+prefix+' missing');continue;}
+          tolerance(Number(match[1].replace(',','.')),value,variant+'/2 '+prefix,.055);
+        }
+      }
+      if(task===3){
+        const a1=dot('A₁'),b1=dot('B₁'),a2=dot('A₂'),b2=dot('B₂');
+        const k1=dot('K₁'),k2=dot('K₂');
+        if(!k1||!k2){failures.push('numeric Monge '+variant+'/3: chosen intersection missing');continue;}
+        const k=Number($('kSlider').value)/100;
+        const check=(q,a,b,key)=>{
+          tolerance(q.x,a.x+(b.x-a.x)*k,variant+'/3/K '+key+' x');
+          tolerance(q.y,a.y+(b.y-a.y)*k,variant+'/3/K '+key+' y');
+        };
+        check(k1,a1,b1,'Π₁');
+        check(k2,a2,b2,'Π₂');
+      }
+    }
+  }
+} catch(e){failures.push('independent all-variant Monge drawing audit: '+e.stack);}
+
 fs.writeFileSync('runtime-results.json', JSON.stringify({failures}, null, 2));
 if (failures.length) {
   console.error('\nFAILURES\n'+failures.join('\n'));
