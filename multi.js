@@ -3492,7 +3492,27 @@
         {name:pointName+'T',rec:{p1:[A.p1,T.p1],p2:[A.p2,T.p2]},generated:true}
       ];
     }
-    if(def.lines) return Object.entries(def.lines).map(([name,rec])=>({name,rec}));
+    if(def.lines){
+      const refs=Object.entries(def.lines).map(([name,rec])=>({name,rec}));
+      // For intersecting horizontal h and frontal f, a section through a
+      // generic height/depth can be parallel to one given line. Introduce
+      // the genuinely constructed diagonal g=TU; T lies on h, U on f.
+      // Their existing projections are used without altering the paper
+      // originals or inventing an unrelated spatial direction.
+      if(def.type==='intersecting_lines'&&def.lines.h&&def.lines.f){
+        const H=def.lines.h,F=def.lines.f;
+        const xT=+H.p1[0][0],xU=+F.p1[1][0];
+        if(Math.abs(xU-xT)>5){
+          const at=(seg,x)=>lineY(seg,x);
+          const g={
+            p1:[[xT,at(H.p1,xT)],[xU,at(F.p1,xU)]],
+            p2:[[xT,at(H.p2,xT)],[xU,at(F.p2,xU)]]
+          };
+          refs.push({name:'g',rec:g,generated:true,construction:'h-f-diagonal'});
+        }
+      }
+      return refs;
+    }
     return [];
   }
 
@@ -3803,6 +3823,72 @@
       },[
         line(i,A2,T2,'aux-line'),textEntity(i,T2,pointName+'T₂','svg-note'),
         line(i,A1,T1,'aux-line'),textEntity(i,T1,pointName+'T₁','svg-note')
+      ]);
+    });
+
+    // A true h/f plane needs a separately constructed oblique reference.
+    // Neither the original h₂ nor f₁ can simply be intersected with a
+    // parallel arbitrary level. Show every selected/projected point before g.
+    [
+      {def:scheme.planeA,label:planeASymbol},
+      {def:scheme.planeB,label:planeBSymbol}
+    ].forEach(item=>{
+      const g=planeDefReferenceLines(item.def).find(ref=>ref.construction==='h-f-diagonal');
+      if(!g)return;
+      const T1={x:g.rec.p1[0][0],y:g.rec.p1[0][1]};
+      const T2={x:g.rec.p2[0][0],y:g.rec.p2[0][1]};
+      const U1={x:g.rec.p1[1][0],y:g.rec.p1[1][1]};
+      const U2={x:g.rec.p2[1][0],y:g.rec.p2[1][1]};
+      i=steps.length;
+      push({
+        title:'Выбери точку T₁ на h₁ плоскости '+item.label,
+        action:'На уже заданной h₁ выбери точку T₁. Вторая проекция ещё не построена.',
+        why:'Точка на прямой h принадлежит плоскости '+item.label+'; допустимо сначала выбрать одну её проекцию.',
+        measure:['T₁ ∈ h₁'],
+        check:'T₂ не появляется до проведения линии связи.'
+      },[
+        point(i,T1,'T₁','construction-dot')
+      ]);
+      i=steps.length;
+      push({
+        title:'По линии связи получи T₂ на h₂',
+        action:'Из T₁ проведи проектор до h₂; обозначь пересечение T₂.',
+        why:'T₁ и T₂ – проекции одной точки исходной горизонтали h.',
+        measure:['T₁T₂ – линия связи','T₂ ∈ h₂'],
+        check:'T₂ определяется h₂ и проектором из T₁.'
+      },[
+        line(i,T1,T2,'construction-line'),point(i,T2,'T₂','construction-dot')
+      ]);
+      i=steps.length;
+      push({
+        title:'Выбери точку U₁ на f₁ плоскости '+item.label,
+        action:'На исходной f₁ выбери вторую точку U₁, отличную от T₁. Не размещай U₂ заранее.',
+        why:'Точка U принадлежит той же плоскости, поскольку лежит на её заданной фронтали f.',
+        measure:['U₁ ∈ f₁'],
+        check:'Пока есть только U₁; второй проектор ещё не проведён.'
+      },[
+        point(i,U1,'U₁','construction-dot')
+      ]);
+      i=steps.length;
+      push({
+        title:'По линии связи получи U₂ на f₂',
+        action:'Из U₁ подними линию связи до исходной f₂. Получи U₂.',
+        why:'Обе проекции U определяются одной точкой исходной фронтали.',
+        measure:['U₁U₂ – линия связи','U₂ ∈ f₂'],
+        check:'U₂ получена пересечением проектора из U₁ с f₂.'
+      },[
+        line(i,U1,U2,'construction-line'),point(i,U2,'U₂','construction-dot')
+      ]);
+      i=steps.length;
+      push({
+        title:'Соедини T и U – построй вспомогательную прямую g в '+item.label,
+        action:'Соедини T₁ с U₁ и T₂ с U₂. Обозначь полученные прямые g₁ и g₂.',
+        why:'Обе пространственные точки T и U принадлежат '+item.label+'. Поэтому линия g=TU также принадлежит ей и пересекается с уровнем вспомогательной плоскости без прежней вырожденности.',
+        measure:['g₁=T₁U₁','g₂=T₂U₂'],
+        check:'На обоих видах g проходит через соответствующие проекции T и U.'
+      },[
+        line(i,T1,U1,'aux-line'),textEntity(i,U1,'g₁','svg-label'),
+        line(i,T2,U2,'aux-line'),textEntity(i,U2,'g₂','svg-label')
       ]);
     });
 
