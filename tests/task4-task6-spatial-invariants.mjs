@@ -18,7 +18,7 @@ if(code.split(old).length!==2)throw new Error('graphical task 6 probe anchor cha
 code=code.replace(old,"    window.__task6Probe={P,Q,pair,levelType};\n"+old);
 const cut=code.indexOf("  $('variantSelect').addEventListener");
 if(cut<0)throw new Error('initialization boundary changed');
-code=code.slice(0,cut)+"  window.__geometry={solveTask4Scheme,solveTask6Graphical,planeFromDef};\n})();";
+code=code.slice(0,cut)+"  window.__geometry={solveTask4Scheme,solveTask6Graphical,planeFromDef,planeDefReferenceLines};\n})();";
 new Function('window','document',code)(W,{getElementById(){return {};}});
 const errors=[],variants=Object.keys(W.SITEMATH_SCHEMES).sort();
 const n=p=>Math.hypot(p.x,p.y,p.z);
@@ -131,14 +131,53 @@ for(const variant of variants){
      }
    }
  }
- // In these two original sheets the initially preferred horizontal levels
- // push section endpoints far away. A frontal auxiliary pair is both exact
- // and substantially more legible without modifying the given two planes.
- if(variant==='10'||variant==='12'){
-   if(levelType!=='frontal')errors.push(variant+'/6: should use the shorter frontal auxiliary sections');
-   const maxWidth=variant==='10'?3000:4100;
-   if(t6.width>maxWidth)errors.push(variant+'/6: excessive construction width '+t6.width.toFixed(1));
+ // True intersecting horizontal h and frontal f cannot both be cut
+ // directly at generic horizontal/frontal levels. Check the displayed
+ // construction of a diagonal g=TU through real source-line points instead
+ // of accepting a remote/extraneous analytic shortcut.
+ for(const [key,planeSymbol] of [['planeA','Σ'],['planeB','Θ']]){
+   const original=def.task6[key];
+   if(original?.type!=='intersecting_lines'||!original.lines?.h||!original.lines?.f)continue;
+   const refs=W.__geometry.planeDefReferenceLines(original);
+   const g=refs.find(x=>x.construction==='h-f-diagonal');
+   if(!g?.rec){
+     errors.push(variant+'/6: h/f plane has no genuine auxiliary diagonal g');
+     continue;
+   }
+   const parent=W.__geometry.planeFromDef(original);
+   for(let i=0;i<2;i++){
+     const T={x:g.rec.p1[i][0],y:g.rec.p1[i][1],z:-g.rec.p2[i][1]};
+     if(Math.abs(g.rec.p1[i][0]-g.rec.p2[i][0])>1e-7 ||
+        Math.abs(signed(T,parent))>1e-4)
+       errors.push(variant+'/6: generated point on g does not belong to given h/f plane');
+   }
+   const titles=t6.steps.map(x=>x.title);
+   const chosen=titles.findIndex(x=>x.startsWith('Выбери точку T₁ на h₁'));
+   const order=[
+     'Выбери точку T₁ на h₁','По линии связи получи T₂',
+     'Выбери точку U₁ на f₁','По линии связи получи U₂',
+     'Соедини T и U – построй вспомогательную прямую g'
+   ].map(prefix=>titles.findIndex((x,i)=>i>=Math.max(0,chosen)&&x.startsWith(prefix)));
+   const alpha=titles.findIndex(x=>x==='Выбери вспомогательную плоскость α');
+   if(order.some(x=>x<0)||order.some((x,i)=>i&&x!==order[i-1]+1)||
+      order[4]>=alpha)
+     errors.push(variant+'/6: auxiliary g is not constructed T₁→T₂→U₁→U₂→g before section levels');
+   if(order.every(x=>x>=0)){
+     const first=t6.steps[order[0]].entities.map(x=>x.label).filter(Boolean);
+     const second=t6.steps[order[1]].entities.map(x=>x.label).filter(Boolean);
+     const third=t6.steps[order[2]].entities.map(x=>x.label).filter(Boolean);
+     const fourth=t6.steps[order[3]].entities.map(x=>x.label).filter(Boolean);
+     if(first.includes('T₂')||!second.includes('T₂')||
+        third.includes('U₂')||!fourth.includes('U₂'))
+       errors.push(variant+'/6: paired projections T₂/U₂ appear without an earlier projector');
+   }
  }
+ // With an explicitly constructed g, distant paper-plane intersections
+ // must no longer cause the immense drawing extents observed previously.
+ const compactLimit={ '04':1600,'10':900,'12':2300 };
+ if(compactLimit[variant]&&t6.width>compactLimit[variant])
+   errors.push(variant+'/6: auxiliary section still excessive ('+t6.width.toFixed(1)+')');
+
  const P3=xyz(P),Q3=xyz(Q);
  const direction={x:Q3.x-P3.x,y:Q3.y-P3.y,z:Q3.z-P3.z};
  if(n(direction)<1e-5)errors.push(variant+'/6: common points coincide');
