@@ -101,6 +101,35 @@ for(const variant of variants){
    const cosine=Math.abs(plane.n.x*direction.x+plane.n.y*direction.y+plane.n.z*direction.z)/(n(plane.n)*n(direction));
    if(cosine>1e-5)errors.push(variant+'/6: intersection r not parallel to '+side);
  }
+ // Test the actual final plotted segments after paper-coordinate normalization,
+ // not just the analytic direction returned by plane-plane intersection.
+ const intersectionStep=t6.steps.find(step=>step.title.startsWith('Соедини P и Q'));
+ const throughLabel=def.task6.pointLabel||'K';
+ const answerStep=t6.steps.find(step=>step.title.includes('проведи ℓ ∥ обеим плоскостям'));
+ const resultSegments=step=>(step?.entities||[]).filter(e=>e.type==='line'&&e.cls==='answer-line');
+ const rSegments=resultSegments(intersectionStep);
+ const lSegments=resultSegments(answerStep);
+ if(rSegments.length!==2||lSegments.length!==2){
+   errors.push(variant+'/6: final projected r or ℓ are missing');
+ } else {
+   const points=(t6.steps[0].entities||[]).filter(e=>e.type==='point');
+   const cross2=(a,b)=>a.x*b.y-a.y*b.x;
+   const vec2=e=>({x:e.b.x-e.a.x,y:e.b.y-e.a.y});
+   for(let i=0;i<2;i++){
+     const name=throughLabel+(i===0?'₁':'₂');
+     const k=points.find(e=>e.label===name)?.p;
+     const u=vec2(rSegments[i]),v=vec2(lSegments[i]);
+     const area=Math.abs(cross2(u,v))/(Math.hypot(u.x,u.y)*Math.hypot(v.x,v.y));
+     if(!(area<1e-6))errors.push(variant+'/6: final drawn ℓ not parallel to r on Π'+(i+1));
+     if(!k){
+       errors.push(variant+'/6: missing given '+name+' on normalized starter');
+       continue;
+     }
+     const dist=Math.abs(cross2(v,{x:k.x-lSegments[i].a.x,y:k.y-lSegments[i].a.y}))
+       /Math.hypot(v.x,v.y);
+     if(!(dist<1e-5))errors.push(variant+'/6: final drawn ℓ does not pass through '+name);
+   }
+ }
 }
 if(errors.length){console.error(errors.join('\n'));process.exitCode=1;}
 else console.log('Spatial construction geometry OK: '+variants.length+' task-4 horizontal/frontals and task-6 P/Q plane intersections checked.');
