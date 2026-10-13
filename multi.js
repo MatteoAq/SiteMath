@@ -491,9 +491,11 @@
       find='r = '+a+' ∩ '+b+'; через '+through+' провести ℓ ∥ обеим плоскостям';
     }
     const givenLabel=box.querySelector('.problem-brief-row span');
-    if(givenLabel) givenLabel.textContent=scheme.sourceVerified===true || state.variant==='custom'
-      ? 'Дано' : 'Дано (не сверено)';
-    $('problemGiven').textContent=given;
+    const sourceConfirmed=scheme.sourceVerified===true || state.variant==='custom';
+    // The label column is only 39px wide on phones. Put the provenance
+    // notice in the wrapping value, not in the narrow label.
+    if(givenLabel) givenLabel.textContent='Дано ';
+    $('problemGiven').textContent=sourceConfirmed?given:'(не сверено) '+given;
     $('problemFind').textContent=find;
     box.hidden=false;
   }
