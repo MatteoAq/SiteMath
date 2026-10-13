@@ -291,14 +291,14 @@ for (const vp of viewports) {
       // beside the given lines: the auxiliary points were >7000 units away.
       // Its now explicitly constructed g=TU must preserve the first frame
       // while giving a usable overview without needing local-focus mode.
-      if(variant==='17' && task===5){
+      if((variant==='17'||variant==='19') && task===5){
         const v=await page.evaluate(()=>({
           zoom:Number(document.querySelector('#zoomLabel').textContent.replace('%','').replace(',','.')),
           hasK1:!![...document.querySelectorAll('#drawing circle.answer-dot')].find(n=>n.getAttribute('data-label')==='K₁'),
           hasK2:!![...document.querySelectorAll('#drawing circle.answer-dot')].find(n=>n.getAttribute('data-label')==='K₂')
         }));
         if(v.zoom<10||!v.hasK1||!v.hasK2)
-          failures.push('17/5: extra-long pencil cut or missing K still makes result unreadable '+JSON.stringify(v));
+          failures.push(variant+'/5: unnecessary long auxiliary construction or missing K '+JSON.stringify(v));
       }
       // 05/6 and 12/6 have genuinely distant intersections; full fit must remain
       // mathematically exact, while local focus must make the current pencil
