@@ -10,10 +10,14 @@ Object.defineProperty(W.SVGElement.prototype,'getTotalLength',{value(){return 10
 W.Element.prototype.animate=function(){return {onfinish:null,cancel(){},finish(){}}};
 W.print=()=>{};
 W.eval(fs.readFileSync('variants.js','utf8'));
+const bridgeMarker='    const norm=normalizeSteps(steps,200,165);';
 const marker='  const remembered=loadSelection();';
 const source=fs.readFileSync('multi.js','utf8');
 if(source.split(marker).length!==2)throw Error('solver instrumentation anchor changed');
-W.eval(source.replace(marker,`  window.__siteMathGeometryProbe={planeFromScheme,planeReferenceLines,task5AuxCandidate,segmentVisibility,task5VisibilityWitness,task5VisibilityExtents,solveTask5Scheme};\n`+marker));
+if(source.split(bridgeMarker).length!==2)throw Error('task5 bridge probe anchor changed');
+W.eval(source
+ .replace(bridgeMarker,'    window.__task5BridgeProbe={bridge,cut,refs,givenRefs};\n'+bridgeMarker)
+ .replace(marker,`  window.__siteMathGeometryProbe={planeFromScheme,planeReferenceLines,task5AuxCandidate,segmentVisibility,task5VisibilityWitness,task5VisibilityExtents,solveTask5Scheme};\\n`+marker));
 const audit=W.__siteMathGeometryProbe,issues=[],results=[];
 const norm=p=>Math.hypot(p.x,p.y,p.z);
 for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
@@ -47,6 +51,40 @@ for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
  // strokes must meet ONLY at K and must not overlap even if the input
  // photograph stops before K.
  const drawing=audit.solveTask5Scheme(s,{});
+ // Variant 17's first published result was only 1.3% scale because a
+ // deliberately constructed Ω∩a witness lay ~7000 units away, even though K
+ // was close to the archived source. Require a REAL 3D line g=TU before Ω,
+ // keep given a/b on the first frame and reject any invented analytic shortcut.
+ if(variant==='17'){
+   const probe=W.__task5BridgeProbe;
+   if(!probe?.bridge||probe.refs[1]?.name!=='g')
+     issues.push('17: remotely intersecting source lines not replaced with a constructed g');
+   else{
+     const g=probe.bridge.g,plane=audit.planeFromScheme(s);
+     const sz=Math.hypot(plane.n.x,plane.n.y,plane.n.z);
+     for(let j=0;j<2;j++){
+       const T={x:g.p1[j][0],y:g.p1[j][1],z:-g.p2[j][1]};
+       const err=Math.abs((plane.n.x*T.x+plane.n.y*T.y+plane.n.z*T.z+plane.d)/sz);
+       if(Math.abs(g.p1[j][0]-g.p2[j][0])>1e-6||err>1e-5)
+         issues.push('17: auxiliary g endpoint is not a common projected 3D point of original Σ');
+     }
+     const titles=drawing.steps.map(st=>st.title||'');
+     const source=titles.findIndex(t=>t.startsWith('Сверь исходные проекции'));
+     const omega=titles.findIndex(t=>t.startsWith('Заключи ℓ во вспомогательную'));
+     const stages=[
+       'Выбери T₁','По линии связи перенеси T₁','Выбери U₁',
+       'По линии связи перенеси U₁','Соедини T и U'
+     ].map(prefix=>titles.findIndex(t=>t.startsWith(prefix)));
+     if(source!==0||stages.some(x=>x<0)||stages.some((x,i)=>i&&x!==stages[i-1]+1)||
+        stages[4]>=omega)
+       issues.push('17: g=TU is not explained in five real pencil steps BEFORE Ω');
+     if(drawing.width>650||drawing.height>600)
+       issues.push('17: unnecessary remote projector still shrinks the full drawing');
+     if(drawing.steps[0].entities.some(e=>e.label==='g₁'||e.label==='g₂'))
+       issues.push('17: derived g was falsely added to printed source frame');
+   }
+ }else if(W.__task5BridgeProbe?.bridge)
+   issues.push(variant+': extra source-derived g is unnecessary');
  const finish=drawing.steps.find(st=>st.title?.startsWith('Нанеси видимость ℓ'));
  const strokes=(finish?.entities||[]).filter(e=>e.type==='line'&&(e.cls==='answer-line'||e.cls==='hidden-line'));
  if(strokes.length!==4){
