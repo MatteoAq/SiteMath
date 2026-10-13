@@ -710,7 +710,7 @@ if (!onlyVariant && !onlyTask) try {
   const expected={
     '03':['9b145448',1224],
     '04':['e1bce982',959],
-    '05':['25bdc974',1121],
+    '05':['87e8d6e9',1225],
     '06':['cfc3302a',1107],
     '07':['0d133b97',1015],
     '08':['136f8adf',878],
@@ -777,6 +777,21 @@ if (!onlyVariant && !onlyTask) try {
   check(q?.task6?.planeB?.type==='intersecting_lines' && ['h','f'].every(x=>q.task6.planeB.lines?.[x]),'04/6 second plane must be Θ(h∩f)');
   check(q?.task6?.pointLabel==='M','04/6 through-point must be M');
 
+  // 1000022482.jpg / 05/6: the crossing of a and b of the SECOND
+  // plane has a thin printed projector, separate from the given K line
+  // and the three triangle projectors. Do not fabricate extra guides on
+  // sheets without this printed trace.
+  q=G['05'];
+  for(const model of [q.task6,q.task6.sourceGeometry]){
+    const J=model?.planeB?.junctions?.[0];
+    check(!!J?.p1&&!!J?.p2,'05/6 printed a∩b source projector missing');
+    if(J?.p1&&J?.p2){
+      check(Math.abs(J.p1[0]-345)<1.5&&Math.abs(J.p2[0]-345)<1.5,
+        '05/6 printed a∩b source projector has wrong horizontal location');
+      check(Math.abs(J.p1[1]-294)<2&&Math.abs(J.p2[1]-146)<2,
+        '05/6 printed a∩b source projector has wrong vertical position');
+    }
+  }
   q=G['07'];
   check(q?.task4?.planeType==='parallel_lines','07/4 plane must be a∥b');
   check(q?.task4?.operation?.type==='line_parallel_plane' && q.task4.operation.through==='D','07/4 ℓ must be through D and parallel to plane');
