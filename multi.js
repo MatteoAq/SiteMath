@@ -3651,7 +3651,9 @@
       // originals or inventing an unrelated spatial direction.
       if(def.type==='intersecting_lines'&&def.lines.h&&def.lines.f){
         const H=def.lines.h,F=def.lines.f;
-        const xT=+H.p1[0][0],xU=+F.p1[1][0];
+        // The first f endpoint of 04/6 is a much closer legitimate
+        // anchor; all other photographed h/f planes retain their choice.
+        const xT=+H.p1[0][0],xU=+F.p1[def.shortBridgeEndpoint?0:1][0];
         if(Math.abs(xU-xT)>5){
           const at=(seg,x)=>lineY(seg,x);
           const g={
