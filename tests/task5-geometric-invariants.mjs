@@ -3,9 +3,7 @@
 // independently of the final SVG and the solver's own K labels.
 import fs from 'node:fs';
 import {JSDOM} from 'jsdom';
-const html=fs.readFileSync('index.html','utf8')
- .replace(/<script[^>]*src="\\.\\/variants\\.js"[^>]*><\\/script>/,'')
- .replace(/<script[^>]*src="\\.\\/multi\\.js"[^>]*><\\/script>/,'');
+const html=fs.readFileSync('index.html','utf8');
 const dom=new JSDOM(html,{runScripts:'outside-only',pretendToBeVisual:true,url:'https://example.test/'});
 const W=dom.window;
 Object.defineProperty(W.SVGElement.prototype,'getTotalLength',{value(){return 100;}});
@@ -44,6 +42,25 @@ for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
    const t=splitParameter(range,K);
    if(!(t>.001&&t<.999))issues.push(variant+'/'+side+': K is not between display endpoints, t='+t);
    if(!(len>5))issues.push(variant+'/'+side+': display line collapsed');
+ }
+ // Inspect the actual final construction entities: the two visible/hidden
+ // strokes must meet ONLY at K and must not overlap even if the input
+ // photograph stops before K.
+ const drawing=audit.solveTask5Scheme(s,{});
+ const finish=drawing.steps.find(st=>st.title?.startsWith('Нанеси видимость ℓ'));
+ const strokes=(finish?.entities||[]).filter(e=>e.type==='line'&&(e.cls==='answer-line'||e.cls==='hidden-line'));
+ if(strokes.length!==4){
+   issues.push(variant+': final stroke geometry missing ('+strokes.length+')');
+ }else{
+   for(const [n,offset] of [['p1',0],['p2',2]]){
+     const A=strokes[offset],B=strokes[offset+1];
+     const same=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)<1e-4;
+     const d=Math.hypot(B.b.x-A.a.x,B.b.y-A.a.y);
+     const d1=Math.hypot(A.b.x-A.a.x,A.b.y-A.a.y);
+     const d2=Math.hypot(B.b.x-B.a.x,B.b.y-B.a.y);
+     if(!same(A.b,B.a)||d1<10||d2<10||Math.abs(d-(d1+d2))>.001)
+       issues.push(variant+'/'+n+': final visibility segments overlap or collapse');
+   }
  }
  const witnesses={};
  for(const side of ['p1','p2']){
