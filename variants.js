@@ -1247,6 +1247,38 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
     });
   }
 
+  // Both original sheets 03/5 and 06/5 have a thin projector from
+  // the intersection of the source-defining lines on Π₂ to Π₁. They were
+  // silently omitted in the earlier transcription.
+  // f₁ of 03 is a frontal projection: enforce exact horizontality for the
+  // solver while keeping the original photographed slight skew in the raw.
+  if(v03t5?.lines?.f?.p1){
+    const p=v03t5.lines.f.p1;
+    const level=(p[0][1]+p[1][1])/2;
+    p[0][1]=level;
+    p[1][1]=level;
+  }
+  const projectedCross=(A,B)=>{
+    const [p,q]=A,[r,t]=B;
+    const det=(a,b)=>a[0]*b[1]-a[1]*b[0];
+    const den=(p[0]-q[0])*(r[1]-t[1])-(p[1]-q[1])*(r[0]-t[0]);
+    if(Math.abs(den)<1e-9)return null;
+    return [
+      (det(p,q)*(r[0]-t[0])-(p[0]-q[0])*det(r,t))/den,
+      (det(p,q)*(r[1]-t[1])-(p[1]-q[1])*det(r,t))/den
+    ];
+  };
+  [[v03t5,'a','f'],[v06t5,'a','b']].forEach(([scheme,a,b])=>{
+    if(!scheme)return;
+    [scheme,scheme.sourceGeometry].filter(Boolean).forEach(model=>{
+      const A=model.lines?.[a],B=model.lines?.[b];
+      if(!A||!B)return;
+      const p1=projectedCross(A.p1,B.p1);
+      const p2=projectedCross(A.p2,B.p2);
+      if(p1&&p2)model.junctions=[{p1,p2}];
+    });
+  });
+
   const v19=window.SITEMATH_SCHEMES["19"]?.task4;
   if(v19){
     // IMG 1000022473.jpg: the intersection projector is GIVEN on the sheet,
