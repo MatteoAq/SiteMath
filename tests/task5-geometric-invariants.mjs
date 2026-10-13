@@ -16,7 +16,7 @@ const source=fs.readFileSync('multi.js','utf8');
 if(source.split(marker).length!==2)throw Error('solver instrumentation anchor changed');
 if(source.split(bridgeMarker).length!==2)throw Error('task5 bridge probe anchor changed');
 W.eval(source
- .replace(bridgeMarker,'    window.__task5BridgeProbe={bridge,cut,refs,givenRefs};\n'+bridgeMarker)
+ .replace(bridgeMarker,'    window.__task5BridgeProbe={bridge,cut,refs,givenRefs,witnessBridge,witness1,witness2};\n'+bridgeMarker)
  .replace(marker,`  window.__siteMathGeometryProbe={planeFromScheme,planeReferenceLines,task5AuxCandidate,segmentVisibility,task5VisibilityWitness,task5VisibilityExtents,solveTask5Scheme};\n`+marker));
 const audit=W.__siteMathGeometryProbe,issues=[],results=[];
 const norm=p=>Math.hypot(p.x,p.y,p.z);
@@ -85,6 +85,36 @@ for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
    }
  }else if(W.__task5BridgeProbe?.bridge)
    issues.push(variant+': extra source-derived g is unnecessary');
+ // In 19/5 a photographed source-line competitor was >1200 units
+ // outside the printed drawing. A new transverse g must be explicitly
+ // built from two GIVEN parallel lines, not silently invented in code.
+ if(variant==='19'){
+   const probe=W.__task5BridgeProbe,bridge=probe?.witnessBridge;
+   if(!bridge||probe.witness1?.ref?.name!=='g')
+     issues.push('19: near competitor g missing; source-only witness still remote');
+   else{
+     const g=bridge.g,plane=audit.planeFromScheme(s),sz=Math.hypot(plane.n.x,plane.n.y,plane.n.z);
+     for(let i=0;i<2;i++){
+       const P={x:g.p1[i][0],y:g.p1[i][1],z:-g.p2[i][1]};
+       const gap=Math.abs((plane.n.x*P.x+plane.n.y*P.y+plane.n.z*P.z+plane.d)/sz);
+       if(Math.abs(g.p1[i][0]-g.p2[i][0])>1e-6||gap>1e-5)
+         issues.push('19: witness helper g does not belong to original Σ');
+     }
+     const titles=drawing.steps.map(st=>st.title||'');
+     const stages=['Выбери T₁','Перенеси T₁','Выбери U₁','Перенеси U₁','Проведи g=TU']
+       .map(x=>titles.findIndex(t=>t.startsWith(x)));
+     const witnessStep=titles.findIndex(t=>t.startsWith('Видимость на Π₁'));
+     if(stages.some(x=>x<0)||stages.some((x,i)=>i&&x!==stages[i-1]+1)||
+        stages[4]>=witnessStep)
+       issues.push('19: witness helper points not constructed before comparison');
+     if(drawing.width>500||drawing.height>600||
+        Math.abs(probe.witness1.X.x)>650)
+       issues.push('19: competitor still drawn extremely far from source');
+     if(drawing.steps[0].entities.some(e=>e.label==='g₁'||e.label==='g₂'))
+       issues.push('19: derived competitor g falsely appears in the printed source');
+   }
+ }else if(W.__task5BridgeProbe?.witnessBridge)
+   issues.push(variant+': unnecessary additional competitor g');
  const finish=drawing.steps.find(st=>st.title?.startsWith('Нанеси видимость ℓ'));
  const strokes=(finish?.entities||[]).filter(e=>e.type==='line'&&(e.cls==='answer-line'||e.cls==='hidden-line'));
  if(strokes.length!==4){
