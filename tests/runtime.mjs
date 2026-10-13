@@ -1158,6 +1158,29 @@ try {
   failures.push('task6 line-point helper regression: '+e.stack);
 }
 
+// The original task-5 plane is not always a triangle. The transfer
+// instruction must name only the defining objects of the chosen variant.
+if (!onlyVariant && !onlyTask) try {
+  for(const variant of variants){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='5';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+    const scheme=window.SITEMATH_SCHEMES[variant].task5;
+    const action=$('stepAction').textContent;
+    if(scheme.planeType==='ABC'){
+      if(!action.includes('треугольника ABC')) failures.push('task5 source '+variant+': triangle was not named');
+    } else {
+      if(action.includes('треугольника ABC')) failures.push('task5 source '+variant+': invented triangle');
+      const refs=scheme.planeLines||Object.keys(scheme.lines||{}).filter(x=>x!==scheme.givenLine);
+      for(const name of refs.slice(0,2)) if(!action.includes(name)){
+        failures.push('task5 source '+variant+': missing given line '+name);
+      }
+    }
+  }
+} catch(e){ failures.push('task5 variant-specific source instructions: '+e.stack); }
+
 // Printed task-5 source uses script ell. Internal key "l" must never leak
 // into the visible source frame or role summary.
 if (!onlyVariant && !onlyTask) try {
