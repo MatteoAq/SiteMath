@@ -19,6 +19,7 @@
     customSchemes: {},
     calibrator: null,
     screenZoom: null,
+    focusMode: false,
     canvasPointers: new Map(),
     stepInfoMode: 'action',
     stepInfoPage: 0
@@ -4530,7 +4531,7 @@
   }
 
   function drawingZoom(){
-    return state.screenZoom===null ? currentFitZoom() : state.screenZoom;
+    return state.screenZoom===null ? (state.focusMode ? currentStepFocusZoom() : currentFitZoom()) : state.screenZoom;
   }
 
   function visibleDrawingBounds(){
@@ -4557,6 +4558,56 @@
       maxX:Math.min(state.geometry.width,Math.max(...good.map(p=>p.x))+margin),
       maxY:Math.min(state.geometry.height,Math.max(...good.map(p=>p.y))+margin)
     };
+  }
+
+  // Focus only changes camera/scroll position. The normalized Monge
+  // drawing, 5 mm grid, all source lines and printer geometry remain intact.
+  function currentStepBounds(){
+    const g=state.geometry;
+    if(!g)return {minX:0,minY:0,maxX:180,maxY:145};
+    for(let index=state.step;index>=0;index--){
+      const step=state.steps[index];
+      const shown=index===0 && state.step===0 && step?.sourceEntities
+        ? step.sourceEntities : step?.entities||[];
+      const points=[];
+      for(const e of shown){
+        // Axes and long technical labels are not the local operation.
+        if(e.cls==='axis'||e.type==='text')continue;
+        collectEntityPoints(e,points);
+      }
+      const good=points.filter(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y));
+      if(!good.length)continue;
+      return {
+        minX:Math.max(0,Math.min(...good.map(p=>p.x))-16),
+        maxX:Math.min(g.width,Math.max(...good.map(p=>p.x))+16),
+        minY:Math.max(0,Math.min(...good.map(p=>p.y))-16),
+        maxY:Math.min(g.height,Math.max(...good.map(p=>p.y))+16)
+      };
+    }
+    return visibleDrawingBounds();
+  }
+
+  function currentStepFocusZoom(){
+    const g=state.geometry;
+    const wrap=document.querySelector('.paper-wrap');
+    if(!g||!wrap)return 1;
+    const viewport=visibleDrawingViewport(),bounds=currentStepBounds();
+    const cs=getComputedStyle(wrap),mm=96/25.4;
+    const width=Math.max(65,bounds.maxX-bounds.minX);
+    const height=Math.max(65,bounds.maxY-bounds.minY);
+    const availableW=Math.max(120,viewport.width-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0));
+    const availableH=Math.max(120,viewport.height-(parseFloat(cs.paddingTop)||0)-8);
+    return Math.max(.005,Math.min(1,availableW/(width*mm),availableH/(height*mm)));
+  }
+
+  function focusCurrentStep(){
+    const wrap=document.querySelector('.paper-wrap');
+    if(!wrap||!state.geometry)return;
+    const b=currentStepBounds(),z=drawingZoom(),mm=96/25.4;
+    const viewport=visibleDrawingViewport(),cs=getComputedStyle(wrap);
+    const padX=parseFloat(cs.paddingLeft)||0,padY=parseFloat(cs.paddingTop)||0;
+    wrap.scrollLeft=Math.max(0,(b.minX+b.maxX)*.5*mm*z-viewport.width*.5+padX);
+    wrap.scrollTop=Math.max(0,(b.minY+b.maxY)*.5*mm*z-viewport.height*.5+padY);
   }
 
   function visibleDrawingViewport(){
@@ -4639,11 +4690,15 @@
     $('zoomLabel').textContent=(z<.1?(z*100).toFixed(1):Math.round(z*100))+'%';
     if(state.screenZoom===null){
       requestAnimationFrame(()=>{
-        focusVisibleDrawing();
-        requestAnimationFrame(()=>{
-          ensureDrawingClearOfStepSheet();
-          requestAnimationFrame(ensureDrawingClearOfStepSheet);
-        });
+        if(state.focusMode){
+          focusCurrentStep();
+        }else{
+          focusVisibleDrawing();
+          requestAnimationFrame(()=>{
+            ensureDrawingClearOfStepSheet();
+            requestAnimationFrame(ensureDrawingClearOfStepSheet);
+          });
+        }
       });
     }
   }
@@ -4659,6 +4714,7 @@
     const ay=anchor&&Number.isFinite(anchor.y)?anchor.y:wrap.clientHeight/2;
     const contentX=(wrap.scrollLeft+ax-padX)/prev;
     const contentY=(wrap.scrollTop+ay-padY)/prev;
+    state.focusMode=false;
     state.screenZoom=Math.max(.005,Math.min(6,next));
     applyDrawingZoom();
     wrap.scrollLeft=Math.max(0,contentX*state.screenZoom-ax+padX);
@@ -4666,7 +4722,14 @@
   }
 
   function setDrawingZoom(mode){
+    if(mode==='step'){
+      state.focusMode=true;
+      state.screenZoom=null;
+      applyDrawingZoom();
+      return;
+    }
     if(mode==='fit'){
+      state.focusMode=false;
       state.screenZoom=null;
       applyDrawingZoom();
       requestAnimationFrame(()=>{
@@ -4954,9 +5017,11 @@
   $('playBtn').addEventListener('click',toggleAuto);
   $('zoomOutBtn').addEventListener('click',()=>setDrawingZoom('out'));
   $('zoomFitBtn').addEventListener('click',()=>setDrawingZoom('fit'));
+  $('zoomFocusBtn').addEventListener('click',()=>setDrawingZoom('step'));
   $('zoom100Btn').addEventListener('click',()=>setDrawingZoom('100'));
   $('zoomInBtn').addEventListener('click',()=>setDrawingZoom('in'));
   $('mobileFitBtn').addEventListener('click',()=>setDrawingZoom('fit'));
+  $('mobileFocusBtn').addEventListener('click',()=>setDrawingZoom('step'));
   $('mobileSetupBtn').addEventListener('click',openMobileSetup);
   $('mobileSetupClose').addEventListener('click',closeMobileSetup);
   $('mobileBackdrop').addEventListener('click',closeMobileSetup);
