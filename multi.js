@@ -2797,17 +2797,32 @@
           else if(['above_line','below_line','behind_line','front_of_line'].includes(op.relation)) refWhere='на построенной прямой ℓ';
           else if(op.relation==='above_plane'||op.relation==='below_plane') refWhere='на горизонтали h плоскости '+planeSymbol;
           else if(op.relation==='front_of_plane') refWhere='на фронтали f плоскости '+planeSymbol;
+          const depthRelation=op.relation==='behind_line'||op.relation==='front_of_line'||op.relation==='front_of_plane';
+          const firstIdx=depthRelation?'₂':'₁';
+          const secondIdx=depthRelation?'₁':'₂';
+          const firstPos=depthRelation?Ref.p2:Ref.p1;
+          const secondPos=depthRelation?Ref.p1:Ref.p2;
           push({
-            title:'Выбери вспомогательную точку N '+refWhere,
-            action:'Отметь N₁ и N₂ '+refWhere+' и свяжи их тонкой линией проекционной связи.',
-            why:'Итоговую точку нельзя ставить непосредственно из вычисления. Сначала нужна видимая точка N на уже построенном объекте, относительно которой на чертеже откладывается требуемое положение.',
-            measure:['N₁↔N₂ – одна линия связи'],
-            check:'Обе проекции N принадлежат одному и тому же построенному объекту.'
+            title:'Выбери вспомогательную точку N'+firstIdx+' '+refWhere,
+            action:'На уже построенном объекте '+refWhere+' выбери одну точку N'+firstIdx+'. Её парная проекция пока не задана.',
+            why:'Исходную проекцию точки N допустимо выбрать на существующей линии; вторую нужно получить только проектором до одноимённой проекции того же пространственного объекта.',
+            measure:['N'+firstIdx+' принадлежит уже построенному объекту'],
+            check:'Появилась только N'+firstIdx+'; N'+secondIdx+' и искомая точка ещё не построены.'
           },[
-            point(i,Ref.p1,'N₁','construction-dot'),
-            point(i,Ref.p2,'N₂','construction-dot'),
-            line(i,Ref.p2,Ref.p1,'construction-line')
+            point(i,firstPos,'N'+firstIdx,'construction-dot')
           ]);
+
+          i=steps.length;
+          push({
+            title:'По линии связи получи N'+secondIdx,
+            action:'Из N'+firstIdx+' проведи линию связи до второй проекции того же объекта '+refWhere+'. Пересечение обозначь N'+secondIdx+'.',
+            why:'N'+firstIdx+' и N'+secondIdx+' являются проекциями одной пространственной точки N. Это не две независимо выбранные точки.',
+            measure:['N₁↔N₂ – одна линия связи'],
+            check:'N'+secondIdx+' лежит на парной проекции исходного объекта и на проекторе из N'+firstIdx+'.'
+          },[
+            line(i,firstPos,secondPos,'construction-line'),
+            point(i,secondPos,'N'+secondIdx,'construction-dot')
+          ],{kind:'line',a:firstPos,b:secondPos});
         }
 
         i=steps.length;
