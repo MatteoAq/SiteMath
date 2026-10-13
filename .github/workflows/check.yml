@@ -19,6 +19,7 @@ jobs:
       - run: node --check variants.js
       - run: npm install jsdom@26 --no-save
       - run: node tests/paper-originals.mjs
+      - run: node tests/task5-geometric-invariants.mjs
       - run: node tests/runtime.mjs
       - name: Upload runtime diagnostics
         if: always()
