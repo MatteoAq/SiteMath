@@ -709,20 +709,20 @@ if (!onlyVariant && !onlyTask) try {
 if (!onlyVariant && !onlyTask) try {
   const expected={
     '03':['9b145448',1224],
-    '04':['3928a728',1064],
+    '04':['f165798a',1183],
     '05':['87e8d6e9',1225],
-    '06':['4863a733',1212],
+    '06':['01e552f6',1328],
     '07':['0d133b97',1015],
     '08':['136f8adf',878],
-    '09':['c1c8801f',1098],
-    '10':['4561d7bd',1184],
+    '09':['8fbcfe0a',1224],
+    '10':['dc17eba2',1299],
     '11':['329d0144',847],
     '12':['468c4cd2',1533],
     '13':['ab2af3bb',1072],
     '14':['d4d3057f',1046],
     '15':['aed4e407',902],
-    '17':['daa9f083',1231],
-    '18':['9fe69c8a',1199],
+    '17':['2e806d12',1348],
+    '18':['2f9067d1',1429],
     '19':['27f74aca',1215]
   };
   const skip=new Set(['sourceVerified','sourceAvailable','sourceId','sourceRecheckRequired','sourceGeometry']);
@@ -795,12 +795,13 @@ if (!onlyVariant && !onlyTask) try {
   // Each listed first-frame line of task 6 is a visibly photographed
   // thin GIVEN crossing projector, not a later auxiliary solution.
   const printedTask6Projectors={
-    '04':[['planeB',349,361,305,224]],
-    '06':[['planeA',198,208,302,158]],
-    '09':[['planeA',174,188,311,151]],
-    '10':[['planeB',507,494,572,411]],
-    '17':[['planeB',534,528,611,472]],
-    '18':[['planeA',180,194,419,268],['planeB',380,385,407,270]]
+    '04':[['planeB',355.04,355.04,304.01,222.67]],
+    '06':[['planeA',202.77,202.77,300.96,159.81]],
+    '09':[['planeA',180.66,180.66,310.94,151.12]],
+    '10':[['planeB',500.32,500.32,569.73,408.69]],
+    '17':[['planeB',530.90,530.90,611.83,473.46]],
+    '18':[['planeA',186.89,186.89,419.00,267.00],
+          ['planeB',382.48,382.48,407.26,269.60]]
   };
   for(const [variant,specs] of Object.entries(printedTask6Projectors)){
     const data=G[variant]?.task6;
@@ -811,6 +812,8 @@ if (!onlyVariant && !onlyTask) try {
         variant+'/6: original crossing projector '+plane+' not retained on both copies');
       const J=source?.[0];
       if(!J?.p1||!J?.p2)continue;
+      check(Math.abs(J.p1[0]-J.p2[0])<1e-5,
+        variant+'/6: printed vertical projector '+plane+' is incorrectly slanted');
       check(Math.abs(J.p1[0]-x1)<2 && Math.abs(J.p2[0]-x2)<2 &&
         Math.abs(J.p1[1]-y1)<2 && Math.abs(J.p2[1]-y2)<2,
         variant+'/6: printed projector '+plane+' moved away from archived source crossing');
