@@ -1317,9 +1317,13 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
   // intersecting plane-defining lines on these archived full sheets:
   // 04: 1000022483; 06: 1000022471; 09: 1000022475; 10: 1000022486;
   // 17: 1000022485; 18: 1000022474 (BOTH planes).
-  // Use intersections in the untouched photographed raster coordinates,
-  // not solver-generated nearest intersections. The source may show a
-  // small perspective/digitization slant; do not silently alter its lines.
+  // From the enlarged ORIGINAL photographs, these seven crossing
+  // projectors are printed straight/vertical. Earlier digitization had
+  // 4.8–13.9 units of artificial horizontal mismatch between their two
+  // crossings. Correct ONLY the explicitly listed source strokes below:
+  // split the minimum vertical shift across each pair of lines (at most
+  // 5 source-coordinate units per endpoint). Keep endpoint X, slopes, all
+  // unrelated given lines, photographed JPGs and solver data untouched.
   const task6PrintedCrossingProjectors=[
     ["04","planeB","h","f"],
     ["06","planeA","a","b"],
@@ -1332,6 +1336,30 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
   for(const [variant,plane,a,b] of task6PrintedCrossingProjectors){
     const scheme=window.SITEMATH_SCHEMES[variant]?.task6;
     if(!scheme)continue;
+    const original=scheme.sourceGeometry?.[plane];
+    const lineA=original?.lines?.[a],lineB=original?.lines?.[b];
+    if(lineA&&lineB){
+      const first=projectedCross(lineA.p1,lineB.p1);
+      const second=projectedCross(lineA.p2,lineB.p2);
+      if(first&&second&&Math.abs(first[0]-second[0])>4){
+        const x=(first[0]+second[0])/2;
+        const yAt=(seg)=>seg[0][1]+(seg[1][1]-seg[0][1])*
+          (x-seg[0][0])/(seg[1][0]-seg[0][0]);
+        for(const proj of ['p1','p2']){
+          const delta=(yAt(lineB[proj])-yAt(lineA[proj]))/2;
+          if(!Number.isFinite(delta)||Math.abs(delta)>5.1)
+            throw Error('Source photo rectification exceeds allowed tolerance: '+
+              variant+'/'+plane+'/'+proj+'/'+delta);
+          lineA[proj].forEach(p=>{p[1]+=delta;});
+          lineB[proj].forEach(p=>{p[1]-=delta;});
+        }
+        const aligned1=projectedCross(lineA.p1,lineB.p1);
+        const aligned2=projectedCross(lineA.p2,lineB.p2);
+        if(!aligned1||!aligned2||Math.abs(aligned1[0]-aligned2[0])>1e-5)
+          throw Error('Printed source crossing projector not vertical after correction: '+
+            variant+'/'+plane);
+      }
+    }
     for(const model of [scheme,scheme.sourceGeometry].filter(Boolean)){
       const A=model[plane]?.lines?.[a],B=model[plane]?.lines?.[b];
       if(!A||!B)continue;
