@@ -709,7 +709,7 @@ if (!onlyVariant && !onlyTask) try {
 if (!onlyVariant && !onlyTask) try {
   const expected={
     '03':['9b145448',1224],
-    '04':['e1bce982',959],
+    '04':['3928a728',1064],
     '05':['87e8d6e9',1225],
     '06':['4863a733',1212],
     '07':['0d133b97',1015],
@@ -795,6 +795,7 @@ if (!onlyVariant && !onlyTask) try {
   // Each listed first-frame line of task 6 is a visibly photographed
   // thin GIVEN crossing projector, not a later auxiliary solution.
   const printedTask6Projectors={
+    '04':[['planeB',349,361,305,224]],
     '06':[['planeA',198,208,302,158]],
     '09':[['planeA',174,188,311,151]],
     '10':[['planeB',507,494,572,411]],
