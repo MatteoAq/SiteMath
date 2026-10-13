@@ -350,7 +350,7 @@ select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(184,79,58
     z-index:60;
     height:var(--mobile-appbar-h);
     display:grid;
-    grid-template-columns:48px minmax(0,1fr) auto;
+    grid-template-columns:48px minmax(0,1fr) auto auto;
     align-items:center;
     gap:8px;
     padding:6px 8px;
@@ -436,7 +436,7 @@ select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(184,79,58
     gap:5px;
     flex-wrap:nowrap;
   }
-  .view-controls #zoom100Btn { display:none; }
+  .view-controls #zoom100Btn, .view-controls #zoomFocusBtn { display:none; }
   .view-controls .icon-btn {
     min-width:44px;
     height:42px;
@@ -1072,7 +1072,7 @@ button { overflow:hidden; text-overflow:ellipsis; }
   .mobile-appbar {
     width:100%;
     max-width:100vw;
-    grid-template-columns:44px minmax(0,1fr) minmax(66px,auto);
+    grid-template-columns:44px minmax(0,1fr) auto minmax(66px,auto);
     padding-left:max(8px, env(safe-area-inset-left));
     padding-right:max(8px, env(safe-area-inset-right));
   }
