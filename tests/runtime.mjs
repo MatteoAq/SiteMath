@@ -365,7 +365,7 @@ if (!onlyVariant && !onlyTask) try {
     $('firstBtn').click();
 
     const total=Number($('stepTotal').textContent)||1;
-    let sawN=false,sawResultAfterN=false;
+    let sawN=false,sawNPair=false,sawResultAfterN=false;
     for(let n=0;n<total;n++){
       const title=$('stepTitle').textContent.trim();
       const labels=[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent);
@@ -373,15 +373,22 @@ if (!onlyVariant && !onlyTask) try {
 
       if(title.startsWith('Выбери вспомогательную точку N')){
         sawN=true;
-        if(!labels.includes('N₁')||!labels.includes('N₂')){
-          failures.push('task4 result derivation '+variant+': helper N projections missing');
+        // Only one seed projection may be chosen: the other is constructed
+        // from its projector on the NEXT distinct drafting step.
+        if(labels.includes('N₁')===labels.includes('N₂')){
+          failures.push('task4 result derivation '+variant+': both N projections appear before projection step');
         }
         if(hasResult){
           failures.push('task4 result derivation '+variant+': '+resultName+' appears while N is only being chosen');
         }
+      } else if(title.startsWith('По линии связи получи N')){
+        sawNPair=true;
+        if(!sawN || !labels.includes('N₁') || !labels.includes('N₂') || hasResult){
+          failures.push('task4 result derivation '+variant+': N pair not properly constructed before answer');
+        }
       } else if(hasResult){
-        if(!sawN){
-          failures.push('task4 result derivation '+variant+': '+resultName+' appears before helper N');
+        if(!sawNPair){
+          failures.push('task4 result derivation '+variant+': '+resultName+' appears before derived helper N pair');
         } else {
           sawResultAfterN=true;
         }
@@ -390,6 +397,7 @@ if (!onlyVariant && !onlyTask) try {
       if(n<total-1) $('nextBtn').click();
     }
     if(!sawN) failures.push('task4 result derivation '+variant+': helper N step missing');
+    if(!sawNPair) failures.push('task4 result derivation '+variant+': N second projection step missing');
     if(!sawResultAfterN) failures.push('task4 result derivation '+variant+': final '+resultName+' missing after N');
   }
 } catch(e) {
