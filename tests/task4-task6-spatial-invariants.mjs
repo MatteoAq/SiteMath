@@ -18,7 +18,7 @@ if(code.split(old).length!==2)throw new Error('graphical task 6 probe anchor cha
 code=code.replace(old,"    window.__task6Probe={P,Q,pair,levelType};\n"+old);
 const cut=code.indexOf("  $('variantSelect').addEventListener");
 if(cut<0)throw new Error('initialization boundary changed');
-code=code.slice(0,cut)+"  window.__geometry={solveTask4Scheme,solveTask6Graphical,planeFromDef,planeDefReferenceLines};\n})();";
+code=code.slice(0,cut)+"  window.__geometry={solveTask4Scheme,solveTask6Graphical,planeFromDef,planeDefReferenceLines,schemeLine3};\n})();";
 new Function('window','document',code)(W,{getElementById(){return {};}});
 const errors=[],variants=Object.keys(W.SITEMATH_SCHEMES).sort();
 const n=p=>Math.hypot(p.x,p.y,p.z);
@@ -103,6 +103,53 @@ for(const variant of variants){
      if(op.relation?.startsWith('front_of_')&&!(v.y>0))errors.push(variant+'/4: point not in front of N');
      if(op.relation?.startsWith('behind_')&&!(v.y<0))errors.push(variant+'/4: point not behind N');
    }
+ }
+ // Independent 3D incidence check for all task-4 crossing operations.
+ // A point common only on one projection is not a real spatial intersection.
+ if(op.type?.startsWith('line_intersects_')){
+   const P=geom?.target3,L=geom?.L3;
+   const supporting=op.type==='line_intersects_horizontal'?geom.h3
+     :op.type==='line_intersects_frontale'?geom.f3
+     :op.type==='line_intersects_named'&&def.task4.lines?.[op.target]
+       ?W.__geometry.schemeLine3(def.task4.lines[op.target]):null;
+   const cross=(a,b)=>({x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x});
+   const pointLineGap=(point,ends)=>{
+     if(!point||!ends||ends.length!==2)return Infinity;
+     const direction=delta(ends[1],ends[0]),r=delta(point,ends[0]);
+     return n(cross(direction,r))/n(direction);
+   };
+   if(!P||!supporting||!L)
+     errors.push(variant+'/4: source crossing lacks a common 3D target');
+   else {
+     const g1=pointLineGap(P,supporting),g2=pointLineGap(P,L);
+     if(g1>1e-5||g2>1e-5||!(n(delta(P,geom.through3))>1e-4))
+       errors.push(variant+'/4: invalid 3D source crossing '+op.type+
+         ' support='+g1+' result='+g2);
+   }
+   const titles=t4.steps.map(st=>st.title||'');
+   const chosen=titles.findIndex(x=>/^Выбери T[₁₂] на /.test(x));
+   const paired=titles.findIndex(x=>/^По линии связи получи T[₁₂]/.test(x));
+   const joined=titles.findIndex(x=>x.startsWith('Соедини ')&&x.includes(' с T '));
+   if(chosen<0||paired!==chosen+1||joined!==paired+1)
+     errors.push(variant+'/4: T projections not separately chosen and transferred before drawing ℓ');
+   else {
+     const pointLabels=index=>(t4.steps[index].entities||[])
+       .filter(e=>e.type==='point'&&/^T[₁₂]$/.test(e.label)).map(e=>e.label);
+     const first=pointLabels(chosen),second=pointLabels(paired);
+     const projector=(t4.steps[paired].entities||[]).find(e=>
+       e.type==='line'&&e.cls==='construction-line'&&
+       Math.abs(e.a.x-e.b.x)<1e-6);
+     const answer=(t4.steps[joined].entities||[])
+       .filter(e=>e.type==='line'&&e.cls==='answer-line');
+     if(first.length!==1||second.length!==1||
+       first[0]===second[0]||!projector||answer.length!==2)
+       errors.push(variant+'/4: crossing-point projector or drawn ℓ missing');
+   }
+ }
+ if(op.type==='line_parallel_plane'&&geom?.through3){
+   const distance=Math.abs(signed(geom.through3,geom.plane));
+   if(!(distance>1e-4))
+     errors.push(variant+'/4: plane-parallel line actually lies IN source plane');
  }
  W.__task6Probe=null;
  const t6=W.__geometry.solveTask6Graphical(def.task6,{});
