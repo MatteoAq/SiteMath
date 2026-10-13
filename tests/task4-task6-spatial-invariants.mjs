@@ -221,9 +221,52 @@ for(const variant of variants){
        errors.push(variant+'/6: paired projections T₂/U₂ appear without an earlier projector');
    }
  }
+ // The 06/6 near-horizontal a/b source also needs a REAL auxiliary g.
+ // Prove its two chosen spatial endpoints lie on the printed source lines
+ // and the original plane; neither sourceGeometry nor K is modified.
+ if(variant==='06'){
+   const defA=def.task6.planeA,raw=def.task6.sourceGeometry?.planeA;
+   const refs=W.__geometry.planeDefReferenceLines(defA);
+   const g=refs.find(r=>r.construction==='a-b-diagonal');
+   if(!g||raw?.auxBridge)
+     errors.push('06/6: solver-only generated a/b diagonal is missing or leaks into photographed source');
+   else{
+     const parent=W.__geometry.planeFromDef(defA);
+     const sourceNames=['a','b'];
+     for(let i=0;i<2;i++){
+       const T={x:g.rec.p1[i][0],y:g.rec.p1[i][1],z:-g.rec.p2[i][1]};
+       if(Math.abs(g.rec.p1[i][0]-g.rec.p2[i][0])>1e-7||
+          Math.abs(signed(T,parent))>1e-5)
+         errors.push('06/6: g endpoint is not on original spatial plane Σ');
+       const L=defA.lines[sourceNames[i]];
+       const at=(seg,x)=>seg[0][1]+(seg[1][1]-seg[0][1])*
+         (x-seg[0][0])/(seg[1][0]-seg[0][0]);
+       if(Math.abs(T.y-at(L.p1,T.x))>1e-6||
+          Math.abs(-T.z-at(L.p2,T.x))>1e-6)
+         errors.push('06/6: g endpoint is not on its actual source line '+sourceNames[i]);
+     }
+     const titles=t6.steps.map(step=>step.title||'');
+     const names=['Выбери точку T₁ на a₁','По линии связи получи T₂ на a₂',
+       'Выбери точку U₁ на b₁','По линии связи получи U₂ на b₂',
+       'Соедини T и U – построй вспомогательную прямую g'];
+     const order=names.map(prefix=>titles.findIndex(x=>x.startsWith(prefix)));
+     const alpha=titles.indexOf('Выбери вспомогательную плоскость α');
+     if(order.some(x=>x<0)||order.some((x,i)=>i&&x!==order[i-1]+1)||
+        order[4]>=alpha)
+       errors.push('06/6: T₁/T₂/U₁/U₂/g must be five steps before α');
+     if(order.every(x=>x>=0)){
+       const labels=i=>(t6.steps[i].entities||[]).map(e=>e.label).filter(Boolean);
+       if(labels(order[0]).includes('T₂')||!labels(order[1]).includes('T₂')||
+          labels(order[2]).includes('U₂')||!labels(order[3]).includes('U₂'))
+         errors.push('06/6: g points are prematurely projected');
+     }
+     if(W.__task6Probe.pair.some(sec=>!sec.a.refs?.some(x=>x.name==='g')))
+       errors.push('06/6: constructed g is never used by an α/β section');
+   }
+ }
  // With an explicitly constructed g, distant paper-plane intersections
  // must no longer cause the immense drawing extents observed previously.
- const compactLimit={ '04':1600,'10':900,'12':2300 };
+ const compactLimit={ '04':1600,'06':700,'10':900,'12':2300 };
  if(compactLimit[variant]&&t6.width>compactLimit[variant])
    errors.push(variant+'/6: auxiliary section still excessive ('+t6.width.toFixed(1)+')');
 
