@@ -300,10 +300,10 @@ for (const vp of viewports) {
         if(v.zoom<10||!v.hasK1||!v.hasK2)
           failures.push('17/5: extra-long pencil cut or missing K still makes result unreadable '+JSON.stringify(v));
       }
-      // 12/6 has a genuinely distant intersection; full fit must remain
+      // 05/6 and 12/6 have genuinely distant intersections; full fit must remain
       // mathematically exact, while local focus must make the current pencil
       // operation readable and continue to follow Prev/Next steps.
-      if(variant==='12' && task===6){
+      if((variant==='12'||variant==='05') && task===6){
         const inspect=()=>page.evaluate(()=>{
           const svg=document.querySelector('#drawing');
           const lines=[...svg.querySelectorAll('line.answer-line')].slice(-2);
@@ -325,25 +325,25 @@ for (const vp of viewports) {
         await page.waitForTimeout(180);
         const local=await inspect();
         if(local.zoom<fit.zoom*2)
-          failures.push('12/6: local focus did not materially enlarge the distant final answer '+JSON.stringify({fit:fit.zoom,local:local.zoom}));
+          failures.push(''+variant+'/6: local focus did not materially enlarge the distant final answer '+JSON.stringify({fit:fit.zoom,local:local.zoom}));
         if(!local.visible)
-          failures.push('12/6: focused final ℓ is obscured or outside the visible work area');
+          failures.push(''+variant+'/6: focused final ℓ is obscured or outside the visible work area');
         if(local.viewBox!==fit.viewBox||JSON.stringify(local.coords)!==JSON.stringify(fit.coords))
-          failures.push('12/6: camera focus changed true projected coordinates');
-        await page.screenshot({path:'mobile-screenshots/focus-v12-t6.png',fullPage:false});
+          failures.push(''+variant+'/6: camera focus changed true projected coordinates');
+        await page.screenshot({path:'mobile-screenshots/focus-v'+variant+'-t6.png',fullPage:false});
         await page.evaluate(()=>document.querySelector('#prevBtn').click());
         await page.waitForTimeout(110);
         const previous=await inspect();
         if(previous.zoom<=fit.zoom)
-          failures.push('12/6: local focus lost after switching to previous construction');
+          failures.push(''+variant+'/6: local focus lost after switching to previous construction');
         await page.evaluate(()=>document.querySelector('#nextBtn').click());
         await page.locator('#mobileFitBtn').click();
         await page.waitForTimeout(180);
         const restored=await inspect();
         if(Math.abs(restored.zoom-fit.zoom)>.2)
-          failures.push('12/6: Fit did not restore full-diagram scale');
+          failures.push(''+variant+'/6: Fit did not restore full-diagram scale');
         if(restored.viewBox!==fit.viewBox||JSON.stringify(restored.coords)!==JSON.stringify(fit.coords))
-          failures.push('12/6: Fit/Focus altered task 6 source geometry');
+          failures.push(''+variant+'/6: Fit/Focus altered task 6 source geometry');
       }
 
     }
