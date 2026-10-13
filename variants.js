@@ -1315,12 +1315,13 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
 
   // Additional pencil-thin projectors visibly printed beside the
   // intersecting plane-defining lines on these archived full sheets:
-  // 06: 1000022471; 09: 1000022475; 10: 1000022486;
+  // 04: 1000022483; 06: 1000022471; 09: 1000022475; 10: 1000022486;
   // 17: 1000022485; 18: 1000022474 (BOTH planes).
   // Use intersections in the untouched photographed raster coordinates,
   // not solver-generated nearest intersections. The source may show a
   // small perspective/digitization slant; do not silently alter its lines.
   const task6PrintedCrossingProjectors=[
+    ["04","planeB","h","f"],
     ["06","planeA","a","b"],
     ["09","planeA","a","b"],
     ["10","planeB","h","f"],
