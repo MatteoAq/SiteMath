@@ -1339,6 +1339,24 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
       }
     });
   });
+  // A cropped photograph is a raster, not an exact Monge diagram.
+  // Resolve only the residual 4–9 px crossing mismatch in the WORKING
+  // geometry so the corresponding projections describe one spatial point.
+  // Leave sourceGeometry exactly as manually traced from the photograph.
+  for(const variant of ["10","17"]){
+    const model=window.SITEMATH_SCHEMES[variant]?.task5;
+    const defining=variant==="10"?["a","f"]:["a","b"];
+    const A=model?.lines?.[defining[0]],B=model?.lines?.[defining[1]];
+    if(!A||!B)continue;
+    const crossing=projectedCross(A.p2,B.p2);
+    if(!crossing)continue;
+    const yAt=(segment,x)=>{
+      const [p,q]=segment;
+      return p[1]+(q[1]-p[1])*(x-p[0])/(q[0]-p[0]);
+    };
+    const delta=yAt(A.p1,crossing[0])-yAt(B.p1,crossing[0]);
+    B.p1.forEach(p=>p[1]+=delta);
+  }
   // These pre-printed projectors are part of the *given*, not an invented
   // construction step. Their endpoints are intersections of the two
   // defining lines, rather than floating auxiliary points.
