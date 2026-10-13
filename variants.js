@@ -1279,6 +1279,40 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
     });
   });
 
+  const v14t6=window.SITEMATH_SCHEMES["14"]?.task6;
+  if(v14t6){
+    // 1000022467.jpg: in Σ(a∩b) both a₂ and a₁ rise to the right,
+    // while b₂/b₁ descend. The old a₁ erroneously descended and was
+    // nearly parallel to b₁, destroying the source plane intersection.
+    const original={
+      a:{p2:[[63,373],[315,243]],p1:[[48,609],[235,438]]},
+      b:{p2:[[57,311],[353,456]],p1:[[45,477],[326,663]]}
+    };
+    for(const model of [v14t6,v14t6.sourceGeometry].filter(Boolean)){
+      if(model.planeA?.lines){
+        for(const [name,rec] of Object.entries(original)){
+          if(model.planeA.lines[name]){
+            model.planeA.lines[name]={
+              p2:rec.p2.map(p=>p.slice()),
+              p1:rec.p1.map(p=>p.slice())
+            };
+          }
+        }
+      }
+      if(model.planeB?.line)model.planeB.line=[[107,655],[288,489]];
+      model.pointK={p2:[471,302],p1:[471,618]};
+      // The hand photograph differs slightly in x across the common point.
+      // Reconcile only the solver trace, not the untouched source frame.
+      if(model===v14t6)model.planeA.lines.b.p1.forEach(p=>p[1]+=13.79887538);
+      const A=model.planeA?.lines?.a,B=model.planeA?.lines?.b;
+      if(A&&B){
+        const p2=projectedCross(A.p2,B.p2);
+        const p1=projectedCross(A.p1,B.p1);
+        if(p1&&p2)model.planeA.junctions=[{p2,p1}];
+      }
+    }
+  }
+
   const v19=window.SITEMATH_SCHEMES["19"]?.task4;
   if(v19){
     // IMG 1000022473.jpg: the intersection projector is GIVEN on the sheet,
