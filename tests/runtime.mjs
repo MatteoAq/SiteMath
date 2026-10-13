@@ -680,7 +680,7 @@ if (!onlyVariant && !onlyTask) try {
 if (!onlyVariant && !onlyTask) try {
   const expected={
     '03':['9b145448',1224],
-    '04':['2f31eb2c',959],
+    '04':['e1bce982',959],
     '05':['25bdc974',1121],
     '06':['cfc3302a',1107],
     '07':['0d133b97',1015],
@@ -737,6 +737,12 @@ if (!onlyVariant && !onlyTask) try {
 
   let q=G['04'];
   check(q?.task4?.planeType==='ABC','04/4 must be Σ(ABC)');
+  // 1000022483.jpg: C₁ is visibly above B₁; the old flat B₁C₁ edge was invented.
+  for(const model of [q.task4,q.task4.sourceGeometry]){
+    check(model?.points?.B?.p1?.[1]-model?.points?.C?.p1?.[1] >= 20 &&
+      model?.points?.B?.p1?.[1]-model?.points?.C?.p1?.[1] <= 45,
+      '04/4 paper: C₁ must be above B₁ with the original non-horizontal B₁C₁ edge');
+  }
   check(q?.task4?.operation?.type==='line_intersects_horizontal' && q.task4.operation.through==='D','04/4 ℓ must go through D and intersect h');
   check(q?.task6?.planeA?.type==='ABC','04/6 first plane must be ABC');
   check(q?.task6?.planeB?.type==='intersecting_lines' && ['h','f'].every(x=>q.task6.planeB.lines?.[x]),'04/6 second plane must be Θ(h∩f)');
