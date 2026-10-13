@@ -1206,6 +1206,47 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
     });
   }
 
+  const v03t5=window.SITEMATH_SCHEMES["03"]?.task5;
+  if(v03t5){
+    // Paper 1000022472.jpg: a₂ falls to the right, f₂ rises to the
+    // right, while their first projections were already correctly assigned.
+    [v03t5,v03t5.sourceGeometry].filter(Boolean).forEach(s=>{
+      if(s.lines?.a?.p2 && s.lines?.f?.p2){
+        const oldA=s.lines.a.p2;
+        s.lines.a.p2=s.lines.f.p2;
+        s.lines.f.p2=oldA;
+      }
+    });
+  }
+
+  const v06t5=window.SITEMATH_SCHEMES["06"]?.task5;
+  if(v06t5){
+    // The original 1000022471.jpg has steeply falling b₂ and a
+    // descending-to-the-right ℓ₂. The archived generic geometry incorrectly
+    // gave ℓ₂ a rising direction and made b₂ far too shallow.
+    // Copy the manually re-traced six projected strokes as a single group;
+    // preserve both the photographed and computational models.
+    const actual={
+      a:{p2:[[180,205],[390,86]],p1:[[210,307],[370,273]]},
+      b:{p2:[[249,72],[346,230]],p1:[[214,248],[380,333]]},
+      l:{p2:[[195,157],[398,220]],p1:[[135,292],[283,353]]}
+    };
+    [v06t5,v06t5.sourceGeometry].filter(Boolean).forEach(s=>{
+      Object.entries(actual).forEach(([name,rec])=>{
+        if(s.lines?.[name])
+          s.lines[name]={
+            p1:rec.p1.map(p=>p.slice()),
+            p2:rec.p2.map(p=>p.slice())
+          };
+      });
+      // Exact-Monge mathematical model: compensate the small x-disagreement
+      // between photographed a₁∩b₁ and a₂∩b₂ without altering the first frame.
+      if(s===v06t5 && s.lines?.b){
+        s.lines.b.p1.forEach(p=>p[1]+=1.8028544);
+      }
+    });
+  }
+
   const v19=window.SITEMATH_SCHEMES["19"]?.task4;
   if(v19){
     // IMG 1000022473.jpg: the intersection projector is GIVEN on the sheet,
