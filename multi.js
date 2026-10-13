@@ -3240,17 +3240,27 @@
 
     i=steps.length;
     push({
-      title:'Построй m'+oIdx+' = 1'+oIdx+'2'+oIdx+' и найди K'+oIdx,
-      action:'Соедини 1'+oIdx+' и 2'+oIdx+'. В точке пересечения m'+oIdx+' с ℓ'+oIdx+' поставь K'+oIdx+'.',
-      why:'m = Ω ∩ Σ. Поскольку ℓ лежит в Ω, пересечение ℓ с m и есть ℓ ∩ Σ.',
-      measure:['m'+oIdx+' = 1'+oIdx+'2'+oIdx,'K'+oIdx+' = m'+oIdx+' ∩ ℓ'+oIdx],
-      check:'K'+oIdx+' одновременно лежит на m'+oIdx+' и ℓ'+oIdx+'.'
+      title:'Построй m'+oIdx+' = 1'+oIdx+'2'+oIdx,
+      action:'Соедини уже построенные 1'+oIdx+' и 2'+oIdx+' тонкой прямой m'+oIdx+'. Точку K пока не отмечай.',
+      why:'Обе точки принадлежат Ω и Σ, поэтому m = Ω ∩ Σ. Только после появления этой прямой можно находить её пересечение с ℓ.',
+      measure:['m'+oIdx+' = 1'+oIdx+'2'+oIdx],
+      check:'Есть линия сечения m'+oIdx+', но точка K ещё не существует на чертеже.'
+    },[
+      line(i,J1,J2,'aux-line'),textEntity(i,lerp2(J1,J2,.7),'m'+oIdx,'svg-label')
+    ],{kind:'line',a:J1,b:J2});
+
+    i=steps.length;
+    push({
+      title:'Найди K'+oIdx+' = m'+oIdx+' ∩ ℓ'+oIdx,
+      action:'Найди точку пересечения уже построенной m'+oIdx+' с ℓ'+oIdx+'. При необходимости продли обе прямые тонкими линиями и обозначь K'+oIdx+'.',
+      why:'Точка K принадлежит одновременно ℓ и линии m = Ω ∩ Σ, значит она принадлежит и плоскости Σ.',
+      measure:['K'+oIdx+' = m'+oIdx+' ∩ ℓ'+oIdx],
+      check:'K'+oIdx+' стоит в пересечении двух ранее существовавших прямых. Её парная проекция появится на следующем шаге.'
     },[
       ...segmentExtensionEntities(i,[[J1.x,J1.y],[J2.x,J2.y]],KOther),
       ...segmentExtensionEntities(i,lrec[other],KOther),
-      line(i,J1,J2,'aux-line'),textEntity(i,lerp2(J1,J2,.7),'m'+oIdx,'svg-label'),
       point(i,KOther,'K'+oIdx,'answer-dot')
-    ],{kind:'line',a:J1,b:J2});
+    ]);
 
     i=steps.length;
     push({
@@ -3857,18 +3867,32 @@
       addSectionForPlane(c.a,scheme.planeA,planeASymbol,index===0?['1','2']:['5','6'],planeName);
       addSectionForPlane(c.b,scheme.planeB,planeBSymbol,index===0?['3','4']:['7','8'],planeName);
 
+      const nondIdx=levelType==='horizontal'?'₁':'₂';
+      const nondPoint=levelType==='horizontal'?c.P.p1:c.P.p2;
+      const degPoint=levelType==='horizontal'?c.P.p2:c.P.p1;
       i=steps.length;
       push({
-        title:'Пересеки линии сечения '+planeName+' и получи '+name,
-        action:'На невырожденной проекции найди пересечение двух уже построенных линий сечения. Обозначь его '+name+(levelType==='horizontal'?'₁':'₂')+' и по линии связи перенеси на '+planeName+degenerateProj+', получив '+name+degenerateProj+'.',
-        why:'Обе линии лежат в одной вспомогательной плоскости '+planeName+', но каждая одновременно принадлежит одной из исходных плоскостей. Поэтому их общая точка '+name+' принадлежит обеим исходным плоскостям.',
-        measure:[name+' ∈ '+planeASymbol,name+' ∈ '+planeBSymbol],
-        check:name+'₁ и '+name+'₂ появляются только после построения обеих линий сечения и находятся на одной линии связи.'
+        title:'Пересеки линии сечения '+planeName+' и получи '+name+nondIdx,
+        action:'На невырожденной проекции найди пересечение двух уже построенных линий сечения. Обозначь '+name+nondIdx+'. Не отмечай вторую проекцию до проведения линии связи.',
+        why:'Обе линии принадлежат вспомогательной плоскости '+planeName+' и каждая своей исходной плоскости. Их общая точка принадлежит обеим исходным плоскостям.',
+        measure:[name+nondIdx+' ∈ '+planeASymbol,name+nondIdx+' ∈ '+planeBSymbol],
+        check:'Пока существует только '+name+nondIdx+'. Точка '+name+degenerateProj+' появится после проектора.'
+      },[
+        point(i,nondPoint,name+nondIdx,'construction-dot')
+      ]);
+
+      i=steps.length;
+      push({
+        title:'Перенеси '+name+nondIdx+' на '+planeName+degenerateProj+' и получи '+name+degenerateProj,
+        action:'Из '+name+nondIdx+' проведи линию связи до уже построенного уровня '+planeName+degenerateProj+'. В месте пересечения отметь '+name+degenerateProj+'.',
+        why:'Обе проекции обозначают одну пространственную общую точку. Вторую проекцию нельзя выбирать самостоятельно: она определяется линией связи и уровнем вспомогательной плоскости.',
+        measure:[name+'₁'+name+'₂ – одна линия связи',name+degenerateProj+' ∈ '+planeName+degenerateProj],
+        check:'Теперь обе проекции '+name+' находятся на одном проекторе и получены последовательно.'
       },[
         line(i,c.P.p2,c.P.p1,'construction-line'),
-        point(i,c.P.p2,name+'₂','construction-dot'),
-        point(i,c.P.p1,name+'₁','construction-dot')
+        point(i,degPoint,name+degenerateProj,'construction-dot')
       ]);
+
     });
 
     i=steps.length;
