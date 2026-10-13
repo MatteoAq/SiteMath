@@ -8,7 +8,10 @@ const m4="    const norm=normalizeSteps(steps,200,155);";
 const m6="    const norm=normalizeSteps(steps,210,170);";
 if(code.split(m4).length!==2||code.split(m6).length!==3)
  throw new Error('solver probe anchors changed');
-code=code.replace(m4,'    window.__task4Probe={plane,h3,f3};\n'+m4);
+code=code.replace(m4,'    window.__task4Probe={plane,h3,f3,L3,through3,target3};\n'+m4);
+const relationAnchor="      if(R3){\\n        const R=project3(R3),Ref=ref3?project3(ref3):null;";
+if(code.split(relationAnchor).length!==2)throw Error('task4 relation probe anchor');
+code=code.replace(relationAnchor,"      if(R3){\\n        window.__task4Relation={R3,ref3};\\n        const R=project3(R3),Ref=ref3?project3(ref3):null;");
 const graphEnd="    return {width:norm.width,height:norm.height,O:{x:0,y:0},steps,diagramPending:false,graphicalConstruction:true,paperScale:norm.scale};";
 const old=m6+"\n"+graphEnd;
 if(code.split(old).length!==2)throw new Error('graphical task 6 probe anchor changed');
@@ -23,6 +26,7 @@ const signed=(P,plane)=>(plane.n.x*P.x+plane.n.y*P.y+plane.n.z*P.z+plane.d)/n(pl
 const xyz=P=>({x:P.p1.x,y:P.p1.y,z:-P.p2.y});
 for(const variant of variants){
  const def=W.SITEMATH_SCHEMES[variant];
+ W.__task4Relation=null;
  const t4=W.__geometry.solveTask4Scheme(def.task4,{});
  if(t4?.error||!W.__task4Probe)errors.push(variant+'/4: failed to construct plane special lines');
  else {
@@ -38,6 +42,45 @@ for(const variant of variants){
     }
    }
   }
+ }
+ const geom=W.__task4Probe;
+ const op=def.task4.operation||{};
+ const delta=(a,b)=>({x:a.x-b.x,y:a.y-b.y,z:a.z-b.z});
+ const dot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
+ if(geom?.L3&&geom.through3){
+   const d=delta(geom.L3[1],geom.L3[0]);
+   const isThrough=geom.L3.some(p=>n(delta(p,geom.through3))<1e-5)
+     || n(delta({x:(geom.L3[0].x+geom.L3[1].x)/2,y:(geom.L3[0].y+geom.L3[1].y)/2,z:(geom.L3[0].z+geom.L3[1].z)/2},geom.through3))<1e-5;
+   if(!isThrough) errors.push(variant+'/4: ℓ does not pass through given source point '+op.through);
+   if(op.type==='line_parallel_plane'){
+     if(Math.abs(dot(d,geom.plane.n))/(n(d)*n(geom.plane.n))>1e-5)
+       errors.push(variant+'/4: ℓ not parallel to Σ');
+   }
+   if(op.type==='line_parallel_horizontal'){
+     const h=delta(geom.h3[1],geom.h3[0]);
+     const cross={x:d.y*h.z-d.z*h.y,y:d.z*h.x-d.x*h.z,z:d.x*h.y-d.y*h.x};
+     if(n(cross)/(n(d)*n(h))>1e-5)
+       errors.push(variant+'/4: ℓ not parallel to constructed horizontal h');
+   }
+   if(op.type.startsWith('line_intersects_')&&!geom.target3)
+     errors.push(variant+'/4: requested intersection with source line omitted');
+ }
+ if(op.resultPoint){
+   const pair=W.__task4Relation;
+   if(!pair?.R3||!pair?.ref3) errors.push(variant+'/4: final '+op.resultPoint+' lacks source reference N');
+   else {
+     const v=delta(pair.R3,pair.ref3);
+     const vertical=['above_named','above_line','below_line','above_plane','below_plane'].includes(op.relation);
+     const depth=['behind_line','front_of_line','front_of_plane'].includes(op.relation);
+     if(vertical && (Math.abs(v.x)>1e-5||Math.abs(v.y)>1e-5))
+       errors.push(variant+'/4: point '+op.resultPoint+' does not share x,y with N');
+     if(depth && (Math.abs(v.x)>1e-5||Math.abs(v.z)>1e-5))
+       errors.push(variant+'/4: point '+op.resultPoint+' does not share x,z with N');
+     if(op.relation?.startsWith('above_')&&!(v.z>0))errors.push(variant+'/4: point not above N');
+     if(op.relation?.startsWith('below_')&&!(v.z<0))errors.push(variant+'/4: point not below N');
+     if(op.relation?.startsWith('front_of_')&&!(v.y>0))errors.push(variant+'/4: point not in front of N');
+     if(op.relation?.startsWith('behind_')&&!(v.y<0))errors.push(variant+'/4: point not behind N');
+   }
  }
  W.__task6Probe=null;
  const t6=W.__geometry.solveTask6Graphical(def.task6,{});
