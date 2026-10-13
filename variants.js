@@ -1309,6 +1309,52 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
     });
   });
 
+  // Photograph 1000022486.jpg and 1000022485.jpg were shot at
+  // different camera scales. Digitized coordinates below are normalized
+  // from their lower-left (task 5) crop, preserving ALL six given strokes
+  // and the thin vertical projector between a∩f / a∩b.
+  const retracedTask5={
+    "10":{
+      a:{p2:[[236,253],[494,144]],p1:[[250,308],[466,448]]},
+      f:{p2:[[265,130],[479,256]],p1:[[215,385],[460,382]]},
+      l:{p2:[[224,191],[437,264]],p1:[[219,454],[473,385]]}
+    },
+    "17":{
+      a:{p2:[[127,187],[334,281]],p1:[[174,452],[376,285]]},
+      b:{p2:[[56,301],[359,188]],p1:[[52,358],[374,447]]},
+      l:{p2:[[110,335],[411,225]],p1:[[233,473],[450,291]]}
+    }
+  };
+  Object.entries(retracedTask5).forEach(([variant,lines])=>{
+    const model=window.SITEMATH_SCHEMES[variant]?.task5;
+    if(!model)return;
+    [model,model.sourceGeometry].filter(Boolean).forEach(s=>{
+      for(const [name,L] of Object.entries(lines)){
+        if(s.lines?.[name]){
+          s.lines[name]={
+            p1:L.p1.map(v=>v.slice()),
+            p2:L.p2.map(v=>v.slice())
+          };
+        }
+      }
+    });
+  });
+  // These pre-printed projectors are part of the *given*, not an invented
+  // construction step. Their endpoints are intersections of the two
+  // defining lines, rather than floating auxiliary points.
+  [[v05t5,'a','f'],
+   [window.SITEMATH_SCHEMES["10"]?.task5,'a','f'],
+   [window.SITEMATH_SCHEMES["17"]?.task5,'a','b']]
+  .forEach(([task,a,b])=>{
+    if(!task)return;
+    [task,task.sourceGeometry].filter(Boolean).forEach(def=>{
+      const A=def.lines?.[a],B=def.lines?.[b];
+      if(!A||!B)return;
+      const p1=projectedCross(A.p1,B.p1),p2=projectedCross(A.p2,B.p2);
+      if(p1&&p2)def.junctions=[{p1,p2}];
+    });
+  });
+
   const v14t6=window.SITEMATH_SCHEMES["14"]?.task6;
   if(v14t6){
     // 1000022467.jpg: in Σ(a∩b) both a₂ and a₁ rise to the right,
