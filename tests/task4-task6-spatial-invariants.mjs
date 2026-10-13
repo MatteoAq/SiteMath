@@ -15,7 +15,7 @@ code=code.replace(relationAnchor,"      if(R3){\n        window.__task4Relation=
 const graphEnd="    return {width:norm.width,height:norm.height,O:{x:0,y:0},steps,diagramPending:false,graphicalConstruction:true,paperScale:norm.scale};";
 const old=m6+"\n"+graphEnd;
 if(code.split(old).length!==2)throw new Error('graphical task 6 probe anchor changed');
-code=code.replace(old,"    window.__task6Probe={P,Q};\n"+old);
+code=code.replace(old,"    window.__task6Probe={P,Q,pair,levelType};\n"+old);
 const cut=code.indexOf("  $('variantSelect').addEventListener");
 if(cut<0)throw new Error('initialization boundary changed');
 code=code.slice(0,cut)+"  window.__geometry={solveTask4Scheme,solveTask6Graphical,planeFromDef};\n})();";
@@ -44,6 +44,28 @@ for(const variant of variants){
   }
  }
  const geom=W.__task4Probe;
+ // Confirm that the ACTUALLY DRAWN greatest-slope line is perpendicular
+ // to the horizontal in Π₁ and has matching Π₁/Π₂ projectors. This is
+ // stricter than checking the analytic direction of the source plane alone.
+ const visibleLine=label=>{
+   const step=t4.steps.find(step=>(step.entities||[]).some(e=>e.type==='text'&&e.label===label));
+   return (step?.entities||[]).find(e=>e.type==='line'&&e.cls==='answer-line');
+ };
+ const hDrawn=visibleLine('h₁');
+ const slope1=visibleLine('ЛС₁'),slope2=visibleLine('ЛС₂');
+ if(!hDrawn||!slope1||!slope2)errors.push(variant+'/4: visible horizontal or greatest slope missing');
+ else {
+   const d1={x:slope1.b.x-slope1.a.x,y:slope1.b.y-slope1.a.y};
+   const d2={x:slope2.b.x-slope2.a.x,y:slope2.b.y-slope2.a.y};
+   const h={x:hDrawn.b.x-hDrawn.a.x,y:hDrawn.b.y-hDrawn.a.y};
+   const perpendicular=Math.abs(d1.x*h.x+d1.y*h.y)/(Math.hypot(d1.x,d1.y)*Math.hypot(h.x,h.y));
+   if(!(perpendicular<1e-6))errors.push(variant+'/4: shown LS₁ not perpendicular to h₁');
+   if(Math.abs(slope1.a.x-slope2.a.x)>1e-5||Math.abs(slope1.b.x-slope2.b.x)>1e-5)
+     errors.push(variant+'/4: LS₁ and LS₂ endpoints not paired on projectors');
+   const d3={x:d1.x,y:d1.y,z:-d2.y};
+   if(!(Math.abs(signed({x:d3.x,y:d3.y,z:d3.z},{n:geom.plane.n,d:0}))<1e-5))
+     errors.push(variant+'/4: drawn greatest slope direction is not in Σ');
+ }
  const op=def.task4.operation||{};
  const delta=(a,b)=>({x:a.x-b.x,y:a.y-b.y,z:a.z-b.z});
  const dot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
@@ -88,7 +110,27 @@ for(const variant of variants){
    errors.push(variant+'/6: fall back to incomplete analytic construction');
    continue;
  }
- const {P,Q}=W.__task6Probe;
+ const {P,Q,pair,levelType}=W.__task6Probe;
+ // Test every intermediate helper point on both orthogonal projections,
+ // including projecting-plane degeneracies. There are 128 such points in
+ // the current 16-variant corpus (2 cuts × 2 planes × 2 endpoints).
+ for(const cut of pair){
+   for(const [label,section,key] of [['A',cut.a,'planeA'],['B',cut.b,'planeB']]){
+     const parent=W.__geometry.planeFromDef(def.task6[key]);
+     for(let i=0;i<2;i++){
+       const p1=section.p1[i],p2=section.p2[i];
+       const T={x:p1.x,y:p1.y,z:-p2.y};
+       if(Math.abs(p1.x-p2.x)>1e-5)
+         errors.push(variant+'/6 section '+label+': auxiliary point missing same-x projector');
+       if(!(Math.abs(signed(T,parent))<1e-4))
+         errors.push(variant+'/6 section '+label+': section point not on original plane');
+       const levelError=levelType==='horizontal'
+         ? Math.abs(p2.y-cut.level) : Math.abs(p1.y-cut.level);
+       if(levelError>1e-5)
+         errors.push(variant+'/6 section '+label+': point not on the chosen auxiliary level');
+     }
+   }
+ }
  const P3=xyz(P),Q3=xyz(Q);
  const direction={x:Q3.x-P3.x,y:Q3.y-P3.y,z:Q3.z-P3.z};
  if(n(direction)<1e-5)errors.push(variant+'/6: common points coincide');
@@ -132,4 +174,4 @@ for(const variant of variants){
  }
 }
 if(errors.length){console.error(errors.join('\n'));process.exitCode=1;}
-else console.log('Spatial construction geometry OK: '+variants.length+' task-4 horizontal/frontals and task-6 P/Q plane intersections checked.');
+else console.log('Spatial construction geometry OK: '+variants.length+' task-4 special lines and 128 task-6 auxiliary points + P/Q and final parallel lines checked.');
