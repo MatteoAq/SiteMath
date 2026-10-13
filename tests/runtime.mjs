@@ -966,6 +966,7 @@ if (!onlyVariant && !onlyTask) try {
   if(!$('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('unverified 03/5: brief appears verified');
   if(!$('diagramWarning').textContent.includes('Исходное условие НЕ проверено')) failures.push('unverified 03/5: warning is missing');
   select('12',4);
+  if(!$('dynamicInputs').querySelector('a[href="./source-photos/variant-12/IMG_20260917_131638.jpg"]')) failures.push('source 12/4: direct archived original sheet link missing');
   if(!$('printProvenanceStatus').textContent.includes('Методика') && !$('printProvenanceStatus').textContent.includes('методики')) failures.push('print provenance 12/4: construction not qualified');
   if($('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('verified 12/4: incorrect provenance warning');
   if($('diagramWarning').textContent.includes('Исходное условие НЕ проверено')) failures.push('verified 12/4: incorrectly labeled unsourced');
