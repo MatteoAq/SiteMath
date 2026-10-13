@@ -671,10 +671,10 @@ if (!onlyVariant && !onlyTask) try {
  // its archived full-size paper original. Variants 06/19 were corrected 13.10.
 if (!onlyVariant && !onlyTask) try {
   const expected={
-    '03':['04d31578',1018],
+    '03':['d66ac110',1121],
     '04':['2f31eb2c',959],
     '05':['0553b07a',1017],
-    '06':['248fd531',1005],
+    '06':['cfc3302a',1107],
     '07':['0d133b97',1015],
     '08':['136f8adf',878],
     '09':['8a351d95',1007],
@@ -975,8 +975,8 @@ if (!onlyVariant && !onlyTask) try {
     if(!(grade(model.lines.a.p2)>0 && grade(model.lines.f.p2)<0)){
       failures.push('03/5: swapped a₂ and f₂ geometry was restored');
     }
-    if(!(grade(model.lines.f.p1)<.15 && grade(model.lines.f.p1)>-.15)){
-      failures.push('03/5: frontal f₁ must remain almost horizontal');
+    if(!(Math.abs(grade(model.lines.f.p1))<(model===G['03'].task5?1e-9:.15))){
+      failures.push('03/5: frontal f₁ must be mathematically horizontal in the solver');
     }
   }
   for(const model of [G['06'].task5,G['06'].task5.sourceGeometry]){
@@ -988,6 +988,14 @@ if (!onlyVariant && !onlyTask) try {
     }
     if(!(grade(model.lines.a.p2)<-.3 && grade(model.lines.a.p1)<-.1)){
       failures.push('06/5: original a projections must rise to the right');
+    }
+  }
+  for(const variant of ['03','06']){
+    const task=G[variant].task5;
+    for(const model of [task,task.sourceGeometry]){
+      if(model.junctions?.length!==1 || !model.junctions[0].p1 || !model.junctions[0].p2){
+        failures.push(variant+'/5: source intersection projector omitted');
+      }
     }
   }
 } catch(e){failures.push('photo 03/5 and 06/5 retrace: '+e.stack);}
