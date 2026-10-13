@@ -256,6 +256,44 @@ for (const vp of viewports) {
         });
       }
 
+      // One-off, opt-in evidence for the still-pending visual review of
+      // EVERY intermediate pencil step from the 14 archived original sheets.
+      // Disabled for normal CI so this is not a permanent long QA cycle.
+      if(process.env.STEPWISE_AUDIT==='1' &&
+         !['07','13'].includes(variant)){
+        const total=await page.evaluate(()=>Number(document.querySelector('#stepTotal')?.textContent)||0);
+        const evidence=[];
+        const id=String(Number(variant)).padStart(2,'0');
+        for(let step=2;step<total-1;step++){
+          const snapshot=await page.evaluate(step=>{
+            document.querySelector('#firstBtn')?.click();
+            for(let j=0;j<step;j++)document.querySelector('#nextBtn')?.click();
+            const svg=document.querySelector('#drawing');
+            const title=document.querySelector('#stepTitle')?.textContent||'';
+            const drawn=[...svg.querySelectorAll('line,circle')];
+            return {step,title,drawn:drawn.length,
+              pointLabels:[...svg.querySelectorAll('circle[data-label]')]
+                .map(p=>p.getAttribute('data-label'))};
+          },step);
+          await page.locator('#zoomFitBtn').click();
+          await page.waitForTimeout(85);
+          await page.evaluate(()=>{
+            for(const animation of document.getAnimations())
+              try{animation.finish()}catch{}
+          });
+          await page.screenshot({
+            path:'mobile-screenshots/step-v'+id+'-t'+task+'-s'+String(step).padStart(2,'0')+'.jpg',
+            type:'jpeg',quality:48,fullPage:false
+          });
+          evidence.push(snapshot);
+          if(!snapshot.drawn)failures.push('empty intermediate drawing '+variant+'/'+task+'/'+step);
+        }
+        fs.writeFileSync(
+          'mobile-screenshots/step-v'+id+'-t'+task+'.json',
+          JSON.stringify({variant,task,total,evidence},null,2)
+        );
+      }
+
       // Keep a final-frame capture as well. A source can be faithful while the
       // construction itself later drifts into a different topology.
       await page.evaluate(()=>document.querySelector('#lastBtn')?.click());
