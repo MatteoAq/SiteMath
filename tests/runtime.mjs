@@ -1406,7 +1406,7 @@ if (!onlyVariant && !onlyTask) try {
 
     const total=Number($('stepTotal').textContent)||1;
     let sawOmega=false,saw12=false,sawM=false,sawK=false,sawPairedK=false;
-    let saw34=false,saw56=false,sawVisibility=false;
+    let saw34seed=false,saw34=false,saw56seed=false,saw56=false,sawVisibility=false;
     for(let n=0;n<total;n++){
       const title=$('stepTitle').textContent.trim();
       const labels=[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent);
@@ -1441,12 +1441,26 @@ if (!onlyVariant && !onlyTask) try {
       }
       if(title.startsWith('Видимость на Π₁')){
         if(!sawPairedK)failures.push('task5 sequence '+variant+': competing 3/4 before both K projections');
+        if(!labels.includes('3₁≡4₁'))failures.push('task5 sequence '+variant+': 3₁≡4₁ absent at first coincidence');
+        if(labels.includes('3₂')||labels.includes('4₂'))
+          failures.push('task5 sequence '+variant+': 3₂/4₂ appears before its projector');
+        saw34seed=true;
+      }
+      if(title.startsWith('Перенеси 3₁≡4₁')){
+        if(!saw34seed)failures.push('task5 sequence '+variant+': 3₂/4₂ before 3₁≡4₁');
         for(const x of ['3₁≡4₁','3₂','4₂'])
           if(!labels.includes(x))failures.push('task5 sequence '+variant+': missing '+x);
         saw34=true;
       }
       if(title.startsWith('Видимость на Π₂')){
         if(!sawPairedK)failures.push('task5 sequence '+variant+': competing 5/6 before both K projections');
+        if(!labels.includes('5₂≡6₂'))failures.push('task5 sequence '+variant+': 5₂≡6₂ absent at first coincidence');
+        if(labels.includes('5₁')||labels.includes('6₁'))
+          failures.push('task5 sequence '+variant+': 5₁/6₁ appears before its projector');
+        saw56seed=true;
+      }
+      if(title.startsWith('Перенеси 5₂≡6₂')){
+        if(!saw56seed)failures.push('task5 sequence '+variant+': 5₁/6₁ before 5₂≡6₂');
         for(const x of ['5₂≡6₂','5₁','6₁'])
           if(!labels.includes(x))failures.push('task5 sequence '+variant+': missing '+x);
         saw56=true;
@@ -1457,7 +1471,7 @@ if (!onlyVariant && !onlyTask) try {
       }
       if(n<total-1)$('nextBtn').click();
     }
-    if(!sawOmega||!saw12||!sawM||!sawK||!sawPairedK||!saw34||!saw56||!sawVisibility)
+    if(!sawOmega||!saw12||!sawM||!sawK||!sawPairedK||!saw34seed||!saw34||!saw56seed||!saw56||!sawVisibility)
       failures.push('task5 sequence '+variant+': incomplete Ω / 1-2 / m / K / paired K / competitors / visibility chain');
   }
 } catch(e) {
