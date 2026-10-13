@@ -268,7 +268,7 @@ window.SITEMATH_SCHEMES = {
       points:{
         A:{p2:[86,166],p1:[86,224]},
         B:{p2:[218,128],p1:[218,326]},
-        C:{p2:[321,248],p1:[321,326]},
+        C:{p2:[321,248],p1:[321,294]},
         D:{p2:[391,144],p1:[391,278]}
       },
       operation:{type:"line_intersects_horizontal",through:"D",resultPoint:"E",relation:"above_line"}
