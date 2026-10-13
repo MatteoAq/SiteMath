@@ -490,6 +490,9 @@
       given='пл. '+a+'; пл. '+b+'; т. '+through;
       find='r = '+a+' ∩ '+b+'; через '+through+' провести ℓ ∥ обеим плоскостям';
     }
+    const givenLabel=box.querySelector('.problem-brief-row span');
+    if(givenLabel) givenLabel.textContent=scheme.sourceVerified===true || state.variant==='custom'
+      ? 'Дано' : 'Дано (не сверено)';
     $('problemGiven').textContent=given;
     $('problemFind').textContent=find;
     box.hidden=false;
@@ -613,12 +616,34 @@
     const v=currentVariant();
     const stored=getStoredTaskData();
     $('taskName').textContent = task + '. ' + DATA.tasks[task].title;
-    if($('diagramWarning')) $('diagramWarning').hidden=task<=3;
+    const currentScheme = task>3 && state.variant!=='custom'
+      ? window.SITEMATH_SCHEMES?.[state.variant]?.['task'+task] : null;
+    const disputedSource = !!currentScheme && currentScheme.sourceVerified!==true;
+    const disputedTask = state.variant==='06' && task===4;
+    const warning=$('diagramWarning');
+    if(warning){
+      warning.hidden=task<=3;
+      if(task>3){
+        const heading=warning.querySelector('b');
+        const detail=warning.querySelector('span');
+        if(heading) heading.textContent=disputedTask
+          ? 'Условие варианта 06, задания №4, оспорено преподавателем.'
+          : disputedSource ? 'Исходное условие НЕ проверено по бумажному оригиналу.'
+          : 'Сверь построение с оригиналом.';
+        if(detail) detail.textContent=disputedTask
+          ? 'В исходной записи могли быть перепутаны точки. Не используй приведённые здесь «Дано», исходный чертёж и результат как проверенное решение, пока исходный лист не будет сверен. На данный момент точный оригинал недоступен.'
+          : disputedSource
+            ? 'Формулировка, обозначения точек, исходные линии и взаимное положение объектов могут не совпадать с бумажным листом. Этот чертёж и пошаговое решение предварительные. Перед переносом на бумагу необходима сверка по оригиналу.'
+            : 'Исходный рисунок перенесён с доступного оригинала, но методику и последовательность построения тоже нужно проверить: возможна ошибка в вспомогательных линиях или шагах решения.';
+      }
+    }
     $('variantNote').textContent = state.variant==='custom'
-      ? 'Ручной режим – координаты можно вводить самостоятельно.'
-      : (v && v.provisionalNumber
+      ? 'Ручной режим – исходную разметку пользователь задаёт самостоятельно.'
+      : disputedSource
+        ? 'НЕ ПРОВЕРЕНО: условие и исходные данные ' + variantDisplayLabel(state.variant) + ' могут быть ошибочны.'
+        : (v && v.provisionalNumber
           ? 'Этот лист временно помечен как вариант 18. Если найдётся другой подтверждённый вариант 18, номер будет исправлен.'
-          : 'Данные взяты с присланного листа ' + variantDisplayLabel(state.variant) + '.');
+          : 'Данные сверены с доступным исходником ' + variantDisplayLabel(state.variant) + '.');
 
     if(task<=3){
       $('dataTitle').textContent='Координаты, мм';
