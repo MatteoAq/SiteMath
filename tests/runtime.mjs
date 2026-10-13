@@ -1401,8 +1401,12 @@ if (!onlyVariant && !onlyTask) try {
   $('taskSelect').value='5';
   $('taskSelect').dispatchEvent(new window.Event('change'));
   const warning=$('dynamicInputs').textContent;
-  if(!warning.includes('Требуется сверка')||!warning.includes('20,8')){
-    failures.push('source correction warning: variant 10/5 must disclose its substantial trace correction');
+  if(!warning.includes('исходный лист восстановлен') ||
+     !$('dynamicInputs').querySelector('a[href="./source-photos/variant-10/1000022486.jpg"]')){
+    failures.push('source correction audit: variant 10/5 must show recovered original');
+  }
+  if(warning.includes('20,8')){
+    failures.push('source correction audit: obsolete 20.8-unit mismatch from old 10/5 trace');
   }
 
   $('variantSelect').value='12';
