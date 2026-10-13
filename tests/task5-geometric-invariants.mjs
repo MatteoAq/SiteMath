@@ -15,7 +15,7 @@ W.eval(fs.readFileSync('variants.js','utf8'));
 const marker='  const remembered=loadSelection();';
 const source=fs.readFileSync('multi.js','utf8');
 if(source.split(marker).length!==2)throw Error('solver instrumentation anchor changed');
-W.eval(source.replace(marker,`  window.__siteMathGeometryProbe={planeFromScheme,planeReferenceLines,task5AuxCandidate,segmentVisibility,task5VisibilityWitness,solveTask5Scheme};\n`+marker));
+W.eval(source.replace(marker,`  window.__siteMathGeometryProbe={planeFromScheme,planeReferenceLines,task5AuxCandidate,segmentVisibility,task5VisibilityWitness,task5VisibilityExtents,solveTask5Scheme};\n`+marker));
 const audit=W.__siteMathGeometryProbe,issues=[],results=[];
 const norm=p=>Math.hypot(p.x,p.y,p.z);
 for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
@@ -31,16 +31,28 @@ for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
  const P={x:(K1.x+K2.x)/2,y:K1.y,z:-K2.y};
  const dist=Math.abs(plane.n.x*P.x+plane.n.y*P.y+plane.n.z*P.z+plane.d)/norm(plane.n);
  const xgap=Math.abs(K1.x-K2.x);
- const vis1=audit.segmentVisibility(lrec,plane,'p1',K1);
- const vis2=audit.segmentVisibility(lrec,plane,'p2',K2);
+ const extent=audit.task5VisibilityExtents(lrec,K1);
+ const vis1=audit.segmentVisibility(lrec,plane,'p1',K1,extent.p1);
+ const vis2=audit.segmentVisibility(lrec,plane,'p2',K2,extent.p2);
+ const len1=Math.hypot(extent.p1[1].x-extent.p1[0].x,extent.p1[1].y-extent.p1[0].y);
+ const len2=Math.hypot(extent.p2[1].x-extent.p2[0].x,extent.p2[1].y-extent.p2[0].y);
+ const splitParameter=(range,K)=>{
+   const span=range[1].x-range[0].x;
+   return Math.abs(span)>1e-8?(K.x-range[0].x)/span:NaN;
+ };
+ for(const [side,range,len,K] of [['p1',extent.p1,len1,K1],['p2',extent.p2,len2,K2]]){
+   const t=splitParameter(range,K);
+   if(!(t>.001&&t<.999))issues.push(variant+'/'+side+': K is not between display endpoints, t='+t);
+   if(!(len>5))issues.push(variant+'/'+side+': display line collapsed');
+ }
  const witnesses={};
  for(const side of ['p1','p2']){
   const K=side==='p1'?K1:K2;
   const w=audit.task5VisibilityWitness(refs,lrec,side,K);
   if(!w){issues.push(variant+'/'+side+': visibility witness absent');continue;}
-  const S=lrec[side],dx=S[1][0]-S[0][0],dy=S[1][1]-S[0][1];
-  const t=((w.X.x-S[0][0])*dx+(w.X.y-S[0][1])*dy)/(dx*dx+dy*dy);
-  const tk=((K.x-S[0][0])*dx+(K.y-S[0][1])*dy)/(dx*dx+dy*dy);
+  const S=extent[side],dx=S[1].x-S[0].x,dy=S[1].y-S[0].y;
+  const t=((w.X.x-S[0].x)*dx+(w.X.y-S[0].y)*dy)/(dx*dx+dy*dy);
+  const tk=((K.x-S[0].x)*dx+(K.y-S[0].y)*dy)/(dx*dx+dy*dy);
   const idx=t<tk?0:1;
   const shown=(side==='p1'?vis1:vis2)[idx];
   witnesses[side]={same:shown===w.lineVisible,side:idx,visible:shown,witness:w.lineVisible};
