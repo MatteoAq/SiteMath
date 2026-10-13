@@ -313,7 +313,9 @@ for (const vp of viewports) {
     });
   }
 
-  // The exact 06/4 input is disputed: the printed drawing must retain its warning.
+  // Variant 06/4 has a recovered paper original and corrected m/n pairing.
+  // The print must retain the incomplete-method status, not an obsolete assertion
+  // that the point names D and A were misread.
   await page.evaluate(()=>{
     const v=document.querySelector('#variantSelect');
     const t=document.querySelector('#taskSelect');
@@ -322,7 +324,7 @@ for (const vp of viewports) {
   });
   await page.emulateMedia({media:'print'});
   const disputedPrint=await page.locator('#printProvenance').evaluate(el=>({visible:getComputedStyle(el).display!=='none',text:el.textContent.trim()}));
-  if(!disputedPrint.visible || !disputedPrint.text.includes('ОСПОРЕНО ПРЕПОДАВАТЕЛЕМ')) failures.push('print/PDF 06/4: teacher dispute missing '+JSON.stringify(disputedPrint));
+  if(!disputedPrint.visible || !disputedPrint.text.includes('НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ')) failures.push('print/PDF 06/4: pending method verification missing '+JSON.stringify(disputedPrint));
   await page.emulateMedia({media:'screen'});
   await context.close();
 }
