@@ -671,9 +671,9 @@ if (!onlyVariant && !onlyTask) try {
  // its archived full-size paper original. Variants 06/19 were corrected 13.10.
 if (!onlyVariant && !onlyTask) try {
   const expected={
-    '03':['d66ac110',1121],
+    '03':['209940a4',1121],
     '04':['2f31eb2c',959],
-    '05':['0553b07a',1017],
+    '05':['f683ffc3',1017],
     '06':['cfc3302a',1107],
     '07':['0d133b97',1015],
     '08':['136f8adf',878],
@@ -1013,6 +1013,30 @@ if (!onlyVariant && !onlyTask) try {
     if(model.planeA.junctions?.length!==1) failures.push('14/6: original crossing projector missing');
   }
 } catch(e){failures.push('14/6 original photograph retrace: '+e.stack);}
+
+// Original 05/5 and 03/6 define different spatial lines than the old
+// mislabeled traces: assert the actual projected orientations for both.
+if (!onlyVariant && !onlyTask) try {
+ const g=window.SITEMATH_SCHEMES;
+ const slope=seg=>(seg[1][1]-seg[0][1])/(seg[1][0]-seg[0][0]);
+ for(const model of [g['05'].task5,g['05'].task5.sourceGeometry]){
+   if(!(slope(model.lines.a.p2)>.3 && slope(model.lines.f.p2)<-.3))
+     failures.push('05/5: original a₂ / f₂ strokes are wrongly assigned');
+   if(!(slope(model.lines.l.p1)>.2))
+     failures.push('05/5: original ℓ₁ is ascending right, contrary to paper');
+ }
+ for(const model of [g['03'].task6,g['03'].task6.sourceGeometry]){
+   if(!(slope(model.planeB.lines.a.p2)<-.3 && slope(model.planeB.lines.b.p2)>.3))
+     failures.push('03/6: original Θ a₂ / b₂ strokes are wrongly assigned');
+ }
+ for(const variant of ['04','05','08','10','17']){
+   for(const task of [4,5,6]){
+     const source=g[variant]['task'+task];
+     if(!source.sourceAvailable || !source.sourceId?.startsWith('source-photos/variant-'+variant+'/'))
+       failures.push('original not connected to '+variant+'/'+task);
+   }
+ }
+} catch(e){failures.push('paper corrections 05/5, 03/6 and recovered source mapping: '+e.stack);}
 
 // Verify the actual source geometry, not just warning text. The 06 photo
 // shows n₂ upper, m₂ lower, n₁ upper, m₁ lower; 19 has a named K projector.
