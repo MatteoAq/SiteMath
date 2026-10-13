@@ -1223,6 +1223,29 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
   }
 })();
 
+/* Durable, byte-identical photographed originals from 2026-10-13.
+   Available in source-photos/ and backed up on Drive. Availability does not
+   by itself imply that every line or teaching step has passed visual QA. */
+(function registerRecoveredSources(){
+  const recovered={
+    "03":"1000022472.jpg", "06":"1000022471.jpg",
+    "09":"1000022475.jpg", "11":"1000022470.jpg",
+    "14":"1000022467.jpg", "15":"1000022469.jpg",
+    "18":"1000022474.jpg", "19":"1000022473.jpg"
+  };
+  Object.entries(recovered).forEach(([variant,name])=>{
+    [4,5,6].forEach(task=>{
+      const s=window.SITEMATH_SCHEMES?.[variant]?.['task'+task];
+      if(!s)return;
+      s.sourceId='source-photos/variant-'+variant+'/'+name;
+      s.sourceAvailable=true;
+      s.sourceVerified=false; // checked only after exact per-task comparison
+    });
+  });
+  // The newly supplied image for 12 is a second source, beside the earlier
+  // archived IMG_20260917_131638. Preserve the original verified source ID.
+})();
+
 /* Verification state is stricter than "a trace exists".
    sourceId records provenance only. A scheme is verified only when the exact
    source image is currently available and has actually been rechecked. */
