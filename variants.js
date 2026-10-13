@@ -1219,6 +1219,36 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
     });
   }
 
+  const v05t5=window.SITEMATH_SCHEMES["05"]?.task5;
+  if(v05t5){
+    // 1000022482.jpg: a₂ descends right, f₂ rises right. Previously their
+    // second projections were assigned to the opposite spatial lines.
+    // The given ℓ₁ also descends right; its old trace ascended instead.
+    [v05t5,v05t5.sourceGeometry].filter(Boolean).forEach(model=>{
+      if(model.lines?.a?.p2 && model.lines?.f?.p2){
+        const oldA=model.lines.a.p2;
+        model.lines.a.p2=model.lines.f.p2;
+        model.lines.f.p2=oldA;
+      }
+      if(model.lines?.l?.p1)
+        model.lines.l.p1=[[88,285],[287,350]];
+    });
+  }
+
+  const v03t6=window.SITEMATH_SCHEMES["03"]?.task6;
+  if(v03t6){
+    // On 1000022481.jpg the right plane Θ is specified by a₂ rising
+    // right and b₂ descending right. Its first projections were correct.
+    [v03t6,v03t6.sourceGeometry].filter(Boolean).forEach(model=>{
+      const lines=model.planeB?.lines;
+      if(lines?.a?.p2 && lines?.b?.p2){
+        const oldA=lines.a.p2;
+        lines.a.p2=lines.b.p2;
+        lines.b.p2=oldA;
+      }
+    });
+  }
+
   const v06t5=window.SITEMATH_SCHEMES["06"]?.task5;
   if(v06t5){
     // The original 1000022471.jpg has steeply falling b₂ and a
@@ -1335,10 +1365,13 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
    by itself imply that every line or teaching step has passed visual QA. */
 (function registerRecoveredSources(){
   const recovered={
-    "03":"1000022472.jpg", "06":"1000022471.jpg",
-    "09":"1000022475.jpg", "11":"1000022470.jpg",
+    "03":"1000022472.jpg", "04":"1000022483.jpg",
+    "05":"1000022482.jpg", "06":"1000022471.jpg",
+    "08":"1000022484.jpg", "09":"1000022475.jpg",
+    "10":"1000022486.jpg", "11":"1000022470.jpg",
     "14":"1000022467.jpg", "15":"1000022469.jpg",
-    "18":"1000022474.jpg", "19":"1000022473.jpg"
+    "17":"1000022485.jpg", "18":"1000022474.jpg",
+    "19":"1000022473.jpg"
   };
   Object.entries(recovered).forEach(([variant,name])=>{
     [4,5,6].forEach(task=>{
