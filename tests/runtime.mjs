@@ -934,6 +934,19 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('task4 plane-symbol regression: '+e.stack);
 }
 
+// Numeric variants also carry provisional input values; do not imply that their
+// source documents have been rechecked merely because the calculations run.
+if (!onlyVariant && !onlyTask) try {
+  $('variantSelect').value='03';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='1';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  if(!$('variantNote').textContent.includes('недоступен для повторной сверки')) failures.push('numeric 03/1: false source-verification claim');
+  $('variantSelect').value='12';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  if(!$('variantNote').textContent.includes('сверены с доступным')) failures.push('numeric 12/1: exact source attribution missing');
+} catch(e){ failures.push('numeric source attribution: '+e.stack); }
+
 // A provisional graphical trace must never present disputed input as verified.
 if (!onlyVariant && !onlyTask) try {
   const select=(variant,task)=>{
