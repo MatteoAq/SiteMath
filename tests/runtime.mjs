@@ -671,7 +671,7 @@ if (!onlyVariant && !onlyTask) try {
  // its archived full-size paper original. Variants 06/19 were corrected 13.10.
 if (!onlyVariant && !onlyTask) try {
   const expected={
-    '03':['209940a4',1121],
+    '03':['9b145448',1224],
     '04':['2f31eb2c',959],
     '05':['25bdc974',1121],
     '06':['cfc3302a',1107],
@@ -686,7 +686,7 @@ if (!onlyVariant && !onlyTask) try {
     '15':['aed4e407',902],
     '17':['e63d2eb2',1131],
     '18':['6a2632fc',991],
-    '19':['835a02c6',1114]
+    '19':['27f74aca',1215]
   };
   const skip=new Set(['sourceVerified','sourceAvailable','sourceId','sourceRecheckRequired','sourceGeometry']);
   const canon=value=>{
@@ -1050,6 +1050,24 @@ if (!onlyVariant && !onlyTask) try {
   if(dx>0.001) failures.push(variant+'/5: Monge intersection not on one projector, gap '+dx);
  }
 } catch(e){ failures.push('photographic 05/10/17 task5 projector audit: '+e.stack); }
+
+// Graphical task 6 input for 03/19 must retain actual intersections
+// in both Monge projections on the same source projector.
+if (!onlyVariant && !onlyTask) try {
+  const D=window.SITEMATH_SCHEMES;
+  for(const [variant,plane] of [['03','planeB'],['19','planeA']]){
+    const task=D[variant].task6;
+    for(const [kind,model] of [['math',task],['photo',task.sourceGeometry]]){
+      const def=model[plane],j=def.junctions?.[0];
+      if(!j?.p1||!j?.p2){failures.push(variant+'/6 '+kind+': missing pre-printed intersection projector');continue;}
+      const gap=Math.abs(j.p1[0]-j.p2[0]);
+      if(gap>(kind==='math'?0.0001:10)) failures.push(variant+'/6 '+kind+': photographed crossing mismatch '+gap);
+      const slope=p=>(p[1][1]-p[0][1])/(p[1][0]-p[0][0]);
+      if(!(slope(def.lines.a.p2)<0 && slope(def.lines.b.p2)>0))
+        failures.push(variant+'/6 '+kind+': wrong source upper a/b line slopes');
+    }
+  }
+} catch(e){failures.push('03/6 and 19/6 full sheet retrace: '+e.stack);}
 
 // Verify the actual source geometry, not just warning text. The 06 photo
 // shows n₂ upper, m₂ lower, n₁ upper, m₁ lower; 19 has a named K projector.
