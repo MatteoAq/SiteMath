@@ -1806,36 +1806,24 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
   }
 })();
 
-/* Durable, byte-identical photographed originals from 2026-10-13.
-   Available in source-photos/ and backed up on Drive. Availability does not
-   by itself imply that every line or teaching step has passed visual QA. */
-(function registerRecoveredSources(){
-  const recovered={
-    "03":"1000022472.jpg", "04":"1000022483.jpg",
-    "05":"1000022482.jpg", "06":"1000022471.jpg",
-    "08":"1000022484.jpg", "09":"1000022475.jpg",
-    "10":"1000022486.jpg", "11":"1000022470.jpg",
-    "14":"1000022467.jpg", "15":"1000022469.jpg",
-    "17":"1000022485.jpg", "18":"1000022474.jpg",
-    "19":"1000022473.jpg"
-  };
-  Object.entries(recovered).forEach(([variant,name])=>{
-    [4,5,6].forEach(task=>{
-      const s=window.SITEMATH_SCHEMES?.[variant]?.['task'+task];
-      if(!s)return;
-      s.sourceId='source-photos/variant-'+variant+'/'+name;
-      s.sourceAvailable=true;
-      s.sourceVerified=false; // checked only after exact per-task comparison
-    });
-  });
-  // IMG 1000022470.jpg, variant 11 task 6: the *paper* accidentally
-  // captions the upper K point as K₁ and the lower as K₂. Preserve these
-  // original labels in the first frame, then explicitly correct their
-  // projection indices for the mathematical construction.
-  const task11=window.SITEMATH_SCHEMES?.["11"]?.task6;
-  if(task11) task11.paperReversedKLabels=true;
-  // The newly supplied image for 12 is a second source, beside the earlier
-  // archived IMG_20260917_131638. Preserve the original verified source ID.
+/* Authoritative university-album scans for all current 20 variants.
+   The original 26-sheet DOCX stays private. Public scans confirm the source
+   sheet is available, NOT that all construction steps are verified. */
+(function registerScannedSources(){
+  for(let n=1;n<=20;n++){
+    const variant=String(n).padStart(2,'0');
+    const group=window.SITEMATH_SCHEMES?.[variant];
+    if(!group)continue;
+    for(const task of [4,5,6]){
+      const scheme=group['task'+task];
+      if(!scheme)continue;
+      scheme.sourceId='source-photos/scans/variant-'+variant+'.jpg';
+      scheme.sourceAvailable=true;
+      scheme.sourceVerified=false;
+    }
+  }
+  const task11=window.SITEMATH_SCHEMES?.['11']?.task6;
+  if(task11)task11.paperReversedKLabels=true;
 })();
 
 /* Verification state is stricter than "a trace exists".

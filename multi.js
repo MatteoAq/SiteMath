@@ -6,7 +6,6 @@
   const GRID = 5;
   // Six university paper originals are in the user's PRIVATE Drive album,
   // not in public source-photos. This is source availability, not solution QA.
-  const privateAlbumVariants=new Set(['01','02','07','13','16','20']);
   const EPS = 1e-8;
   const $ = id => document.getElementById(id);
   const svg = $('drawing');
@@ -497,7 +496,7 @@
     }
     const givenLabel=box.querySelector('.problem-brief-row span');
     const sourceConfirmed=scheme.sourceVerified===true || state.variant==='custom';
-    const locatedOriginal=privateAlbumVariants.has(state.variant)||scheme.sourceAvailable===true;
+    const locatedOriginal=scheme.sourceAvailable===true;
     // The label column is only 39px wide on phones. Put the provenance
     // notice in the wrapping value, not in the narrow label.
     if(givenLabel) givenLabel.textContent='Дано ';
@@ -627,9 +626,8 @@
     const currentScheme = task>3 && state.variant!=='custom'
       ? window.SITEMATH_SCHEMES?.[state.variant]?.['task'+task] : null;
     const disputedSource = !!currentScheme && currentScheme.sourceVerified!==true;
-    const privateAlbumSource = privateAlbumVariants.has(state.variant);
-    const recoveredSource = currentScheme?.sourceAvailable===true || privateAlbumSource;
-    const hasArchivedSheet = privateAlbumSource || state.variant==='12' || window.SITEMATH_SCHEMES?.[state.variant]?.task4?.sourceAvailable===true;
+    const recoveredSource = currentScheme?.sourceAvailable===true;
+    const hasArchivedSheet = window.SITEMATH_SCHEMES?.[state.variant]?.task4?.sourceAvailable===true;
     const warning=$('diagramWarning');
     if(warning){
       warning.hidden=task<=3;
@@ -641,9 +639,7 @@
           : 'Сверь построение с оригиналом.';
         if(detail) detail.textContent=disputedSource
           ? (recoveredSource
-            ? (privateAlbumSource
-              ? 'Исходный лист найден в закрытых учебных материалах Google Диска и не публикуется на сайте. Правильность вспомогательных построений и результата ещё проверяется.'
-              : 'Полный бумажный лист доступен по ссылке ниже. Состав заданных объектов сверяется с оригиналом, а вспомогательные построения и результат требуют проверки до использования.')
+            ? 'Полный скан бумажного листа доступен по ссылке ниже. Исходные условия сверяются с ним; правильность вспомогательных построений и результатов ещё проверяется.'
             : 'Исходная геометрия и формулировка могут отличаться от бумажного листа. Не используй предварительную схему без сверки.')
           : 'Исходный рисунок перенесён с доступного оригинала, но методику и последовательность построения тоже нужно проверить: возможна ошибка во вспомогательных построениях.';
       }
@@ -674,7 +670,9 @@
         });
       });
       html+='</div>';
-      holder.innerHTML=html;
+      holder.innerHTML=html+(hasArchivedSheet && state.variant!=='custom'
+        ? '<p class="hint"><a href="./source-photos/scans/variant-'+esc(state.variant)+'.jpg" target="_blank" rel="noopener noreferrer">Открыть скан исходного листа варианта '+esc(state.variant)+'</a></p>'
+        : '');
       $('solverMode').textContent='точный расчёт';
       $('intersectionChoice').hidden = task!==3;
       $('taskStatement').textContent = task===1
@@ -709,12 +707,10 @@
                       ? 'сохранена трассировка с исходника '+esc(knownScheme.sourceId)+', но сам файл сейчас недоступен для повторной визуальной сверки.'
                     : knownScheme.sourceVerified
                       ? 'перенесено с фото ранее; исходный файл сейчас недоступен для повторной точной сверки.'
-                      : (privateAlbumSource
-                      ? 'исходный лист найден в закрытых материалах Google Диска; пошаговая геометрия и методика продолжают проверяться.'
-                      : 'не подтверждено бумажным оригиналом: текст условия, названия и принадлежность точек, исходные линии, наклоны и проекторы могут быть неверны. Пошаговое решение предварительное и не должно использоваться как проверенный ответ.')
+                      : 'Исходный скан пока недоступен; условие и решение требуют проверки по оригиналу.'
               )+'</p>'+
               (knownScheme.sourceAvailable && knownScheme.sourceId
-                ? '<p><b>Исходный лист:</b> <a href="./'+esc(knownScheme.sourceId.startsWith('source-photos/')?knownScheme.sourceId:'source-photos/variant-12/IMG_20260917_131638.jpg')+'" target="_blank" rel="noopener noreferrer">Открыть фото варианта '+esc(state.variant)+'</a> для проверки исходных точек и линий.</p>'
+                ? '<p><b>Исходный лист:</b> <a href="./'+esc(knownScheme.sourceId)+'" target="_blank" rel="noopener noreferrer">Открыть скан варианта '+esc(state.variant)+'</a> для проверки исходных точек и линий.</p>'
                 : '')+
               (state.variant==='06' && task===4
                 ? '<p><b>Исправление по оригиналу:</b> верхняя фронтальная прямая – n₂, нижняя – m₂. Проекции m₁/n₁ сохранены. Исходные точки D и A совпадают с листом.</p>'

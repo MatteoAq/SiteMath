@@ -1,6 +1,6 @@
-// Independently transcribed photographic paper originals, 13 Oct 2026.
+// Independently transcribed paper originals and university album scans, 14 Oct 2026.
 // Check 60 numeric assignments (200 spatial points), 60 graphical assignment
-// definitions, and the exact SHA-256 bytes of every recovered source photo.
+// definitions, and SHA-256 bytes of all 20 current album scans.
 // CI success proves source data shape/recording, not the geometry of solved steps.
 import fs from 'node:fs';
 import crypto from 'node:crypto';
@@ -240,105 +240,34 @@ const originalRoles={
     "E"
   ]
 };
-const originalPhotos=[
-  [
-    "03",
-    "1000022472.jpg",
-    "e866a71be9a153f81930a9bb495b298215b73748a8d482aacb78590a844fe206"
-  ],
-  [
-    "03",
-    "1000022481.jpg",
-    "872591bcdabf72b31dd3113f8246d68c0250a8f68cda2301af534352b57e07cb"
-  ],
-  [
-    "04",
-    "1000022483.jpg",
-    "175dbbc5c05ff1a0450d9d67139a0360112c0519bb71dbb8df8c65dd92bcaaa1"
-  ],
-  [
-    "05",
-    "1000022482.jpg",
-    "029b47112f89c786d15a4ecfc5b80ceef5aaa9992ca5439f8b939f7504bc6ac0"
-  ],
-  [
-    "06",
-    "1000022471.jpg",
-    "9c18e5c86c2ffd5e71e61b9ab56563d833a2c8143047a176bcd2cad20d9d9231"
-  ],
-  [
-    "08",
-    "1000022484.jpg",
-    "bd04ef0e87cf97953428e1ad1fa1ab82e34117ff7d036fda76e8e29fb76716b5"
-  ],
-  [
-    "09",
-    "1000022475.jpg",
-    "ed27e80300e8cb89db7468a27fc157e1c33b1ef194c36496060ff40f1a605d8a"
-  ],
-  [
-    "10",
-    "1000022486.jpg",
-    "93578498dc84490ea54ab7132a372cd416b8593180f2d50e4285b3fcc54628cb"
-  ],
-  [
-    "11",
-    "1000022470.jpg",
-    "5ad2c523ce8976b0fa74c49a0de0110947592c3f44601be0db9f6e540d8e1435"
-  ],
-  [
-    "11",
-    "1000022480.jpg",
-    "e6cae87a5ab6653151c133dd2ad992c7ef2ec4148f378958f4935a75a56d333e"
-  ],
-  [
-    "12",
-    "1000022468.jpg",
-    "2764a9de532b3e86f93195dd68df218022dc7dea81f54ce19889a1203cda98b2"
-  ],
-  [
-    "14",
-    "1000022467.jpg",
-    "47efdf7f4e4ca99e8f5352a3824b816ffee2c301c1977a9e3916d866e4755132"
-  ],
-  [
-    "14",
-    "1000022478.jpg",
-    "a1ccbdc0ff727136f0d4704aa62beaf28fa38cb2d40873e6f1fe8ed55d6705d5"
-  ],
-  [
-    "15",
-    "1000022469.jpg",
-    "3161aea22d2a53aed822f301d0cbf2299a633d26672d6c83af9f6d3b75569777"
-  ],
-  [
-    "15",
-    "1000022479.jpg",
-    "94638ad1e89205f0e35e4bb19be35dddc1b5dad2d9b97918778681bea2a890d7"
-  ],
-  [
-    "17",
-    "1000022485.jpg",
-    "5adb9fe32237aed33d85622e2eb8075b23c9a183bd1d3e79bb133acc36088adc"
-  ],
-  [
-    "18",
-    "1000022474.jpg",
-    "4c34316df44aea70fe7e2f06019b450db9244427240ed76402976b8d947d1fdd"
-  ],
-  [
-    "19",
-    "1000022473.jpg",
-    "b1808a3e4a1020b8a3569acf00804a1d7d752df2a3b7b0ede7fd56289a2db326"
-  ]
-];
+const originalScans={
+  '01':'8adb0ef639d4217b431c4cc74ec1e75c4e52341ce396d68dc014b6d71cc096d0',
+  '02':'ee527a65d18d4d47e85d49f7df6297d5b56a6b663db4f937ebf4ebd10bf38ae1',
+  '03':'cb1f0d6e558f8fb2c1b861f19cd69b3379502a88dd621491cbe93cd8b342e9a7',
+  '04':'10c50d74f57fed1dbacd63a3e13f70f61129247c54cac78d0cf88711b79ff7c7',
+  '05':'869e6a20c391e96373c26a2cd2a420b3f898aa9bba18968e51f5e146a35a48b0',
+  '06':'fef8bc3f74bb2dd7d36715466e980a0e53b4147496cf288e647f8ce958f5953a',
+  '07':'71c69d683086d4bb19d990863afd220400ee0f64a9c5c78770a1cea90fb1c7cb',
+  '08':'ec26b1d1685aff464b2faf3c9b7bf03f0453f153ec2e7431c701e17c26b31931',
+  '09':'1fcbcad1e5576bda4dea3b5321753ee63e268b3007a628786b1259e732a8482b',
+  '10':'7ec666c716f1e33e62c077c588f97542a9ffed658dfb71a5ba876221ed0de896',
+  '11':'15157f32db0e3bd1536a7b28593807f1f49b5aed997bbc82755c21c0ebb1d700',
+  '12':'0c895bd6fa7ff8cb5c7290edd41301e0f636b96b9d97fa261386d520c842a554',
+  '13':'e513dce07665a85f9880321881fc35058bf629df3ef208e627c1415a1eeaf665',
+  '14':'3d8b03d95920f766a454044d4a8fea4e55d63b4c684e99e8dac237486aa6747f',
+  '15':'859c93b4b162a242255175cbc43e40ee1c8ad6643f724cc6ace127f708af4876',
+  '16':'9209f8d3465a34a578e07e626c8cddff52580f2da7f937b9f95b108afaf7bb8a',
+  '17':'1580c399adcbe4a709adf5f2b356909976d604d0b3aa1e0ac8e4181cc672ae5a',
+  '18':'0acec3519e5c55eac6885f19ae50389939d628c8da5a4d10a68ec724607994b6',
+  '19':'60a427287e12f785ef2a519e418af9c5c49aba90d02fd0d4513439991b9757a8',
+  '20':'ba5ea4f8e8b013934f81ff312002910a52068361bfbb9042e8aaf691a5443b7a'
+};
 const win={};
 new Function('window',fs.readFileSync('variants.js','utf8'))(win);
 const error=[];
 let checkedCoord=0, checkedStructures=0, checkedPhotos=0;
 // Six originals are preserved in the connected PRIVATE Google Drive album.
 // They must not be misrepresented as publicly archived source-photos JPEGs.
-const privateAlbumVariants=new Set(['01','02','07','13','16','20']);
 for(const [variant,tasks] of Object.entries(originalCoordinates)){
   const data=win.SITEMATH_DATA.variants[variant];
   const schemas=win.SITEMATH_SCHEMES[variant];
@@ -368,22 +297,18 @@ for(const [variant,tasks] of Object.entries(originalCoordinates)){
   checkedStructures+=3;
   for(const task of [4,5,6]){
     const scheme=schemas['task'+task];
-    if(privateAlbumVariants.has(variant)){
-      // The visual source is sheet "В. XX" inside the private DOCX, not a
-      // public GitHub JPEG. The photographed raw trace must still exist.
-      if(!scheme?.sourceGeometry)error.push(variant+'/'+task+': raw album trace absent');
-      if(scheme?.sourceVerified===true)error.push(variant+'/'+task+': unreviewed Drive trace marked verified');
-    } else {
-      if(!scheme?.sourceAvailable)error.push(variant+'/'+task+': saved original not connected');
-      if(!scheme?.sourceId)error.push(variant+'/'+task+': source path missing');
-    }
+    if(!scheme?.sourceGeometry)error.push(variant+'/'+task+': original tracing missing');
+    if(scheme?.sourceVerified===true)error.push(variant+'/'+task+': method incorrectly marked verified');
+    if(scheme?.sourceAvailable!==true)error.push(variant+'/'+task+': source scan unavailable');
+    if(scheme?.sourceId!=='source-photos/scans/variant-'+variant+'.jpg')
+      error.push(variant+'/'+task+': incorrect scan source path '+scheme?.sourceId);
   }
 }
-for(const [variant,file,sha] of originalPhotos){
-  const path='source-photos/variant-'+variant+'/'+file;
-  if(!fs.existsSync(path)){error.push('original photo missing: '+path);continue;}
+for(const [variant,sha] of Object.entries(originalScans)){
+  const path='source-photos/scans/variant-'+variant+'.jpg';
+  if(!fs.existsSync(path)){error.push('original scan missing: '+path);continue;}
   const actual=crypto.createHash('sha256').update(fs.readFileSync(path)).digest('hex');
-  if(actual!==sha)error.push('original photo SHA256 mismatch: '+path);
+  if(actual!==sha)error.push('original scan SHA256 mismatch: '+path);
   checkedPhotos++;
 }
 // Independent visual audit of the *actual given line directions* on each
@@ -646,4 +571,4 @@ for(const [variant,examples] of Object.entries(photoLineDirections)){
 if(error.length){console.error(error.join('\n'));process.exitCode=1;}
 else console.log('Paper source audit OK: '+Object.keys(originalCoordinates).length+
   ' variants, '+(Object.keys(originalCoordinates).length*3)+' coordinate tasks / '+checkedCoord+' point records, '+
-  checkedStructures+' graphical assignment roles, '+checkedPhotos+' original JPEG files.');
+  checkedStructures+' graphical assignment roles, '+checkedPhotos+' university album JPEG scans.');

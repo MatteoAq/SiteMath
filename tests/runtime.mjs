@@ -1150,10 +1150,10 @@ if (!onlyVariant && !onlyTask) try {
    if(!(slope(model.planeB.lines.a.p2)<-.3 && slope(model.planeB.lines.b.p2)>.3))
      failures.push('03/6: original Θ a₂ / b₂ strokes are wrongly assigned');
  }
- for(const variant of ['04','05','08','10','17']){
+ for(const variant of Array.from({length:20},(_,i)=>String(i+1).padStart(2,'0'))){
    for(const task of [4,5,6]){
      const source=g[variant]['task'+task];
-     if(!source.sourceAvailable || !source.sourceId?.startsWith('source-photos/variant-'+variant+'/'))
+     if(!source.sourceAvailable || !source.sourceId==='source-photos/scans/variant-'+variant+'.jpg')
        failures.push('original not connected to '+variant+'/'+task);
    }
  }
@@ -1226,7 +1226,7 @@ if (!onlyVariant && !onlyTask) try {
   if(!$('printProvenanceTitle').textContent.includes('06') || !$('printProvenanceTitle').textContent.includes('№4')) failures.push('print provenance 06/4: variant/task identification missing');
   if(!$('printProvenanceStatus').textContent.includes('МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА')) failures.push('print provenance 06/4: provisional method status missing');
   if(!$('dynamicInputs').textContent.includes('верхняя фронтальная прямая – n₂')) failures.push('06/4: actual m/n geometry correction not shown');
-  if(!$('dynamicInputs').querySelector('a[href="./source-photos/variant-06/1000022471.jpg"]')) failures.push('06/4: archived original link is missing');
+  if(!$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-06.jpg"]')) failures.push('06/4: archived original link is missing');
   if($('diagramWarning').textContent.includes('оспорено преподавателем')) failures.push('06/4: obsolete and incorrect teacher dispute notice was restored');
   if(!$('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('06/4: archived source status not distinguished from unverified method');
   if(!$('variantNote').textContent.includes('методики ещё проверяется')) failures.push('06/4: summary hides pending method verification');
@@ -1235,6 +1235,8 @@ if (!onlyVariant && !onlyTask) try {
   if(!$('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('03/5: original recovered but method warning absent');
   if(!$('diagramWarning').textContent.includes('Исходный лист восстановлен')) failures.push('unverified 03/5: recovered original status missing');
   select('13',6);
+   if(!$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-13.jpg"]'))
+     failures.push('13/6: public scan link missing');
   if(!window.SITEMATH_SCHEMES['13'].task6.sourceGeometry)
     failures.push('13/6: actual university album tracing missing');
   if(!$('problemBrief').textContent.includes('(исходник найден; решение проверяется)'))
@@ -1243,8 +1245,11 @@ if (!onlyVariant && !onlyTask) try {
     failures.push('13/6: private album original provenance missing');
   if(!$('printProvenanceStatus').textContent.includes('МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА'))
     failures.push('13/6: printed method caution missing');
-  select('12',4);
-  if(!$('dynamicInputs').querySelector('a[href="./source-photos/variant-12/IMG_20260917_131638.jpg"]')) failures.push('source 12/4: direct archived original sheet link missing');
+  select('01',1);
+   if(!$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-01.jpg"]'))
+     failures.push('01/1: numeric scan link missing');
+   select('12',4);
+  if(!$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-12.jpg"]')) failures.push('source 12/4: direct archived original sheet link missing');
   if(!$('printProvenanceStatus').textContent.includes('Методика') && !$('printProvenanceStatus').textContent.includes('методики')) failures.push('print provenance 12/4: construction not qualified');
   if($('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('verified 12/4: incorrect provenance warning');
   if($('diagramWarning').textContent.includes('Исходное условие НЕ проверено')) failures.push('verified 12/4: incorrectly labeled unsourced');
@@ -1576,7 +1581,7 @@ if (!onlyVariant && !onlyTask) try {
   $('taskSelect').dispatchEvent(new window.Event('change'));
   const warning=$('dynamicInputs').textContent;
   if(!warning.includes('исходный лист восстановлен') ||
-     !$('dynamicInputs').querySelector('a[href="./source-photos/variant-10/1000022486.jpg"]')){
+     !$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-10.jpg"]')){
     failures.push('source correction audit: variant 10/5 must show recovered original');
   }
   if(warning.includes('20,8')){
