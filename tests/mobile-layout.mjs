@@ -573,6 +573,44 @@ for (const vp of viewports) {
     await page.screenshot({path:'mobile-screenshots/fixed-v'+variant+'-t6-P.png',fullPage:false});
   }
 
+  // A plane given by A and a needs a *visible* construction of the
+  // second in-plane line g=AT before Omega and visibility (02/5).
+  // Capture only the three new stages, not the entire 820-stage archive.
+  for(const [step,expected] of [
+    [3,'Выбери T₁ на '],
+    [4,'По линии связи получи T₂ на '],
+    [5,'Соедини A с T – построй g₁ и g₂']
+  ]){
+    const status=await page.evaluate(({step})=>{
+      const vs=document.querySelector('#variantSelect');
+      const ts=document.querySelector('#taskSelect');
+      vs.value='02';vs.dispatchEvent(new Event('change'));
+      ts.value='5';ts.dispatchEvent(new Event('change'));
+      document.querySelector('#firstBtn').click();
+      for(let n=1;n<step;n++)document.querySelector('#nextBtn').click();
+      return {
+        title:document.querySelector('#stepTitle').textContent.trim(),
+        labels:[...document.querySelectorAll('#drawing circle[data-label]')].map(x=>x.getAttribute('data-label')),
+        gs:[...document.querySelectorAll('#drawing text')].map(x=>x.textContent).filter(x=>x==='g₁'||x==='g₂'),
+        count:[...document.querySelectorAll('#drawing line.aux-line[data-active="1"]')].length
+      };
+    },{step});
+    if(!status.title.startsWith(expected))
+      failures.push('02/5 method stage '+step+' wrong title '+JSON.stringify(status));
+    if(step===3 && (status.labels.includes('T₂')||status.gs.length))
+      failures.push('02/5: derived T₂ or g appears before its projector '+JSON.stringify(status));
+    if(step===4 && (!status.labels.includes('T₂')||status.gs.length))
+      failures.push('02/5: paired T₂ missing or g prematurely shown '+JSON.stringify(status));
+    if(step===5 && (status.gs.length!==2||status.count<2))
+      failures.push('02/5: two drawn g projections missing '+JSON.stringify(status));
+    await page.locator('#mobileFocusBtn').click();
+    await page.waitForTimeout(1500);
+    await page.screenshot({
+      path:'mobile-screenshots/method-v02-t5-step'+String(step).padStart(2,'0')+'.png',
+      fullPage:false
+    });
+  }
+
   // The one-time 817-frame visual archive exposed 21 historically near-empty
   // focused steps (nearly zero dark geometry pixels), usually because a long
   // auxiliary section determined an enormous camera bounding rectangle.
