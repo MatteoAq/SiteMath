@@ -3246,7 +3246,11 @@
       const centerX=(Math.min(...sourceX)+Math.max(...sourceX))*.5;
       const spread=ws=>Math.max(...ws.filter(Boolean).map(w=>Math.abs(w.X.x-centerX)),0);
       const oldSpread=spread([w1,w2]);
-      if(oldSpread>500){
+      // This bridge is for the faraway Π₂ competitor. A faraway Π₁
+      // competitor (19/5) already has a separate established and tested
+      // witness-only g construction; do not replace that method.
+      if(w1&&w2&&Math.abs(w2.X.x-centerX)>500&&
+         Math.abs(w1.X.x-centerX)<500&&oldSpread>500){
         const xT=A.rec.p1[0][0]+(A.rec.p1[1][0]-A.rec.p1[0][0])*.35;
         const xU=B.rec.p1[0][0]+(B.rec.p1[1][0]-B.rec.p1[0][0])*.85;
         if(Math.abs(xT-xU)>12){
