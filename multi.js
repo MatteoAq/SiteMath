@@ -3500,8 +3500,9 @@
     const l1=visibilityGeometry.p1,l2=visibilityGeometry.p2;
     const vis1=segmentVisibility(lrec,plane,'p1',K1,l1);
     const vis2=segmentVisibility(lrec,plane,'p2',K2,l2);
-    let witness1=task5VisibilityWitness(givenRefs,lrec,'p1',K1);
-    const witness2=task5VisibilityWitness(givenRefs,lrec,'p2',K2);
+    const competingRefs=bridge&&scheme.planeType==='parallel_lines'?refs:givenRefs;
+    let witness1=task5VisibilityWitness(competingRefs,lrec,'p1',K1);
+    const witness2=task5VisibilityWitness(competingRefs,lrec,'p2',K2);
     let witnessBridge=null;
     // A *visibility* competitor must be a genuine point of the plane.
     // In 19/5 the photographed source lines are almost parallel to ℓ₁;
