@@ -1831,6 +1831,29 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
       label1:junction.label1,label2:junction.label2
     }];
   }
+
+  const v03=window.SITEMATH_SCHEMES["03"]?.task5;
+  if(v03?.junctions?.[0] && v03.planeType==='intersecting_lines'){
+    // The original a/f ink lines intersect at independently traced x
+    // positions (~14 scan pixels apart on Π₁ and Π₂). Working normalization
+    // reduced the gap to 0.151, but it must be exactly zero for a real point.
+    // SourceGeometry remains the unmodified evidence of the photo.
+    const j=v03.junctions[0];
+    const x=(j.p1[0]+j.p2[0])/2;
+    const ordinate=(seg,x)=>{
+      const a=seg[0],b=seg[1];
+      return a[1]+(x-a[0])*(b[1]-a[1])/(b[0]-a[0]);
+    };
+    const corrected={};
+    for(const side of ['p1','p2']){
+      const reference=v03.lines.f[side],adjusted=v03.lines.a[side];
+      const y=ordinate(reference,x);
+      const dy=y-ordinate(adjusted,x);
+      for(const p of adjusted)p[1]+=dy;
+      corrected[side]=[x,y];
+    }
+    v03.junctions=[corrected];
+  }
 })();
 
 /* Authoritative university-album scans for all current 20 variants.
