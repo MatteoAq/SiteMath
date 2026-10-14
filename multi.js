@@ -4217,16 +4217,19 @@
       addSectionForPlane(c.b,scheme.planeB,planeBSymbol,index===0?['3','4']:['7','8'],planeName);
 
       const nondIdx=levelType==='horizontal'?'₁':'₂';
+      const nondProjection=levelType==='horizontal'?'p1':'p2';
       const nondPoint=levelType==='horizontal'?c.P.p1:c.P.p2;
       const degPoint=levelType==='horizontal'?c.P.p2:c.P.p1;
       i=steps.length;
       push({
         title:'Пересеки линии сечения '+planeName+' и получи '+name+nondIdx,
-        action:'На невырожденной проекции найди пересечение двух уже построенных линий сечения. Обозначь '+name+nondIdx+'. Не отмечай вторую проекцию до проведения линии связи.',
+        action:'На невырожденной проекции при необходимости продли обе построенные линии сечения до их пересечения. Обозначь '+name+nondIdx+'. Не отмечай вторую проекцию до проведения линии связи.',
         why:'Обе линии принадлежат вспомогательной плоскости '+planeName+' и каждая своей исходной плоскости. Их общая точка принадлежит обеим исходным плоскостям.',
         measure:[name+nondIdx+' ∈ '+planeASymbol,name+nondIdx+' ∈ '+planeBSymbol],
-        check:'Пока существует только '+name+nondIdx+'. Точка '+name+degenerateProj+' появится после проектора.'
+        check:'Обе линии сечения доходят до '+name+nondIdx+'. Точка '+name+degenerateProj+' появится после проектора.'
       },[
+        ...segmentExtensionEntities(i,c.a?.[nondProjection],nondPoint),
+        ...segmentExtensionEntities(i,c.b?.[nondProjection],nondPoint),
         point(i,nondPoint,name+nondIdx,'construction-dot')
       ]);
 
