@@ -525,6 +525,54 @@ for (const vp of viewports) {
     });
   }
 
+
+  // Current-version visual evidence for the real P/Q section-extension fix:
+  // historical screenshots 18/6 and 19/6 showed an isolated P far beyond
+  // truncated auxiliary strokes. Verify the entire completed construction.
+  for(const variant of ['18','19']){
+    const reached=await page.evaluate(variant=>{
+      const vs=document.querySelector('#variantSelect');
+      const ts=document.querySelector('#taskSelect');
+      vs.value=variant;vs.dispatchEvent(new Event('change'));
+      ts.value='6';ts.dispatchEvent(new Event('change'));
+      document.querySelector('#firstBtn').click();
+      for(let n=0;n<30;n++){
+        if(document.querySelector('#stepTitle').textContent.includes('Пересеки линии сечения α и получи P'))return true;
+        document.querySelector('#nextBtn').click();
+      }
+      return false;
+    },variant);
+    if(!reached){failures.push(variant+'/6: no step explaining intersection P');continue;}
+    await page.locator('#mobileFocusBtn').click();
+    await page.waitForTimeout(1500);
+    const section=await page.evaluate(()=>{
+      const dot=[...document.querySelectorAll('#drawing circle[data-label]')]
+        .find(e=>/^P[₁₂]$/.test(e.getAttribute('data-label')));
+      if(!dot)return {count:-1};
+      const p={x:+dot.getAttribute('cx'),y:+dot.getAttribute('cy')};
+      const lines=[...document.querySelectorAll('#drawing line.aux-line, #drawing line.construction-line')];
+      const dirs=[];
+      for(const el of lines){
+        const a={x:+el.getAttribute('x1'),y:+el.getAttribute('y1')};
+        const b={x:+el.getAttribute('x2'),y:+el.getAttribute('y2')};
+        const v={x:b.x-a.x,y:b.y-a.y};
+        const den=Math.hypot(v.x,v.y);
+        if(den<1e-8)continue;
+        const t=((p.x-a.x)*v.x+(p.y-a.y)*v.y)/(den*den);
+        const off=Math.abs(v.x*(p.y-a.y)-v.y*(p.x-a.x))/den;
+        if(t>=-1e-6&&t<=1+1e-6&&off<1e-4)dirs.push({x:v.x/den,y:v.y/den});
+      }
+      const intersects=dirs.some((v,i)=>dirs.some((w,j)=>i!==j&&Math.abs(v.x*w.y-v.y*w.x)>1e-4));
+      const wrap=document.querySelector('.paper-wrap').getBoundingClientRect();
+      const bounds=dot.getBoundingClientRect();
+      const visible=bounds.left<wrap.right&&bounds.right>wrap.left&&bounds.top<wrap.bottom&&bounds.bottom>wrap.top;
+      return {count:dirs.length,intersects,visible,label:dot.getAttribute('data-label')};
+    });
+    if(!section.intersects||!section.visible)
+      failures.push(variant+'/6: completed P cannot be traced to two visible drawing strokes '+JSON.stringify(section));
+    await page.screenshot({path:'mobile-screenshots/fixed-v'+variant+'-t6-P.png',fullPage:false});
+  }
+
   // The one-time 817-frame visual archive exposed 21 historically near-empty
   // focused steps (nearly zero dark geometry pixels), usually because a long
   // auxiliary section determined an enormous camera bounding rectangle.
