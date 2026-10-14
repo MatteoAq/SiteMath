@@ -420,6 +420,36 @@ for (const vp of viewports) {
     }
   }
 
+  // Manual-evidence regression: 13/6 contains very distant auxiliary
+  // sections. Its eighth step used to be unreadable at 3.9% zoom.
+  await page.evaluate(()=>{
+    const v=document.querySelector('#variantSelect');
+    const task=document.querySelector('#taskSelect');
+    v.value='13';v.dispatchEvent(new Event('change'));
+    task.value='6';task.dispatchEvent(new Event('change'));
+    document.querySelector('#firstBtn')?.click();
+    for(let i=0;i<7;i++) document.querySelector('#nextBtn')?.click();
+  });
+  await page.locator('#mobileFocusBtn').click();
+  await page.waitForTimeout(210);
+  const extreme=await page.evaluate(()=>{
+    const label=Number(document.querySelector('#zoomLabel')?.textContent.replace('%','').replace(',','.'));
+    const wrap=document.querySelector('.paper-wrap')?.getBoundingClientRect();
+    const panel=document.querySelector('#stepSheet')?.getBoundingClientRect();
+    const dots=[...document.querySelectorAll('#drawing circle.active-dot')];
+    const bottom=panel?Math.min(wrap.bottom,panel.top-8):wrap.bottom;
+    return {
+      label, count:dots.length,
+      visible:dots.some(n=>{
+        const r=n.getBoundingClientRect(),x=(r.left+r.right)/2,y=(r.top+r.bottom)/2;
+        return x>wrap.left+4&&x<wrap.right-4&&y>wrap.top+4&&y<bottom-4;
+      })
+    };
+  });
+  if(extreme.label<12 || !extreme.count || !extreme.visible)
+    failures.push('13/6 step 8: focus did not reveal the active constructed point '+JSON.stringify(extreme));
+  await page.screenshot({path:'mobile-screenshots/focus-v13-t6-step08.png',fullPage:false});
+
   // Teacher-method captures for point+line planes: these must show the full
   // 1-2-3-4 construction chain, x12 and the compact Given/Find block.
   for (const variant of ['08','09','14','15']) {

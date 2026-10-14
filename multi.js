@@ -4808,11 +4808,52 @@
     return visibleDrawingBounds();
   }
 
+  // On exceptionally distant section constructions the entire active
+  // stroke can span thousands of paper millimetres. "К шагу" must focus
+  // the new local operation rather than shrink every label to 3%.
+  // This is camera-only: geometry and print scale are untouched.
+  function localOperationBounds(){
+    const full=currentStepBounds(),g=state.geometry;
+    if(!g || (full.maxX-full.minX<600 && full.maxY-full.minY<600))
+      return full;
+    const entities=state.steps[state.step]?.entities||[];
+    const dots=entities.filter(e=>e.type==='point'&&e.cls!=='source-guide-dot'&&
+      e.p&&Number.isFinite(e.p.x)&&Number.isFinite(e.p.y));
+    let anchor=dots.length?dots[dots.length-1].p:null;
+    if(!anchor){
+      const first=state.steps[0];
+      const originals=first?.sourceEntities||first?.entities||[];
+      const pts=[];
+      originals.forEach(e=>{if(e.type!=='text')collectEntityPoints(e,pts)});
+      const valid=pts.filter(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y));
+      const reference=valid.length
+        ? {x:valid.reduce((a,p)=>a+p.x,0)/valid.length,
+           y:valid.reduce((a,p)=>a+p.y,0)/valid.length}
+        : {x:(full.minX+full.maxX)/2,y:(full.minY+full.maxY)/2};
+      const candidates=entities.filter(e=>e.type==='line'&&e.cls!=='axis'&&e.a&&e.b);
+      if(candidates.length){
+        const candidatePoints=candidates.map(e=>{
+          const dx=e.b.x-e.a.x,dy=e.b.y-e.a.y;
+          const denom=dx*dx+dy*dy||1;
+          const t=Math.max(0,Math.min(1,
+            ((reference.x-e.a.x)*dx+(reference.y-e.a.y)*dy)/denom));
+          return {x:e.a.x+t*dx,y:e.a.y+t*dy};
+        });
+        anchor=candidatePoints.reduce((a,b)=>
+          Math.hypot(b.x-reference.x,b.y-reference.y) <
+          Math.hypot(a.x-reference.x,a.y-reference.y)?b:a);
+      }
+    }
+    if(!anchor)return full;
+    return {minX:Math.max(0,anchor.x-100),maxX:Math.min(g.width,anchor.x+100),
+            minY:Math.max(0,anchor.y-100),maxY:Math.min(g.height,anchor.y+100)};
+  }
+
   function currentStepFocusZoom(){
     const g=state.geometry;
     const wrap=document.querySelector('.paper-wrap');
     if(!g||!wrap)return 1;
-    const viewport=visibleDrawingViewport(),bounds=currentStepBounds();
+    const viewport=visibleDrawingViewport(),bounds=localOperationBounds();
     const cs=getComputedStyle(wrap),mm=96/25.4;
     const width=Math.max(65,bounds.maxX-bounds.minX);
     const height=Math.max(65,bounds.maxY-bounds.minY);
@@ -4824,7 +4865,7 @@
   function focusCurrentStep(){
     const wrap=document.querySelector('.paper-wrap');
     if(!wrap||!state.geometry)return;
-    const b=currentStepBounds(),z=drawingZoom(),mm=96/25.4;
+    const b=localOperationBounds(),z=drawingZoom(),mm=96/25.4;
     const viewport=visibleDrawingViewport(),cs=getComputedStyle(wrap);
     const padX=parseFloat(cs.paddingLeft)||0,padY=parseFloat(cs.paddingTop)||0;
     wrap.scrollLeft=Math.max(0,(b.minX+b.maxX)*.5*mm*z-viewport.width*.5+padX);
