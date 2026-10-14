@@ -503,11 +503,11 @@ for (const vp of viewports) {
   // The one-time 817-frame visual archive exposed 21 historically near-empty
   // focused steps (nearly zero dark geometry pixels), usually because a long
   // auxiliary section determined an enormous camera bounding rectangle.
-  // Revisit ONLY these specific existing frames against the latest camera.
+  // Also cover two 10/4 horizontal-construction stages that were only 3.5%\n  // in the original archive. Revisit ONLY the documented problem frames.
   // This is not another 817-frame screenshot cycle.
   for(const [variant,task,index] of [
     ['01',5,10],['01',5,11],
-    ['05',6,2],['05',6,9],
+    ['05',6,2],['05',6,9],\n    ['10',4,3],['10',4,4],
     ['12',6,7],['12',6,13],['12',6,14],['12',6,20],['12',6,21],
     ['13',5,6],['13',5,7],
     ['13',6,5],['13',6,6],['13',6,7],['13',6,8],
