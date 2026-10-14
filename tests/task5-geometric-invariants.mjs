@@ -115,7 +115,8 @@ for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
    }
  }else if(W.__task5BridgeProbe?.witnessBridge)
    issues.push(variant+': unnecessary additional competitor g');
- const finish=drawing.steps.find(st=>st.title?.startsWith('Нанеси видимость ℓ'));
+ const givenDisplay=s.givenLine==='f'?'f':'ℓ';
+ const finish=drawing.steps.find(st=>st.title?.startsWith('Нанеси видимость '+givenDisplay));
  const strokes=(finish?.entities||[]).filter(e=>e.type==='line'&&(e.cls==='answer-line'||e.cls==='hidden-line'));
  if(strokes.length!==4){
    issues.push(variant+': final stroke geometry missing ('+strokes.length+')');
