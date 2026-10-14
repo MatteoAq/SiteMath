@@ -4175,6 +4175,7 @@
       const g=planeDefReferenceLines(item.def).find(ref=>
         ref.construction==='h-f-diagonal'||ref.construction==='a-b-diagonal');
       if(!g)return;
+      const generatedStepsStart=steps.length;
       const lineA=g.construction==='h-f-diagonal'?'h':'a';
       const lineB=g.construction==='h-f-diagonal'?'f':'b';
       const T1={x:g.rec.p1[0][0],y:g.rec.p1[0][1]};
@@ -4232,6 +4233,20 @@
         line(i,T1,U1,'aux-line'),textEntity(i,U1,'g₁','svg-label'),
         line(i,T2,U2,'aux-line'),textEntity(i,U2,'g₂','svg-label')
       ]);
+
+      // The line-point plane on the same 13/6 sheet already has its own
+      // T₁/T₂. Reusing T for an unrelated point of g would assign two
+      // different coordinates to one label. Name g's vertices M,N instead;
+      // this changes annotation only, never source or solver coordinates.
+      if(item.def===scheme.planeA && scheme.planeB?.type==='line_point'){
+        const rename=text=>typeof text==='string'
+          ? text.replaceAll('T','M').replaceAll('U','N') : text;
+        for(const st of steps.slice(generatedStepsStart)){
+          for(const k of ['title','action','why','check'])st[k]=rename(st[k]);
+          st.measure=(st.measure||[]).map(rename);
+          for(const e of st.entities||[])if(e.label)e.label=rename(e.label);
+        }
+      }
     });
 
     const addSectionForPlane=(sec,def,planeSymbol,pointNames,planeName)=>{
