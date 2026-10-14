@@ -5088,7 +5088,7 @@
     svg.style.setProperty('--drawing-paper-height',g.height+'mm');
     drawGrid(g.width,g.height,drawingGridAnchor());
     const visibilityDone=state.task===5 && state.steps
-      .slice(0,state.step+1).some(step=>step.title?.startsWith('Нанеси видимость ℓ'));
+      .slice(0,state.step+1).some(step=>step.title?.startsWith('Нанеси видимость '));
     state.steps.forEach((s,idx)=>{
       if(idx>state.step) return;
       const entities=idx===0 && state.step===0 && s.sourceEntities
