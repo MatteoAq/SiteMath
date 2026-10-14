@@ -1801,12 +1801,35 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
       p2:[589.906,579.243],p1:[589.470,735.275],
       label2:"K₂",label1:"K₁"
     };
-    v19.junctions=[junction];
+    // Preserve the exact source-photo trace, whose two independently
+    // digitized K projections differ in x by 0.436 scan pixels.
     if(v19.sourceGeometry)
       v19.sourceGeometry.junctions=[{
         p2:junction.p2.slice(),p1:junction.p1.slice(),
         label2:junction.label2,label1:junction.label1
       }];
+
+    // A real point K must project onto one common vertical projector.
+    // Normalize only the working geometry at the midpoint of the scanned
+    // x coordinates. Adjust the working b projections by less than 0.2
+    // scan pixels so that K still lies precisely on both printed directions.
+    const x=(junction.p1[0]+junction.p2[0])/2;
+    const ordinate=(seg,x)=>{
+      const a=seg[0],b=seg[1];
+      return a[1]+(x-a[0])*(b[1]-a[1])/(b[0]-a[0]);
+    };
+    const target={};
+    for(const side of ['p1','p2']){
+      const a=v19.lines.a[side],b=v19.lines.b[side];
+      const y=ordinate(a,x),dy=y-ordinate(b,x);
+      b[0][1]+=dy;
+      b[1][1]+=dy;
+      target[side]=[x,y];
+    }
+    v19.junctions=[{
+      p1:target.p1,p2:target.p2,
+      label1:junction.label1,label2:junction.label2
+    }];
   }
 })();
 
