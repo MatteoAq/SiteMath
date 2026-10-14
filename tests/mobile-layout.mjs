@@ -500,6 +500,63 @@ for (const vp of viewports) {
     });
   }
 
+  // The one-time 817-frame visual archive exposed 21 historically near-empty
+  // focused steps (nearly zero dark geometry pixels), usually because a long
+  // auxiliary section determined an enormous camera bounding rectangle.
+  // Revisit ONLY these specific existing frames against the latest camera.
+  // This is not another 817-frame screenshot cycle.
+  for(const [variant,task,index] of [
+    ['01',5,10],['01',5,11],
+    ['05',6,2],['05',6,9],
+    ['12',6,7],['12',6,13],['12',6,14],['12',6,20],['12',6,21],
+    ['13',5,6],['13',5,7],
+    ['13',6,5],['13',6,6],['13',6,7],['13',6,8],
+    ['13',6,9],['13',6,12],['13',6,13],['13',6,14],
+    ['13',6,15],['13',6,16]
+  ]){
+    await page.evaluate(({variant,task,index})=>{
+      const v=document.querySelector('#variantSelect');
+      const t=document.querySelector('#taskSelect');
+      v.value=variant;v.dispatchEvent(new Event('change'));
+      t.value=String(task);t.dispatchEvent(new Event('change'));
+      document.querySelector('#firstBtn')?.click();
+      for(let n=0;n<index;n++)document.querySelector('#nextBtn')?.click();
+    },{variant,task,index});
+    await page.locator('#mobileFitBtn').click();
+    const originalViewBox=await page.locator('#drawing').getAttribute('viewBox');
+    await page.locator('#mobileFocusBtn').click();
+    await page.waitForTimeout(140);
+    const evidence=await page.evaluate(()=>{
+      const wrap=document.querySelector('.paper-wrap').getBoundingClientRect();
+      const panel=document.querySelector('#stepSheet');
+      const panelBox=panel.getBoundingClientRect();
+      const bottom=getComputedStyle(panel).position==='fixed'
+        ? Math.min(wrap.bottom,panelBox.top-8):wrap.bottom;
+      const nodes=[...document.querySelectorAll('#drawing circle.active-dot,#drawing line.active-line')];
+      // The newest point is the camera anchor if a step introduces points.
+      // A line-only step may contain multiple legitimate distant segments;
+      // seeing at least one active segment is enough for local manual work.
+      const dots=nodes.filter(n=>n.matches('circle.active-dot'));
+      const targets=dots.length?[dots[dots.length-1]]:nodes;
+      const visible=targets.some(node=>{
+        const b=node.getBoundingClientRect();
+        return b.right>wrap.left+4&&b.left<wrap.right-4&&
+          b.bottom>wrap.top+4&&b.top<bottom-4;
+      });
+      return {
+        zoom:Number(document.querySelector('#zoomLabel').textContent.replace('%','').replace(',','.')),
+        viewBox:document.querySelector('#drawing').getAttribute('viewBox'),
+        active:nodes.length,visible
+      };
+    });
+    if(evidence.zoom<9||!evidence.active||!evidence.visible)
+      failures.push(variant+'/'+task+' step '+(index+1)+
+        ': historically near-empty focused operation '+JSON.stringify(evidence));
+    if(evidence.viewBox!==originalViewBox)
+      failures.push(variant+'/'+task+' step '+(index+1)+
+        ': camera changed original geometry');
+  }
+
   // Teacher-method captures for point+line planes: these must show the full
   // 1-2-3-4 construction chain, x12 and the compact Given/Find block.
   for (const variant of ['08','09','14','15']) {
