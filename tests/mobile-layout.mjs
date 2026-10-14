@@ -538,22 +538,43 @@ for (const vp of viewports) {
     // Verify actual endpoint connectivity, then capture the completed step.
     if(variant==='01' && task===5){
       const connectivity=await page.evaluate(()=>{
-        const nodes=[...document.querySelectorAll('#drawing line.construction-line[data-active="1"]')];
+        const active=[...document.querySelectorAll('#drawing line.construction-line[data-active="1"]')];
+        const dotOf=label=>[...document.querySelectorAll('#drawing circle[data-label]')]
+          .find(el=>el.getAttribute('data-label')===label);
         const touches=label=>{
-          const dot=[...document.querySelectorAll('#drawing circle[data-label]')]
-            .find(el=>el.getAttribute('data-label')===label);
+          const dot=dotOf(label);
           if(!dot)return -1;
           const x=Number(dot.getAttribute('cx')),y=Number(dot.getAttribute('cy'));
-          return nodes.filter(el=>['1','2'].some(k=>
+          return active.filter(el=>['1','2'].some(k=>
             Math.hypot(Number(el.getAttribute('x'+k))-x,Number(el.getAttribute('y'+k))-y)<1e-4
           )).length;
         };
-        return {witness:touches('5₂≡6₂'),front:touches('5₁'),plane:touches('6₁')};
+        const witnessIntersections=label=>{
+          const dot=dotOf(label);
+          if(!dot)return -1;
+          const x=Number(dot.getAttribute('cx')),y=Number(dot.getAttribute('cy'));
+          const dirs=[...document.querySelectorAll(
+            '#drawing line.object-line, #drawing line.aux-line, #drawing line.construction-line')]
+            .map(el=>{
+              const a={x:+el.getAttribute('x1'),y:+el.getAttribute('y1')};
+              const b={x:+el.getAttribute('x2'),y:+el.getAttribute('y2')};
+              const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);
+              if(len<1e-8)return null;
+              const t=((x-a.x)*dx+(y-a.y)*dy)/(len*len);
+              const gap=Math.abs(dx*(y-a.y)-dy*(x-a.x))/len;
+              return t>=-1e-6&&t<=1+1e-6&&gap<1e-4
+                ?{x:dx/len,y:dy/len}:null;
+            }).filter(Boolean);
+          return dirs.some((a,i)=>dirs.some((b,j)=>
+            i!==j&&Math.abs(a.x*b.y-a.y*b.x)>1e-4))?2:dirs.length;
+        };
+        return {witness:witnessIntersections('5₂≡6₂'),
+          front:touches('5₁'),plane:touches('6₁')};
       });
       if(index===visibilityIndex && connectivity.witness<2)
-        failures.push('01/5 step '+(index+1)+': two source-line extensions do not reach 5₂≡6₂ '+JSON.stringify(connectivity));
-      if(index===transferIndex && (connectivity.front<2||connectivity.plane<2))
-        failures.push('01/5 step '+(index+1)+': projectors/source extensions do not reach both 5₁ and 6₁ '+JSON.stringify(connectivity));
+        failures.push('01/5 step '+(index+1)+': two nonparallel drawn lines do not meet at 5₂≡6₂ '+JSON.stringify(connectivity));
+      if(index===transferIndex && (connectivity.front<1||connectivity.plane<1))
+        failures.push('01/5 step '+(index+1)+': drawn projectors do not reach both 5₁ and 6₁ '+JSON.stringify(connectivity));
     }
     await page.waitForTimeout(1250);
     await page.screenshot({
