@@ -3994,6 +3994,33 @@
       }
       candidates.sort((a,b)=>a.score-b.score);
       if(!candidates.length)return null;
+      if(wideRange){
+        // A compact INDIVIDUAL cut is not enough: 05/6 originally selected
+        // two good local scores whose P/Q span still exceeded 600 units.
+        // Compare the entire two-cut drawing envelope, including the four
+        // section projections, source geometry and P/Q. Keep levels distinct.
+        let best=null;
+        for(let a=0;a<candidates.length;a++)for(let b=a+1;b<candidates.length;b++){
+          const A=candidates[a],B=candidates[b];
+          if(Math.abs(A.level-B.level)<=span*.22||
+             dist2(A.P.p1,B.P.p1)<=12||dist2(A.P.p2,B.P.p2)<=12)continue;
+          const xs=[bounds.minX,bounds.maxX],ys1=[bounds.minY1,bounds.maxY1],ys2=[bounds.minY2,bounds.maxY2];
+          const add=p=>{if(p&&Number.isFinite(p.x)&&Number.isFinite(p.y))return p;return null;};
+          for(const c of [A,B]){
+            for(const p of [c.P.p1,...c.a.p1,...c.b.p1]){
+              const v=add(p);if(v){xs.push(v.x);ys1.push(v.y);}
+            }
+            for(const p of [c.P.p2,...c.a.p2,...c.b.p2]){
+              const v=add(p);if(v){xs.push(v.x);ys2.push(v.y);}
+            }
+          }
+          const width=Math.max(...xs)-Math.min(...xs);
+          const height=Math.max(...ys1)-Math.min(...ys1)+Math.max(...ys2)-Math.min(...ys2);
+          const metric=width+height*.18+(A.score+B.score)*.12;
+          if(!best||metric<best.metric)best={pair:[A,B],metric};
+        }
+        if(best)return {levelType,pair:best.pair.sort((a,b)=>a.level-b.level)};
+      }
       const first=candidates[0];
       let second=candidates.find(c=>
         Math.abs(c.level-first.level)>span*.22 &&
