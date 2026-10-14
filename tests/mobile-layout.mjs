@@ -468,9 +468,32 @@ for (const vp of viewports) {
   // Recheck four genuinely hard-to-read historical intermediate frames.
   // The one-time 817-step capture predates the local camera correction;
   // these tests assert the current zoom and visibility, not old JPEG values.
+  // 01/5 can legitimately acquire extra preliminary T/U/g steps.
+  // Locate the actual competing-point construction by its semantic title
+  // so subsequent method improvements cannot silently move this regression
+  // to an unrelated (and inactive) drawing stage.
+  const [visibilityIndex,transferIndex]=await page.evaluate(()=>{
+    const vs=document.querySelector('#variantSelect');
+    const ts=document.querySelector('#taskSelect');
+    vs.value='01';vs.dispatchEvent(new Event('change'));
+    ts.value='5';ts.dispatchEvent(new Event('change'));
+    document.querySelector('#firstBtn')?.click();
+    const count=Number(document.querySelector('#stepTotal').textContent);
+    let witness=-1,transfer=-1;
+    for(let n=0;n<count;n++){
+      const title=document.querySelector('#stepTitle').textContent.trim();
+      if(title.startsWith('Видимость на Π₂: отметь'))witness=n;
+      if(title.startsWith('Перенеси 5₂≡6₂'))transfer=n;
+      if(n<count-1)document.querySelector('#nextBtn')?.click();
+    }
+    return [witness,transfer];
+  });
+  if(visibilityIndex<0||transferIndex!==visibilityIndex+1)
+    failures.push('01/5: missing consecutive 5₂≡6₂ witness/projector stages');
+
   for(const [variant,task,index] of [
-    ['01',5,10],['01',5,11],['12',6,20],['13',5,6]
-  ]){
+    ['01',5,visibilityIndex],['01',5,transferIndex],['12',6,20],['13',5,6]
+  ].filter(row=>row[2]>=0)){
     await page.evaluate(({variant,task,index})=>{
       const vs=document.querySelector('#variantSelect');
       const ts=document.querySelector('#taskSelect');
@@ -527,10 +550,10 @@ for (const vp of viewports) {
         };
         return {witness:touches('5₂≡6₂'),front:touches('5₁'),plane:touches('6₁')};
       });
-      if(index===10 && connectivity.witness<2)
-        failures.push('01/5 step 11: two source-line extensions do not reach 5₂≡6₂ '+JSON.stringify(connectivity));
-      if(index===11 && (connectivity.front<2||connectivity.plane<2))
-        failures.push('01/5 step 12: projectors/source extensions do not reach both 5₁ and 6₁ '+JSON.stringify(connectivity));
+      if(index===visibilityIndex && connectivity.witness<2)
+        failures.push('01/5 step '+(index+1)+': two source-line extensions do not reach 5₂≡6₂ '+JSON.stringify(connectivity));
+      if(index===transferIndex && (connectivity.front<2||connectivity.plane<2))
+        failures.push('01/5 step '+(index+1)+': projectors/source extensions do not reach both 5₁ and 6₁ '+JSON.stringify(connectivity));
     }
     await page.waitForTimeout(1250);
     await page.screenshot({
