@@ -603,15 +603,18 @@ if (!onlyVariant && !onlyTask) try {
 // mathematically normalized graph could silently replace other paper givens.
 if (!onlyVariant && !onlyTask) try {
   const xy=seg=>({x:seg[0][0],y:seg[0][1],X:seg[1][0],Y:seg[1][1]});
-  const expectedLines=(task,raw)=>{
+  const expectedLines=(task,raw,scheme)=>{
     const out=[];
     const addDef=def=>{
       if(!def)return;
       Object.values(def.lines||{}).forEach(rec=>{
         for(const proj of ['p2','p1']) if(rec?.[proj])out.push(xy(rec[proj]));
       });
-      if(def.type==='ABC'||def.planeType==='ABC'){
-        for(const [a,b] of [['A','B'],['B','C'],['C','A']])
+      if((def.type==='ABC'||def.planeType==='ABC') &&
+         !(task===4 && scheme?.sourceABCVerticesOnly)){
+        const names=Object.keys(def.points||{}).slice(0,3);
+        if(names.length!==3)throw Error('ABC original has no three named points');
+        for(const [a,b] of [[names[0],names[1]],[names[1],names[2]],[names[2],names[0]]])
           for(const proj of ['p2','p1']){
             const A=def.points[a][proj],B=def.points[b][proj];
             out.push({x:A[0],y:A[1],X:B[0],Y:B[1]});
@@ -629,7 +632,7 @@ if (!onlyVariant && !onlyTask) try {
     .filter(([variant,group])=>[4,5,6].every(task=>
       group?.['task'+task]?.sourceAvailable===true &&
       !!group?.['task'+task]?.sourceGeometry));
-  if(groups.length!==14)failures.push('exact original first-frame audit: expected 14 archived variants, found '+groups.length);
+  if(groups.length!==20)failures.push('exact original first-frame audit: expected 20 scanned variants, found '+groups.length);
   for(const [variant,group] of groups){
     for(const task of [4,5,6]){
       $('variantSelect').value=variant;
@@ -638,7 +641,7 @@ if (!onlyVariant && !onlyTask) try {
       $('taskSelect').dispatchEvent(new window.Event('change'));
       $('firstBtn').click();
       const raw=group['task'+task].sourceGeometry;
-      const expected=expectedLines(task,raw);
+      const expected=expectedLines(task,raw,group['task'+task]);
       const actual=[...window.document.querySelectorAll('#drawing line.object-line')];
       const key=variant+'/'+task;
       if(expected.length!==actual.length){
@@ -1250,7 +1253,7 @@ if (!onlyVariant && !onlyTask) try {
      failures.push('01/1: numeric scan link missing');
    select('12',4);
   if(!$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-12.jpg"]')) failures.push('source 12/4: direct archived original sheet link missing');
-  if(!$('printProvenanceStatus').textContent.includes('Методика') && !$('printProvenanceStatus').textContent.includes('методики')) failures.push('print provenance 12/4: construction not qualified');
+  if(!$('printProvenanceStatus').textContent.includes('МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА')) failures.push('print provenance 12/4: construction not qualified');
   if($('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('verified 12/4: incorrect provenance warning');
   if($('diagramWarning').textContent.includes('Исходное условие НЕ проверено')) failures.push('verified 12/4: incorrectly labeled unsourced');
 } catch(e){ failures.push('visible input provenance: '+e.stack); }
@@ -2092,8 +2095,8 @@ if (!onlyVariant && !onlyTask) try {
     $('taskSelect').dispatchEvent(new window.Event('change'));
     if($('diagramWarning').hidden) failures.push('diagram warning: hidden for task '+task);
     const text=$('diagramWarning').textContent;
-    if(!text.includes('оригинал')) failures.push('diagram warning '+task+': original-sheet instruction missing');
-    if(!text.includes('ошиб')) failures.push('diagram warning '+task+': possible-error notice missing');
+    if(!text.includes('скан')) failures.push('diagram warning '+task+': source scan not mentioned');
+    if(!text.includes('провер')) failures.push('diagram warning '+task+': pending method verification not mentioned');
   }
 } catch(e) {
   failures.push('diagram warning regression: '+e.stack);
@@ -2122,7 +2125,7 @@ if (!onlyVariant && !onlyTask) try {
   $('variantSelect').dispatchEvent(new window.Event('change'));
   $('taskSelect').value='4';
   $('taskSelect').dispatchEvent(new window.Event('change'));
-  if(!$('dynamicInputs').textContent.includes('IMG_20260917_131638')) failures.push('source status 12: exact source id missing');
+  if(!$('dynamicInputs').textContent.includes('source-photos/scans/variant-12.jpg')) failures.push('source status 12: canonical scan ID missing');
 
   $('variantSelect').value='03';
   $('variantSelect').dispatchEvent(new window.Event('change'));
@@ -2443,13 +2446,8 @@ try {
     for(const task of [4,5,6]){
       const scheme=group?.['task'+task];
       if(!scheme) continue;
-      if(variant==='12'){
-        if(!scheme.sourceVerified || scheme.sourceRecheckRequired){
-          failures.push('source verification 12/'+task+': exact original should be verified');
-        }
-      } else if(scheme.sourceVerified){
-        failures.push('source verification '+variant+'/'+task+': historical trace falsely marked verified');
-      }
+      if(scheme.sourceVerified===true || scheme.sourceRecheckRequired!==true)
+        failures.push('source verification '+variant+'/'+task+': unreviewed method incorrectly marked verified');
     }
   }
 } catch(e) {
@@ -2462,8 +2460,8 @@ try {
   if(!s12?.task4?.junctions?.length) failures.push('variant12/task4: explicit source junction missing');
   if(!s12?.task6?.planeB?.junctions?.length) failures.push('variant12/task6: explicit source junction missing');
   for(const task of [4,5,6]){
-    if(window.SITEMATH_SCHEMES?.['12']?.['task'+task]?.sourceId!=='IMG_20260917_131638'){
-      failures.push('variant12/task'+task+': source photo id missing');
+    if(window.SITEMATH_SCHEMES?.['12']?.['task'+task]?.sourceId!=='source-photos/scans/variant-12.jpg'){
+      failures.push('variant12/task'+task+': canonical scan id missing');
     }
   }
 } catch(e) {
