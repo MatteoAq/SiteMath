@@ -725,6 +725,10 @@ Object.assign(window.SITEMATH_SCHEMES, {
         b:{p2:[[250,1776],[534,1566]],p1:[[281,1807],[599,1921]]},
         l:{p2:[[184,1770],[610,1644]],p1:[[209,1910],[605,1910]]}
       },
+      // Printed original page "В. 13", task 5: the projector connecting
+      // a₂∩b₂ to a₁∩b₁ is GIVEN (not a newly constructed solution line).
+      // Raw trace keeps the slight perspective difference in x.
+      junctions:[{p2:[416.675,1652.754],p1:[421.059,1857.210]}],
       givenLine:"l"
     },
     task6:{
