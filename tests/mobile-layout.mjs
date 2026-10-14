@@ -342,7 +342,7 @@ for (const vp of viewports) {
       // mathematically exact, while local focus must make the current pencil
       // operation readable and continue to follow Prev/Next steps.
       if(((variant==='12'||variant==='05'||variant==='01') && task===6) || (variant==='20' && task===4)){
-        const inspect=()=>page.evaluate(()=>{
+        const inspect=()=>page.evaluate((task)=>{
           const svg=document.querySelector('#drawing');
           const lines=[...svg.querySelectorAll('line.answer-line')].slice(-2);
           const wrap=document.querySelector('.paper-wrap');
@@ -351,13 +351,26 @@ for (const vp of viewports) {
           const pr=panel.getBoundingClientRect();
           const bottom=getComputedStyle(panel).position==='fixed'?Math.min(vr.bottom,pr.top-12):vr.bottom;
           const bounds=lines.map(n=>n.getBoundingClientRect());
+          // Task 4 ends by placing E. Focus centers that LOCAL final operation;
+          // unlike task 6, the full long ℓ segments need not fit simultaneously.
+          const targetPoints=task===4
+            ? ['E₁','E₂'].map(label=>[...svg.querySelectorAll('circle[data-label]')]
+                .find(el=>el.getAttribute('data-label')===label))
+            : [];
+          const pointVisible=targetPoints.length===2&&targetPoints.every(el=>{
+            if(!el)return false;
+            const b=el.getBoundingClientRect();
+            const cx=(b.left+b.right)/2,cy=(b.top+b.bottom)/2;
+            return cx>vr.left+3 && cx<vr.right-3 && cy>vr.top+3 && cy<bottom-3;
+          });
           return {
             zoom:Number(document.querySelector('#zoomLabel').textContent.replace('%','').replace(',','.')),
             viewBox:svg.getAttribute('viewBox'),
             coords:lines.map(n=>[n.getAttribute('x1'),n.getAttribute('y1'),n.getAttribute('x2'),n.getAttribute('y2')]),
-            visible:bounds.length===2&&bounds.every(b=>b.right>vr.left && b.left<vr.right && b.bottom>vr.top && b.top<bottom)
+            visible:task===4?pointVisible:
+              bounds.length===2&&bounds.every(b=>b.right>vr.left && b.left<vr.right && b.bottom>vr.top && b.top<bottom)
           };
-        });
+        },task);
         const fit=await inspect();
         await page.locator('#mobileFocusBtn').click();
         await page.waitForTimeout(180);
@@ -365,7 +378,7 @@ for (const vp of viewports) {
         if(local.zoom<fit.zoom*(task===4?1.25:2))
           failures.push(''+variant+'/'+task+': local focus did not materially enlarge the distant final answer '+JSON.stringify({fit:fit.zoom,local:local.zoom}));
         if(!local.visible)
-          failures.push(''+variant+'/'+task+': focused final ℓ is obscured or outside the visible work area');
+          failures.push(''+variant+'/'+task+': focused final '+(task===4?'E₁/E₂':'ℓ')+' is obscured or outside the visible work area');
         if(local.viewBox!==fit.viewBox||JSON.stringify(local.coords)!==JSON.stringify(fit.coords))
           failures.push(''+variant+'/'+task+': camera focus changed true projected coordinates');
         await page.screenshot({path:'mobile-screenshots/focus-v'+variant+'-t'+task+'.png',fullPage:false});
@@ -381,7 +394,7 @@ for (const vp of viewports) {
         if(Math.abs(restored.zoom-fit.zoom)>.2)
           failures.push(''+variant+'/'+task+': Fit did not restore full-diagram scale');
         if(restored.viewBox!==fit.viewBox||JSON.stringify(restored.coords)!==JSON.stringify(fit.coords))
-          failures.push(''+variant+'/'+task+': Fit/Focus altered task 6 source geometry');
+          failures.push(''+variant+'/'+task+': Fit/Focus altered source geometry');
       }
 
     }
