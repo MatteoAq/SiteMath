@@ -732,7 +732,11 @@ Object.assign(window.SITEMATH_SCHEMES, {
       givenLine:"l"
     },
     task6:{
-      planeA:{type:"intersecting_lines",lines:{
+      // A₂ and A₁ are almost level: cutting a with general auxiliary
+      // horizontal/frontal planes sends helper points thousands of units
+      // away. Introduce a genuine in-plane diagonal g=TU from a and b,
+      // constructed explicitly before alpha/beta; preserve printed lines.
+      planeA:{type:"intersecting_lines",auxBridge:"a-b",lines:{
         a:{p2:[[826,1675],[1065,1677]],p1:[[826,1814],[1065,1814]]},
         b:{p2:[[826,1750],[1040,1594]],p1:[[828,1764],[1047,1864]]}
       },
