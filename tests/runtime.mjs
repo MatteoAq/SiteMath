@@ -2707,7 +2707,10 @@ try {
         const names=def.planeLines||Object.keys(def.lines).slice(0,2);
         const lines=names.map(name=>def.lines[name]).filter(Boolean);
         for(const j of def.junctions){
-          if(j.p1 && j.p2 && Math.abs(+j.p1[0]-+j.p2[0])>.5){
+          // Working projections must share ONE projector exactly. The
+          // original photo trace (sourceGeometry) may differ by subpixel
+          // tracing error, but that discrepancy cannot leak into the solver.
+          if(j.p1 && j.p2 && Math.abs(+j.p1[0]-+j.p2[0])>1e-4){
             failures.push('source junction '+variant+'/'+task+': p1/p2 are not on one projector');
           }
           for(const L of lines){
@@ -2752,8 +2755,26 @@ try {
       failures.push('variant12/task'+task+': canonical scan id missing');
     }
   }
+  // The printed variant 19 K₁/K₂ was separately traced at x=589.470/589.906.
+  // Verify the immutable source photo data AND the normalized, exact 3D
+  // intersection of its defining lines on both orthogonal projections.
+  const v19=window.SITEMATH_SCHEMES?.['19']?.task4;
+  const raw=v19?.sourceGeometry?.junctions?.[0],work=v19?.junctions?.[0];
+  const distance=(p,seg)=>{
+    const dx=seg[1][0]-seg[0][0],dy=seg[1][1]-seg[0][1];
+    return Math.abs(dx*(p[1]-seg[0][1])-dy*(p[0]-seg[0][0]))/Math.hypot(dx,dy);
+  };
+  if(!raw||!work||Math.abs(raw.p1[0]-589.470)>1e-5||
+     Math.abs(raw.p2[0]-589.906)>1e-5||
+     Math.abs(work.p1[0]-work.p2[0])>1e-5)
+    failures.push('19/4: source K trace overwritten or working K projections not aligned');
+  else for(const side of ['p1','p2']){
+    if(distance(work[side],v19.lines.a[side])>1e-4||
+       distance(work[side],v19.lines.b[side])>1e-4)
+      failures.push('19/4: working K not exactly on both defining '+side+' lines');
+  }
 } catch(e) {
-  failures.push('variant12 exact source metadata: '+e.stack);
+  failures.push('variant12/19 source geometry metadata: '+e.stack);
 }
 
 // Full staged-construction dependency regression for the same 20 scanned
