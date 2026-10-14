@@ -1913,8 +1913,14 @@
   }
 
   function segmentExtensionEntities(step,seg,P,cls){
-    if(!seg||!P)return [];
-    const s=toSeg(seg),a=s[0],b=s[1];
+    if(!Array.isArray(seg)||seg.length!==2||!P)return [];
+    // Source lines use [[x,y],[x,y]], while computed section lines use
+    // [{x,y},{x,y}]. Both must produce valid pencil-extension endpoints.
+    const s=seg.map(p=>Array.isArray(p)
+      ? {x:Number(p[0]),y:Number(p[1])}
+      : {x:Number(p?.x),y:Number(p?.y)});
+    const a=s[0],b=s[1];
+    if(![a.x,a.y,b.x,b.y,P.x,P.y].every(Number.isFinite))return [];
     const d=vec2(a,b),dd=d.x*d.x+d.y*d.y;
     if(dd<EPS)return [];
     const ap=vec2(a,P);
