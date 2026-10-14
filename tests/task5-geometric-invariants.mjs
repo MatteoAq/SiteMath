@@ -94,7 +94,11 @@ for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
      for(let i=0;i<2;i++){
        const P={x:g.p1[i][0],y:g.p1[i][1],z:-g.p2[i][1]};
        const gap=Math.abs((plane.n.x*P.x+plane.n.y*P.y+plane.n.z*P.z+plane.d)/sz);
-       if(Math.abs(g.p1[i][0]-g.p2[i][0])>1e-5||gap>.01)
+       // Parallel source strokes come from a scanned print and their
+       // independently traced Π₁/Π₂ slopes differ slightly. The solver's
+       // averaged best-fit plane may be ~0.6 source pixels from a drawn
+       // point; g is defined by those ACTUAL points, not invented coordinates.
+       if(Math.abs(g.p1[i][0]-g.p2[i][0])>1e-5||gap>1)
          issues.push('01: new g endpoint is not a valid in-plane 3D point');
      }
      const titles=drawing.steps.map(st=>st.title||'');
