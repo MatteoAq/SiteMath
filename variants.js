@@ -1060,6 +1060,64 @@ Object.assign(window.SITEMATH_SCHEMES, {
   }
 });
 
+/* University album source, page "В. 02", 14.10.2026.
+   Task 4: BC is a triangle EDGE, not an extra printed named line.
+   The solver-only reference BC is installed AFTER raw source preservation. */
+Object.assign(window.SITEMATH_DATA.variants, {
+  "02": {
+    label:"Вариант 02",
+    task1:{ A:[35,30,0],B:[30,40,20],C:[50,-30,-60],D:[60,0,45],E:[0,45,35] },
+    task2:{ A:[20,-40,10],B:[35,-30,40] },
+    task3:{ A:[5,30,0],B:[45,-30,40],C:[25,20,15] },
+    task4:{
+      statement:"В пл. Σ(ABC) построить горизонталь, фронталь и линию наибольшего ската. Через точку D провести прямую ℓ, пересекающую BC. Построить точку E под прямой ℓ.",
+      plane:"ABC",operation:"line_intersects_BC",pointRelation:"below_line"
+    },
+    task5:{
+      statement:"Построить точку пересечения прямой ℓ с пл. Σ(A;a) и определить видимость прямой относительно пл. Σ.",
+      plane:"A;a"
+    },
+    task6:{
+      statement:"Построить линию пересечения пл. Σ(ABC) и пл. Θ(a∥b). Через точку K провести прямую, параллельную обеим плоскостям.",
+      planes:["ABC","a∥b"]
+    }
+  }
+});
+Object.assign(window.SITEMATH_SCHEMES, {
+  "02": {
+    task4:{
+      planeType:"ABC",points:{
+        A:{p2:[700,735],p1:[700,816]},
+        B:{p2:[774,649],p1:[775,793]},
+        C:{p2:[844,724],p1:[848,894]},
+        D:{p2:[951,686],p1:[953,822]}
+      },
+      operation:{type:"line_intersects_named",target:"BC",through:"D",resultPoint:"E",relation:"below_line"},
+      sourceVerified:false
+    },
+    task5:{
+      planeType:"line_point",planeLine:"a",planePoint:"A",
+      points:{A:{p2:[235,1198],p1:[237,1379]}},
+      lines:{
+        a:{p2:[[139,1223],[336,1115]],p1:[[145,1301],[305,1253]]},
+        l:{p2:[[185,1132],[328,1203]],p1:[[160,1322],[342,1290]]}
+      },givenLine:"l",sourceVerified:false
+    },
+    task6:{
+      planeA:{type:"ABC",points:{
+        A:{p2:[617,1165],p1:[619,1277]},
+        B:{p2:[691,1123],p1:[690,1363]},
+        C:{p2:[770,1240],p1:[773,1310]}
+      }},
+      planeB:{type:"parallel_lines",lines:{
+        a:{p2:[[779,1152],[931,1182]],p1:[[782,1296],[932,1267]]},
+        b:{p2:[[775,1197],[926,1226]],p1:[[784,1340],[919,1315]]}
+      }},
+      pointK:{p2:[869,1120],p1:[867,1365]},sourceVerified:false
+    }
+  }
+});
+
 /* Variant 12 re-traced from the original photographed sheet.
    Keep exact source topology: named points, projectors and line junctions. */
 Object.assign(window.SITEMATH_SCHEMES["12"], {
@@ -1132,6 +1190,16 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
       scheme.sourceGeometry=clone(scheme);
     });
   });
+})();
+
+/* Variant 02 / task 4: BC already appears as the printed edge of ABC.
+   The extra solver reference is deliberately absent from sourceGeometry, so
+   the first frame neither duplicates BC nor invents an extra line label. */
+(function referenceExistingTriangleEdge02(){
+  const scheme=window.SITEMATH_SCHEMES?.["02"]?.task4;
+  if(!scheme) return;
+  const B=scheme.points.B,C=scheme.points.C;
+  scheme.lines={BC:{p1:[B.p1.slice(),C.p1.slice()],p2:[B.p2.slice(),C.p2.slice()]}};
 })();
 
 /* Mathematical cleanup of photographed traces.
