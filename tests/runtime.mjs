@@ -286,7 +286,7 @@ if (!onlyVariant && !onlyTask) try {
       const close=(u,v)=>Math.hypot(u.x-v.x,u.y-v.y)<1e-4;
       return (close(a,x)&&close(b,y))||(close(a,y)&&close(b,x));
     });
-  let paired=0,ambiguous=0;
+  let paired=0,ambiguous=0,coincidentDuplicates=0;
   for(const variant of variants)for(const task of [4,5,6]){
     $('variantSelect').value=variant;
     $('variantSelect').dispatchEvent(new window.Event('change'));
@@ -305,7 +305,24 @@ if (!onlyVariant && !onlyTask) try {
         const same=[...window.document.querySelectorAll('#drawing circle[data-label="'+name+'"]')];
         const counterparts=[...window.document.querySelectorAll('#drawing circle[data-label="'+other+'"]')];
         if(!counterparts.length)continue;
-        if(same.length!==1||counterparts.length!==1){ambiguous++;continue;}
+        if(same.length!==1||counterparts.length!==1){
+          const unique=nodes=>{
+            const pts=[];
+            for(const n of nodes){
+              const p=coord(n);
+              if(!pts.some(q=>Math.hypot(p.x-q.x,p.y-q.y)<1e-4))pts.push(p);
+            }
+            return pts;
+          };
+          const current=unique(same),pairedPositions=unique(counterparts);
+          if(current.length!==1||pairedPositions.length!==1){
+            ambiguous++;
+            console.log('Projector labels noncoincident:',variant+'/'+task,
+              'step '+(index+1),name,JSON.stringify(current),other,JSON.stringify(pairedPositions));
+            continue;
+          }
+          coincidentDuplicates++;
+        }
         if(counterparts[0].getAttribute('data-active')==='1'&&name>other)continue;
         const a=coord(dot),b=coord(counterparts[0]);
         if(Math.abs(a.x-b.x)>1e-4)
@@ -316,7 +333,7 @@ if (!onlyVariant && !onlyTask) try {
       }
     }
   }
-  console.log('Derived paired projectors:',paired,'checked; ambiguous duplicates:',ambiguous);
+  console.log('Derived paired projectors:',paired,'checked; coincident duplicate labels:',coincidentDuplicates,'; distinct unresolved duplicates:',ambiguous);
 } catch(e){failures.push('derived paired projector audit: '+e.stack);}
 
 // All task-5 visibility competitors must be created by visible, intersecting
