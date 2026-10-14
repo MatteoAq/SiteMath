@@ -493,6 +493,31 @@ for (const vp of viewports) {
     if(evidence.viewBox!==before)
       failures.push(variant+'/'+task+' step '+(index+1)+
         ': local camera changed drawing coordinates');
+
+    // The active strokes use a staggered 620–1010 ms CSS drawing animation.
+    // An early screenshot showed floating competing dots even when both
+    // construction extensions existed and were scheduled to be drawn.
+    // Verify actual endpoint connectivity, then capture the completed step.
+    if(variant==='01' && task===5){
+      const connectivity=await page.evaluate(()=>{
+        const nodes=[...document.querySelectorAll('#drawing line.construction-line[data-active="1"]')];
+        const touches=label=>{
+          const dot=[...document.querySelectorAll('#drawing circle[data-label]')]
+            .find(el=>el.getAttribute('data-label')===label);
+          if(!dot)return -1;
+          const x=Number(dot.getAttribute('cx')),y=Number(dot.getAttribute('cy'));
+          return nodes.filter(el=>['1','2'].some(k=>
+            Math.hypot(Number(el.getAttribute('x'+k))-x,Number(el.getAttribute('y'+k))-y)<1e-4
+          )).length;
+        };
+        return {witness:touches('5₂≡6₂'),front:touches('5₁'),plane:touches('6₁')};
+      });
+      if(index===10 && connectivity.witness<2)
+        failures.push('01/5 step 11: two source-line extensions do not reach 5₂≡6₂ '+JSON.stringify(connectivity));
+      if(index===11 && (connectivity.front<2||connectivity.plane<2))
+        failures.push('01/5 step 12: projectors/source extensions do not reach both 5₁ and 6₁ '+JSON.stringify(connectivity));
+    }
+    await page.waitForTimeout(1250);
     await page.screenshot({
       path:'mobile-screenshots/focus-v'+variant+'-t'+task+'-step'+
         String(index+1).padStart(2,'0')+'.png',
