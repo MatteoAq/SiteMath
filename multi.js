@@ -2909,6 +2909,15 @@
           relationAction=op.resultPoint+'₂ совмести с N₂ на ℓ₂. По той же линии связи '+op.resultPoint+'₁ располагается '+(op.relation==='front_of_line'?'перед':'за')+' N₁.';
         } else if(op.relation==='above_named'){
           relationAction=op.resultPoint+'₁ совмести с N₁ на '+(op.target||'a')+'₁. На той же линии связи '+op.resultPoint+'₂ располагается выше N₂.';
+        } else if(op.relation==='above_plane'||op.relation==='below_plane'){
+          relationAction=op.resultPoint+'₁ совмести с N₁ на Π₁ (сохрани x и y). '+
+            'На той же линии связи размести '+op.resultPoint+'₂ '+
+            (op.relation==='above_plane'?'выше':'ниже')+
+            ' N₂ на Π₂ – изменяется только высота z.';
+        } else if(op.relation==='front_of_plane'){
+          relationAction=op.resultPoint+'₂ совмести с N₂ на Π₂ (сохрани x и z). '+
+            'На том же проекторе размести '+op.resultPoint+
+            '₁ перед N₁ на Π₁ – изменяется только глубина y.';
         }
         push({
           title:'Построй '+op.resultPoint+' '+relationText,
