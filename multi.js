@@ -3275,6 +3275,54 @@
 
     diagramReferenceAxisStep(push,steps,scheme);
 
+    // A plane defined by A and a cannot use the computed auxiliary g=AT
+    // until the student has actually selected T on a, transferred its paired
+    // projection and DRAWN both projected g strokes. In particular, 02/5
+    // previously introduced the visibility competitor on an invisible g₁.
+    const linePointRef=givenRefs.find(ref=>
+      ref.auxiliary && ref.anchor && ref.throughPoint);
+    if(linePointRef){
+      const sourceLine=givenRefs.find(ref=>!ref.auxiliary)?.name||scheme.planeLine||'a';
+      const pointName=linePointRef.throughName||scheme.planePoint||'A';
+      const T1={x:linePointRef.anchor.p1[0],y:linePointRef.anchor.p1[1]};
+      const T2={x:linePointRef.anchor.p2[0],y:linePointRef.anchor.p2[1]};
+      const A1={x:linePointRef.throughPoint.p1[0],y:linePointRef.throughPoint.p1[1]};
+      const A2={x:linePointRef.throughPoint.p2[0],y:linePointRef.throughPoint.p2[1]};
+      i=steps.length;
+      push({
+        title:'Выбери T₁ на '+sourceLine+'₁ плоскости Σ',
+        action:'На заданной прямой '+sourceLine+'₁ выбери точку T₁. Вторую проекцию не ставь заранее.',
+        why:'Точка T принадлежит исходной прямой '+sourceLine+' и, следовательно, плоскости Σ.',
+        measure:['T₁ ∈ '+sourceLine+'₁'],
+        check:'Пока построена только T₁. Вспомогательная g ещё не проведена.'
+      },[
+        ...segmentExtensionEntities(i,scheme.lines[sourceLine]?.p1,T1),
+        point(i,T1,'T₁','construction-dot')
+      ]);
+      i=steps.length;
+      push({
+        title:'По линии связи получи T₂ на '+sourceLine+'₂',
+        action:'Из T₁ проведи проектор до '+sourceLine+'₂ и получи T₂.',
+        why:'Проекции одной пространственной точки имеют общий x; T₂ принадлежит заданной '+sourceLine+'₂.',
+        measure:['T₁T₂ – линия связи','T₂ ∈ '+sourceLine+'₂'],
+        check:'T₂ получена проектированием, а не выбрана независимо.'
+      },[
+        ...segmentExtensionEntities(i,scheme.lines[sourceLine]?.p2,T2),
+        line(i,T1,T2,'construction-line'),point(i,T2,'T₂','construction-dot')
+      ]);
+      i=steps.length;
+      push({
+        title:'Соедини '+pointName+' с T – построй g₁ и g₂ плоскости Σ',
+        action:'Соедини '+pointName+'₁ с T₁ и '+pointName+'₂ с T₂. Получи g₁ и g₂ – вторую опорную прямую плоскости.',
+        why:'Прямая через две уже заданные точки плоскости целиком ей принадлежит. Теперь g можно использовать для построения Ω∩Σ и конкурирующих точек.',
+        measure:['g₁ = '+pointName+'₁T₁','g₂ = '+pointName+'₂T₂'],
+        check:'Обе проекции g построены из ранее введённых точек. До этого шага g отсутствовала.'
+      },[
+        line(i,A1,T1,'aux-line'),textEntity(i,T1,'g₁','svg-label'),
+        line(i,A2,T2,'aux-line'),textEntity(i,T2,'g₂','svg-label')
+      ]);
+    }
+
     if(bridge){
       const {A,B,g}=bridge;
       const T1={x:g.p1[0][0],y:g.p1[0][1]},T2={x:g.p2[0][0],y:g.p2[0][1]};
