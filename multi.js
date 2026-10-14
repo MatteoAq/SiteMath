@@ -3230,6 +3230,53 @@
         }
       }
     }
+    // When two source lines are parallel, their projections may run almost
+    // parallel to ℓ on Π₂. A visibility coincidence with either source line
+    // can then land thousands of units away although K is on the paper.
+    // Before drawing visibility, try a real in-plane transversal g=TU:
+    // T is chosen on the first source line, U on the second; both projectors
+    // and both strokes of g are drawn by the existing 'bridge' steps.
+    if(scheme.planeType==='parallel_lines'&&givenRefs.length===2&&regularCuts.length){
+      const A=givenRefs[0],B=givenRefs[1],cut0=regularCuts[0];
+      const k1=cut0.primary==='p1'?cut0.KPrimary:cut0.KOther;
+      const k2=cut0.primary==='p2'?cut0.KPrimary:cut0.KOther;
+      const w1=task5VisibilityWitness(givenRefs,lrec,'p1',k1);
+      const w2=task5VisibilityWitness(givenRefs,lrec,'p2',k2);
+      const sourceX=lrec.p1.flat().filter((v,i)=>i%2===0);
+      const centerX=(Math.min(...sourceX)+Math.max(...sourceX))*.5;
+      const spread=ws=>Math.max(...ws.filter(Boolean).map(w=>Math.abs(w.X.x-centerX)),0);
+      const oldSpread=spread([w1,w2]);
+      if(oldSpread>500){
+        const xT=A.rec.p1[0][0]+(A.rec.p1[1][0]-A.rec.p1[0][0])*.35;
+        const xU=B.rec.p1[0][0]+(B.rec.p1[1][0]-B.rec.p1[0][0])*.85;
+        if(Math.abs(xT-xU)>12){
+          const g={
+            p1:[[xT,lineY(A.rec.p1,xT)],[xU,lineY(B.rec.p1,xU)]],
+            p2:[[xT,lineY(A.rec.p2,xT)],[xU,lineY(B.rec.p2,xU)]]
+          };
+          const alternative=[A,{name:'g',rec:g,auxiliary:true}];
+          const trial=['p1','p2'].map(side=>task5AuxCandidate(alternative,lrec,side))
+            .filter(Boolean).sort((a,b)=>a.score-b.score);
+          if(trial.length){
+            const c=trial[0];
+            const tK1=c.primary==='p1'?c.KPrimary:c.KOther;
+            const tK2=c.primary==='p2'?c.KPrimary:c.KOther;
+            const witnesses=[
+              task5VisibilityWitness(alternative,lrec,'p1',tK1),
+              task5VisibilityWitness(alternative,lrec,'p2',tK2)
+            ];
+            const newSpread=spread(witnesses);
+            if(witnesses.every(Boolean)&&newSpread<oldSpread*.4 &&
+               Math.abs(tK1.x-k1.x)<.05&&
+               c.score<Math.max(20,cut0.score+20)){
+              refs=alternative;
+              bridge={A,B,g};
+            }
+          }
+        }
+      }
+    }
+
     const candidates=[
       task5AuxCandidate(refs,lrec,'p1'),
       task5AuxCandidate(refs,lrec,'p2')
