@@ -173,7 +173,7 @@ for (const vp of viewports) {
   await context.close();
 }
 
-// Visual source-fidelity captures for every photographed variant.
+// Visual source-fidelity captures for all twenty paper-sourced variants.
 {
   const context = await browser.newContext({
     viewport:{width:393,height:873},
@@ -189,7 +189,7 @@ for (const vp of viewports) {
   await page.locator('#firstRunStart').click();
   await page.waitForTimeout(100);
 
-  const photographed=['03','04','05','06','07','08','09','10','11','12','13','14','15','17','18','19'];
+  const photographed=Array.from({length:20},(_,i)=>String(i+1).padStart(2,'0'));
   for (const variant of photographed) {
     for (const task of [4,5,6]) {
       await page.evaluate(({variant,task})=>{
@@ -257,7 +257,7 @@ for (const vp of viewports) {
       }
 
       // One-off, opt-in evidence for the still-pending visual review of
-      // EVERY intermediate pencil step from the 14 archived original sheets.
+      // EVERY intermediate pencil step from available original sheets.
       // Disabled for normal CI so this is not a permanent long QA cycle.
       if(process.env.STEPWISE_AUDIT==='1' &&
          !['07','13'].includes(variant)){
