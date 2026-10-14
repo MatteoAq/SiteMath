@@ -1,10 +1,40 @@
 // Independently transcribed photographic paper originals, 13 Oct 2026.
-// Check 42 numeric assignments (140 spatial points), 42 graphical assignment
+// Check 60 numeric assignments (200 spatial points), 60 graphical assignment
 // definitions, and the exact SHA-256 bytes of every recovered source photo.
 // CI success proves source data shape/recording, not the geometry of solved steps.
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 const originalCoordinates={
+  "01": [
+    "25,40,0;40,60,-20;20,-25,60;0,40,35;40,0,10",
+    "60,-15,50;20,40,30",
+    "70,50,0;40,60,-20;20,-25,60"
+  ],
+  "02": [
+    "35,30,0;30,40,20;50,-30,-60;60,0,45;0,45,35",
+    "20,-40,10;35,-30,40",
+    "5,30,0;45,-30,40;25,20,15"
+  ],
+  "07": [
+    "50,40,0;45,-20,-35;30,-50,20;70,-30,10;25,55,-45",
+    "70,-30,10;25,50,45",
+    "50,40,0;10,-20,-35;30,-50,20"
+  ],
+  "13": [
+    "60,-50,-30;40,-10,50;30,50,40;40,-50,0;45,0,15",
+    "0,50,40;40,10,50",
+    "60,-50,30;40,-10,50;10,50,40"
+  ],
+  "16": [
+    "10,20,-45;25,20,0;20,-25,-33;55,-30,30;25,20,10",
+    "15,-40,-50;55,-30,30",
+    "15,-40,-50;55,-30,30;20,-25,-35"
+  ],
+  "20": [
+    "70,30,-45;35,-40,20;40,-20,-40;30,20,0;50,0,45",
+    "80,30,50;20,-40,-10",
+    "70,30,45;35,-40,20;0,-20,-40"
+  ],
   "10": [
     "50,60,0;10,0,70;60,50,40;60,50,-20;50,-40,-30",
     "10,-10,30;60,-50,-50",
@@ -77,6 +107,12 @@ const originalCoordinates={
   ]
 };
 const originalRoles={
+  "01": ["intersecting_lines","parallel_lines","intersecting_lines","frontal_projecting","line_parallel_plane","B","A"],
+  "02": ["ABC","line_point","ABC","parallel_lines","line_intersects_named","D","E"],
+  "07": ["parallel_lines","intersecting_lines","ABC","parallel_lines","line_parallel_plane","D","A"],
+  "13": ["parallel_lines","intersecting_lines","intersecting_lines","line_point","line_parallel_horizontal","D","A"],
+  "16": ["ABC","ABC","parallel_lines","parallel_lines","line_intersects_horizontal","D","E"],
+  "20": ["ABC","intersecting_lines","ABC","ABC","line_parallel_plane","D","E"],
   "10": [
     "ABC",
     "intersecting_lines",
@@ -599,5 +635,5 @@ for(const [variant,examples] of Object.entries(photoLineDirections)){
 }
 if(error.length){console.error(error.join('\n'));process.exitCode=1;}
 else console.log('Paper source audit OK: '+Object.keys(originalCoordinates).length+
-  ' variants, 42 coordinate tasks / '+checkedCoord+' point records, '+
+  ' variants, '+(Object.keys(originalCoordinates).length*3)+' coordinate tasks / '+checkedCoord+' point records, '+
   checkedStructures+' graphical assignment roles, '+checkedPhotos+' original JPEG files.');
