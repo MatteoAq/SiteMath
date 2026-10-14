@@ -719,7 +719,7 @@ if (!onlyVariant && !onlyTask) try {
     '10':['dc17eba2',1299],
     '11':['329d0144',847],
     '12':['468c4cd2',1533],
-    '13':['0806ebc1',1102],
+    '13':['ca212e69',1223],
     '14':['d4d3057f',1046],
     '15':['aed4e407',902],
     '17':['2e806d12',1348],
@@ -758,6 +758,24 @@ if (!onlyVariant && !onlyTask) try {
 } catch(e) {
   failures.push('source fingerprint regression: '+e.stack);
 }
+
+// University album: variants 13/5 and 13/6 explicitly contain the
+// intersection projectors already PRINTED on the source drawings.
+// Their source coordinates must remain separate from solver correction.
+if(!onlyVariant&&!onlyTask)try{
+  const G=window.SITEMATH_SCHEMES?.["13"];
+  for(const [task,plane,expected] of [
+    [5,null,[[416.675,1652.754],[421.059,1857.210]]],
+    [6,"planeA",[[927.717,1675.851],[937.5,1814]]]
+  ]){
+    const raw=G?.["task"+task]?.sourceGeometry;
+    const j=plane?raw?.[plane]?.junctions?.[0]:raw?.junctions?.[0];
+    if(!j || [j.p2,j.p1].some((p,i)=>
+      !p || p.some((v,n)=>Math.abs(v-expected[i][n])>.01))){
+      failures.push("variant 13/"+task+": printed a/b projector missing or moved");
+    }
+  }
+}catch(e){failures.push("variant 13 paper junction check: "+e.message)}
 
 // Variant-specific corrections recovered from the photographed sheets / prior
 // review must not drift back to generic templates.
