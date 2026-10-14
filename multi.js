@@ -482,8 +482,9 @@
       if(extra) find+='; '+extra;
     } else if(state.task===5){
       const plane=notations[0]||'Σ по исходной схеме';
-      given='пл. '+plane+'; прямая ℓ';
-      find='K = ℓ ∩ '+plane+'; видимость ℓ';
+      const givenName=scheme.givenLine==='f'?'f':'ℓ';
+      given='пл. '+plane+'; прямая '+givenName;
+      find='K = '+givenName+' ∩ '+plane+'; видимость '+givenName;
     } else {
       const a=notations[0]||planeDefNotation(scheme.planeA,'Σ');
       const b=notations[1]||planeDefNotation(scheme.planeB,'Θ');
@@ -2128,6 +2129,10 @@
     if(src.planeType==='ABC'){
       appendABCPlaneEntities(out,src,step,exactSource);
     }
+    (src.sourceGuides||[]).forEach(seg=>{
+      if(!Array.isArray(seg)||seg.length!==2) return;
+      out.push(line(step,{x:+seg[0][0],y:+seg[0][1]},{x:+seg[1][0],y:+seg[1][1]},'source-guide-line'));
+    });
     if(src.junctions&&src.junctions.length){
       // A source projector is part of the printed source only when it was
       // explicitly traced from the photographed sheet. Do not infer one merely
@@ -3516,6 +3521,21 @@
       point(i,K1,'K₁','answer-dot'),point(i,K2,'K₂','answer-dot')
     ]);
 
+    // The genuine paper of variant 20 calls the given straight line f,
+    // not ℓ. Preserve that designation on every construction step and SVG
+    // label instead of silently changing the student's original condition.
+    if(scheme.givenLine && scheme.givenLine!=='l'){
+      const display=scheme.givenLine;
+      for(const st of steps){
+        for(const key of ['title','action','why','check']){
+          if(typeof st[key]==='string')st[key]=st[key].replace(/ℓ/g,display);
+        }
+        if(Array.isArray(st.measure))st.measure=st.measure.map(v=>typeof v==='string'?v.replace(/ℓ/g,display):v);
+        for(const e of [...(st.entities||[]),...(st.sourceEntities||[])]){
+          if(typeof e.label==='string')e.label=e.label.replace(/ℓ/g,display);
+        }
+      }
+    }
     const norm=normalizeSteps(steps,200,165);
     return {width:norm.width,height:norm.height,O:{x:0,y:0},steps:steps,diagramPending:false,paperScale:norm.scale};
   }
