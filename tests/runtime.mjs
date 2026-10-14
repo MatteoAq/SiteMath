@@ -539,17 +539,18 @@ if (!onlyVariant && !onlyTask) try {
 
       const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
       const expected=[];
+      const source=scheme.sourceGeometry||scheme;
       if(task===6){
-        expectedFromPlaneDef(scheme.planeA,expected);
-        expectedFromPlaneDef(scheme.planeB,expected);
+        expectedFromPlaneDef(source.planeA,expected);
+        expectedFromPlaneDef(source.planeB,expected);
         const k=scheme.pointLabel||'K';
         if(scheme.pointK||scheme.pointThrough) expected.push(k+'₁',k+'₂');
       }else{
-        if(scheme.lines) for(const name of Object.keys(scheme.lines)) {
+        if(source.lines) for(const name of Object.keys(source.lines)) {
           const shown=sourceDisplayName(name);
           expected.push(shown+'₁',shown+'₂');
         }
-        if(scheme.points) for(const name of Object.keys(scheme.points)) expected.push(name+'₁',name+'₂');
+        if(source.points) for(const name of Object.keys(source.points)) expected.push(name+'₁',name+'₂');
       }
       for(const label of [...new Set(expected)]){
         if(!labels.includes(label)) failures.push('source fidelity '+variant+'/'+task+': missing '+label);
@@ -718,7 +719,7 @@ if (!onlyVariant && !onlyTask) try {
     '10':['dc17eba2',1299],
     '11':['329d0144',847],
     '12':['468c4cd2',1533],
-    '13':['fb78d348',1069],
+    '13':['0806ebc1',1102],
     '14':['d4d3057f',1046],
     '15':['aed4e407',902],
     '17':['2e806d12',1348],
@@ -882,7 +883,7 @@ if (!onlyVariant && !onlyTask) try {
         if(!(scheme.pointK||scheme.pointThrough)) failures.push('schema completeness '+variant+'/6: through point missing');
         for(const [side,def] of [['A',scheme.planeA],['B',scheme.planeB]]){
           if(!def){failures.push('schema completeness '+variant+'/6: plane '+side+' missing');continue;}
-          if(def.type==='ABC' && !['A','B','C'].every(x=>def.points?.[x])) failures.push('schema completeness '+variant+'/6: plane '+side+' ABC incomplete');
+          if(def.type==='ABC' && Object.keys(def.points||{}).length!==3) failures.push('schema completeness '+variant+'/6: plane '+side+' three-vertex source incomplete');
           if(def.type==='line_point'){
             const ln=def.lineName||Object.keys(def.lines||{})[0];
             const pn=def.pointName||Object.keys(def.points||{})[0];
@@ -910,7 +911,7 @@ if (!onlyVariant && !onlyTask) try {
     if(!def)return 0;
     const points=def.points?Object.keys(def.points).length:0;
     const junctions=def.junctions?.length||0;
-    return points+junctions;
+    return points+junctions+(def.sourceGuides?.length||0);
   };
   for(const variant of photographed){
     $('variantSelect').value=variant;
@@ -920,9 +921,10 @@ if (!onlyVariant && !onlyTask) try {
       $('taskSelect').dispatchEvent(new window.Event('change'));
       $('firstBtn').click();
       const scheme=window.SITEMATH_SCHEMES?.[variant]?.['task'+task];
+      const raw=scheme?.sourceGeometry||scheme;
       const expected=task===6
-        ? guideCountForDef(scheme?.planeA)+guideCountForDef(scheme?.planeB)+((scheme?.pointK||scheme?.pointThrough)?1:0)
-        : guideCountForDef(scheme);
+        ? guideCountForDef(raw?.planeA)+guideCountForDef(raw?.planeB)+((raw?.pointK||raw?.pointThrough)?1:0)
+        : guideCountForDef(raw);
       const actual=window.document.querySelectorAll('#drawing line.source-guide-line').length;
       if(actual!==expected){
         failures.push('source exact guides '+variant+'/'+task+': expected '+expected+', got '+actual);
@@ -1226,8 +1228,8 @@ if (!onlyVariant && !onlyTask) try {
       if(task===4 && !/пл\./i.test(given)){
         failures.push('problem brief '+variant+'/4: Дано does not identify the source plane');
       }
-      if(task===5 && (!/пл\./i.test(given) || !/ℓ/.test(given))){
-        failures.push('problem brief '+variant+'/5: Дано must contain plane and ℓ');
+      if(task===5 && (!/пл\./i.test(given) || !given.includes(window.SITEMATH_SCHEMES?.[variant]?.task5?.givenLine==='f'?'f':'ℓ'))){
+        failures.push('problem brief '+variant+'/5: Дано must contain plane and original given line');
       }
       if(task===6 && (!/пл\./i.test(given) || !/[KM]/.test(given))){
         failures.push('problem brief '+variant+'/6: Дано must contain both planes and the through-point');
@@ -1424,7 +1426,8 @@ if (!onlyVariant && !onlyTask) try {
     $('taskSelect').dispatchEvent(new window.Event('change'));
     $('firstBtn').click();
     const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
-    if(!labels.includes('ℓ₁')||!labels.includes('ℓ₂')){
+    const shown=window.SITEMATH_SCHEMES?.[variant]?.task5?.givenLine==='f'?'f':'ℓ';
+    if(!labels.includes(shown+'₁')||!labels.includes(shown+'₂')){
       failures.push('task5 line notation '+variant+': ℓ₁/ℓ₂ missing from source frame');
     }
     if(labels.includes('l₁')||labels.includes('l₂')){
@@ -1440,6 +1443,7 @@ if (!onlyVariant && !onlyTask) try {
 // competing points, and only after that the final visibility strokes.
 if (!onlyVariant && !onlyTask) try {
   for(const variant of variants){
+    const givenSymbol=window.SITEMATH_SCHEMES?.[variant]?.task5?.givenLine==='f'?'f':'ℓ';
     $('variantSelect').value=variant;
     $('variantSelect').dispatchEvent(new window.Event('change'));
     $('taskSelect').value='5';
@@ -1453,7 +1457,7 @@ if (!onlyVariant && !onlyTask) try {
       const title=$('stepTitle').textContent.trim();
       const labels=[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent);
       const kCount=labels.filter(x=>/^K[₁₂]$/.test(x)).length;
-      if(title.startsWith('Заключи ℓ во вспомогательную')){
+      if(title.startsWith('Заключи '+givenSymbol+' во вспомогательную')){
         sawOmega=true;
         if(labels.some(x=>/^1[₁₂]$|^2[₁₂]$|^K[₁₂]$/.test(x)))
           failures.push('task5 sequence '+variant+': derived points exist while Ω is only introduced');
@@ -1507,7 +1511,7 @@ if (!onlyVariant && !onlyTask) try {
           if(!labels.includes(x))failures.push('task5 sequence '+variant+': missing '+x);
         saw56=true;
       }
-      if(title.startsWith('Нанеси видимость ℓ')){
+      if(title.startsWith('Нанеси видимость '+givenSymbol)){
         if(!saw34||!saw56)failures.push('task5 sequence '+variant+': visibility before competing points');
         sawVisibility=true;
       }
@@ -1588,7 +1592,8 @@ if (!onlyVariant && !onlyTask) try {
       failures.push('task5 occlusion '+variant+': line animation replaced dashed stroke pattern');
     }
     const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
-    if(!labels.includes('ℓ₁')||!labels.includes('ℓ₂')){
+    const shown=window.SITEMATH_SCHEMES?.[variant]?.task5?.givenLine==='f'?'f':'ℓ';
+    if(!labels.includes(shown+'₁')||!labels.includes(shown+'₂')){
       failures.push('task5 occlusion '+variant+': given-line labels disappeared');
     }
     $('prevBtn').click();
@@ -1951,8 +1956,9 @@ if (!onlyVariant && !onlyTask) try {
       } else if(task===5){
         if(construction<3) failures.push('auxiliary construction '+variant+'/5: too few projection-transfer lines ('+construction+')');
         if(aux<1) failures.push('auxiliary construction '+variant+'/5: section line m missing ('+aux+')');
-        const hasPrimary1=labels.includes('Ω₁≡ℓ₁')&&labels.includes('m₂');
-        const hasPrimary2=labels.includes('Ω₂≡ℓ₂')&&labels.includes('m₁');
+        const given=window.SITEMATH_SCHEMES?.[variant]?.task5?.givenLine==='f'?'f':'ℓ';
+        const hasPrimary1=labels.includes('Ω₁≡'+given+'₁')&&labels.includes('m₂');
+        const hasPrimary2=labels.includes('Ω₂≡'+given+'₂')&&labels.includes('m₁');
         if(!hasPrimary1&&!hasPrimary2){
           failures.push('auxiliary construction '+variant+'/5: neither valid Ω/m auxiliary projection pair is present');
         }
@@ -2098,7 +2104,7 @@ try {
   const schemes=window.SITEMATH_SCHEMES||{};
   const originalVariant=window.SITEMATH_DATA.variants||{};
   const complete=Object.keys(originalVariant).filter(v=>schemes[v] && [4,5,6].every(k=>schemes[v]['task'+k]));
-  if(complete.length!==16)failures.push('assignment audit: expected 16 digitized variants, got '+complete.length);
+  if(complete.length!==20)failures.push('assignment audit: expected 20 digitized variants, got '+complete.length);
   for(const v of complete){
     for(const task of [4,5,6]){
       const g=schemes[v]['task'+task];
