@@ -450,6 +450,56 @@ for (const vp of viewports) {
     failures.push('13/6 step 8: focus did not reveal the active constructed point '+JSON.stringify(extreme));
   await page.screenshot({path:'mobile-screenshots/focus-v13-t6-step08.png',fullPage:false});
 
+  // Recheck four genuinely hard-to-read historical intermediate frames.
+  // The one-time 817-step capture predates the local camera correction;
+  // these tests assert the current zoom and visibility, not old JPEG values.
+  for(const [variant,task,index] of [
+    ['01',5,10],['01',5,11],['12',6,20],['13',5,6]
+  ]){
+    await page.evaluate(({variant,task,index})=>{
+      const vs=document.querySelector('#variantSelect');
+      const ts=document.querySelector('#taskSelect');
+      vs.value=variant;vs.dispatchEvent(new Event('change'));
+      ts.value=String(task);ts.dispatchEvent(new Event('change'));
+      document.querySelector('#firstBtn')?.click();
+      for(let n=0;n<index;n++)document.querySelector('#nextBtn')?.click();
+    },{variant,task,index});
+    await page.locator('#mobileFitBtn').click();
+    await page.waitForTimeout(100);
+    const before=await page.locator('#drawing').getAttribute('viewBox');
+    await page.locator('#mobileFocusBtn').click();
+    await page.waitForTimeout(220);
+    const evidence=await page.evaluate(()=>{
+      const wrap=document.querySelector('.paper-wrap').getBoundingClientRect();
+      const panel=document.querySelector('#stepSheet').getBoundingClientRect();
+      const bottom=getComputedStyle(document.querySelector('#stepSheet')).position==='fixed'
+        ? Math.min(wrap.bottom,panel.top-8):wrap.bottom;
+      const dots=[...document.querySelectorAll('#drawing circle.active-dot')];
+      return {
+        zoom:Number(document.querySelector('#zoomLabel').textContent.replace('%','').replace(',','.')),
+        step:Number(document.querySelector('#stepNumber').textContent),
+        viewBox:document.querySelector('#drawing').getAttribute('viewBox'),
+        count:dots.length,
+        visible:dots.some(dot=>{
+          const b=dot.getBoundingClientRect();
+          const x=(b.left+b.right)/2,y=(b.top+b.bottom)/2;
+          return x>wrap.left+4&&x<wrap.right-4&&y>wrap.top+4&&y<bottom-4;
+        })
+      };
+    });
+    if(evidence.zoom<12||!evidence.count||!evidence.visible)
+      failures.push(variant+'/'+task+' step '+(index+1)+
+        ': focused new point still unreadable '+JSON.stringify(evidence));
+    if(evidence.viewBox!==before)
+      failures.push(variant+'/'+task+' step '+(index+1)+
+        ': local camera changed drawing coordinates');
+    await page.screenshot({
+      path:'mobile-screenshots/focus-v'+variant+'-t'+task+'-step'+
+        String(index+1).padStart(2,'0')+'.png',
+      fullPage:false
+    });
+  }
+
   // Teacher-method captures for point+line planes: these must show the full
   // 1-2-3-4 construction chain, x12 and the compact Given/Find block.
   for (const variant of ['08','09','14','15']) {

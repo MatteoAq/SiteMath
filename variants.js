@@ -1,9 +1,9 @@
 window.SITEMATH_DATA = {
   provenance: {
-    title: "Инженерная и компьютерная графика. ДВИК, Владивосток, 2007",
-    assignmentUrl: "https://mehanika-sopromat.ru/grafika/vladivostok_2007_grafika.html",
+    title: "ДВГУПС – Задание № 1. Альбом из 6 задач (для очников)",
+    assignmentUrl: "https://github.com/MatteoAq/SiteMath/tree/main/source-photos/scans",
     examplesUrl: "https://mehanika-sopromat.ru/grafika/vladivostok_2007_grafika_examples.html",
-    note: "Современные листы используют тот же блок из шести задач, но номера 10–17 относятся к расширенному банку вариантов. Для них нельзя надёжно вычислять данные по номеру – вариант хранится как отдельная запись."
+    note: "Авторитетный источник для 01–20 – двадцать сканов из университетского альбома на GitHub. Отдельные исторические примеры ДВИК 2007 не подменяют этот комплект; формулировки и исходные проекции каждого варианта записаны независимо. Исходный 26-листовый DOCX остаётся на закрытом Google Диске."
   },
   tasks: {
     1: {
