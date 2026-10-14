@@ -266,8 +266,8 @@ const win={};
 new Function('window',fs.readFileSync('variants.js','utf8'))(win);
 const error=[];
 let checkedCoord=0, checkedStructures=0, checkedPhotos=0;
-// Six originals are preserved in the connected PRIVATE Google Drive album.
-// They must not be misrepresented as publicly archived source-photos JPEGs.
+// All 20 individual assignment sheets have canonical JPEG scans in GitHub.
+// The complete 26-sheet university source DOCX remains private on Drive.
 for(const [variant,tasks] of Object.entries(originalCoordinates)){
   const data=win.SITEMATH_DATA.variants[variant];
   const schemas=win.SITEMATH_SCHEMES[variant];
@@ -312,7 +312,7 @@ for(const [variant,sha] of Object.entries(originalScans)){
   checkedPhotos++;
 }
 // Independent visual audit of the *actual given line directions* on each
-// photographed original. + means falls as X increases on screen, - means
+// scanned original. + means falls as X increases on screen, - means
 // rises, 0 means horizontal. Entries are Π₂ / Π₁; the four entries are:
 // task 4, task 5, task 6 first plane, task 6 second plane.
 const photoLineDirections={
