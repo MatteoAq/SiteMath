@@ -360,6 +360,50 @@ if (!onlyVariant && !onlyTask) try {
   console.log('Visible task5 competitor intersections:',witnessed,'checked');
 } catch(e){failures.push('task5 witness endpoint audit: '+e.stack);}
 
+// A point-and-line task-5 plane requires a real second line g=AT.
+// The old solver used g analytically for visibility before showing its
+// point selection/projector/construction. Keep this derivation explicit.
+if (!onlyVariant && !onlyTask) try {
+  let checked=0;
+  for(const variant of variants){
+    const scheme=window.SITEMATH_SCHEMES?.[variant]?.task5;
+    if(scheme?.planeType!=='line_point')continue;
+    checked++;
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='5';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+    const total=Number($('stepTotal').textContent);
+    const steps=[];
+    for(let n=0;n<total;n++){
+      steps.push({
+        title:$('stepTitle').textContent.trim(),
+        labels:[...window.document.querySelectorAll('#drawing text')].map(x=>x.textContent)
+      });
+      if(n<total-1)$('nextBtn').click();
+    }
+    const idx=prefix=>steps.findIndex(st=>st.title.startsWith(prefix));
+    const choose=idx('Выбери T₁ на '),transfer=idx('По линии связи получи T₂ на ');
+    const g=steps.findIndex(st=>st.title.startsWith('Соедини ')&&st.title.includes('построй g₁ и g₂'));
+    const omega=idx('Заключи ℓ во вспомогательную');
+    const witness=idx('Видимость на Π₁');
+    if(choose<1||transfer!==choose+1||g!==transfer+1||omega<=g||witness<=g){
+      failures.push('task5 line-point '+variant+': T₁→T₂→g→Ω→competitor order missing');
+      continue;
+    }
+    if(steps[0].labels.includes('g₁')||steps[0].labels.includes('g₂'))
+      failures.push('task5 line-point '+variant+': derived g shown as printed source');
+    if(steps[choose].labels.includes('T₂')||steps[choose].labels.includes('g₁'))
+      failures.push('task5 line-point '+variant+': premature T₂/g at T₁ choice');
+    if(!steps[transfer].labels.includes('T₂')||steps[transfer].labels.includes('g₁'))
+      failures.push('task5 line-point '+variant+': T₂ transfer missing/early g');
+    if(!steps[g].labels.includes('g₁')||!steps[g].labels.includes('g₂'))
+      failures.push('task5 line-point '+variant+': g projections missing');
+  }
+  console.log('Task5 line-point g constructions:',checked,'checked');
+} catch(e){failures.push('task5 line-point g construction audit: '+e.stack);}
+
 // Variant ordering / display regression.
 try {
   const visible=[...window.document.querySelectorAll('.variant-chip[data-variant]')]
