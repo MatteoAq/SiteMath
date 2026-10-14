@@ -3299,6 +3299,18 @@
     const K2=primary==='p2'?cut.KPrimary:cut.KOther;
     const KPrimary=primary==='p1'?K1:K2;
     const KOther=other==='p1'?K1:K2;
+    // Near-parallel line/plane directions amplify small source-photo
+    // tracing errors. In 13/5, one pixel can shift K by thousands of
+    // drawing units; don't present that remote extrapolation as precise.
+    // This warning is informational and must not move source strokes or K.
+    const sourceLine3=schemeLine3(lrec);
+    const sourceDirection=sub3(sourceLine3[1],sourceLine3[0]);
+    const incidenceCos=Math.abs(dot3(plane.n,sourceDirection))/
+      (norm3(plane.n)*norm3(sourceDirection));
+    const sourceXs=lrec.p1.map(p=>p[0]);
+    const sourceRemote=Math.min(...sourceXs.map(x=>Math.abs(K1.x-x)));
+    const scanSensitive=Boolean(scheme.sourceGeometry)&&
+      incidenceCos<.01&&sourceRemote>500;
 
     const steps=[],push=(m,e,t)=>steps.push(Object.assign({},m,{entities:e||[],tool:t||null}));
     let i=0;
@@ -3480,9 +3492,11 @@
     push({
       title:'Найди K'+oIdx+' = m'+oIdx+' ∩ ℓ'+oIdx,
       action:'Найди точку пересечения уже построенной m'+oIdx+' с ℓ'+oIdx+'. При необходимости продли обе прямые тонкими линиями и обозначь K'+oIdx+'.',
-      why:'Точка K принадлежит одновременно ℓ и линии m = Ω ∩ Σ, значит она принадлежит и плоскости Σ.',
+      why:'Точка K принадлежит одновременно ℓ и линии m = Ω ∩ Σ, значит она принадлежит и плоскости Σ.'+
+        (scanSensitive?' Но ℓ почти параллельна Σ: положение удалённой точки K сильно зависит от точности исходного скана.':''),
       measure:['K'+oIdx+' = m'+oIdx+' ∩ ℓ'+oIdx],
-      check:'K'+oIdx+' стоит в пересечении двух ранее существовавших прямых. Её парная проекция появится на следующем шаге.'
+      check:'K'+oIdx+' стоит в пересечении двух ранее существовавших прямых. Её парная проекция появится на следующем шаге.'+
+        (scanSensitive?' Это геометрическая экстраполяция, а не точное измерение по фотографии; проверь оригинальный чертёж.':'')
     },[
       ...segmentExtensionEntities(i,[[J1.x,J1.y],[J2.x,J2.y]],KOther),
       ...segmentExtensionEntities(i,lrec[other],KOther),
