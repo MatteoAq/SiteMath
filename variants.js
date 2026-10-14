@@ -1152,6 +1152,8 @@ Object.assign(window.SITEMATH_DATA.variants, {
 Object.assign(window.SITEMATH_SCHEMES, {
   "20": {
     task4:{
+      // The assignment prints only A/B/C vertex projectors, NOT triangle edges.
+      sourceABCVerticesOnly:true,
       planeType:"ABC",points:{
         A:{p2:[540,638],p1:[540,854]},
         B:{p2:[691,699],p1:[691,785]},
