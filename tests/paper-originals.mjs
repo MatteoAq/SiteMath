@@ -336,6 +336,9 @@ const win={};
 new Function('window',fs.readFileSync('variants.js','utf8'))(win);
 const error=[];
 let checkedCoord=0, checkedStructures=0, checkedPhotos=0;
+// Six originals are preserved in the connected PRIVATE Google Drive album.
+// They must not be misrepresented as publicly archived source-photos JPEGs.
+const privateAlbumVariants=new Set(['01','02','07','13','16','20']);
 for(const [variant,tasks] of Object.entries(originalCoordinates)){
   const data=win.SITEMATH_DATA.variants[variant];
   const schemas=win.SITEMATH_SCHEMES[variant];
@@ -365,8 +368,15 @@ for(const [variant,tasks] of Object.entries(originalCoordinates)){
   checkedStructures+=3;
   for(const task of [4,5,6]){
     const scheme=schemas['task'+task];
-    if(!scheme?.sourceAvailable)error.push(variant+'/'+task+': saved original not connected');
-    if(!scheme?.sourceId)error.push(variant+'/'+task+': source path missing');
+    if(privateAlbumVariants.has(variant)){
+      // The visual source is sheet "В. XX" inside the private DOCX, not a
+      // public GitHub JPEG. The photographed raw trace must still exist.
+      if(!scheme?.sourceGeometry)error.push(variant+'/'+task+': raw album trace absent');
+      if(scheme?.sourceVerified===true)error.push(variant+'/'+task+': unreviewed Drive trace marked verified');
+    } else {
+      if(!scheme?.sourceAvailable)error.push(variant+'/'+task+': saved original not connected');
+      if(!scheme?.sourceId)error.push(variant+'/'+task+': source path missing');
+    }
   }
 }
 for(const [variant,file,sha] of originalPhotos){
