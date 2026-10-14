@@ -735,7 +735,9 @@ Object.assign(window.SITEMATH_SCHEMES, {
       planeA:{type:"intersecting_lines",lines:{
         a:{p2:[[826,1675],[1065,1677]],p1:[[826,1814],[1065,1814]]},
         b:{p2:[[826,1750],[1040,1594]],p1:[[828,1764],[1047,1864]]}
-      }},
+      },
+      // Printed projector a₂∩b₂ ↕ a₁∩b₁ of the first plane Σ.
+      junctions:[{p2:[927.717,1675.851],p1:[937.5,1814]}]},
       planeB:{type:"line_point",lineName:"h",pointName:"A",lines:{
         h:{p2:[[1095,1639],[1327,1643]],p1:[[1116,1828],[1307,1727]]}
       },points:{A:{p2:[1217,1557],p1:[1219,1711]}}},
