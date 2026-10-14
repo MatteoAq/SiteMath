@@ -198,6 +198,65 @@ if (!onlyVariant && !onlyTask) try {
   failures.push('task6 section endpoint regression: '+e.stack);
 }
 
+// Draftability audit for intersections not covered by the task-6 P/Q test:
+// task-4 h₂/f₁ must meet real plane lines at 2₂/4₁, and task-5 K must
+// visibly belong to both the section m and the given line (or its extension).
+if (!onlyVariant && !onlyTask) try {
+  const touching=(point,classes)=>{
+    const lines=[...window.document.querySelectorAll('#drawing line')];
+    return lines.filter(el=>classes.some(c=>el.classList.contains(c))).map(el=>{
+      const a={x:+el.getAttribute('x1'),y:+el.getAttribute('y1')};
+      const b={x:+el.getAttribute('x2'),y:+el.getAttribute('y2')};
+      const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);
+      if(len<1e-8)return null;
+      const t=((point.x-a.x)*dx+(point.y-a.y)*dy)/(len*len);
+      const gap=Math.abs(dx*(point.y-a.y)-dy*(point.x-a.x))/len;
+      return gap<1e-4&&t>=-1e-6&&t<=1+1e-6
+        ?{x:dx/len,y:dy/len,cls:el.getAttribute('class')}:null;
+    }).filter(Boolean);
+  };
+  let count=0;
+  for(const variant of variants){
+    for(const task of [4,5]){
+      $('variantSelect').value=variant;
+      $('variantSelect').dispatchEvent(new window.Event('change'));
+      $('taskSelect').value=String(task);
+      $('taskSelect').dispatchEvent(new window.Event('change'));
+      $('firstBtn').click();
+      const total=Number($('stepTotal').textContent);
+      for(let n=0;n<total;n++){
+        const title=$('stepTitle').textContent.trim();
+        let label='',aClass=[],bClass=[];
+        if(task===4 && title.startsWith('Через 1₂ проведи h₂')){
+          label='2₂';aClass=['answer-line'];bClass=['object-line','aux-line','construction-line'];
+        }else if(task===4 && title.startsWith('Через 3₁ проведи f₁')){
+          label='4₁';aClass=['answer-line'];bClass=['object-line','aux-line','construction-line'];
+        }else if(task===5 && title.startsWith('Найди K')){
+          label=title.includes('K₁')?'K₁':'K₂';
+          aClass=['aux-line'];bClass=['object-line','construction-line'];
+        }
+        if(label){
+          const dot=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
+          if(!dot){
+            failures.push('manual intersection '+variant+'/'+task+': missing '+label+' at '+title);
+          }else{
+            const point={x:+dot.getAttribute('cx'),y:+dot.getAttribute('cy')};
+            const first=touching(point,aClass),second=touching(point,bClass);
+            const transversal=first.some(u=>second.some(v=>Math.abs(u.x*v.y-u.y*v.x)>1e-4));
+            if(!transversal){
+              failures.push('manual intersection '+variant+'/'+task+' '+label+
+                ': drawn section/level and its second supporting line do not meet visibly '+JSON.stringify({first:first.length,second:second.length}));
+            }
+          }
+          count++;
+        }
+        if(n<total-1)$('nextBtn').click();
+      }
+    }
+  }
+  console.log('Manual task4/task5 intersections:',count,'checked');
+} catch(e){failures.push('manual task4/task5 intersection audit: '+e.stack);}
+
 // Variant ordering / display regression.
 try {
   const visible=[...window.document.querySelectorAll('.variant-chip[data-variant]')]
