@@ -3974,12 +3974,20 @@
     // defining line and cannot be recovered by two visible intersections.
     // Try the teacher-preferred family first, then the conjugate family before
     // falling back to the analytic solver.
-    const choosePair=(levelType)=>{
+    const choosePair=(levelType,wideRange=false)=>{
       const lo=levelType==='horizontal'?bounds.minY2:bounds.minY1;
       const hi=levelType==='horizontal'?bounds.maxY2:bounds.maxY1;
       const span=Math.max(30,hi-lo);
       const candidates=[];
-      for(const frac of [.18,.26,.34,.42,.50,.58,.66,.74,.82]){
+      // The usual levels stay INSIDE the printed source. For a near-parallel
+      // plane pair, all inside levels can send P/Q thousands of millimetres
+      // away. Only the fallback below also examines perfectly legitimate
+      // auxiliary planes beyond the original source elevation/depth range.
+      const fractions=wideRange
+        ? [-1.2,-1.05,-.9,-.8,-.7,-.6,-.5,-.4,-.3,-.2,-.1,
+           0,.18,.26,.34,.42,.50,.58,.66,.74,.82,1,1.15,1.3,1.5,1.7]
+        : [.18,.26,.34,.42,.50,.58,.66,.74,.82];
+      for(const frac of fractions){
         const level=lo+span*frac;
         const c=task6SectionCandidate(scheme,levelType,level,bounds);
         if(c)candidates.push(c);
@@ -4013,6 +4021,25 @@
       // for a materially shorter legitimate pencil construction.
       if(firstScore>500 && secondScore<firstScore*.75)
         picked=alternative;
+    }
+    if(picked){
+      const score=choice=>choice.pair.reduce((sum,sec)=>sum+sec.score,0);
+      const horizontalDistance=choice=>Math.max(...choice.pair.map(sec=>
+        outsideAmount(sec.P.p1.x,bounds.minX-150,bounds.maxX+150)));
+      // 05/6: printed geometry x≈94..402, old α/β intersections fell near
+      // x=−1600 and x=−2100, shrinking the fitted result to 3.8%.
+      // Search more levels ONLY for a demonstrably remote result; preserve
+      // every normal construction and its chosen source levels unchanged.
+      if(horizontalDistance(picked)>500){
+        const wider=[
+          choosePair(preferredLevelType,true),
+          choosePair(alternateType,true)
+        ].filter(Boolean).sort((a,b)=>score(a)-score(b));
+        const closer=wider[0];
+        if(closer && score(closer)<score(picked)*.7 &&
+           horizontalDistance(closer)<horizontalDistance(picked)*.65)
+          picked=closer;
+      }
     }
     if(!picked)return null;
     const levelType=picked.levelType;
