@@ -1017,7 +1017,7 @@ if (!onlyVariant && !onlyTask) try {
     '18':['2f9067d1',1429],
     '19':['27f74aca',1215]
   };
-  const skip=new Set(['sourceVerified','sourceAvailable','sourceId','sourceRecheckRequired','sourceGeometry']);
+  const skip=new Set(['sourceVerified','sourceAvailable','sourceId','sourceRecheckRequired','sourceGeometry','auxBridge']);
   const canon=value=>{
     if(Array.isArray(value)) return value.map(canon);
     if(value&&typeof value==='object'){
