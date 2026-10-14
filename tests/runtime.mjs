@@ -274,6 +274,92 @@ if (!onlyVariant && !onlyTask) try {
   console.log('Manual task4/task5 intersections:',count,'checked');
 } catch(e){failures.push('manual task4/task5 intersection audit: '+e.stack);}
 
+// Methodical correctness also requires transfer projectors, not merely
+// coincident x coordinates: audit newly introduced point pairs over all
+// task-4/5/6 steps, including helper points and final answer points.
+if (!onlyVariant && !onlyTask) try {
+  const coord=node=>({x:+node.getAttribute('cx'),y:+node.getAttribute('cy')});
+  const connected=(a,b)=>[...window.document.querySelectorAll('#drawing line.construction-line, #drawing line.source-guide-line')]
+    .some(el=>{
+      const x={x:+el.getAttribute('x1'),y:+el.getAttribute('y1')};
+      const y={x:+el.getAttribute('x2'),y:+el.getAttribute('y2')};
+      const close=(u,v)=>Math.hypot(u.x-v.x,u.y-v.y)<1e-4;
+      return (close(a,x)&&close(b,y))||(close(a,y)&&close(b,x));
+    });
+  let paired=0,ambiguous=0;
+  for(const variant of variants)for(const task of [4,5,6]){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value=String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+    const total=Number($('stepTotal').textContent);
+    for(let index=1;index<total;index++){
+      $('nextBtn').click();
+      const active=[...window.document.querySelectorAll('#drawing circle[data-active="1"][data-label]')];
+      for(const dot of active){
+        const name=dot.getAttribute('data-label')||'';
+        const m=name.match(/^(.+?)([₁₂])$/);
+        if(!m||name.includes('≡')||!['construction','result'].includes(dot.getAttribute('data-role')))continue;
+        const other=m[1]+(m[2]==='₁'?'₂':'₁');
+        const same=[...window.document.querySelectorAll('#drawing circle[data-label="'+name+'"]')];
+        const counterparts=[...window.document.querySelectorAll('#drawing circle[data-label="'+other+'"]')];
+        if(!counterparts.length)continue;
+        if(same.length!==1||counterparts.length!==1){ambiguous++;continue;}
+        if(counterparts[0].getAttribute('data-active')==='1'&&name>other)continue;
+        const a=coord(dot),b=coord(counterparts[0]);
+        if(Math.abs(a.x-b.x)>1e-4)
+          failures.push('paired projector '+variant+'/'+task+' step '+(index+1)+' '+name+'/'+other+': misaligned x '+a.x+' vs '+b.x);
+        if(!connected(a,b))
+          failures.push('paired projector '+variant+'/'+task+' step '+(index+1)+' '+name+'/'+other+': missing drawable joining line');
+        paired++;
+      }
+    }
+  }
+  console.log('Derived paired projectors:',paired,'checked; ambiguous duplicates:',ambiguous);
+} catch(e){failures.push('derived paired projector audit: '+e.stack);}
+
+// All task-5 visibility competitors must be created by visible, intersecting
+// projections of the line and an actual plane line (or explicit helper).
+if (!onlyVariant && !onlyTask) try {
+  let witnessed=0;
+  for(const variant of variants){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='5';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+    const total=Number($('stepTotal').textContent);
+    for(let n=0;n<total;n++){
+      const title=$('stepTitle').textContent.trim();
+      if(title.startsWith('Видимость на Π₁: отметь')||title.startsWith('Видимость на Π₂: отметь')){
+        const label=title.startsWith('Видимость на Π₁')?'3₁≡4₁':'5₂≡6₂';
+        const dot=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
+        if(!dot){
+          failures.push('visibility witness '+variant+': no '+label);
+        }else{
+          const x=+dot.getAttribute('cx'),y=+dot.getAttribute('cy');
+          const dirs=[...window.document.querySelectorAll('#drawing line.object-line, #drawing line.aux-line, #drawing line.construction-line')].map(el=>{
+            const ax=+el.getAttribute('x1'),ay=+el.getAttribute('y1');
+            const bx=+el.getAttribute('x2'),by=+el.getAttribute('y2');
+            const dx=bx-ax,dy=by-ay,l=Math.hypot(dx,dy);
+            if(l<1e-8)return null;
+            const t=((x-ax)*dx+(y-ay)*dy)/(l*l);
+            const gap=Math.abs(dx*(y-ay)-dy*(x-ax))/l;
+            return t>=-1e-6&&t<=1+1e-6&&gap<1e-4?{x:dx/l,y:dy/l}:null;
+          }).filter(Boolean);
+          if(!dirs.some((a,i)=>dirs.some((b,j)=>i!==j&&Math.abs(a.x*b.y-a.y*b.x)>1e-4)))
+            failures.push('visibility witness '+variant+' '+label+': not reached by two nonparallel strokes');
+        }
+        witnessed++;
+      }
+      if(n<total-1)$('nextBtn').click();
+    }
+  }
+  if(witnessed!==40)failures.push('visibility witness: expected 40 constructed coincidences, got '+witnessed);
+  console.log('Visible task5 competitor intersections:',witnessed,'checked');
+} catch(e){failures.push('task5 witness endpoint audit: '+e.stack);}
+
 // Variant ordering / display regression.
 try {
   const visible=[...window.document.querySelectorAll('.variant-chip[data-variant]')]
