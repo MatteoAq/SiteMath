@@ -3318,8 +3318,8 @@
         measure:['g₁ = '+pointName+'₁T₁','g₂ = '+pointName+'₂T₂'],
         check:'Обе проекции g построены из ранее введённых точек. До этого шага g отсутствовала.'
       },[
-        line(i,A1,T1,'aux-line'),textEntity(i,T1,'g₁','svg-label'),
-        line(i,A2,T2,'aux-line'),textEntity(i,T2,'g₂','svg-label')
+        line(i,A1,T1,'aux-line'),textEntity(i,add2(lerp2(A1,T1,.55),{x:6,y:0}),'g₁','svg-label'),
+        line(i,A2,T2,'aux-line'),textEntity(i,add2(lerp2(A2,T2,.55),{x:6,y:0}),'g₂','svg-label')
       ]);
     }
 
