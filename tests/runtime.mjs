@@ -2785,7 +2785,7 @@ try {
 if (!onlyVariant && !onlyTask) try {
   const missing=(variant,task,what)=>failures.push(
     'stepwise sequence '+variant+'/'+task+': '+what);
-  let checked=0,checkedTasks=0;
+  let checked=0,checkedTasks=0,explainedNewLabels=0;
   for(const variant of variants){
     $('variantSelect').value=variant;
     $('variantSelect').dispatchEvent(new window.Event('change'));
@@ -2799,6 +2799,7 @@ if (!onlyVariant && !onlyTask) try {
       }
       const titles=[];
       let former=null;
+      const previouslyIntroduced=new Set();
       for(let i=0;i<total;i++){
         const title=$('stepTitle').textContent.trim();
         titles.push(title);
@@ -2812,6 +2813,28 @@ if (!onlyVariant && !onlyTask) try {
         }
         if(i>=2){
           checked++;
+          // Whenever a new point appears, the student must be told exactly
+          // which indexed projection is being marked. Distinguish FIRST
+          // introduction from legitimate repeated K₁/K₂ result highlighting.
+          const described=[
+            $('stepTitle').textContent,$('stepAction').textContent,
+            $('stepWhy').textContent,$('stepCheck').textContent,
+            $('stepMeasure').textContent
+          ].join(' ');
+          const active=[...window.document.querySelectorAll(
+            '#drawing circle[data-active="1"][data-label]')];
+          for(const dot of active){
+            const label=dot.getAttribute('data-label');
+            const role=dot.getAttribute('data-role');
+            if(!label||!['construction','result'].includes(role)||
+               previouslyIntroduced.has(label))continue;
+            previouslyIntroduced.add(label);
+            explainedNewLabels++;
+            if(!described.includes(label)){
+              missing(variant,task,'introduced point '+label+
+                ' is absent from step '+(i+1)+' explanation');
+            }
+          }
           const labels=new Set([...window.document.querySelectorAll('#drawing circle[data-label]')]
             .map(e=>e.getAttribute('data-label')).filter(Boolean));
           if(former){
@@ -2856,11 +2879,13 @@ if (!onlyVariant && !onlyTask) try {
       }
     }
   }
-  if(checkedTasks!==60 || checked<817)
+  if(checkedTasks!==60 || checked<890||explainedNewLabels<900)
     failures.push('stepwise sequence coverage: '+checkedTasks+
-      ' tasks, '+checked+' drawn stages (expected 60 and at least 817)');
+      ' tasks, '+checked+' post-introduction stages, '+
+      explainedNewLabels+' newly explained labeled points');
   else console.log('Stepwise dependencies:',checkedTasks,
-    'tasks,',checked,'stages checked');
+    'tasks,',checked,'post-introduction stages and',
+    explainedNewLabels,'first-introduced point labels checked');
 } catch(e){
   failures.push('all-variant staged method regression: '+e.stack);
 }
