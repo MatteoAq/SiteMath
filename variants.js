@@ -1118,6 +1118,70 @@ Object.assign(window.SITEMATH_SCHEMES, {
   }
 });
 
+/* University album original "В. 20", 14.10.2026.
+   Different signs of A.z in tasks 1 and 3 are genuine paper data.
+   Task 5 given line is f; task 6 uses the ORIGINAL vertex names D,E,F. */
+Object.assign(window.SITEMATH_DATA.variants, {
+  "20": {
+    label:"Вариант 20",
+    task1:{ A:[70,30,-45],B:[35,-40,20],C:[40,-20,-40],D:[30,20,0],E:[50,0,45] },
+    task2:{ A:[80,30,50],B:[20,-40,-10] },
+    task3:{ A:[70,30,45],B:[35,-40,20],C:[0,-20,-40] },
+    task4:{
+      statement:"В пл. Σ(ABC) построить горизонталь, фронталь и линию наибольшего ската. Через точку D провести прямую ℓ, параллельную пл. Σ. Построить точку E под прямой ℓ.",
+      plane:"ABC",operation:"line_parallel_plane",pointRelation:"below_line"
+    },
+    task5:{
+      statement:"Построить точку пересечения прямой f с пл. Σ(a∩b) и определить видимость прямой относительно пл. Σ.",
+      plane:"a∩b"
+    },
+    task6:{
+      statement:"Построить линию пересечения пл. Σ(ABC) и пл. Θ(DEF). Через точку K провести прямую, параллельную обеим плоскостям.",
+      planes:["ABC","DEF"]
+    }
+  }
+});
+Object.assign(window.SITEMATH_SCHEMES, {
+  "20": {
+    task4:{
+      planeType:"ABC",points:{
+        A:{p2:[540,638],p1:[540,854]},
+        B:{p2:[691,699],p1:[691,785]},
+        C:{p2:[754,673],p1:[754,833]},
+        D:{p2:[911,693],p1:[910,852]}
+      },
+      // The horizontal reference across the projectors is PRINTED on page 20.
+      sourceGuides:[[[540,748],[940,748]]],
+      operation:{type:"line_parallel_plane",through:"D",resultPoint:"E",relation:"below_line"},
+      sourceVerified:false
+    },
+    task5:{
+      planeType:"intersecting_lines",planeLines:["a","b"],
+      lines:{
+        a:{p2:[[95,1191],[293,1104]],p1:[[83,1241],[330,1345]]},
+        b:{p2:[[134,1124],[326,1231]],p1:[[114,1333],[238,1219]]},
+        f:{p2:[[166,1220],[367,1129]],p1:[[92,1313],[384,1332]]}
+      },
+      junctions:[{p2:[180,1149],p1:[175,1278]}],
+      givenLine:"f",sourceVerified:false
+    },
+    task6:{
+      planeA:{type:"ABC",points:{
+        A:{p2:[717,1210],p1:[715,1334]},
+        B:{p2:[773,1094],p1:[774,1217]},
+        C:{p2:[876,1154],p1:[877,1310]}
+      }},
+      // Three given vertices are D, E, F, not renamed A/B/C.
+      planeB:{type:"ABC",name:"Θ",points:{
+        D:{p2:[669,1190],p1:[670,1244]},
+        E:{p2:[802,1157],p1:[801,1337]},
+        F:{p2:[868,1133],p1:[862,1251]}
+      }},
+      pointK:{p2:[701,1128],p1:[698,1308]},sourceVerified:false
+    }
+  }
+});
+
 /* Variant 12 re-traced from the original photographed sheet.
    Keep exact source topology: named points, projectors and line junctions. */
 Object.assign(window.SITEMATH_SCHEMES["12"], {
