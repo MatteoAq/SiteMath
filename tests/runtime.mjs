@@ -230,10 +230,13 @@ if (!onlyVariant && !onlyTask) try {
         if(task===4 && title.startsWith('Через 1₂ проведи h₂')){
           label='2₂';aClass=['answer-line'];bClass=['object-line','aux-line','construction-line'];
         }else if(task===4 && title.startsWith('Через 3₁ проведи f₁')){
-          label='4₁';aClass=['answer-line'];bClass=['object-line','aux-line','construction-line'];
+          label=title.includes('получи 2₁')?'2₁':'4₁';
+          aClass=['answer-line'];bClass=['object-line','aux-line','construction-line'];
         }else if(task===5 && title.startsWith('Найди K')){
           label=title.includes('K₁')?'K₁':'K₂';
-          aClass=['aux-line'];bClass=['object-line','construction-line'];
+          // If K lies beyond the original section m, its drawn continuation
+          // has construction-line class rather than aux-line.
+          aClass=['aux-line','construction-line'];bClass=['object-line','construction-line'];
         }
         if(label){
           const dot=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
