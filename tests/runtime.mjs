@@ -1865,7 +1865,21 @@ if (!onlyVariant && !onlyTask) try {
     if(window.document.querySelectorAll('#drawing line[data-role="result"]').length){
       failures.push('task4 roles '+variant+': result mixed into source step');
     }
-    if(!window.document.querySelectorAll('#drawing line[data-role="given"]').length){
+    const task4Scheme=window.SITEMATH_SCHEMES?.[variant]?.task4;
+    const sourceGivenLines=window.document.querySelectorAll('#drawing line[data-role="given"]');
+    const sourceGuides=window.document.querySelectorAll('#drawing line.source-guide-line');
+    if(task4Scheme?.sourceABCVerticesOnly){
+      // Some originals contain only individual vertex projectors.
+      // Do not demand invented triangle sides on their first frame.
+      if(sourceGivenLines.length!==0 ||
+         window.document.querySelectorAll('#drawing line.object-line').length!==0 ||
+         sourceGuides.length<4)
+        failures.push('task4 roles '+variant+': original vertex-only source was contaminated or projectors missing');
+      const labels=[...window.document.querySelectorAll('#drawing text')].map(x=>x.textContent);
+      for(const label of ['A₁','A₂','B₁','B₂','C₁','C₂'])
+        if(!labels.includes(label))
+          failures.push('task4 roles '+variant+': vertex-only source missing '+label);
+    } else if(!sourceGivenLines.length){
       failures.push('task4 roles '+variant+': source has no given lines');
     }
 
@@ -1876,6 +1890,22 @@ if (!onlyVariant && !onlyTask) try {
     const xAxis=window.document.querySelector('#drawing line.axis[data-role="construction"]');
     if(!xAxis) failures.push('task4 axis '+variant+': x₁₂ is not classified as construction');
 
+    if(task4Scheme?.sourceABCVerticesOnly){
+      // The reference axis is followed by two separate pencil operations:
+      // connect A-B-C on Π₁ first, and on Π₂ afterwards.
+      const strokeCount=()=>{
+        return [...window.document.querySelectorAll('#drawing line.construction-line')]
+          .filter(el=>el.getAttribute('data-role')==='construction').length;
+      };
+      $('nextBtn').click();
+      if(!($('stepTitle')?.textContent||'').startsWith('Соедини A₁') ||
+         strokeCount()<3)
+        failures.push('task4 vertex-only '+variant+': three Π₁ edges not explicitly constructed');
+      $('nextBtn').click();
+      if(!($('stepTitle')?.textContent||'').startsWith('Соедини A₂') ||
+         strokeCount()<6)
+        failures.push('task4 vertex-only '+variant+': three Π₂ edges not explicitly constructed');
+    }
     $('lastBtn').click();
     labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
     const scheme=window.SITEMATH_SCHEMES?.[variant]?.task4;
