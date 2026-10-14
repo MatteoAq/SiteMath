@@ -4181,7 +4181,7 @@
     pair.forEach((c,index)=>{
       const name=index===0?'P':'Q';
       const planeName=index===0?'α':'β';
-      const kind=levelType==='horizontal'?'горизонтальную':'фронтальную';
+      const kind=levelType==='horizontal'?'горизонтальной':'фронтальной';
       const degenerateProj=levelType==='horizontal'?'₂':'₁';
       const primary=levelType==='horizontal'?'p2':'p1';
       const xs=[
