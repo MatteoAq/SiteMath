@@ -2468,6 +2468,94 @@ try {
   failures.push('variant12 exact source metadata: '+e.stack);
 }
 
+// Full staged-construction dependency regression for the same 20 scanned
+// originals. Unlike an isolated final image, this checks the ORDER of every
+// pencil operation. Do not assert that this substitutes manual visual proof.
+// All 60 graphical tasks are replayed within the existing runtime test;
+// no separate STEPWISE_AUDIT screenshot workflow is triggered.
+if (!onlyVariant && !onlyTask) try {
+  const missing=(variant,task,what)=>failures.push(
+    'stepwise sequence '+variant+'/'+task+': '+what);
+  let checked=0,checkedTasks=0;
+  for(const variant of variants){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    for(const task of [4,5,6]){
+      $('taskSelect').value=String(task);
+      $('taskSelect').dispatchEvent(new window.Event('change'));
+      $('firstBtn').click();
+      const total=Number($('stepTotal').textContent);
+      if(!(total>=10&&total<=40)){
+        missing(variant,task,'implausible step count '+total);continue;
+      }
+      const titles=[];
+      let former=null;
+      for(let i=0;i<total;i++){
+        const title=$('stepTitle').textContent.trim();
+        titles.push(title);
+        if(!title || !$('stepAction').textContent.trim() ||
+           !$('stepWhy').textContent.trim() ||
+           !$('stepCheck').textContent.trim()){
+          missing(variant,task,'incomplete explanation at step '+(i+1));
+        }
+        if(!window.document.querySelector('#drawing line, #drawing circle')){
+          missing(variant,task,'empty drawing at step '+(i+1));
+        }
+        if(i>=2){
+          checked++;
+          const labels=new Set([...window.document.querySelectorAll('#drawing circle[data-label]')]
+            .map(e=>e.getAttribute('data-label')).filter(Boolean));
+          if(former){
+            for(const label of former)if(!labels.has(label)){
+              missing(variant,task,'previously drawn point '+label+
+                ' vanished at step '+(i+1));
+            }
+          }
+          former=labels;
+        }
+        if(i+1<total)$('nextBtn').click();
+      }
+      checkedTasks++;
+      const find=cue=>titles.findIndex(s=>s.includes(cue));
+      const order=(cues,kind)=>{
+        const positions=cues.map(find);
+        if(positions.some(i=>i<0) ||
+           positions.some((p,i)=>i>0 && p<=positions[i-1])){
+          missing(variant,task,kind+' incorrect or incomplete: '+
+            cues.map((c,i)=>c+'='+positions[i]).join(', '));
+        }
+      };
+      if(task===4){
+        order(['h₂','h₁','f₁','f₂','ЛС₁','ЛС₂'],
+          'horizontal/frontal/greatest-slope');
+        if(!titles[total-1].startsWith('Построй '))
+          missing(variant,task,'terminal positioned point missing');
+      }else if(task===5){
+        order(['Заключи ','Найди 1','Перенеси 1','Построй m',
+          'Найди K','Перенеси K','Видимость на Π₁',
+          'Перенеси 3','Видимость на Π₂','Перенеси 5'],
+          'section/intersection/competing-point visibility');
+        if(variant==='20' && titles.some(t=>t.includes('ℓ')))
+          missing(variant,task,'the given line f was renamed ℓ');
+      }else{
+        order(['плоскость α','получи P','плоскость β','получи Q',
+          'Соедини P и Q','проведи ℓ'],
+          'two sections/common points/parallel result');
+        const point=variant==='04'?'M':'K';
+        if(!titles[total-1].startsWith('Через '+point+' '))
+          missing(variant,task,'wrong through-point '+point);
+      }
+    }
+  }
+  if(checkedTasks!==60 || checked<817)
+    failures.push('stepwise sequence coverage: '+checkedTasks+
+      ' tasks, '+checked+' drawn stages (expected 60 and at least 817)');
+  else console.log('Stepwise dependencies:',checkedTasks,
+    'tasks,',checked,'stages checked');
+} catch(e){
+  failures.push('all-variant staged method regression: '+e.stack);
+}
+
 // Coordinate tasks must expose x/y/z reference axes and visible construction guides.
 try {
   $('variantSelect').value='10';
