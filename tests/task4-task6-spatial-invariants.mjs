@@ -160,7 +160,7 @@ for(const variant of variants){
    continue;
  }
  const {P,Q,pair,levelType}=W.__task6Probe;
- if(variant==='05') console.log('05/6 actual section geometry:',JSON.stringify({width:t6.width,height:t6.height,levelType,P,Q,cuts:pair.map(c=>({level:c.level,score:c.score,refsA:c.a.refs?.map(r=>r.name),refsB:c.b.refs?.map(r=>r.name)}))}));
+ if(['05','12','13'].includes(variant)) console.log('task6 actual section geometry '+variant+':',JSON.stringify({width:t6.width,height:t6.height,levelType,P,Q,cuts:pair.map(c=>({level:c.level,score:c.score,refsA:c.a.refs?.map(r=>r.name),refsB:c.b.refs?.map(r=>r.name)}))}));
  // Test every intermediate helper point on both orthogonal projections,
  // including projecting-plane degeneracies. With the current twenty variants,
  // 2 cuts × 2 planes × 2 endpoints produce 8 points per variant.
