@@ -751,7 +751,7 @@ if (!onlyVariant && !onlyTask) try {
     const serialized=JSON.stringify(canon(raw));
     const [hash,len]=expected[variant];
     if(serialized.length!==len||fnv(serialized)!==hash){
-      failures.push('source fingerprint '+variant+': raw paper trace changed without explicit retrace');
+      failures.push('source fingerprint '+variant+': expected '+hash+'/'+len+', actual '+fnv(serialized)+'/'+serialized.length+'; raw paper trace changed without explicit retrace');
     }
   }
 } catch(e) {
