@@ -84,6 +84,33 @@ for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
      if(drawing.steps[0].entities.some(e=>e.label==='g₁'||e.label==='g₂'))
        issues.push('17: derived g was falsely added to printed source frame');
    }
+ }else if(variant==='01'){
+   const probe=W.__task5BridgeProbe;
+   const bridge=probe?.bridge;
+   if(!bridge||probe.refs[1]?.name!=='g'||probe.witness2?.ref?.name!=='g')
+     issues.push('01: remote frontal competitor was not replaced by constructed transverse g');
+   else{
+     const g=bridge.g,plane=audit.planeFromScheme(s),sz=norm(plane.n);
+     for(let i=0;i<2;i++){
+       const P={x:g.p1[i][0],y:g.p1[i][1],z:-g.p2[i][1]};
+       const gap=Math.abs((plane.n.x*P.x+plane.n.y*P.y+plane.n.z*P.z+plane.d)/sz);
+       if(Math.abs(g.p1[i][0]-g.p2[i][0])>1e-5||gap>.01)
+         issues.push('01: new g endpoint is not a valid in-plane 3D point');
+     }
+     const titles=drawing.steps.map(st=>st.title||'');
+     const omega=titles.findIndex(t=>t.startsWith('Заключи ℓ во вспомогательную'));
+     const stages=['Выбери T₁','По линии связи перенеси T₁','Выбери U₁',
+       'По линии связи перенеси U₁','Соедини T и U'].map(prefix=>
+         titles.findIndex(t=>t.startsWith(prefix)));
+     if(stages.some(x=>x<0)||stages.some((x,i)=>i&&x!==stages[i-1]+1)||
+        stages[4]>=omega)
+       issues.push('01: helper g=TU not built in five real ordered pencil stages');
+     if(drawing.width>700||drawing.height>650)
+       issues.push('01: remote competing-point construction still enlarges paper '+
+         drawing.width.toFixed(1)+'x'+drawing.height.toFixed(1));
+     if(drawing.steps[0].entities.some(e=>e.label==='g₁'||e.label==='g₂'))
+       issues.push('01: g incorrectly appeared as a printed original');
+   }
  }else if(W.__task5BridgeProbe?.bridge)
    issues.push(variant+': extra source-derived g is unnecessary');
  // In 19/5 a photographed source-line competitor was >1200 units
