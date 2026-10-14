@@ -133,6 +133,60 @@ for (const variant of variants) {
 }
 
 
+// Task 6: a computed intersection of section lines is not a drawable step
+// unless the already constructed segments (or explicit thin continuations)
+// actually REACH P/Q. Test all 20 variants and both auxiliary levels.
+if (!onlyVariant && !onlyTask) try {
+  let confirmed=0;
+  for(const variant of variants){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='6';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+    const count=Number($('stepTotal').textContent);
+    let inVariant=0;
+    for(let index=0;index<count;index++){
+      const title=$('stepTitle').textContent.trim();
+      if(title.startsWith('Пересеки линии сечения ')){
+        const letter=title.includes('получи P')?'P':title.includes('получи Q')?'Q':'';
+        const dots=[...window.document.querySelectorAll('#drawing circle[data-label]')];
+        const dot=dots.find(x=>x.getAttribute('data-label').startsWith(letter) && letter);
+        if(!dot){
+          failures.push('task6 section intersection '+variant+': '+title+' has no P/Q marker');
+        }else{
+          const p={x:Number(dot.getAttribute('cx')),y:Number(dot.getAttribute('cy'))};
+          const vectors=[...window.document.querySelectorAll('#drawing line.aux-line, #drawing line.construction-line')]
+            .map(el=>({
+              a:{x:Number(el.getAttribute('x1')),y:Number(el.getAttribute('y1'))},
+              b:{x:Number(el.getAttribute('x2')),y:Number(el.getAttribute('y2'))}
+            }))
+            .map(({a,b})=>{
+              const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);
+              if(len<1e-7)return null;
+              const t=((p.x-a.x)*dx+(p.y-a.y)*dy)/(len*len);
+              const gap=Math.abs(dx*(p.y-a.y)-dy*(p.x-a.x))/len;
+              return t>=-1e-6&&t<=1+1e-6&&gap<1e-4 ? {x:dx/len,y:dy/len}:null;
+            }).filter(Boolean);
+          const twoDirections=vectors.some((v,i)=>vectors.some((w,j)=>
+            i!==j&&Math.abs(v.x*w.y-v.y*w.x)>1e-4
+          ));
+          if(!twoDirections){
+            failures.push('task6 section intersection '+variant+': '+title+
+              ' is floating; two nonparallel drawn sections do not reach '+letter);
+          }
+        }
+        inVariant++;confirmed++;
+      }
+      if(index<count-1)$('nextBtn').click();
+    }
+    if(inVariant!==2)failures.push('task6 section intersection '+variant+': expected P and Q, got '+inVariant);
+  }
+  console.log('Task6 section endpoints:',confirmed,'intersections checked');
+} catch(e){
+  failures.push('task6 section endpoint regression: '+e.stack);
+}
+
 // Variant ordering / display regression.
 try {
   const visible=[...window.document.querySelectorAll('.variant-chip[data-variant]')]
