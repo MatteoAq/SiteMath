@@ -942,6 +942,65 @@ Object.assign(window.SITEMATH_SCHEMES, {
 });
 
 
+/* Scanned university original: six-task album, page "В. 01" (14.10.2026).
+   Raw source strokes are traced independently from any solver cleanup.
+   Do not mark sourceVerified before full per-step visual verification. */
+Object.assign(window.SITEMATH_DATA.variants, {
+  "01": {
+    label:"Вариант 01",
+    task1:{ A:[25,40,0],B:[40,60,-20],C:[20,-25,60],D:[0,40,35],E:[40,0,10] },
+    task2:{ A:[60,-15,50],B:[20,40,30] },
+    task3:{ A:[70,50,0],B:[40,60,-20],C:[20,-25,60] },
+    task4:{
+      statement:"В пл. Σ(a∩b) построить горизонталь, фронталь и линию наибольшего ската. Через точку B провести прямую ℓ, параллельную пл. Σ. Построить точку A за прямой ℓ.",
+      plane:"a∩b",operation:"line_parallel_plane",pointRelation:"behind_line"
+    },
+    task5:{
+      statement:"Построить точку пересечения прямой ℓ с пл. Σ(a∥b) и определить видимость прямой относительно пл. Σ.",
+      plane:"a∥b"
+    },
+    task6:{
+      statement:"Построить линию пересечения пл. Σ(a∩b) и пл. Δ(Δ₂). Через точку K провести прямую, параллельную обеим плоскостям.",
+      planes:["a∩b","projecting"]
+    }
+  }
+});
+Object.assign(window.SITEMATH_SCHEMES, {
+  "01": {
+    task4:{
+      planeType:"intersecting_lines",planeLines:["a","b"],
+      lines:{
+        a:{p2:[[572,772],[716,696]],p1:[[573,801],[721,896]]},
+        b:{p2:[[578,706],[727,763]],p1:[[562,855],[733,838]]}
+      },
+      points:{B:{p2:[813,715],p1:[814,851]}},
+      junctions:[{p2:[647,733],p1:[648,847]}],
+      operation:{type:"line_parallel_plane",through:"B",resultPoint:"A",relation:"behind_line"},
+      sourceVerified:false
+    },
+    task5:{
+      planeType:"parallel_lines",planeLines:["a","b"],
+      lines:{
+        a:{p2:[[184,1129],[364,1227]],p1:[[119,1293],[348,1330]]},
+        b:{p2:[[111,1176],[327,1297]],p1:[[112,1332],[337,1366]]},
+        l:{p2:[[151,1155],[333,1261]],p1:[[136,1381],[302,1297]]}
+      },
+      givenLine:"l",sourceVerified:false
+    },
+    task6:{
+      planeA:{
+        type:"intersecting_lines",lines:{
+          a:{p2:[[583,1126],[796,1203]],p1:[[586,1233],[788,1370]]},
+          b:{p2:[[606,1207],[827,1127]],p1:[[612,1336],[830,1304]]}
+        },
+        junctions:[{p2:[713,1173],p1:[714,1322]}]
+      },
+      planeB:{type:"frontal_projecting",projection:"p2",line:[[658,1211],[859,1182]],name:"Δ"},
+      pointK:{p2:[871,1197],p1:[877,1374]},sourceVerified:false
+    }
+  }
+});
+
 /* Variant 12 re-traced from the original photographed sheet.
    Keep exact source topology: named points, projectors and line junctions. */
 Object.assign(window.SITEMATH_SCHEMES["12"], {
