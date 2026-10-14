@@ -721,7 +721,7 @@ if (!onlyVariant && !onlyTask) try {
     '12':['468c4cd2',1533],
     '13':['ca212e69',1223],
     '14':['d4d3057f',1046],
-    '15':['aed4e407',902],
+    '15':['907347c7',902],
     '17':['2e806d12',1348],
     '18':['2f9067d1',1429],
     '19':['27f74aca',1215]
@@ -776,6 +776,22 @@ if(!onlyVariant&&!onlyTask)try{
     }
   }
 }catch(e){failures.push("variant 13 paper junction check: "+e.message)}
+
+// 15/5, original university sheet: the given ℓ₁ is short and does NOT
+// cross the PRINTED a₁ segment. Do not replace its paper length with
+// the extended mathematical line used to locate K.
+if(!onlyVariant&&!onlyTask)try{
+  const raw=window.SITEMATH_SCHEMES?.['15']?.task5?.sourceGeometry;
+  const l=raw?.lines?.l?.p1, a=raw?.lines?.a?.p1;
+  if(!l||!a)failures.push('variant 15/5 paper: raw lower l/a missing');
+  else{
+    const at=x=>a[0][1]+(a[1][1]-a[0][1])*(x-a[0][0])/(a[1][0]-a[0][0]);
+    if(l[0][0]<220 || l[0][0]>255 ||
+       l[1][0]<460 || l[1][0]>495 ||
+       l.some(p=>p[1]-at(p[0])<10))
+      failures.push('variant 15/5 paper: short ℓ₁ has been lengthened into a₁');
+  }
+}catch(e){failures.push('variant 15/5 paper trace '+e.message)}
 
 // Variant-specific corrections recovered from the photographed sheets / prior
 // review must not drift back to generic templates.
