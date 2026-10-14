@@ -345,6 +345,21 @@ for (const vp of viewports) {
         path:'mobile-screenshots/final-v'+String(Number(variant)).padStart(2,'0')+'-t'+task+'.png',
         fullPage:false
       });
+      // These three variants previously had real but needlessly remote
+      // pencil constructions: 01/5 ≈1565 units, 05/6 ≈2586,
+      // 13/6 ≈6345. The source stays exact; only legitimate auxiliary
+      // helpers were changed. Their complete results must remain readable
+      // in Fit mode, unlike genuinely remote 12/6 and 13/5.
+      if((variant==='01'&&task===5)||
+         (variant==='05'&&task===6)||
+         (variant==='13'&&task===6)){
+        const zoom=await page.evaluate(()=>
+          Number(document.querySelector('#zoomLabel').textContent
+            .replace('%','').replace(',','.')));
+        if(zoom<10)
+          failures.push(variant+'/'+task+
+            ': avoidable remote auxiliary construction collapsed final Fit view to '+zoom+'%');
+      }
       // 17/5 used to be an almost blank sheet at 1.3% although K lay
       // beside the given lines: the auxiliary points were >7000 units away.
       // Its now explicitly constructed g=TU must preserve the first frame
