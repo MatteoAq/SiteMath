@@ -566,7 +566,7 @@ for (const vp of viewports) {
                 ?{x:dx/len,y:dy/len}:null;
             }).filter(Boolean);
           return dirs.some((a,i)=>dirs.some((b,j)=>
-            i!==j&&Math.abs(a.x*b.y-a.y*b.x)>1e-4))?2:dirs.length;
+            i!==j&&Math.abs(a.x*b.y-a.y*b.x)>1e-4))?2:0;
         };
         return {witness:witnessIntersections('5₂≡6₂'),
           front:touches('5₁'),plane:touches('6₁')};
