@@ -189,7 +189,11 @@ for (const vp of viewports) {
   await page.locator('#firstRunStart').click();
   await page.waitForTimeout(100);
 
-  const photographed=Array.from({length:20},(_,i)=>String(i+1).padStart(2,'0'));
+  const allPaperVariants=Array.from({length:20},(_,i)=>String(i+1).padStart(2,'0'));
+  const selectedStepwise=process.env.STEPWISE_AUDIT_VARIANTS?.split(',').map(x=>x.trim()).filter(Boolean);
+  const photographed=process.env.STEPWISE_AUDIT==='1' && selectedStepwise?.length
+    ? allPaperVariants.filter(x=>selectedStepwise.includes(x))
+    : allPaperVariants;
   for (const variant of photographed) {
     for (const task of [4,5,6]) {
       await page.evaluate(({variant,task})=>{
@@ -259,39 +263,55 @@ for (const vp of viewports) {
       // One-off, opt-in evidence for the still-pending visual review of
       // EVERY intermediate pencil step from available original sheets.
       // Disabled for normal CI so this is not a permanent long QA cycle.
-      if(process.env.STEPWISE_AUDIT==='1' &&
-         !['07','13'].includes(variant)){
+      if(process.env.STEPWISE_AUDIT==='1'){
         const total=await page.evaluate(()=>Number(document.querySelector('#stepTotal')?.textContent)||0);
         const evidence=[];
         const id=String(Number(variant)).padStart(2,'0');
+        await page.evaluate(()=>{
+          document.querySelector('#firstBtn')?.click();
+          document.querySelector('#nextBtn')?.click();
+          document.querySelector('#nextBtn')?.click();
+        });
         for(let step=2;step<total-1;step++){
           const snapshot=await page.evaluate(step=>{
-            document.querySelector('#firstBtn')?.click();
-            for(let j=0;j<step;j++)document.querySelector('#nextBtn')?.click();
             const svg=document.querySelector('#drawing');
-            const title=document.querySelector('#stepTitle')?.textContent||'';
+            const txt=id=>document.getElementById(id)?.textContent?.trim()||'';
             const drawn=[...svg.querySelectorAll('line,circle')];
-            return {step,title,drawn:drawn.length,
+            const entities=drawn.map(n=>({
+              tag:n.tagName.toLowerCase(),
+              role:n.getAttribute('data-role')||'',
+              label:n.getAttribute('data-label')||'',
+              cls:n.getAttribute('class')||''
+            }));
+            return {
+              step,title:txt('stepTitle'),action:txt('stepAction'),
+              why:txt('stepWhy'),check:txt('stepCheck'),
+              measure:txt('stepMeasure'),drawn:drawn.length,
               pointLabels:[...svg.querySelectorAll('circle[data-label]')]
-                .map(p=>p.getAttribute('data-label'))};
+                .map(p=>p.getAttribute('data-label')),
+              entities
+            };
           },step);
-          await page.locator('#zoomFitBtn').click();
-          await page.waitForTimeout(85);
+          await page.locator('#mobileFocusBtn').click();
+          await page.waitForTimeout(95);
           await page.evaluate(()=>{
             for(const animation of document.getAnimations())
               try{animation.finish()}catch{}
           });
           await page.screenshot({
             path:'mobile-screenshots/step-v'+id+'-t'+task+'-s'+String(step).padStart(2,'0')+'.jpg',
-            type:'jpeg',quality:48,fullPage:false
+            type:'jpeg',quality:52,fullPage:false
           });
           evidence.push(snapshot);
-          if(!snapshot.drawn)failures.push('empty intermediate drawing '+variant+'/'+task+'/'+step);
+          if(!snapshot.drawn||!snapshot.title||!snapshot.action)
+            failures.push('incomplete intermediate drawing/action '+variant+'/'+task+'/'+step);
+          await page.evaluate(()=>document.querySelector('#nextBtn')?.click());
         }
         fs.writeFileSync(
           'mobile-screenshots/step-v'+id+'-t'+task+'.json',
           JSON.stringify({variant,task,total,evidence},null,2)
         );
+        console.log('Saved intermediate construction steps',variant,task,evidence.length);
       }
 
       // Keep a final-frame capture as well. A source can be faithful while the
