@@ -172,6 +172,17 @@ if (!onlyVariant && !onlyTask) try {
             i!==j&&Math.abs(v.x*w.y-v.y*w.x)>1e-4
           ));
           if(!twoDirections){
+            if(variant==='18' && letter==='P'){
+              const closest=[...window.document.querySelectorAll('#drawing line.aux-line, #drawing line.construction-line')].map(el=>{
+                const ax=+el.getAttribute('x1'),ay=+el.getAttribute('y1');
+                const bx=+el.getAttribute('x2'),by=+el.getAttribute('y2');
+                const dx=bx-ax,dy=by-ay,dd=dx*dx+dy*dy;
+                const t=dd>0?((p.x-ax)*dx+(p.y-ay)*dy)/dd:0;
+                const dist=dd>0?Math.abs(dx*(p.y-ay)-dy*(p.x-ax))/Math.sqrt(dd):1e9;
+                return {cls:el.getAttribute('class'),a:[ax,ay],b:[bx,by],t,dist,score:dist+Math.max(0,-t,t-1)*50};
+              }).sort((a,b)=>a.score-b.score).slice(0,7);
+              failures.push('task6 diagnostic 18/P: '+JSON.stringify({point:p,matchCount:vectors.length,closest}));
+            }
             failures.push('task6 section intersection '+variant+': '+title+
               ' is floating; two nonparallel drawn sections do not reach '+letter);
           }
