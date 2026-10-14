@@ -872,7 +872,7 @@ Object.assign(window.SITEMATH_SCHEMES, {
   },
   "06": {
     task4:{
-      planeType:"parallel_lines",planeLines:["m","n"],
+      name:"Δ",planeType:"parallel_lines",planeLines:["m","n"],
       lines:{
         m:{p2:[[110,130],[330,82]],p1:[[100,250],[330,365]]},
         n:{p2:[[105,165],[330,116]],p1:[[105,215],[330,328]]}
@@ -906,7 +906,7 @@ Object.assign(window.SITEMATH_SCHEMES, {
   },
   "09": {
     task4:{
-      planeType:"line_point",planeLine:"b",planePoint:"A",
+      name:"Δ",planeType:"line_point",planeLine:"b",planePoint:"A",
       lines:{
         b:{p2:[[160,160],[325,62]],p1:[[160,230],[325,360]]}
       },
@@ -1026,7 +1026,7 @@ Object.assign(window.SITEMATH_DATA.variants, {
 Object.assign(window.SITEMATH_SCHEMES, {
   "16": {
     task4:{
-      planeType:"ABC",
+      name:"Δ",planeType:"ABC",
       points:{
         A:{p2:[632,681],p1:[633,778]},
         B:{p2:[706,624],p1:[707,825]},
@@ -1071,7 +1071,7 @@ Object.assign(window.SITEMATH_DATA.variants, {
     task3:{ A:[5,30,0],B:[45,-30,40],C:[25,20,15] },
     task4:{
       statement:"В пл. Σ(ABC) построить горизонталь, фронталь и линию наибольшего ската. Через точку D провести прямую ℓ, пересекающую BC. Построить точку E под прямой ℓ.",
-      plane:"ABC",operation:"line_intersects_BC",pointRelation:"below_line"
+      plane:"ABC",operation:"line_intersects_named",pointRelation:"below_line"
     },
     task5:{
       statement:"Построить точку пересечения прямой ℓ с пл. Σ(A;a) и определить видимость прямой относительно пл. Σ.",
