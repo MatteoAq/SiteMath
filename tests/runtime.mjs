@@ -2773,6 +2773,19 @@ try {
        distance(work[side],v19.lines.b[side])>1e-4)
       failures.push('19/4: working K not exactly on both defining '+side+' lines');
   }
+  const v03=window.SITEMATH_SCHEMES?.['03']?.task5;
+  const raw03=v03?.sourceGeometry?.junctions?.[0];
+  const work03=v03?.junctions?.[0];
+  if(!raw03||!work03||
+     Math.abs(raw03.p1[0]-249.09391049156272)>1e-5||
+     Math.abs(raw03.p2[0]-263.0653950953678)>1e-5||
+     Math.abs(work03.p1[0]-work03.p2[0])>1e-5)
+    failures.push('03/5: original source junction changed or working pair misaligned');
+  else for(const side of ['p1','p2']){
+    if(distance(work03[side],v03.lines.a[side])>1e-4||
+       distance(work03[side],v03.lines.f[side])>1e-4)
+      failures.push('03/5: working junction not precisely on a and f '+side);
+  }
 } catch(e) {
   failures.push('variant12/19 source geometry metadata: '+e.stack);
 }
