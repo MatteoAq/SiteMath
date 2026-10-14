@@ -51,6 +51,7 @@ for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
  // strokes must meet ONLY at K and must not overlap even if the input
  // photograph stops before K.
  const drawing=audit.solveTask5Scheme(s,{});
+ if(['01','13'].includes(variant))console.log('task5 actual geometry '+variant+':',JSON.stringify({width:drawing.width,height:drawing.height,K1,K2,cutScore:cut.score,cutPrimary:cut.primary,sectionPoints:{I1:cut.I1,I2:cut.I2,J1:cut.J1,J2:cut.J2}}));
  // Variant 17's first published result was only 1.3% scale because a
  // deliberately constructed Ω∩a witness lay ~7000 units away, even though K
  // was close to the archived source. Require a REAL 3D line g=TU before Ω,
