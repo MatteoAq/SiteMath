@@ -1925,7 +1925,10 @@
     if(dd<EPS)return [];
     const ap=vec2(a,P);
     const t=(ap.x*d.x+ap.y*d.y)/dd;
-    if(t>=-.01&&t<=1.01)return [];
+    // A point even slightly beyond the printed segment requires a real
+    // construction continuation. A former 1% parametric tolerance silently
+    // suppressed short but necessary strokes (05/5, K₁ beyond ℓ₁ by 0.78).
+    if(t>=0&&t<=1)return [];
     const end=t<0?a:b;
     if(dist2(end,P)<.5)return [];
     return [line(step,end,P,cls||'construction-line')];
