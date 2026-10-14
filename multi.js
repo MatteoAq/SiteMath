@@ -2126,7 +2126,7 @@
       out.push(point(step,p2,name+'₂'));
       out.push(point(step,p1,name+'₁'));
     });
-    if(src.planeType==='ABC'){
+    if(src.planeType==='ABC' && !src.sourceABCVerticesOnly){
       appendABCPlaneEntities(out,src,step,exactSource);
     }
     (src.sourceGuides||[]).forEach(seg=>{
@@ -2388,6 +2388,31 @@
     const base=plane.P;
 
     const xAxis=diagramReferenceAxisStep(push,steps,scheme);
+
+    // Some original sheets specify a plane by three INDIVIDUAL given point
+    // projectors, with no edges pre-drawn. Connect those vertices as distinct
+    // pencil steps, never draw extra edges in the paper's initial frame.
+    if(scheme.planeType==='ABC' && scheme.sourceABCVerticesOnly){
+      const names=['A','B','C'];
+      const recs=Object.fromEntries(names.map(n=>[n,normalizedPointRec(scheme.points[n])]));
+      const xy=p=>({x:+p[0],y:+p[1]});
+      for(const [proj,index] of [['p1','₁'],['p2','₂']]){
+        const st=steps.length;
+        const links=[['A','B'],['B','C'],['C','A']].map(([a,b])=>
+          line(st,xy(recs[a][proj]),xy(recs[b][proj]),'construction-line'));
+        push({
+          title:'Соедини A'+index+', B'+index+' и C'+index,
+          action:'Соедини три уже заданные проекции вершин отрезками '+
+            'A'+index+'B'+index+', B'+index+'C'+index+' и C'+index+'A'+index+'.',
+          why:'На бумажном оригинале напечатаны только отдельные проекции точек. '+
+            'Стороны треугольника не являются исходными штрихами, '+
+            'их необходимо явно построить, прежде чем использовать плоскость ABC.',
+          measure:['Проведи три прямых отрезка между уже заданными точками, без новых координат.'],
+          check:'Концы каждого отрезка совпадают с данными точками; '+
+            'новые точки и линии связи на этом шаге не создаются.'
+        },links);
+      }
+    }
 
     let h3=null,f3=null,dh=null,df=null;
     const teacherBuild=scheme.planeType==='line_point'
