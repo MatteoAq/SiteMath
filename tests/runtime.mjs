@@ -247,6 +247,20 @@ if (!onlyVariant && !onlyTask) try {
             const first=touching(point,aClass),second=touching(point,bClass);
             const transversal=first.some(u=>second.some(v=>Math.abs(u.x*v.y-u.y*v.x)>1e-4));
             if(!transversal){
+              if(variant==='05'&&task===5){
+                const nearest=[...window.document.querySelectorAll('#drawing line')].map(el=>{
+                  const a={x:+el.getAttribute('x1'),y:+el.getAttribute('y1')};
+                  const b={x:+el.getAttribute('x2'),y:+el.getAttribute('y2')};
+                  const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);
+                  if(len<1e-8)return null;
+                  const t=((point.x-a.x)*dx+(point.y-a.y)*dy)/(len*len);
+                  const perpendicular=Math.abs(dx*(point.y-a.y)-dy*(point.x-a.x))/len;
+                  return {cls:el.getAttribute('class'),perpendicular,t,
+                    a:[a.x,a.y],b:[b.x,b.y],
+                    priority:perpendicular+Math.max(0,-t,t-1)*50};
+                }).filter(Boolean).sort((x,y)=>x.priority-y.priority).slice(0,9);
+                failures.push('manual diagnostic 05/5: '+JSON.stringify({point,nearest}));
+              }
               failures.push('manual intersection '+variant+'/'+task+' '+label+
                 ': drawn section/level and its second supporting line do not meet visibly '+JSON.stringify({first:first.length,second:second.length}));
             }
