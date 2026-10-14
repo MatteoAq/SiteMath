@@ -2528,7 +2528,7 @@ if (!onlyVariant && !onlyTask) try {
       if(task===4){
         order(['h₂','h₁','f₁','f₂','ЛС₁','ЛС₂'],
           'horizontal/frontal/greatest-slope');
-        if(!titles[total-1].startsWith('Построй '))
+        if(!titles[total-2].startsWith('Построй '))
           missing(variant,task,'terminal positioned point missing');
       }else if(task===5){
         order(['Заключи ','Найди 1','Перенеси 1','Построй m',
@@ -2542,7 +2542,7 @@ if (!onlyVariant && !onlyTask) try {
           'Соедини P и Q','проведи ℓ'],
           'two sections/common points/parallel result');
         const point=variant==='04'?'M':'K';
-        if(!titles[total-1].startsWith('Через '+point+' '))
+        if(!titles[total-2].startsWith('Через '+point+' '))
           missing(variant,task,'wrong through-point '+point);
       }
     }
