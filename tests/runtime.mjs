@@ -2191,7 +2191,7 @@ try {
       const g=schemes[v]['task'+task];
       const info=originalVariant[v]['task'+task];
       if(!info?.statement)failures.push('assignment audit '+v+'/'+task+': no preserved condition text');
-      if(g.sourceVerified && !(v==='12' && g.sourceId==='IMG_20260917_131638')){
+      if(g.sourceVerified===true){
         failures.push('assignment audit '+v+'/'+task+': unverified original incorrectly marked verified');
       }
       if(task===4){

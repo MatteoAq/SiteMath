@@ -1208,9 +1208,9 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
     },
     points:{D:{p2:[446,296],p1:[446,501]}},
     junctions:[{p2:[231,330],p1:[231,468]}],
-    sourceVerified:true,
+    sourceVerified:false,
     sourceAvailable:true,
-    sourceId:"IMG_20260917_131638",
+    sourceId:"source-photos/scans/variant-12.jpg",
     operation:{type:"line_intersects_named",through:"D",target:"a",resultPoint:"A",relation:"behind_line"}
   },
   task5:{
@@ -1225,9 +1225,9 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
     },
     lineLabels:{l:{p2:[208,236],p1:[216,354]}},
     givenLine:"l",
-    sourceVerified:true,
+    sourceVerified:false,
     sourceAvailable:true,
-    sourceId:"IMG_20260917_131638"
+    sourceId:"source-photos/scans/variant-12.jpg"
   },
   task6:{
     planeA:{type:"parallel_lines",lines:{
@@ -1245,9 +1245,9 @@ Object.assign(window.SITEMATH_SCHEMES["12"], {
       f:{p2:[576,145],p1:[573,367]}
     },junctions:[{p2:[452,232],p1:[452,366]}]},
     pointK:{p2:[196,116],p1:[199,465]},
-    sourceVerified:true,
+    sourceVerified:false,
     sourceAvailable:true,
-    sourceId:"IMG_20260917_131638"
+    sourceId:"source-photos/scans/variant-12.jpg"
   }
 });
 
