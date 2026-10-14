@@ -341,7 +341,7 @@ for (const vp of viewports) {
       // 05/6 and 12/6 have genuinely distant intersections; full fit must remain
       // mathematically exact, while local focus must make the current pencil
       // operation readable and continue to follow Prev/Next steps.
-      if((variant==='12'||variant==='05') && task===6){
+      if((variant==='12'||variant==='05'||variant==='01') && task===6){
         const inspect=()=>page.evaluate(()=>{
           const svg=document.querySelector('#drawing');
           const lines=[...svg.querySelectorAll('line.answer-line')].slice(-2);
