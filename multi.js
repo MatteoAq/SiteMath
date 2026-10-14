@@ -419,7 +419,7 @@
   function planeDefNotation(def,symbol){
     const s=symbol||'Σ';
     if(!def) return s;
-    if(def.type==='ABC') return s+'(ABC)';
+    if(def.type==='ABC') return s+'('+Object.keys(def.points||{}).join('')+')';
     if(def.type==='line_point'){
       const lineName=def.lineName||Object.keys(def.lines||{})[0]||'a';
       const pointName=def.pointName||Object.keys(def.points||{})[0]||'A';
@@ -3004,9 +3004,11 @@
 
   function appendABCPlaneEntities(out,scheme,step,exactSource){
     if(scheme.planeType!=='ABC') return;
+    const labels=Object.keys(scheme.points||{}).slice(0,3);
+    if(labels.length!==3)return;
     const get=p=>exactSource?p:normalizedPointRec(p);
-    const A=get(scheme.points.A),B=get(scheme.points.B),C=get(scheme.points.C);
-    [['A','B',A,B],['B','C',B,C],['C','A',C,A]].forEach(row=>{
+    const A=get(scheme.points[labels[0]]),B=get(scheme.points[labels[1]]),C=get(scheme.points[labels[2]]);
+    [[labels[0],labels[1],A,B],[labels[1],labels[2],B,C],[labels[2],labels[0],C,A]].forEach(row=>{
       out.push(line(step,{x:row[2].p2[0],y:row[2].p2[1]},{x:row[3].p2[0],y:row[3].p2[1]},'object-line'));
       out.push(line(step,{x:row[2].p1[0],y:row[2].p1[1]},{x:row[3].p1[0],y:row[3].p1[1]},'object-line'));
     });
@@ -3520,8 +3522,10 @@
 
   function planeFromDef(def){
     if(def.type==='ABC'){
-      const pseudo={planeType:'ABC',points:def.points};
-      return planeFromScheme(pseudo);
+      const names=Object.keys(def.points||{}).slice(0,3);
+      if(names.length!==3)throw new Error('Для треугольной плоскости нужны три исходные вершины.');
+      const points={A:def.points[names[0]],B:def.points[names[1]],C:def.points[names[2]]};
+      return planeFromScheme({planeType:'ABC',points});
     }
     if(def.type==='parallel_lines' || def.type==='intersecting_lines'){
       const names=Object.keys(def.lines);
@@ -3621,7 +3625,9 @@
     if(!def) return [];
     if(def.type==='ABC'){
       const p=def.points||{};
-      const pairs=[['A','B'],['B','C'],['C','A']];
+      const labels=Object.keys(p).slice(0,3);
+      if(labels.length!==3)return [];
+      const pairs=[[labels[0],labels[1]],[labels[1],labels[2]],[labels[2],labels[0]]];
       return pairs.filter(([a,b])=>p[a]&&p[b]).map(([a,b])=>{
         const A=normalizedPointRec(p[a]),B=normalizedPointRec(p[b]);
         return {name:a+b,rec:{p1:[A.p1,B.p1],p2:[A.p2,B.p2]}};
