@@ -161,8 +161,8 @@ for(const variant of variants){
  }
  const {P,Q,pair,levelType}=W.__task6Probe;
  // Test every intermediate helper point on both orthogonal projections,
- // including projecting-plane degeneracies. There are 128 such points in
- // the current 16-variant corpus (2 cuts × 2 planes × 2 endpoints).
+ // including projecting-plane degeneracies. With the current twenty variants,
+ // 2 cuts × 2 planes × 2 endpoints produce 8 points per variant.
  for(const cut of pair){
    for(const [label,section,key] of [['A',cut.a,'planeA'],['B',cut.b,'planeB']]){
      const parent=W.__geometry.planeFromDef(def.task6[key]);
@@ -322,4 +322,4 @@ for(const variant of variants){
  }
 }
 if(errors.length){console.error(errors.join('\n'));process.exitCode=1;}
-else console.log('Spatial construction geometry OK: '+variants.length+' task-4 special lines and 128 task-6 auxiliary points + P/Q and final parallel lines checked.');
+else console.log('Spatial construction geometry OK: '+variants.length+' task-4 special lines and '+(variants.length*8)+' task-6 auxiliary points + P/Q and final parallel lines checked.');
