@@ -1001,6 +1001,65 @@ Object.assign(window.SITEMATH_SCHEMES, {
   }
 });
 
+/* University album source, page "В. 16", 14.10.2026.
+   Do not conflate C.z=-33 in task 1 with C.z=-35 in task 3. */
+Object.assign(window.SITEMATH_DATA.variants, {
+  "16": {
+    label:"Вариант 16",
+    task1:{ A:[10,20,-45], B:[25,20,0], C:[20,-25,-33], D:[55,-30,30], E:[25,20,10] },
+    task2:{ A:[15,-40,-50], B:[55,-30,30] },
+    task3:{ A:[15,-40,-50], B:[55,-30,30], C:[20,-25,-35] },
+    task4:{
+      statement:"В пл. Δ(ABC) построить горизонталь, фронталь и линию наибольшего ската. Через точку D провести прямую ℓ, пересекающую горизонталь. Построить точку E за прямой ℓ.",
+      plane:"ABC", operation:"line_intersects_horizontal",pointRelation:"behind_line"
+    },
+    task5:{
+      statement:"Построить точку пересечения прямой ℓ с пл. Σ(ABC) и определить видимость прямой относительно пл. Σ.",
+      plane:"ABC"
+    },
+    task6:{
+      statement:"Построить линию пересечения пл. Σ(a∥b) и пл. Θ(c∥d). Через точку K провести прямую, параллельную обеим плоскостям.",
+      planes:["a∥b","c∥d"]
+    }
+  }
+});
+Object.assign(window.SITEMATH_SCHEMES, {
+  "16": {
+    task4:{
+      planeType:"ABC",
+      points:{
+        A:{p2:[632,681],p1:[633,778]},
+        B:{p2:[706,624],p1:[707,825]},
+        C:{p2:[778,715],p1:[777,740]},
+        D:{p2:[856,643],p1:[856,820]}
+      },
+      operation:{type:"line_intersects_horizontal",through:"D",resultPoint:"E",relation:"behind_line"},
+      sourceVerified:false
+    },
+    task5:{
+      planeType:"ABC",
+      points:{
+        A:{p2:[255,1082],p1:[257,1260]},
+        B:{p2:[322,1046],p1:[321,1146]},
+        C:{p2:[433,1128],p1:[433,1189]}
+      },
+      lines:{l:{p2:[[209,1146],[435,1047]],p1:[[228,1184],[457,1260]]}},
+      givenLine:"l",sourceVerified:false
+    },
+    task6:{
+      planeA:{type:"parallel_lines",lines:{
+        a:{p2:[[793,1138],[966,1040]],p1:[[792,1235],[965,1256]]},
+        b:{p2:[[801,1182],[969,1087]],p1:[[801,1207],[972,1281]]}
+      }},
+      planeB:{type:"parallel_lines",lines:{
+        c:{p2:[[590,1058],[760,1143]],p1:[[586,1306],[752,1247]]},
+        d:{p2:[[566,1118],[731,1197]],p1:[[574,1278],[742,1217]]}
+      }},
+      pointK:{p2:[663,1037],p1:[661,1313]},sourceVerified:false
+    }
+  }
+});
+
 /* Variant 12 re-traced from the original photographed sheet.
    Keep exact source topology: named points, projectors and line junctions. */
 Object.assign(window.SITEMATH_SCHEMES["12"], {
