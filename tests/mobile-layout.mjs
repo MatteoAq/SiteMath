@@ -106,7 +106,7 @@ for (const vp of viewports) {
 
   await page.emulateMedia({media:'print'});
   const printHeader=await page.locator('#printProvenance').evaluate(el=>({visible:getComputedStyle(el).display!=='none',text:el.textContent.trim()}));
-  if(!printHeader.visible || !printHeader.text.includes('НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ')) failures.push(vp.name+': print/PDF omits unverified source provenance '+JSON.stringify(printHeader));
+  if(!printHeader.visible || !printHeader.text.includes('МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА')) failures.push(vp.name+': print/PDF omits method-verification caution '+JSON.stringify(printHeader));
   const printGrid=await gridState(page);
   if(!printGrid.minor.ok||!printGrid.major.ok){
     failures.push(vp.name+': print/PDF hides 5 mm grid '+JSON.stringify(printGrid));
@@ -484,7 +484,7 @@ for (const vp of viewports) {
   });
   await page.emulateMedia({media:'print'});
   const disputedPrint=await page.locator('#printProvenance').evaluate(el=>({visible:getComputedStyle(el).display!=='none',text:el.textContent.trim()}));
-  if(!disputedPrint.visible || !disputedPrint.text.includes('НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ')) failures.push('print/PDF 06/4: pending method verification missing '+JSON.stringify(disputedPrint));
+  if(!disputedPrint.visible || !disputedPrint.text.includes('МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА')) failures.push('print/PDF 06/4: pending method verification missing '+JSON.stringify(disputedPrint));
   await page.emulateMedia({media:'screen'});
   await context.close();
 }

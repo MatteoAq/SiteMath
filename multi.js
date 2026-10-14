@@ -4,6 +4,9 @@
   const DATA = window.SITEMATH_DATA;
   const NS = 'http://www.w3.org/2000/svg';
   const GRID = 5;
+  // Six university paper originals are in the user's PRIVATE Drive album,
+  // not in public source-photos. This is source availability, not solution QA.
+  const privateAlbumVariants=new Set(['01','02','07','13','16','20']);
   const EPS = 1e-8;
   const $ = id => document.getElementById(id);
   const svg = $('drawing');
@@ -494,10 +497,11 @@
     }
     const givenLabel=box.querySelector('.problem-brief-row span');
     const sourceConfirmed=scheme.sourceVerified===true || state.variant==='custom';
+    const locatedOriginal=privateAlbumVariants.has(state.variant)||scheme.sourceAvailable===true;
     // The label column is only 39px wide on phones. Put the provenance
     // notice in the wrapping value, not in the narrow label.
     if(givenLabel) givenLabel.textContent='Дано ';
-    $('problemGiven').textContent=sourceConfirmed?given:'(не сверено) '+given;
+    $('problemGiven').textContent=sourceConfirmed?given:(locatedOriginal?'(исходник найден; решение проверяется) ':'(не сверено) ')+given;
     $('problemFind').textContent=find;
     box.hidden=false;
   }
@@ -623,8 +627,9 @@
     const currentScheme = task>3 && state.variant!=='custom'
       ? window.SITEMATH_SCHEMES?.[state.variant]?.['task'+task] : null;
     const disputedSource = !!currentScheme && currentScheme.sourceVerified!==true;
-    const recoveredSource = currentScheme?.sourceAvailable===true;
-    const hasArchivedSheet = state.variant==='12' || window.SITEMATH_SCHEMES?.[state.variant]?.task4?.sourceAvailable===true;
+    const privateAlbumSource = privateAlbumVariants.has(state.variant);
+    const recoveredSource = currentScheme?.sourceAvailable===true || privateAlbumSource;
+    const hasArchivedSheet = privateAlbumSource || state.variant==='12' || window.SITEMATH_SCHEMES?.[state.variant]?.task4?.sourceAvailable===true;
     const warning=$('diagramWarning');
     if(warning){
       warning.hidden=task<=3;
@@ -636,7 +641,9 @@
           : 'Сверь построение с оригиналом.';
         if(detail) detail.textContent=disputedSource
           ? (recoveredSource
-            ? 'Полный бумажный лист доступен по ссылке ниже. Состав заданных объектов сверяется с оригиналом, а вспомогательные построения и результат требуют проверки до использования.'
+            ? (privateAlbumSource
+              ? 'Исходный лист найден в закрытых учебных материалах Google Диска и не публикуется на сайте. Правильность вспомогательных построений и результата ещё проверяется.'
+              : 'Полный бумажный лист доступен по ссылке ниже. Состав заданных объектов сверяется с оригиналом, а вспомогательные построения и результат требуют проверки до использования.')
             : 'Исходная геометрия и формулировка могут отличаться от бумажного листа. Не используй предварительную схему без сверки.')
           : 'Исходный рисунок перенесён с доступного оригинала, но методику и последовательность построения тоже нужно проверить: возможна ошибка во вспомогательных построениях.';
       }
@@ -648,7 +655,9 @@
           ? 'Исходный лист ' + variantDisplayLabel(state.variant) + ' доступен для сверки координат.'
           : 'Координаты сохранены из архивной записи ' + variantDisplayLabel(state.variant) + '; бумажный оригинал сейчас недоступен для повторной сверки.')
         : disputedSource
-          ? 'НЕ ПРОВЕРЕНО: условие и исходные данные ' + variantDisplayLabel(state.variant) + ' могут быть ошибочны.'
+          ? (recoveredSource
+            ? 'Исходный лист '+variantDisplayLabel(state.variant)+' найден; правильность методики ещё проверяется.'
+            : 'НЕ ПРОВЕРЕНО: условие и исходные данные ' + variantDisplayLabel(state.variant) + ' могут быть ошибочны.')
           : (v && v.provisionalNumber
             ? 'Этот лист временно помечен как вариант 18. Если найдётся другой подтверждённый вариант 18, номер будет исправлен.'
             : 'Данные сверены с доступным исходником ' + variantDisplayLabel(state.variant) + '.');
@@ -700,7 +709,9 @@
                       ? 'сохранена трассировка с исходника '+esc(knownScheme.sourceId)+', но сам файл сейчас недоступен для повторной визуальной сверки.'
                     : knownScheme.sourceVerified
                       ? 'перенесено с фото ранее; исходный файл сейчас недоступен для повторной точной сверки.'
-                      : 'не подтверждено бумажным оригиналом: текст условия, названия и принадлежность точек, исходные линии, наклоны и проекторы могут быть неверны. Пошаговое решение предварительное и не должно использоваться как проверенный ответ.'
+                      : (privateAlbumSource
+                      ? 'исходный лист найден в закрытых материалах Google Диска; пошаговая геометрия и методика продолжают проверяться.'
+                      : 'не подтверждено бумажным оригиналом: текст условия, названия и принадлежность точек, исходные линии, наклоны и проекторы могут быть неверны. Пошаговое решение предварительное и не должно использоваться как проверенный ответ.')
               )+'</p>'+
               (knownScheme.sourceAvailable && knownScheme.sourceId
                 ? '<p><b>Исходный лист:</b> <a href="./'+esc(knownScheme.sourceId.startsWith('source-photos/')?knownScheme.sourceId:'source-photos/variant-12/IMG_20260917_131638.jpg')+'" target="_blank" rel="noopener noreferrer">Открыть фото варианта '+esc(state.variant)+'</a> для проверки исходных точек и линий.</p>'
@@ -740,7 +751,9 @@
             ? 'Исходный лист доступен для сверки координат. Методика построения требует проверки.'
             : 'НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ: координаты сохранены из архивной записи и могут отличаться от бумажного листа.')
           : !currentScheme||disputedSource
-              ? 'НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ: формулировка, точки и линии могут быть неверными. Чертёж предварительный, использовать как проверенное решение нельзя.'
+              ? (hasArchivedSheet && currentScheme
+                 ? 'МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА: исходный бумажный лист найден. Схема и результат требуют дальнейшей проверки перед использованием.'
+                 : 'НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ: формулировка, точки и линии могут быть неверными. Чертёж предварительный, использовать как проверенное решение нельзя.')
               : 'Исходные данные сверены с доступным оригиналом. Правильность построения и методики ещё требует проверки.';
     }
     holder.querySelectorAll('.coord-input').forEach(i=>i.addEventListener('change',()=>rebuild(true)));

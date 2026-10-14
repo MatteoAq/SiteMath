@@ -1224,16 +1224,25 @@ if (!onlyVariant && !onlyTask) try {
   };
   select('06',4);
   if(!$('printProvenanceTitle').textContent.includes('06') || !$('printProvenanceTitle').textContent.includes('№4')) failures.push('print provenance 06/4: variant/task identification missing');
-  if(!$('printProvenanceStatus').textContent.includes('НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ')) failures.push('print provenance 06/4: provisional method status missing');
+  if(!$('printProvenanceStatus').textContent.includes('МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА')) failures.push('print provenance 06/4: provisional method status missing');
   if(!$('dynamicInputs').textContent.includes('верхняя фронтальная прямая – n₂')) failures.push('06/4: actual m/n geometry correction not shown');
   if(!$('dynamicInputs').querySelector('a[href="./source-photos/variant-06/1000022471.jpg"]')) failures.push('06/4: archived original link is missing');
   if($('diagramWarning').textContent.includes('оспорено преподавателем')) failures.push('06/4: obsolete and incorrect teacher dispute notice was restored');
-  if(!$('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('disputed 06/4: brief appears verified');
-  if(!$('variantNote').textContent.includes('НЕ ПРОВЕРЕНО')) failures.push('disputed 06/4: summary appears verified');
+  if(!$('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('06/4: archived source status not distinguished from unverified method');
+  if(!$('variantNote').textContent.includes('методики ещё проверяется')) failures.push('06/4: summary hides pending method verification');
   select('03',5);
-  if(!$('printProvenanceStatus').textContent.includes('НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ')) failures.push('print provenance 03/5: unverified source is printed without warning');
-  if(!$('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('unverified 03/5: brief appears verified');
+  if(!$('printProvenanceStatus').textContent.includes('МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА')) failures.push('print provenance 03/5: pending method warning missing');
+  if(!$('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('03/5: original recovered but method warning absent');
   if(!$('diagramWarning').textContent.includes('Исходный лист восстановлен')) failures.push('unverified 03/5: recovered original status missing');
+  select('13',6);
+  if(!window.SITEMATH_SCHEMES['13'].task6.sourceGeometry)
+    failures.push('13/6: actual university album tracing missing');
+  if(!$('problemBrief').textContent.includes('(исходник найден; решение проверяется)'))
+    failures.push('13/6: private album source inaccurately labeled missing');
+  if($('dynamicInputs').textContent.includes('не подтверждено бумажным оригиналом'))
+    failures.push('13/6: private album original provenance missing');
+  if(!$('printProvenanceStatus').textContent.includes('МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА'))
+    failures.push('13/6: printed method caution missing');
   select('12',4);
   if(!$('dynamicInputs').querySelector('a[href="./source-photos/variant-12/IMG_20260917_131638.jpg"]')) failures.push('source 12/4: direct archived original sheet link missing');
   if(!$('printProvenanceStatus').textContent.includes('Методика') && !$('printProvenanceStatus').textContent.includes('методики')) failures.push('print provenance 12/4: construction not qualified');
