@@ -2733,7 +2733,7 @@ try {
     for(const task of [4,5,6]){
       const scheme=group?.['task'+task];
       if(!scheme) continue;
-      const expected=task===4 || ['01','02'].includes(variant);
+      const expected=task===4 || ['01','02','03'].includes(variant);
       if(scheme.sourceVerified!==expected ||
          scheme.sourceRecheckRequired===expected)
         failures.push('source verification '+variant+'/'+task+': status differs from independent source review');
