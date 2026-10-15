@@ -1983,4 +1983,6 @@ Object.entries(window.SITEMATH_SCHEMES||{}).forEach(([variant,group])=>{
   // Variant 13 task 6: 27 browser stages, independent spatial plane intersection.
   // Task 13/5 is not source-certified: source line is 0.4° from plane and extrapolation is unstable.
   record('13',6);
+  // Variant 14 independently checked: 82 mobile stages plus all original spatial relations.
+  for(const task of [5,6])record('14',task);
 })();
