@@ -2407,7 +2407,7 @@ if (!onlyVariant && !onlyTask) try {
   $('variantSelect').dispatchEvent(new window.Event('change'));
   $('taskSelect').value='4';
   $('taskSelect').dispatchEvent(new window.Event('change'));
-  if(!$('dynamicInputs').textContent.includes('исходный лист восстановлен') || !$('dynamicInputs').textContent.includes('Точная геометрия')) failures.push('source status 03: exact trace still needs comparison');
+  if(!$('dynamicInputs').textContent.includes('повторно сверено с доступным оригиналом')) failures.push('source status 03: verified task4 source not reflected in UI');
 } catch(e) {
   failures.push('source role/status regression: '+e.stack);
 }
