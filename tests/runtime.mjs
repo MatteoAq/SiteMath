@@ -2467,8 +2467,8 @@ try {
       const g=schemes[v]['task'+task];
       const info=originalVariant[v]['task'+task];
       if(!info?.statement)failures.push('assignment audit '+v+'/'+task+': no preserved condition text');
-      if(g.sourceVerified===true){
-        failures.push('assignment audit '+v+'/'+task+': unverified original incorrectly marked verified');
+      if(g.sourceVerified!==(v==='01')){
+        failures.push('assignment audit '+v+'/'+task+': source review differs from independently audited original');
       }
       if(task===4){
         if(g.planeType==='line_point' && (!g.lines?.[g.planeLine] || !g.points?.[g.planePoint])){
@@ -2725,8 +2725,9 @@ try {
     for(const task of [4,5,6]){
       const scheme=group?.['task'+task];
       if(!scheme) continue;
-      if(scheme.sourceVerified===true || scheme.sourceRecheckRequired!==true)
-        failures.push('source verification '+variant+'/'+task+': unreviewed method incorrectly marked verified');
+      if(scheme.sourceVerified!==(variant==='01') ||
+         scheme.sourceRecheckRequired===(variant==='01'))
+        failures.push('source verification '+variant+'/'+task+': status differs from independent source review');
     }
   }
 } catch(e) {
