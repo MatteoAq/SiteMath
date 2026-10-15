@@ -206,11 +206,11 @@ const s6=scheme.task6;
 // A real horizontal's frontal projection and a real frontal's horizontal
 // projection are parallel to x12. The photographed 12/6 h₂ and f₁ each
 // tilted ~2 source pixels: preserve RAW strokes but normalize working data.
-const h2=s6.planeB.lines.h.p2,f1=s6.planeB.lines.f.p1;
+const givenH2=s6.planeB.lines.h.p2,givenF1=s6.planeB.lines.f.p1;
 const rawH2=s6.sourceGeometry.planeB.lines.h.p2;
 const rawF1=s6.sourceGeometry.planeB.lines.f.p1;
-assert(Math.abs(h2[1][1]-h2[0][1])<1e-8 &&
-       Math.abs(f1[1][1]-f1[0][1])<1e-8,
+assert(Math.abs(givenH2[1][1]-givenH2[0][1])<1e-8 &&
+       Math.abs(givenF1[1][1]-givenF1[0][1])<1e-8,
        'task6 named horizontal h₂ and frontal f₁ must be parallel to x12');
 assert(Math.abs(rawH2[1][1]-rawH2[0][1]-2)<1e-4 &&
        Math.abs(rawF1[1][1]-rawF1[0][1]-2)<1e-4,
@@ -219,8 +219,8 @@ const yAt=(line,x)=>line[0][1]+(x-line[0][0])*
    (line[1][1]-line[0][1])/(line[1][0]-line[0][0]);
 const junction=s6.planeB.junctions[0],jx=junction.p1[0];
 assert(close(junction.p1[0],junction.p2[0]) &&
-       close(yAt(s6.planeB.lines.h.p1,jx),f1[0][1]) &&
-       close(yAt(s6.planeB.lines.f.p2,jx),h2[0][1]),
+       close(yAt(s6.planeB.lines.h.p1,jx),givenF1[0][1]) &&
+       close(yAt(s6.planeB.lines.f.p2,jx),givenH2[0][1]),
        'task6 h and f no longer intersect on same drawn 3D junction');
 assert(s6.planeA.type==='parallel_lines'&&
        s6.planeB.type==='intersecting_lines'&&
