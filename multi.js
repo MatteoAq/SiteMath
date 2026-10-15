@@ -506,6 +506,8 @@
   }
 
   function coordinateLabelsForTask(task){
+    if(task===1 && DATA.variants[state.variant]?.task1Mode==='pyramid')
+      return ['S','A','B','C'];
     if(task===1) return ['A','B','C','D','E'];
     if(task===2) return ['A','B'];
     if(task===3) return ['A','B','C'];
@@ -622,7 +624,8 @@
     const holder=$('dynamicInputs');
     const v=currentVariant();
     const stored=getStoredTaskData();
-    $('taskName').textContent = task + '. ' + DATA.tasks[task].title;
+    $('taskName').textContent = task + '. ' +
+      (task===1 && v?.task1Mode==='pyramid' ? 'Пирамида SABC' : DATA.tasks[task].title);
     const currentScheme = task>3 && state.variant!=='custom'
       ? window.SITEMATH_SCHEMES?.[state.variant]?.['task'+task] : null;
     const disputedSource = !!currentScheme && currentScheme.sourceVerified!==true;
@@ -676,7 +679,9 @@
       $('solverMode').textContent='точный расчёт';
       $('intersectionChoice').hidden = task!==3;
       $('taskStatement').textContent = task===1
-        ? 'По заданным координатам построить комплексный чертёж и наглядное изображение точек в системе трёх плоскостей проекций.'
+        ? (v?.task1Mode==='pyramid'
+          ? v.task1Statement
+          : 'По заданным координатам построить комплексный чертёж и наглядное изображение точек в системе трёх плоскостей проекций.')
         : task===2
           ? 'По заданным координатам построить проекции отрезка AB. Определить натуральную величину отрезка двумя способами и углы наклона к плоскостям проекций.'
           : 'Через т. C провести прямую ℓ, пересекающую отрезок прямой AB, и прямую a, параллельную AB.';
@@ -1361,6 +1366,7 @@
 
   function solveTask1(coords){
     const names=Object.keys(coords);
+    const pyramid=names.length===4 && ['S','A','B','C'].every(n=>names.includes(n));
     const raw=[];
     names.forEach(n=>{
       const p=coords[n];
@@ -1485,6 +1491,69 @@
       ],{kind:'line',a:q.zFoot,b:q.p3});
     });
 
+    // This paper has a different assignment 1: construct the pyramid SABC,
+    // not five unrelated points. Draw every base/lateral edge in all three
+    // Monge views, then in the same axonometric model as the four vertices.
+    const edges=pyramid
+      ? [['A','B'],['B','C'],['C','A'],['S','A'],['S','B'],['S','C']]
+      : [];
+    const faces=pyramid
+      ? [['A','B','C'],['S','A','B'],['S','B','C'],['S','C','A']]
+      : [];
+    function isVisiblePyramidEdge(a,b,observer){
+      if(!pyramid)return true;
+      const center={x:0,y:0,z:0};
+      for(const p of Object.values(coords)){
+        center.x+=p.x/4;center.y+=p.y/4;center.z+=p.z/4;
+      }
+      const xyz=(from,to)=>({
+        x:to.x-from.x,y:to.y-from.y,z:to.z-from.z
+      });
+      const cross3=(u,v)=>({
+        x:u.y*v.z-u.z*v.y,
+        y:u.z*v.x-u.x*v.z,
+        z:u.x*v.y-u.y*v.x
+      });
+      const dot3=(u,v)=>u.x*v.x+u.y*v.y+u.z*v.z;
+      return faces.some(face=>{
+        if(!face.includes(a)||!face.includes(b))return false;
+        const A=coords[face[0]],B=coords[face[1]],C=coords[face[2]];
+        const n=cross3(xyz(A,B),xyz(A,C));
+        const mid={x:(A.x+B.x+C.x)/3,y:(A.y+B.y+C.y)/3,
+          z:(A.z+B.z+C.z)/3};
+        const outward=dot3(n,xyz(mid,center))>0?-1:1;
+        return outward*dot3(n,observer)>1e-7;
+      });
+    }
+    if(pyramid){
+      const views=[
+        ['₁','p1',{x:0,y:0,z:1},'горизонтальной Π₁'],
+        ['₂','p2',{x:0,y:1,z:0},'фронтальной Π₂'],
+        ['₃','p3',{x:1,y:0,z:0},'профильной Π₃']
+      ];
+      views.forEach(([suffix,key,eye,plane])=>{
+        const at=steps.length;
+        const strokes=edges.map(([a,b])=>{
+          const a2=project[a][key],b2=project[b][key];
+          if(Math.hypot(a2.x-b2.x,a2.y-b2.y)<1e-7)return null;
+          return {a,b,visible:isVisiblePyramidEdge(a,b,eye),
+            p1:a2,p2:b2};
+        }).filter(Boolean).sort((a,b)=>Number(a.visible)-Number(b.visible));
+        push({
+          title:'Соедини рёбра пирамиды на '+plane,
+          action:'Соедини A'+suffix+'B'+suffix+', B'+suffix+'C'+suffix+
+            ', C'+suffix+'A'+suffix+' и вершину S'+suffix+
+            ' с A'+suffix+', B'+suffix+', C'+suffix+
+            '. Невидимые рёбра обозначь штриховой линией.',
+          why:'Рёбра SABC связывают четыре заданные пространственные точки; их одноимённые проекции образуют пирамиду.',
+          measure:['Четыре вершины: S, A, B, C','Шесть пространственных рёбер'],
+          check:'Каждое ребро соединяет проекции одной и той же пары вершин.'
+        },strokes.map(e=>line(at,e.p1,e.p2,
+          e.visible?'answer-line':'hidden-line')),
+        strokes.length?{kind:'line',a:strokes[0].p1,b:strokes[0].p2}:null);
+      });
+    }
+
     let i=steps.length;
     const axisLen=55;
     const axEntities=[
@@ -1498,11 +1567,22 @@
     names.forEach(name=>{
       const P=ax[name].p;
       axEntities.push(line(i,axOrigin,P,'construction-line'));
-      axEntities.push(point(i,P,name,'answer-dot'));
     });
+    if(pyramid){
+      const eye={x:1,y:1,z:1};
+      const strokes=edges.map(([a,b])=>({a,b,
+        visible:isVisiblePyramidEdge(a,b,eye)}))
+        .sort((a,b)=>Number(a.visible)-Number(b.visible));
+      strokes.forEach(({a,b,visible})=>axEntities.push(
+        line(i,ax[a].p,ax[b].p,visible?'answer-line':'hidden-line')
+      ));
+    }
+    names.forEach(name=>axEntities.push(point(i,ax[name].p,name,'answer-dot')));
     push({
-      title:'Построй наглядное изображение точек',
-      action:'Перенеси те же координаты на три пространственные оси x, y, z. Сайт показывает компактную аксонометрическую схему справа.',
+      title:pyramid?'Построй наглядное изображение пирамиды SABC':'Построй наглядное изображение точек',
+      action:pyramid
+        ? 'В аксонометрии соедини вершины основания A, B, C и проведи рёбра S–A, S–B и S–C. Невидимые рёбра покажи штриховыми линиями.'
+        : 'Перенеси те же координаты на три пространственные оси x, y, z. Сайт показывает компактную аксонометрическую схему справа.',
       why:'Наглядное изображение не вводит новые данные – это та же точка (x,y,z), только показанная в пространственной системе осей.',
       measure:['Используются исходные x, y, z без пересчёта значений'],
       check:'Знаки координат определяют, по какую сторону от O лежит каждая составляющая.'
