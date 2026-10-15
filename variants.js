@@ -1970,4 +1970,6 @@ Object.entries(window.SITEMATH_SCHEMES||{}).forEach(([variant,group])=>{
   for(const task of [5,6])record('06',task);
   // Variant 07: original university album and 83 browser stages reviewed; independent analytic/spatial audit.
   for(const task of [5,6])record('07',task);
+  // Variant 08: source album, 79 photographed construction stages and independent spatial audit.
+  for(const task of [5,6])record('08',task);
 })();
