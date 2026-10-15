@@ -1889,3 +1889,28 @@ Object.entries(window.SITEMATH_SCHEMES||{}).forEach(([variant,group])=>{
     scheme.sourceRecheckRequired=!scheme.sourceVerified;
   });
 });
+
+
+/* Variant 12 task 6: restore the ACTUAL named horizontal h and frontal f.
+   The photocopied h₂/f₁ strokes tilt by ~2 scan pixels, but h₂∥x₁₂ and
+   f₁∥x₁₂ are their defining conditions, not optional approximations.
+   Preserve the exact photographed segments in sourceGeometry. The working
+   h₂/f₁ pass through the common original x=452 junction, using the
+   opposite sloping projection as a reference at that x. */
+(function normalizeVariant12NamedPlaneLines(){
+  const scheme=window.SITEMATH_SCHEMES?.['12']?.task6;
+  const plane=scheme?.planeB;
+  if(!plane||plane.type!=='intersecting_lines'||
+     !plane.lines?.h||!plane.lines?.f||!plane.junctions?.[0])return;
+  const h=plane.lines.h,f=plane.lines.f;
+  const x=plane.junctions[0].p1[0];
+  const yAt=(segment,x)=>{
+    const a=segment[0],b=segment[1];
+    return a[1]+(x-a[0])*(b[1]-a[1])/(b[0]-a[0]);
+  };
+  const frontY=yAt(f.p2,x);
+  const horizontalY=yAt(h.p1,x);
+  for(const endpoint of h.p2)endpoint[1]=frontY;
+  for(const endpoint of f.p1)endpoint[1]=horizontalY;
+  plane.junctions=[{p2:[x,frontY],p1:[x,horizontalY]}];
+})();
