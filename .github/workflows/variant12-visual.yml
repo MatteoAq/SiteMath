@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - '.github/workflows/variant12-visual.yml'
+      - 'tests/variant12-visual.mjs'
 jobs:
   variant-12-visual:
     runs-on: ubuntu-latest
