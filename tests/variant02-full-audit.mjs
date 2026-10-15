@@ -1,5 +1,5 @@
 // Sequential variant-first audit after 20 tasks #4 have been audited.
-// Source: source-photos/scans/variant-01.jpg.
+// Source: source-photos/scans/variant-02.jpg.
 // Tasks 1,2,3,5,6 in that order; #4 is covered by task4-paper-order-audit.mjs.
 // This tests arithmetic and drawable geometry; manual mobile visual review is separate.
 import fs from 'node:fs';
@@ -167,7 +167,7 @@ check(drawn.length>=2&&
  drawn.some(e=>inline(q6.get('K₂'),e.a,e.b)),
  'task 6 drawing ℓ must pass K on both projections');
 console.log(JSON.stringify({
- variant:'01',
+ variant:'02',
  tasks:['1: 15 coordinate projections','2: length/angles/2 triangles',
  '3: ℓ(C,K) and a(C)∥AB','5: K in ℓ∩Σ and visibility',
  '6: Σ(ABC)∩Θ(a∥b), sections, ℓ(K)∥both'],
