@@ -1859,7 +1859,7 @@ if (!onlyVariant && !onlyTask) try {
   $('taskSelect').value='5';
   $('taskSelect').dispatchEvent(new window.Event('change'));
   const warning=$('dynamicInputs').textContent;
-  if(!warning.includes('исходный лист восстановлен') ||
+  if(!warning.includes('повторно сверено с доступным оригиналом') ||
      !$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-10.jpg"]')){
     failures.push('source correction audit: variant 10/5 must show recovered original');
   }
