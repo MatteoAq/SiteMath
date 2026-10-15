@@ -1512,7 +1512,7 @@ if (!onlyVariant && !onlyTask) try {
   if(!$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-06.jpg"]')) failures.push('06/4: archived original link is missing');
   if($('diagramWarning').textContent.includes('оспорено преподавателем')) failures.push('06/4: obsolete and incorrect teacher dispute notice was restored');
   if($('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('06/4: independently verified source still marked provisional');
-  if(!$('variantNote').textContent.includes('Данные сверены с доступным исходником')) failures.push('06/4: reviewed original not reflected in variant summary');
+  if(!$('variantNote').textContent.includes('Исходные данные и построение сверены')) failures.push('06/4: reviewed original not reflected in variant summary');
   select('03',5);
   if(!$('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('03/5: original recovered but method warning absent');
   if(!$('diagramWarning').textContent.includes('Исходный лист восстановлен')) failures.push('unverified 03/5: recovered original status missing');
