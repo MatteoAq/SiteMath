@@ -1995,4 +1995,6 @@ Object.entries(window.SITEMATH_SCHEMES||{}).forEach(([variant,group])=>{
   for(const task of [5,6])record('17',task);
   // Variant 18: pyramid SABC, 86 browser images and separate independent spatial audit.
   for(const task of [5,6])record('18',task);
+  // Variant19: all 88 construction stages plus one final overview verified against paper and 3D audit.
+  for(const task of [5,6])record('19',task);
 })();
