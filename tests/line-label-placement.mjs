@@ -53,7 +53,7 @@ for(const [variant,scheme] of Object.entries(W.SITEMATH_SCHEMES)){
           // The renderer must not shift a point, a straight line, or
           // its original un-normalized photographed coordinates.
           assert(Number.isFinite(entity.p.x)&&Number.isFinite(entity.p.y),
-            'label's original source geometry not preserved');
+            'original source-label coordinates not preserved');
           checked++;
           if(kind==='raw')sourceChecked++;
         });
