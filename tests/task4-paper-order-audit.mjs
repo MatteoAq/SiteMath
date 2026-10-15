@@ -131,7 +131,7 @@ for(const id of ids){
       '12/4 final A must be truly BEHIND ℓ on Π₁, with unchanged Π₂');
   }
 }
-expect(stages>300&&crossings===9&&parallels===11,
+expect(stages>300&&crossings===10&&parallels===10,
   'unexpected count of task4 operations');
 console.log('TASK4 PAPER-FIRST AUDIT: 12/4 + 19 others; '+
   ids.length+' authentic conditions, '+stages+
