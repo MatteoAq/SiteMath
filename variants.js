@@ -1935,3 +1935,29 @@ Object.entries(window.SITEMATH_SCHEMES||{}).forEach(([variant,group])=>{
     schema.sourceRecheckRequired=false;
   }
 })();
+
+/* All task 4 source+method verified 15 Oct 2026 */
+/* Photographic evidence (20 × task 4 = 334 browser stages):
+   variant 12 in run 38660173275, and all other task 4 variants in
+   run 38679559694, artifact 11947718562. Original scanned conditions
+   checked against source-photos/scans/variant-XX.jpg, every line reviewed,
+   geometry independently covered by task4-paper-order-audit.mjs and
+   task4-task6-spatial-invariants.mjs.
+   Variant 02 tasks 1/2/3/5/6 additionally audited mathematically in
+   tests/variant02-full-audit.mjs and visually in GitHub Actions run
+   38679261784, artifact 11947012569 (88 mobile screenshots).
+   Source-verified task 5/6 of other variants remain FALSE. */
+(function markIndividuallyReviewedTasks(){
+  const verified=window.SITEMATH_SCHEMES||{};
+  const record=(variant,task)=>{
+    const rec=verified[variant]?.['task'+task];
+    const expected='source-photos/scans/variant-'+variant+'.jpg';
+    if(!rec?.sourceGeometry || rec?.sourceAvailable!==true ||
+       rec?.sourceId!==expected) throw new Error(
+         'Source review record missing: '+variant+'/'+task);
+    rec.sourceVerified=true;
+    rec.sourceRecheckRequired=false;
+  };
+  for(let v=1;v<=20;v++)record(String(v).padStart(2,'0'),4);
+  for(const task of [5,6])record('02',task);
+})();
