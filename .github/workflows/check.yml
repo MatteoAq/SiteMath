@@ -37,6 +37,7 @@ jobs:
       - run: node tests/variant13-full-audit.mjs
       - run: node tests/variant14-full-audit.mjs
       - run: node tests/variant15-full-audit.mjs
+      - run: node tests/variant16-full-audit.mjs
       - run: node tests/runtime.mjs
       - run: node tests/variant12-full-audit.mjs
       - name: Upload runtime diagnostics
