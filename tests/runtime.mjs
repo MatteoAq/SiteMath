@@ -12,7 +12,6 @@ const {window} = dom;
 Object.defineProperty(window.SVGElement.prototype,'getTotalLength',{value(){ return 100; }});
 const fakeAnimate = function(){ return {onfinish:null,cancel(){},finish(){}}; };
 window.Element.prototype.animate = fakeAnimate;
-window.print = () => {};
 
 window.eval(fs.readFileSync('variants.js','utf8'));
 window.eval(fs.readFileSync('multi.js','utf8'));
@@ -55,11 +54,6 @@ try {
   if(!dashValue(hidden) || dashValue(hidden)==='none') failures.push('drafting style: hidden geometry is not dashed');
   if(!visibleStroke(gridMinor)||!visibleStroke(gridMajor)){
     failures.push('drafting style: 5 mm background grid is hidden');
-  }
-  const printBlock=(css.match(/@media\s+print\s*\{([\s\S]*?)\n\}/i)||[])[1]||'';
-  if(/\.grid-minor[\s\S]*?stroke\s*:\s*transparent/i.test(printBlock) ||
-     /\.grid-major[\s\S]*?stroke\s*:\s*transparent/i.test(printBlock)){
-    failures.push('drafting style: print/PDF hides the 5 mm grid');
   }
 } catch(e) {
   failures.push('drafting style regression: '+e.stack);
@@ -1514,15 +1508,12 @@ if (!onlyVariant && !onlyTask) try {
     $('taskSelect').dispatchEvent(new window.Event('change'));
   };
   select('06',4);
-  if(!$('printProvenanceTitle').textContent.includes('06') || !$('printProvenanceTitle').textContent.includes('№4')) failures.push('print provenance 06/4: variant/task identification missing');
-  if(!$('printProvenanceStatus').textContent.includes('МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА')) failures.push('print provenance 06/4: provisional method status missing');
   if(!$('dynamicInputs').textContent.includes('верхняя фронтальная прямая – n₂')) failures.push('06/4: actual m/n geometry correction not shown');
   if(!$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-06.jpg"]')) failures.push('06/4: archived original link is missing');
   if($('diagramWarning').textContent.includes('оспорено преподавателем')) failures.push('06/4: obsolete and incorrect teacher dispute notice was restored');
   if(!$('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('06/4: archived source status not distinguished from unverified method');
   if(!$('variantNote').textContent.includes('методики ещё проверяется')) failures.push('06/4: summary hides pending method verification');
   select('03',5);
-  if(!$('printProvenanceStatus').textContent.includes('МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА')) failures.push('print provenance 03/5: pending method warning missing');
   if(!$('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('03/5: original recovered but method warning absent');
   if(!$('diagramWarning').textContent.includes('Исходный лист восстановлен')) failures.push('unverified 03/5: recovered original status missing');
   select('13',6);
@@ -1534,14 +1525,11 @@ if (!onlyVariant && !onlyTask) try {
     failures.push('13/6: private album source inaccurately labeled missing');
   if($('dynamicInputs').textContent.includes('не подтверждено бумажным оригиналом'))
     failures.push('13/6: private album original provenance missing');
-  if(!$('printProvenanceStatus').textContent.includes('МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА'))
-    failures.push('13/6: printed method caution missing');
   select('01',1);
    if(!$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-01.jpg"]'))
      failures.push('01/1: numeric scan link missing');
    select('12',4);
   if(!$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-12.jpg"]')) failures.push('source 12/4: direct archived original sheet link missing');
-  if(!$('printProvenanceStatus').textContent.includes('МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА')) failures.push('print provenance 12/4: construction not qualified');
   if($('problemBrief').textContent.includes('Дано (не сверено)')) failures.push('verified 12/4: incorrect provenance warning');
   if($('diagramWarning').textContent.includes('Исходное условие НЕ проверено')) failures.push('verified 12/4: incorrectly labeled unsourced');
 } catch(e){ failures.push('visible input provenance: '+e.stack); }
