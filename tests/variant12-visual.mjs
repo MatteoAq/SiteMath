@@ -29,6 +29,28 @@ for(let task=1;task<=6;task++){
   if(!(prep>0&&prep<60)){
     report.errors.push('task '+task+' invalid step count '+prep);continue;
   }
+  if(task===6){
+    const hAndF=await page.evaluate(()=>{
+      const p=window.SITEMATH_SCHEMES?.['12']?.task6?.planeB;
+      const raw=window.SITEMATH_SCHEMES?.['12']?.task6?.sourceGeometry?.planeB;
+      return {
+        workingH2:p?.lines?.h?.p2?.map(x=>x[1]),
+        workingF1:p?.lines?.f?.p1?.map(x=>x[1]),
+        originalH2:raw?.lines?.h?.p2?.map(x=>x[1]),
+        originalF1:raw?.lines?.f?.p1?.map(x=>x[1])
+      };
+    });
+    const [h0,h1]=hAndF.workingH2||[];
+    const [f0,f1]=hAndF.workingF1||[];
+    const [rh0,rh1]=hAndF.originalH2||[];
+    const [rf0,rf1]=hAndF.originalF1||[];
+    if(![h0,h1,f0,f1,rh0,rh1,rf0,rf1].every(Number.isFinite) ||
+       Math.abs(h1-h0)>1e-8||Math.abs(f1-f0)>1e-8 ||
+       Math.abs((rh1-rh0)-2)>1e-3||
+       Math.abs((rf1-rf0)-2)>1e-3)
+      report.errors.push('12/6 h2/f1 raw-versus-working horizontal invariant '+
+        JSON.stringify(hAndF));
+  }
   const taskReport={task,total:prep,steps:[]};
   for(let index=0;index<prep;index++){
     await page.evaluate(index=>{
