@@ -2475,7 +2475,7 @@ try {
       const g=schemes[v]['task'+task];
       const info=originalVariant[v]['task'+task];
       if(!info?.statement)failures.push('assignment audit '+v+'/'+task+': no preserved condition text');
-      if(g.sourceVerified!==(task===4 || ['01','02'].includes(v))){
+      if(g.sourceVerified!==(task===4 || ['01','02','03'].includes(v))){
         failures.push('assignment audit '+v+'/'+task+': source review differs from independently audited original');
       }
       if(task===4){
