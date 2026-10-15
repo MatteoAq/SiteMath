@@ -1511,8 +1511,8 @@ if (!onlyVariant && !onlyTask) try {
   if(!$('dynamicInputs').textContent.includes('верхняя фронтальная прямая – n₂')) failures.push('06/4: actual m/n geometry correction not shown');
   if(!$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-06.jpg"]')) failures.push('06/4: archived original link is missing');
   if($('diagramWarning').textContent.includes('оспорено преподавателем')) failures.push('06/4: obsolete and incorrect teacher dispute notice was restored');
-  if(!$('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('06/4: archived source status not distinguished from unverified method');
-  if(!$('variantNote').textContent.includes('методики ещё проверяется')) failures.push('06/4: summary hides pending method verification');
+  if($('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('06/4: independently verified source still marked provisional');
+  if(!$('variantNote').textContent.includes('Данные сверены с доступным исходником')) failures.push('06/4: reviewed original not reflected in variant summary');
   select('03',5);
   if(!$('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('03/5: original recovered but method warning absent');
   if(!$('diagramWarning').textContent.includes('Исходный лист восстановлен')) failures.push('unverified 03/5: recovered original status missing');
@@ -2467,7 +2467,7 @@ try {
       const g=schemes[v]['task'+task];
       const info=originalVariant[v]['task'+task];
       if(!info?.statement)failures.push('assignment audit '+v+'/'+task+': no preserved condition text');
-      if(g.sourceVerified!==(v==='01')){
+      if(g.sourceVerified!==(task===4 || ['01','02'].includes(v))){
         failures.push('assignment audit '+v+'/'+task+': source review differs from independently audited original');
       }
       if(task===4){
@@ -2504,8 +2504,8 @@ try {
       }
     }
   }
-  if(schemes['06']?.task4?.sourceVerified){
-    failures.push('assignment audit 06/4: contested condition cannot be source-verified');
+  if(schemes['06']?.task4?.sourceVerified!==true){
+    failures.push('assignment audit 06/4: corrected scanned m₂/n₂ topology must be source-verified');
   }
 } catch(e){
   failures.push('assignment source audit: '+e.stack);
@@ -2725,8 +2725,9 @@ try {
     for(const task of [4,5,6]){
       const scheme=group?.['task'+task];
       if(!scheme) continue;
-      if(scheme.sourceVerified!==(variant==='01') ||
-         scheme.sourceRecheckRequired===(variant==='01'))
+      const expected=task===4 || ['01','02'].includes(variant);
+      if(scheme.sourceVerified!==expected ||
+         scheme.sourceRecheckRequired===expected)
         failures.push('source verification '+variant+'/'+task+': status differs from independent source review');
     }
   }
