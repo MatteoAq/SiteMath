@@ -3478,11 +3478,14 @@
       i=steps.length;
       push({
         title:'По линии связи перенеси T₁ на '+A.name+'₂ и получи T₂',
-        action:'Из T₁ проведи проектор до '+A.name+'₂ и отметь T₂.',
-        why:'Парная проекция T₂ не выбирается произвольно.',
-        measure:['T₁T₂ – линия связи','T₂ ∈ '+A.name+'₂'],
-        check:'Обе проекции T имеют один x.'
-      },[line(i,T1,T2,'construction-line'),point(i,T2,'T₂','construction-dot')]);
+        action:'Из T₁ проведи проектор, при необходимости продли '+A.name+'₂ до встречи с ним и отметь T₂.',
+        why:'Парная проекция T₂ не выбирается произвольно; она принадлежит исходной прямой и её продолжению.',
+        measure:['T₁T₂ – линия связи','T₂ ∈ '+A.name+'₂ или её продолжению'],
+        check:'Обе проекции T имеют один x, а исходная линия действительно доведена до T₂.'
+      },[
+        ...segmentExtensionEntities(i,A.rec.p2,T2),
+        line(i,T1,T2,'construction-line'),point(i,T2,'T₂','construction-dot')
+      ]);
       i=steps.length;
       push({
         title:'Выбери U₁ на '+B.name+'₁ плоскости Σ',
@@ -3494,11 +3497,14 @@
       i=steps.length;
       push({
         title:'По линии связи перенеси U₁ на '+B.name+'₂ и получи U₂',
-        action:'Проведи линию связи из U₁ до '+B.name+'₂, обозначь U₂.',
+        action:'Проведи линию связи из U₁, при необходимости продли '+B.name+'₂ до неё и обозначь U₂.',
         why:'U₁ и U₂ принадлежат одной пространственной точке на исходной прямой.',
-        measure:['U₁U₂ – линия связи','U₂ ∈ '+B.name+'₂'],
-        check:'U₂ стоит на пересечении проектора с '+B.name+'₂.'
-      },[line(i,U1,U2,'construction-line'),point(i,U2,'U₂','construction-dot')]);
+        measure:['U₁U₂ – линия связи','U₂ ∈ '+B.name+'₂ или её продолжению'],
+        check:'U₂ стоит на пересечении проектора с проведённой '+B.name+'₂.'
+      },[
+        ...segmentExtensionEntities(i,B.rec.p2,U2),
+        line(i,U1,U2,'construction-line'),point(i,U2,'U₂','construction-dot')
+      ]);
       i=steps.length;
       push({
         title:'Соедини T и U – построй g₁ и g₂ плоскости Σ',
@@ -4340,11 +4346,12 @@
       i=steps.length;
       push({
         title:'По линии связи получи T₂ на '+lineA+'₂',
-        action:'Из T₁ проведи проектор до '+lineA+'₂; обозначь пересечение T₂.',
+        action:'Из T₁ проведи проектор; если '+lineA+'₂ короче, продли исходный штрих до T₂.',
         why:'T₁ и T₂ – проекции одной точки заданной прямой '+lineA+'.',
-        measure:['T₁T₂ – линия связи','T₂ ∈ '+lineA+'₂'],
-        check:'T₂ определяется '+lineA+'₂ и проектором из T₁.'
+        measure:['T₁T₂ – линия связи','T₂ ∈ '+lineA+'₂ или её продолжению'],
+        check:'T₂ находится на одновременно проведённых проекторе и '+lineA+'₂.'
       },[
+        ...segmentExtensionEntities(i,item.def.lines[lineA].p2,T2),
         line(i,T1,T2,'construction-line'),point(i,T2,'T₂','construction-dot')
       ]);
       i=steps.length;
@@ -4360,11 +4367,12 @@
       i=steps.length;
       push({
         title:'По линии связи получи U₂ на '+lineB+'₂',
-        action:'Из U₁ проведи линию связи до исходной '+lineB+'₂. Получи U₂.',
+        action:'Из U₁ проведи проектор и при необходимости продли '+lineB+'₂ до пересечения U₂.',
         why:'Обе проекции U определяются одной точкой заданной прямой '+lineB+'.',
-        measure:['U₁U₂ – линия связи','U₂ ∈ '+lineB+'₂'],
-        check:'U₂ получена пересечением проектора из U₁ с '+lineB+'₂.'
+        measure:['U₁U₂ – линия связи','U₂ ∈ '+lineB+'₂ или её продолжению'],
+        check:'U₂ получена пересечением реально нарисованных проектора и '+lineB+'₂.'
       },[
+        ...segmentExtensionEntities(i,item.def.lines[lineB].p2,U2),
         line(i,U1,U2,'construction-line'),point(i,U2,'U₂','construction-dot')
       ]);
       i=steps.length;

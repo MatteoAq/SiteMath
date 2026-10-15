@@ -66,12 +66,13 @@ for(const id of ids){
         const support=drawn.filter(line=>onSegment(point.p,line));
         assert(support.length>0,
           tag+': '+point.label+' is floating: no DRAWN line reaches it');
-        // A one-line point is a deliberate free selection or a projected/result
-        // endpoint. It must not masquerade as an independently found crossing.
+        // A point on just one line may be a deliberate free selection, or
+        // the deliberately offset endpoint required by task 4.
+        // A transferred ('По линии связи'/'Перенеси') point must lie on BOTH
+        // its drawn projector and the original line or its explicit extension.
         if(support.length===1){
           choiceOrProjection++;
-          assert(/^(Выбери|Построй|Перенеси|По)\b/u.test(step.title)
-                 || /^(Выбери|Построй|Перенеси|По) /u.test(step.title),
+          assert(/^(Выбери|Построй) /u.test(step.title),
             tag+': '+point.label+' claims intersection but only one line reaches it');
         }
         // Both K projections in task 5 need TWO nonparallel actual strokes,
