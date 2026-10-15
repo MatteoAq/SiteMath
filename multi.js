@@ -4807,7 +4807,7 @@
     } else if(e.type==='text'){
       svg.append(E('text',{x:e.p.x,y:e.p.y,class:e.cls,
         'text-anchor':e.lineLabel?'middle':null,
-        'data-role':e.lineLabel?'line-label':null,
+        'data-line-label':e.lineLabel?'1':null,
         'data-label':e.label||'',
         'data-active':active?'1':'0'},e.label));
     } else if(e.type==='dim'){
