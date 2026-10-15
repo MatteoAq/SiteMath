@@ -1514,7 +1514,7 @@ if (!onlyVariant && !onlyTask) try {
   if($('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('06/4: independently verified source still marked provisional');
   if(!$('variantNote').textContent.includes('Исходные данные и построение сверены')) failures.push('06/4: reviewed original not reflected in variant summary');
   select('03',5);
-  if(!$('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('03/5: original recovered but method warning absent');
+  if($('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('03/5: verified original still marked provisional');
   if(!$('diagramWarning').textContent.includes('Исходный лист восстановлен')) failures.push('unverified 03/5: recovered original status missing');
   select('13',6);
    if(!$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-13.jpg"]'))
