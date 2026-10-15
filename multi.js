@@ -4,8 +4,8 @@
   const DATA = window.SITEMATH_DATA;
   const NS = 'http://www.w3.org/2000/svg';
   const GRID = 5;
-  // Six university paper originals are in the user's PRIVATE Drive album,
-  // not in public source-photos. This is source availability, not solution QA.
+  // Original graphic conditions for all 20 variants are published in source-photos/scans.
+  // The underlying drawing album and university teaching materials remain private.
   const EPS = 1e-8;
   const $ = id => document.getElementById(id);
   const svg = $('drawing');
@@ -495,13 +495,10 @@
       find='r = '+a+' ∩ '+b+'; через '+through+' провести ℓ ∥ обеим плоскостям';
     }
     const givenLabel=box.querySelector('.problem-brief-row span');
-    const sourceConfirmed=scheme.sourceVerified===true || state.variant==='custom';
-    const precisionLimited=(state.variant==='12'&&state.task===6)||(state.variant==='13'&&state.task===5);
-    const locatedOriginal=scheme.sourceAvailable===true;
-    // The label column is only 39px wide on phones. Put the provenance
-    // notice in the wrapping value, not in the narrow label.
+    // "Дано" must contain the paper condition only. Put source/precision
+    // status in the dedicated warning and provenance sections instead.
     if(givenLabel) givenLabel.textContent='Дано ';
-    $('problemGiven').textContent=sourceConfirmed?given:((precisionLimited?'(метод проверен; точность скана ограничена) ':(locatedOriginal?'(исходник найден; решение проверяется) ':'(не сверено) '))+given);
+    $('problemGiven').textContent=given;
     $('problemFind').textContent=find;
     box.hidden=false;
   }
@@ -647,7 +644,7 @@
           ? (recoveredSource ? 'Исходный лист восстановлен. Проверяется точность построения.' : 'Исходное условие НЕ проверено по бумажному оригиналу.')
           : 'Построение сверено с оригиналом.';
         if(detail) detail.textContent=rasterPrecisionLimit
-          ? 'Скан бумажного листа доступен, а алгоритм вспомогательных построений проверен. Однако почти параллельные объекты дают сильно удалённую точку или линию пересечения: малое смещение штрихов при оцифровке существенно меняет результат. Точная исходная геометрия требует уточнения.'
+          ? 'Исходное условие задано графически, без координат. Скан и метод построения проверены. Но почти параллельные объекты дают далёкое пересечение: даже небольшой сдвиг штриха при оцифровке существенно меняет положение результата. Вычисленные экранные координаты не являются данными задания.'
           : disputedSource
           ? (recoveredSource
             ? 'Полный скан бумажного листа доступен по ссылке ниже. Исходные условия сверяются с ним; правильность вспомогательных построений и результатов ещё проверяется.'
@@ -716,7 +713,9 @@
             ? '<p><b>Статус:</b> '+(
                 knownScheme.sourceVerified && knownScheme.sourceId
                   ? 'повторно сверено с доступным оригиналом '+esc(knownScheme.sourceId)+'.'
-                  : knownScheme.sourceId && knownScheme.sourceAvailable
+                  : rasterPrecisionLimit && knownScheme.sourceId && knownScheme.sourceAvailable
+                    ? 'исходный лист и метод построения проверены; далёкое пересечение чувствительно к погрешности графического оригинала.'
+                    : knownScheme.sourceId && knownScheme.sourceAvailable
                     ? 'исходный лист восстановлен: '+esc(knownScheme.sourceId)+'. Точная геометрия и методика пошагового решения ещё проходят сверку.'
                     : knownScheme.sourceId
                       ? 'сохранена трассировка с исходника '+esc(knownScheme.sourceId)+', но сам файл сейчас недоступен для повторной визуальной сверки.'

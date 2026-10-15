@@ -1552,6 +1552,23 @@ if (!onlyVariant && !onlyTask) try {
       }
       if(!given) failures.push('problem brief '+variant+'/'+task+': Дано is empty');
       if(!find) failures.push('problem brief '+variant+'/'+task+': Найти is empty');
+      // Tasks 4-6 are graphical conditions, not numeric coordinate tables.
+      // Internal raster tracing or QA notices must never leak into "Дано".
+      if($('dataTitle').textContent!=='Исходная схема' ||
+         $('dynamicInputs').querySelectorAll('.coord-input').length){
+        failures.push('problem brief '+variant+'/'+task+': diagram mistaken for coordinate input');
+      }
+      if(/координат|скан|проверен|проверяется|сверено|исходник/i.test(given)){
+        failures.push('problem brief '+variant+'/'+task+': provenance leaked into paper condition');
+      }
+      if((variant==='12'&&task===6)||(variant==='13'&&task===5)){
+        const notice=$('diagramWarning').textContent;
+        const status=$('dynamicInputs').textContent;
+        if(!notice.includes('без координат') || !notice.includes('метод построения проверены'))
+          failures.push('problem brief '+variant+'/'+task+': graphical-source precision explanation missing');
+        if(!status.includes('исходный лист и метод построения проверены'))
+          failures.push('problem brief '+variant+'/'+task+': audited method misreported as pending');
+      }
       if(task===4 && !/пл\./i.test(given)){
         failures.push('problem brief '+variant+'/4: Дано does not identify the source plane');
       }
