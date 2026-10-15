@@ -36,7 +36,7 @@ for(const variant of variants){
   }
   const entry={variant,task:4,total:n,steps:[]};
   for(let step=0;step<n;step++){
-    if(step)await page.locator('#nextBtn').click();
+    if(step)await page.evaluate(()=>document.querySelector('#nextBtn').click());
     await page.evaluate(()=>{
       for(const a of document.getAnimations())
         try{a.finish()}catch{}
