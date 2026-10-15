@@ -629,6 +629,9 @@
     const currentScheme = task>3 && state.variant!=='custom'
       ? window.SITEMATH_SCHEMES?.[state.variant]?.['task'+task] : null;
     const disputedSource = !!currentScheme && currentScheme.sourceVerified!==true;
+    // Method proven, but finite accuracy of the raster source cannot be certified.
+    const rasterPrecisionLimit = (state.variant==='12' && task===6) ||
+      (state.variant==='13' && task===5);
     const recoveredSource = currentScheme?.sourceAvailable===true;
     const hasArchivedSheet = window.SITEMATH_SCHEMES?.[state.variant]?.task4?.sourceAvailable===true;
     const warning=$('diagramWarning');
@@ -637,10 +640,14 @@
       if(task>3){
         const heading=warning.querySelector('b');
         const detail=warning.querySelector('span');
-        if(heading) heading.textContent=disputedSource
+        if(heading) heading.textContent=rasterPrecisionLimit
+          ? 'Метод проверен. Точность исходного скана ограничена.'
+          : disputedSource
           ? (recoveredSource ? 'Исходный лист восстановлен. Проверяется точность построения.' : 'Исходное условие НЕ проверено по бумажному оригиналу.')
           : 'Построение сверено с оригиналом.';
-        if(detail) detail.textContent=disputedSource
+        if(detail) detail.textContent=rasterPrecisionLimit
+          ? 'Скан бумажного листа доступен, а алгоритм вспомогательных построений проверен. Однако почти параллельные объекты дают сильно удалённую точку или линию пересечения: малое смещение штрихов при оцифровке существенно меняет результат. Точная исходная геометрия требует уточнения.'
+          : disputedSource
           ? (recoveredSource
             ? 'Полный скан бумажного листа доступен по ссылке ниже. Исходные условия сверяются с ним; правильность вспомогательных построений и результатов ещё проверяется.'
             : 'Исходная геометрия и формулировка могут отличаться от бумажного листа. Не используй предварительную схему без сверки.')
@@ -653,7 +660,9 @@
         ? (hasArchivedSheet
           ? 'Исходный лист ' + variantDisplayLabel(state.variant) + ' доступен для сверки координат.'
           : 'Координаты сохранены из архивной записи ' + variantDisplayLabel(state.variant) + '; бумажный оригинал сейчас недоступен для повторной сверки.')
-        : disputedSource
+        : rasterPrecisionLimit
+          ? 'Метод построения проверен; точный результат ограничен погрешностью исходного растрового листа '+variantDisplayLabel(state.variant)+'.'
+          : disputedSource
           ? (recoveredSource
             ? 'Исходный лист '+variantDisplayLabel(state.variant)+' найден; правильность методики ещё проверяется.'
             : 'НЕ ПРОВЕРЕНО: условие и исходные данные ' + variantDisplayLabel(state.variant) + ' могут быть ошибочны.')
