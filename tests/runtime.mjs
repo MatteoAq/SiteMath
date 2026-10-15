@@ -2475,7 +2475,7 @@ try {
       const g=schemes[v]['task'+task];
       const info=originalVariant[v]['task'+task];
       if(!info?.statement)failures.push('assignment audit '+v+'/'+task+': no preserved condition text');
-      if(g.sourceVerified!==(task===4 || ['01','02','03','04'].includes(v))){
+      if(g.sourceVerified!==(task===4 || ['01','02','03','04','05'].includes(v))){
         failures.push('assignment audit '+v+'/'+task+': source review differs from independently audited original');
       }
       if(task===4){
@@ -2733,7 +2733,7 @@ try {
     for(const task of [4,5,6]){
       const scheme=group?.['task'+task];
       if(!scheme) continue;
-      const expected=task===4 || ['01','02','03','04'].includes(variant);
+      const expected=task===4 || ['01','02','03','04','05'].includes(variant);
       if(scheme.sourceVerified!==expected ||
          scheme.sourceRecheckRequired===expected)
         failures.push('source verification '+variant+'/'+task+': status differs from independent source review');
