@@ -25,6 +25,7 @@ jobs:
       - run: node tests/line-label-placement.mjs
       - run: node tests/variant01-full-audit.mjs
       - run: node tests/variant02-full-audit.mjs
+      - run: node tests/variant03-full-audit.mjs
       - run: node tests/runtime.mjs
       - run: node tests/variant12-full-audit.mjs
       - name: Upload runtime diagnostics
