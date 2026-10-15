@@ -21,6 +21,7 @@ jobs:
       - run: node tests/paper-originals.mjs
       - run: node tests/task5-geometric-invariants.mjs
       - run: node tests/task4-task6-spatial-invariants.mjs
+      - run: node tests/task4-paper-order-audit.mjs
       - run: node tests/runtime.mjs
       - run: node tests/variant12-full-audit.mjs
       - name: Upload runtime diagnostics
