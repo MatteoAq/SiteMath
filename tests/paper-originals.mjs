@@ -1,5 +1,5 @@
 // Independently transcribed paper originals and university album scans, 14 Oct 2026.
-// Check 60 numeric assignments (200 spatial points), 60 graphical assignment
+// Check 60 numeric assignments (199 spatial vertices/points), 60 graphical assignment
 // definitions, and SHA-256 bytes of all 20 current album scans.
 // CI success proves source data shape/recording, not the geometry of solved steps.
 import fs from 'node:fs';
@@ -66,7 +66,7 @@ const originalCoordinates={
     "0,50,30;40,-40,0;60,30,-40"
   ],
   "18": [
-    "30,60,30;40,50,0;20,-60,0;45,-30,-20;30,50,-15",
+    "45,50,75;80,70,5;10,70,5;45,5,5",
     "15,45,20;70,-50,50",
     "0,60,30;40,50,0;20,-60,10"
   ],
@@ -274,7 +274,7 @@ for(const [variant,tasks] of Object.entries(originalCoordinates)){
   if(!data||!schemas){error.push(variant+': variant missing');continue;}
   tasks.forEach((printed,taskIndex)=>{
     const key='task'+(taskIndex+1);
-    const labels=taskIndex===0?'ABCDE':taskIndex===1?'AB':'ABC';
+    const labels=taskIndex===0?(variant==='18'?'SABC':'ABCDE'):taskIndex===1?'AB':'ABC';
     const entries=printed.split(';');
     entries.forEach((coordinates,index)=>{
       const expected=coordinates.split(',').map(Number);
