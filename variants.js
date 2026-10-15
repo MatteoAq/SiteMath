@@ -1946,7 +1946,7 @@ Object.entries(window.SITEMATH_SCHEMES||{}).forEach(([variant,group])=>{
    Variant 02 tasks 1/2/3/5/6 additionally audited mathematically in
    tests/variant02-full-audit.mjs and visually in GitHub Actions run
    38679261784, artifact 11947012569 (88 mobile screenshots).
-   Source-verified task 5/6 outside variants 01, 02, 03 remain FALSE. */
+   Source-verified task 5/6 outside variants 01, 02, 03, 04 remain FALSE. */
 (function markIndividuallyReviewedTasks(){
   const verified=window.SITEMATH_SCHEMES||{};
   const record=(variant,task)=>{
@@ -1962,4 +1962,6 @@ Object.entries(window.SITEMATH_SCHEMES||{}).forEach(([variant,group])=>{
   for(const task of [5,6])record('02',task);
   // Full variant 03: 86 browser frames, source scan and independent numerical/spatial audit.
   for(const task of [5,6])record('03',task);
+  // Full variant 04: 90 mobile frames and independent 3D method verification.
+  for(const task of [5,6])record('04',task);
 })();
