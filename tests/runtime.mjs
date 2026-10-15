@@ -1515,7 +1515,7 @@ if (!onlyVariant && !onlyTask) try {
   if(!$('variantNote').textContent.includes('Исходные данные и построение сверены')) failures.push('06/4: reviewed original not reflected in variant summary');
   select('03',5);
   if($('problemBrief').textContent.includes('(исходник найден; решение проверяется)')) failures.push('03/5: verified original still marked provisional');
-  if(!$('diagramWarning').textContent.includes('Исходный лист восстановлен')) failures.push('unverified 03/5: recovered original status missing');
+  if(!$('diagramWarning').textContent.includes('Построение сверено с оригиналом')) failures.push('03/5: verified construction method status missing');
   select('13',6);
    if(!$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-13.jpg"]'))
      failures.push('13/6: public scan link missing');
