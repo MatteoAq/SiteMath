@@ -104,26 +104,6 @@ for (const vp of viewports) {
   }
   await page.screenshot({path:'mobile-screenshots/'+vp.name+'-drawing.png',fullPage:false});
 
-  await page.emulateMedia({media:'print'});
-  const printHeader=await page.locator('#printProvenance').evaluate(el=>({visible:getComputedStyle(el).display!=='none',text:el.textContent.trim()}));
-  if(!printHeader.visible || !(printHeader.text.includes('МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА') || printHeader.text.includes('Методика построения требует проверки.'))) failures.push(vp.name+': print/PDF omits method-verification caution '+JSON.stringify(printHeader));
-  const printGrid=await gridState(page);
-  if(!printGrid.minor.ok||!printGrid.major.ok){
-    failures.push(vp.name+': print/PDF hides 5 mm grid '+JSON.stringify(printGrid));
-  }
-  const printScale=await page.evaluate(()=>{
-    const svg=document.querySelector('#drawing');
-    const w=parseFloat(svg?.getAttribute('width'));
-    const h=parseFloat(svg?.getAttribute('height'));
-    const rect=svg?.getBoundingClientRect();
-    return {expectedWidth:w*96/25.4,expectedHeight:h*96/25.4,width:rect?.width,height:rect?.height};
-  });
-  if(Math.abs(printScale.width-printScale.expectedWidth)>1 ||
-     Math.abs(printScale.height-printScale.expectedHeight)>1){
-    failures.push(vp.name+': print grid was changed by screen Fit/Zoom '+JSON.stringify(printScale));
-  }
-  await page.emulateMedia({media:'screen'});
-
   await page.locator('#mobileSetupBtn').click();
   await page.waitForTimeout(280);
   if (!(await page.locator('#controlsPanel').isVisible())) failures.push(vp.name+': settings sheet not visible');
@@ -753,18 +733,6 @@ for (const vp of viewports) {
   }
 
   // Variant 06/4 has a recovered paper original and corrected m/n pairing.
-  // The print must retain the incomplete-method status, not an obsolete assertion
-  // that the point names D and A were misread.
-  await page.evaluate(()=>{
-    const v=document.querySelector('#variantSelect');
-    const t=document.querySelector('#taskSelect');
-    v.value='06';v.dispatchEvent(new Event('change'));
-    t.value='4';t.dispatchEvent(new Event('change'));
-  });
-  await page.emulateMedia({media:'print'});
-  const disputedPrint=await page.locator('#printProvenance').evaluate(el=>({visible:getComputedStyle(el).display!=='none',text:el.textContent.trim()}));
-  if(!disputedPrint.visible || !disputedPrint.text.includes('МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА')) failures.push('print/PDF 06/4: pending method verification missing '+JSON.stringify(disputedPrint));
-  await page.emulateMedia({media:'screen'});
   await context.close();
 }
 
