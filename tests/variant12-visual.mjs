@@ -58,8 +58,7 @@ for(let task=1;task<=6;task++){
         title,action,lines:lines.length,labels,
         zoom:document.querySelector('#zoomLabel')?.textContent.trim(),
         viewBox:[vb.x,vb.y,vb.width,vb.height],
-        svgSize:[rect.width,rect.height],
-        sourceShown:index===0
+        svgSize:[rect.width,rect.height]
       };
     });
     const filename='v12-t'+task+'-s'+String(index+1).padStart(2,'0')+'.jpg';
