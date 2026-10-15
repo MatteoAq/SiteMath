@@ -45,7 +45,19 @@ for(let task=1;task<=6;task++){
     }else{
       await page.locator('#zoomFitBtn').click();
     }
-    await page.waitForTimeout(90);
+    // SiteMath reveals active strokes with two nested animation frames
+    // followed by a CSS stroke-dashoffset transition. Force the END of
+    // that transition before evidence capture; otherwise a valid long
+    // section extension may appear as an isolated dot (e.g. 12/6 P₂).
+    await page.waitForTimeout(150);
+    await page.evaluate(()=>{
+      for(const el of document.querySelectorAll(
+        '#drawing [data-active="1"].draw-line:not(.hidden-line)')){
+        el.style.transition='none';
+        el.style.strokeDashoffset='0';
+      }
+    });
+    await page.waitForTimeout(40);
     const meta=await page.evaluate(()=>{
       const svg=document.querySelector('#drawing');
       const title=document.querySelector('#stepTitle')?.textContent.trim()||'';
