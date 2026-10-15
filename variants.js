@@ -1976,4 +1976,6 @@ Object.entries(window.SITEMATH_SCHEMES||{}).forEach(([variant,group])=>{
   for(const task of [5,6])record('09',task);
   // Variant 10: 90 browser frames (source + constructed steps), independent spatial audit.
   for(const task of [5,6])record('10',task);
+  // Variant 11: original sheet, independently checked 81 stages including source drawing.
+  for(const task of [5,6])record('11',task);
 })();
