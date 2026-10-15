@@ -1978,4 +1978,6 @@ Object.entries(window.SITEMATH_SCHEMES||{}).forEach(([variant,group])=>{
   for(const task of [5,6])record('10',task);
   // Variant 11: original sheet, independently checked 81 stages including source drawing.
   for(const task of [5,6])record('11',task);
+  // Variant 12 task 5 independently verified by 13 photographed frames and 3D line-plane algebra; task 6 remains pending due near-parallel scan uncertainty.
+  record('12',5);
 })();
