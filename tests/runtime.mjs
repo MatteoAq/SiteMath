@@ -2948,7 +2948,7 @@ if (!onlyVariant && !onlyTask) try {
   for(const variant of variants){
     for(const task of [1,2,3]){
       choose(variant,task);
-      const O=dot('O'),n=task===1?'ABCDE':task===2?'AB':'ABC';
+      const O=dot('O'),n=task===1?(variant==='18'?'SABC':'ABCDE'):task===2?'AB':'ABC';
       const values=data[variant]['task'+task];
       if(!O){failures.push('numeric Monge '+variant+'/'+task+': origin missing');continue;}
       for(const label of n){
