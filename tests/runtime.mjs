@@ -1552,6 +1552,33 @@ if (!onlyVariant && !onlyTask) try {
       }
       if(!given) failures.push('problem brief '+variant+'/'+task+': Дано is empty');
       if(!find) failures.push('problem brief '+variant+'/'+task+': Найти is empty');
+      // Preserve every original plane notation (including special Greek
+      // symbols and projected planes) exactly in the Given/Find summary.
+      const statement=window.SITEMATH_DATA.variants[variant]?.['task'+task]?.statement||'';
+      const sourceNames=[...statement.matchAll(/([ΣΔΘΩΒΓ]\s*\([^)]*\))/gu)]
+        .map(x=>x[1].replace(/\s+/g,''));
+      for(const sourceName of sourceNames){
+        if(!given.replace(/\s+/g,'').includes(sourceName))
+          failures.push('problem brief '+variant+'/'+task+
+            ': original plane notation missing: '+sourceName);
+      }
+      if(task===4){
+        const sourceOp=window.SITEMATH_SCHEMES[variant].task4.operation;
+        if(sourceOp?.through && !given.includes('т. '+sourceOp.through))
+          failures.push('problem brief '+variant+'/4: source through-point missing');
+        if(sourceOp?.resultPoint && !find.includes(sourceOp.resultPoint))
+          failures.push('problem brief '+variant+'/4: required result point missing');
+      }
+      if(task===5){
+        const actualLine=window.SITEMATH_SCHEMES[variant].task5.givenLine==='f'?'f':'ℓ';
+        if(!given.includes('прямая '+actualLine) || !find.includes('K = '+actualLine+' ∩ '))
+          failures.push('problem brief '+variant+'/5: paper given-line f/ℓ was relabeled');
+      }
+      if(task===6){
+        const through=window.SITEMATH_SCHEMES[variant].task6.pointLabel||'K';
+        if(!given.includes('т. '+through) || !find.includes('через '+through))
+          failures.push('problem brief '+variant+'/6: paper through-point was relabeled');
+      }
       // Tasks 4-6 are graphical conditions, not numeric coordinate tables.
       // Internal raster tracing or QA notices must never leak into "Дано".
       if($('dataTitle').textContent!=='Исходная схема' ||
