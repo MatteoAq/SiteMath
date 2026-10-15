@@ -168,7 +168,7 @@ check(drawn.length>=2&&
 console.log(JSON.stringify({
  variant:'20',
  tasks:['1: 15 coordinate projections','2: length/angles/2 triangles',
- '3: ℓ(C,K) and a(C)∥AB','5: K in ℓ∩Σ and visibility',
+ '3: ℓ(C,K) and a(C)∥AB','5: K in f∩Σ and visibility',
  '6: Σ(ABC)∩Θ(DEF), sections, ℓ(K)∥both'],
  stageCounts:[g1.steps.length,g2.steps.length,g3.steps.length,
   g5.steps.length,g6.steps.length],
