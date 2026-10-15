@@ -731,27 +731,6 @@
         $('taskStatement').textContent = info.statement || DATA.tasks[task].short;
       }
     }
-    // The controls panel (including the on-screen source warning) is hidden
-    // in print/PDF. Carry the actual selected assignment's provenance into
-    // the print-only header so an unverified result cannot look certified.
-    const printTitle=$('printProvenanceTitle');
-    const printStatus=$('printProvenanceStatus');
-    if(printTitle&&printStatus){
-      printTitle.textContent=state.variant==='custom'
-        ? 'Свои данные – задание №'+task
-        : 'Вариант '+String(state.variant).padStart(2,'0')+' – задание №'+task;
-      printStatus.textContent=state.variant==='custom'
-        ? 'Исходные данные введены пользователем. Построение и методику необходимо проверить.'
-        : task<=3
-          ? (hasArchivedSheet
-            ? 'Исходный лист доступен для сверки координат. Методика построения требует проверки.'
-            : 'НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ: координаты сохранены из архивной записи и могут отличаться от бумажного листа.')
-          : !currentScheme||disputedSource
-              ? (hasArchivedSheet && currentScheme
-                 ? 'МЕТОДИКА ПОСТРОЕНИЯ НЕ ПРОВЕРЕНА: исходный бумажный лист найден. Схема и результат требуют дальнейшей проверки перед использованием.'
-                 : 'НЕ ПРОВЕРЕНО ПО ОРИГИНАЛУ: формулировка, точки и линии могут быть неверными. Чертёж предварительный, использовать как проверенное решение нельзя.')
-              : 'Исходные данные сверены с доступным оригиналом. Правильность построения и методики ещё требует проверки.';
-    }
     holder.querySelectorAll('.coord-input').forEach(i=>i.addEventListener('change',()=>rebuild(true)));
     updateMobileSummary();
     syncChoicePickers();
@@ -5362,9 +5341,6 @@
     svg.setAttribute('data-paper-scale',String(g.paperScale||1));
     svg.setAttribute('width',g.width+'mm');
     svg.setAttribute('height',g.height+'mm');
-    // A fit-to-screen zoom must never change the printed 5 mm cell size.
-    svg.style.setProperty('--drawing-paper-width',g.width+'mm');
-    svg.style.setProperty('--drawing-paper-height',g.height+'mm');
     drawGrid(g.width,g.height,drawingGridAnchor());
     const visibilityDone=state.task===5 && state.steps
       .slice(0,state.step+1).some(step=>step.title?.startsWith('Нанеси видимость '));
@@ -5484,7 +5460,6 @@
   });
   $('resetBtn').addEventListener('click',resetCurrent);
   $('buildBtn').addEventListener('click',()=>{ rebuild(true); closeMobileSetup(); setDrawingZoom('fit'); });
-  $('printBtn').addEventListener('click',()=>window.print());
   $('prevBtn').addEventListener('click',()=>moveTo(state.step-1));
   $('nextBtn').addEventListener('click',()=>moveTo(state.step+1));
   $('firstBtn').addEventListener('click',()=>moveTo(0));
