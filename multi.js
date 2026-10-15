@@ -496,7 +496,7 @@
     }
     const givenLabel=box.querySelector('.problem-brief-row span');
     const sourceConfirmed=scheme.sourceVerified===true || state.variant==='custom';
-    const precisionLimited=(state.variant==='12'&&task===6)||(state.variant==='13'&&task===5);
+    const precisionLimited=(state.variant==='12'&&state.task===6)||(state.variant==='13'&&state.task===5);
     const locatedOriginal=scheme.sourceAvailable===true;
     // The label column is only 39px wide on phones. Put the provenance
     // notice in the wrapping value, not in the narrow label.
