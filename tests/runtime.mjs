@@ -1521,8 +1521,8 @@ if (!onlyVariant && !onlyTask) try {
      failures.push('13/6: public scan link missing');
   if(!window.SITEMATH_SCHEMES['13'].task6.sourceGeometry)
     failures.push('13/6: actual university album tracing missing');
-  if(!$('problemBrief').textContent.includes('(исходник найден; решение проверяется)'))
-    failures.push('13/6: private album source inaccurately labeled missing');
+  if($('problemBrief').textContent.includes('(исходник найден; решение проверяется)'))
+    failures.push('13/6: verified university source still incorrectly marked provisional');
   if($('dynamicInputs').textContent.includes('не подтверждено бумажным оригиналом'))
     failures.push('13/6: private album original provenance missing');
   select('01',1);
