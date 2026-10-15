@@ -23,6 +23,7 @@ jobs:
       - run: node tests/task4-task6-spatial-invariants.mjs
       - run: node tests/task4-paper-order-audit.mjs
       - run: node tests/line-label-placement.mjs
+      - run: node tests/task456-step-provenance.mjs
       - run: node tests/variant01-full-audit.mjs
       - run: node tests/variant02-full-audit.mjs
       - run: node tests/variant03-full-audit.mjs

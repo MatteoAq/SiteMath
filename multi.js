@@ -3583,11 +3583,13 @@
     i=steps.length;
     push({
       title:'Перенеси K'+oIdx+' в K'+pIdx,
-      action:'Через K'+oIdx+' проведи линию проекционной связи до ℓ'+pIdx+'. Полученная точка – K'+pIdx+'.',
-      why:'K₁ и K₂ – две проекции одной пространственной точки пересечения K.',
-      measure:['K₁K₂ – линия связи'],
-      check:'K'+pIdx+' лежит на ℓ'+pIdx+'.'
+      action:'Через K'+oIdx+' проведи линию связи. При необходимости продли '+sourceLineDisplayName(scheme.givenLine||'l')+pIdx+
+        ' тонким штрихом до проектора. Их пересечение обозначь K'+pIdx+'.',
+      why:'K₁ и K₂ – две проекции одной пространственной точки пересечения K. Если K лежит за напечатанным концом исходной прямой, её продолжение обязательно показать на чертеже.',
+      measure:['K₁K₂ – линия связи',sourceLineDisplayName(scheme.givenLine||'l')+pIdx+' – продление при необходимости'],
+      check:'K'+pIdx+' лежит на исходной или продолженной '+sourceLineDisplayName(scheme.givenLine||'l')+pIdx+'.'
     },[
+      ...segmentExtensionEntities(i,lrec[primary],KPrimary),
       line(i,KOther,KPrimary,'construction-line'),point(i,KPrimary,'K'+pIdx,'answer-dot')
     ],{kind:'line',a:KOther,b:KPrimary});
 
