@@ -176,14 +176,7 @@ button { border: 0; border-radius: 11px; padding: 10px 12px; font-weight: 750; }
   .paper-wrap { min-height: 420px; }
 }
 
-@media print {
-  body { background: #fff; }
-  .topbar, .controls-panel, .stage-toolbar, .legend, .explanation-panel, .source-panel { display: none !important; }
-  .layout { display: block; padding: 0; max-width: none; }
-  .panel { box-shadow: none; border: 0; }
-  .paper-wrap { padding: 0; background: #fff; overflow: visible; min-height: 0; }
-  #drawing { box-shadow: none; }
-}
+
 
 
 /* Multi-task interface */
@@ -2146,74 +2139,7 @@ body { color:var(--ui-text); }
   stroke-width: .30;
   opacity: .9;
 }
-@media print {
-  .mobile-appbar,
-  .mobile-backdrop,
-  .first-run-picker,
-  .status-panel,
-  .mobile-step-nav {
-    display:none !important;
-  }
-  .paper-wrap {
-    padding:0 !important;
-    margin:0 !important;
-    overflow:visible !important;
-    background:#fff !important;
-  }
-  #drawing {
-    margin:0 !important;
-    box-shadow:none !important;
-  }
-  .grid-minor {
-    stroke:#e4e4e4 !important;
-  }
-  .grid-major {
-    stroke:#cfcfcf !important;
-  }
-  .tool-overlay {
-    display:none !important;
-  }
-  .axis {
-    stroke:#222 !important;
-    stroke-width:.55 !important;
-  }
-  .construction-line,
-  .construction-line.active-line {
-    stroke:#777 !important;
-    stroke-width:.24 !important;
-    opacity:1;
-  }
-  .aux-line,
-  .aux-line.active-line {
-    stroke:#666 !important;
-    stroke-width:.28 !important;
-  }
-  .object-line,
-  .object-line.active-line,
-  .answer-line,
-  .answer-line.active-line,
-  .hidden-line,
-  .hidden-line.active-line {
-    stroke:#222 !important;
-  }
-  .object-line,
-  .object-line.active-line,
-  .answer-line,
-  .answer-line.active-line {
-    stroke-width:.55 !important;
-  }
-  .answer-dot,
-  .active-dot {
-    fill:#222 !important;
-  }
-  .dimension,
-  .dimension.active-line {
-    stroke:#555 !important;
-  }
-  .dimension-text {
-    fill:#333 !important;
-  }
-}
+
 
 /* Fixed-height mobile guidance: titles and text paginate instead of growing or scrolling. */
 @media (max-width:760px) {
@@ -2292,9 +2218,7 @@ body { color:var(--ui-text); }
     line-height:1.2;
   }
 }
-@media print {
-  .problem-brief { display:none !important; }
-}
+
 
 
 /* Drafting semantics: projectors, continuations and auxiliary construction are thin continuous lines.
@@ -2334,36 +2258,9 @@ body { color:var(--ui-text); }
   }
 }
 
-@media print {
-  .source-guide-line {
-    stroke:#666 !important;
-    stroke-width:.22 !important;
-  }
-}
 
 
-.print-provenance { display:none; }
-@media print {
-  .print-provenance {
-    display:block !important;
-    margin:0 0 4mm;
-    padding:2mm 3mm;
-    border:1px solid #666;
-    background:#fff !important;
-    color:#111;
-    font:normal 10pt/1.35 Arial,sans-serif;
-    break-inside:avoid;
-  }
-  .print-provenance b, .print-provenance span { display:block; }
-  .print-provenance b { margin-bottom:1mm; }
-}
 
-/* Printing always restores the actual millimetre geometry, irrespective
-   of the Fit/Zoom level used while viewing the SVG on a phone. */
-@media print {
-  #drawing {
-    width:var(--drawing-paper-width) !important;
-    height:var(--drawing-paper-height) !important;
-    max-width:none !important;
-  }
-}
+
+
+
