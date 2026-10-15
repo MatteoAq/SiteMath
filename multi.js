@@ -4757,6 +4757,37 @@
     if(e.label) svg.append(E('text',{x:e.c.x+e.r+2,y:e.c.y-2,class:'dimension-text'},e.label));
   }
 
+  // Identify labels of projected straight lines, rather than named points.
+  // Point labels are emitted by point() and keep their own end-point offset.
+  function isProjectedLineLabel(label){
+    return /^(?:[a-wа-яёℓ][a-zа-яёA-ZА-ЯΣΔΘΓ′']*|ЛС)[₁₂]$/u.test(label||'');
+  }
+
+  // Every labelled stroke is already a line entity in the CURRENT construction
+  // step. Match the immediately preceding stroke, as source- and answer-line
+  // builders emit line(), textEntity() in that order. The actual paper points
+  // and answer geometry must not be changed just to improve label placement.
+  function positionedLineLabel(entities,index){
+    const text=entities[index];
+    if(text?.type!=='text'||!isProjectedLineLabel(text.label))return null;
+    for(let k=index-1;k>=0;k--){
+      const stroke=entities[k];
+      if(stroke.type!=='line'||stroke.cls==='axis'||
+         stroke.cls==='source-guide-line'||stroke.arrow)continue;
+      const vx=stroke.b.x-stroke.a.x,vy=stroke.b.y-stroke.a.y;
+      const length=Math.hypot(vx,vy);
+      if(!(length>1e-6))continue;
+      // Place near the middle, above/alongside the stroke with a clear gap.
+      // No overlap with its vertices and no confusion with point subscripts.
+      const off=4.1;
+      return {
+        x:(stroke.a.x+stroke.b.x)/2+(-vy/length)*off,
+        y:(stroke.a.y+stroke.b.y)/2+(vx/length)*off
+      };
+    }
+    return null;
+  }
+
   function drawEntity(e,active){
     if(e.type==='line'){
       const n=E('line',{
@@ -4774,7 +4805,11 @@
       svg.append(n);
       if(e.label) svg.append(E('text',{x:e.p.x+2.1,y:e.p.y-2.0,class:'svg-label','data-active':active?'1':'0'},e.label));
     } else if(e.type==='text'){
-      svg.append(E('text',{x:e.p.x,y:e.p.y,class:e.cls,'data-active':active?'1':'0'},e.label));
+      svg.append(E('text',{x:e.p.x,y:e.p.y,class:e.cls,
+        'text-anchor':e.lineLabel?'middle':null,
+        'data-role':e.lineLabel?'line-label':null,
+        'data-label':e.label||'',
+        'data-active':active?'1':'0'},e.label));
     } else if(e.type==='dim'){
       drawDimension(e,active);
     } else if(e.type==='arc'){
@@ -5348,12 +5383,13 @@
       if(idx>state.step) return;
       const entities=idx===0 && state.step===0 && s.sourceEntities
         ? s.sourceEntities : s.entities||[];
-      entities.forEach(e=>{
+      entities.forEach((e,index)=>{
         // Once visibility is shown, neither the original unbroken ℓ nor the
         // coincident Ω guide may fill the gaps of hidden strokes. Preserve
         // their labels and restore both lines when stepping backward.
         if(visibilityDone && (e.sourceGivenLine||e.sourceCoincidentAux)) return;
-        drawEntity(e,idx===state.step);
+        const placement=positionedLineLabel(entities,index);
+        drawEntity(placement?{...e,p:placement,lineLabel:true}:e,idx===state.step);
       });
     });
     renderExplanation();
