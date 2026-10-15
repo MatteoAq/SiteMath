@@ -1972,4 +1972,6 @@ Object.entries(window.SITEMATH_SCHEMES||{}).forEach(([variant,group])=>{
   for(const task of [5,6])record('07',task);
   // Variant 08: source album, 79 photographed construction stages and independent spatial audit.
   for(const task of [5,6])record('08',task);
+  // Variant 09: 81 original-sheet browser stages, numerics and spatial audit.
+  for(const task of [5,6])record('09',task);
 })();
