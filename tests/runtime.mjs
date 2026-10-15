@@ -2371,8 +2371,16 @@ if (!onlyVariant && !onlyTask) try {
     $('taskSelect').dispatchEvent(new window.Event('change'));
     if($('diagramWarning').hidden) failures.push('diagram warning: hidden for task '+task);
     const text=$('diagramWarning').textContent;
-    if(!text.includes('скан')) failures.push('diagram warning '+task+': source scan not mentioned');
-    if(!text.includes('провер')) failures.push('diagram warning '+task+': pending method verification not mentioned');
+    const sourceVerified=window.SITEMATH_SCHEMES['12']['task'+task].sourceVerified===true;
+    if(sourceVerified){
+      if(!text.includes('оригинал') || !text.includes('проверены'))
+        failures.push('diagram warning '+task+': reviewed construction still presented as unverified');
+    }else{
+      if(!text.includes('скан'))
+        failures.push('diagram warning '+task+': recovered source scan not mentioned');
+      if(!text.includes('провер'))
+        failures.push('diagram warning '+task+': pending method verification not mentioned');
+    }
   }
 } catch(e) {
   failures.push('diagram warning regression: '+e.stack);
