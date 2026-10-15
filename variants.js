@@ -1914,3 +1914,24 @@ Object.entries(window.SITEMATH_SCHEMES||{}).forEach(([variant,group])=>{
   for(const endpoint of f.p1)endpoint[1]=horizontalY;
   plane.junctions=[{p2:[x,frontY],p1:[x,horizontalY]}];
 })();
+
+
+/* Individually source-verified variant 01 (15 Oct 2026).
+   University album: source-photos/scans/variant-01.jpg.
+   Mathematical audit: tests/task4-paper-order-audit.mjs and
+   tests/variant01-full-audit.mjs. Browser evidence: 86 frames captured
+   in GitHub Actions run 38678229419, artifact 11946966245.
+   Reviewed source/projector geometry on paper and all six drawn sequences;
+   do NOT extend this status to the other 19 variants. */
+(function markVariant01SourceReviewed(){
+  const group=window.SITEMATH_SCHEMES?.['01'];
+  if(!group)return;
+  for(const task of [4,5,6]){
+    const schema=group['task'+task];
+    if(!schema?.sourceGeometry || schema?.sourceAvailable!==true ||
+       schema?.sourceId!=='source-photos/scans/variant-01.jpg')
+      throw new Error('Cannot certify 01/'+task+': verified source absent');
+    schema.sourceVerified=true;
+    schema.sourceRecheckRequired=false;
+  }
+})();
