@@ -298,7 +298,7 @@ for(const [variant,tasks] of Object.entries(originalCoordinates)){
   for(const task of [4,5,6]){
     const scheme=schemas['task'+task];
     if(!scheme?.sourceGeometry)error.push(variant+'/'+task+': original tracing missing');
-    if(scheme?.sourceVerified!==(task===4 || ((variant==='12'&&task===5)||(variant==='13'&&task===6)) || ['01','02','03','04','05','06','07','08','09','10','11','14','15','16','17','18'].includes(variant)))error.push(variant+'/'+task+': source review status differs from individually audited variants');
+    if(scheme?.sourceVerified!==(task===4 || ((variant==='12'&&task===5)||(variant==='13'&&task===6)) || ['01','02','03','04','05','06','07','08','09','10','11','14','15','16','17','18','19'].includes(variant)))error.push(variant+'/'+task+': source review status differs from individually audited variants');
     if(scheme?.sourceAvailable!==true)error.push(variant+'/'+task+': source scan unavailable');
     if(scheme?.sourceId!=='source-photos/scans/variant-'+variant+'.jpg')
       error.push(variant+'/'+task+': incorrect scan source path '+scheme?.sourceId);
