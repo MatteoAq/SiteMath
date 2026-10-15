@@ -37,7 +37,7 @@ const independentDirections=(strokes)=>{
 
 const ids=Object.keys(W.SITEMATH_SCHEMES).sort();
 assert.equal(ids.length,20,'expected all twenty variants');
-let steps=0,points=0,choiceOrProjection=0,intersections=0;
+let steps=0,points=0,choiceOrProjection=0,transfers=0,intersections=0;
 for(const id of ids){
   const schemes=W.SITEMATH_SCHEMES[id];
   for(const task of [4,5,6]){
@@ -75,6 +75,13 @@ for(const id of ids){
           assert(/^(Выбери|Построй) /u.test(step.title),
             tag+': '+point.label+' claims intersection but only one line reaches it');
         }
+        // Every transferred/orthogonally projected point is the intersection
+        // of its drawn projector and the given line (or explicit extension).
+        if(/^(Перенеси|По линии связи|Опусти)/u.test(step.title)){
+          transfers++;
+          assert(independentDirections(support),
+            tag+': '+point.label+' lacks a real line-and-projector crossing');
+        }
         // Both K projections in task 5 need TWO nonparallel actual strokes,
         // not merely a vertical projector terminating beyond the printed l/f.
         if(task===5&&/^K[₁₂]$/.test(point.label)){
@@ -90,7 +97,9 @@ for(const id of ids){
 assert.equal(steps,1010,'unexpected number of current construction steps');
 assert.equal(points,960,'unexpected count of first named point introductions');
 assert.equal(intersections,40,'every task-5 K requires both projected intersections');
+assert.equal(transfers,468,'expected all real projector transfers in 60 tasks');
 console.log('TASK 4–6 STEP PROVENANCE OK:',steps,'stages,',points,
   'first named constructed points,',choiceOrProjection,
-  'single-line choice/projection endpoints,',intersections,
+  'single-line free/offset endpoints,',transfers,
+  'real line-and-projector transfers,',intersections,
   'independent drawn task-5 K intersections.');
