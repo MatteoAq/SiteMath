@@ -2475,7 +2475,7 @@ try {
       const g=schemes[v]['task'+task];
       const info=originalVariant[v]['task'+task];
       if(!info?.statement)failures.push('assignment audit '+v+'/'+task+': no preserved condition text');
-      if(g.sourceVerified!==(task===4 || ((v==='12'&&task===5)||(v==='13'&&task===6)) || ['01','02','03','04','05','06','07','08','09','10','11','14','15','16','17','18'].includes(v))){
+      if(g.sourceVerified!==(task===4 || ((v==='12'&&task===5)||(v==='13'&&task===6)) || ['01','02','03','04','05','06','07','08','09','10','11','14','15','16','17','18','19'].includes(v))){
         failures.push('assignment audit '+v+'/'+task+': source review differs from independently audited original');
       }
       if(task===4){
@@ -2733,7 +2733,7 @@ try {
     for(const task of [4,5,6]){
       const scheme=group?.['task'+task];
       if(!scheme) continue;
-      const expected=task===4 || ((variant==='12'&&task===5)||(variant==='13'&&task===6)) || ['01','02','03','04','05','06','07','08','09','10','11','14','15','16','17','18'].includes(variant);
+      const expected=task===4 || ((variant==='12'&&task===5)||(variant==='13'&&task===6)) || ['01','02','03','04','05','06','07','08','09','10','11','14','15','16','17','18','19'].includes(variant);
       if(scheme.sourceVerified!==expected ||
          scheme.sourceRecheckRequired===expected)
         failures.push('source verification '+variant+'/'+task+': status differs from independent source review');
