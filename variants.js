@@ -1997,4 +1997,6 @@ Object.entries(window.SITEMATH_SCHEMES||{}).forEach(([variant,group])=>{
   for(const task of [5,6])record('18',task);
   // Variant19: all 88 construction stages plus one final overview verified against paper and 3D audit.
   for(const task of [5,6])record('19',task);
+  // Variant20: independent source frontal f, ABC/DEF sections and 86 photographed views.
+  for(const task of [5,6])record('20',task);
 })();
