@@ -1987,4 +1987,6 @@ Object.entries(window.SITEMATH_SCHEMES||{}).forEach(([variant,group])=>{
   for(const task of [5,6])record('14',task);
   // Variant 15: 80 mobile frames and independent numerical/spatial review.
   for(const task of [5,6])record('15',task);
+  // Variant 16: 86 original-sheet browser stages and complete independent spatial audit.
+  for(const task of [5,6])record('16',task);
 })();
