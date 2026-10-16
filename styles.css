@@ -2258,9 +2258,224 @@ body { color:var(--ui-text); }
   }
 }
 
+/* 2026-10-16 responsive finishing pass.
+   One explicit breakpoint policy after the historical overrides. Keep all SVG
+   coordinates, line weights, construction steps and camera math unchanged. */
+@media (min-width:761px) {
+  .topbar {
+    max-width:1680px;
+    padding:20px clamp(14px,2vw,30px) 12px;
+    gap:16px;
+  }
+  .topbar h1 { font-size:clamp(23px,2.15vw,35px); line-height:1.12; }
+  .subtitle { max-width:78ch; font-size:13px; line-height:1.48; }
+  .layout {
+    max-width:1680px;
+    grid-template-columns:clamp(245px,25vw,328px) minmax(0,1fr);
+    gap:clamp(12px,1.5vw,20px);
+    padding:8px clamp(12px,2vw,30px) 28px;
+  }
+  .workspace { gap:12px; min-width:0; }
+  .controls-panel {
+    position:sticky;
+    top:10px;
+    max-height:calc(100dvh - 20px);
+    overflow-y:auto;
+    overflow-x:hidden;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+    align-content:start;
+    padding:15px;
+    gap:14px;
+  }
+  .stage-panel { min-width:0; }
+  .stage-toolbar {
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px 14px;
+    padding:12px 16px;
+  }
+  .toolbar-groups {
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px 14px;
+    min-width:0;
+  }
+  .transport-controls, .view-controls {
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-end;
+    gap:5px;
+  }
+  .icon-btn { min-width:37px; min-height:38px; padding:7px 9px; }
+  .icon-btn.wide { min-width:68px; }
+  .paper-wrap {
+    height:clamp(390px,calc(100dvh - 205px),850px);
+    min-height:0;
+    padding:14px;
+    display:flex;
+    justify-content:flex-start;
+    align-items:flex-start;
+    overflow:auto;
+    scrollbar-width:thin;
+  }
+  .explanation-panel { padding:16px 18px; }
+  .explanation-panel > h2 { font-size:clamp(18px,1.6vw,23px); line-height:1.3; }
+  .step-info-page {
+    min-height:78px;
+    max-height:none;
+    padding:10px 2px 30px;
+    overflow:visible;
+  }
+  .step-info-text {
+    font-size:14px;
+    line-height:1.55;
+    overflow:visible;
+    overflow-wrap:anywhere;
+  }
+  .step-measure-list { font-size:13px; line-height:1.5; }
+  .step-info-pager { height:26px; }
+  .problem-brief-row { font-size:13px; }
+  .status-panel,.source-panel { box-shadow:none; }
+}
+@media (min-width:761px) and (max-width:1080px) {
+  .topbar { padding-top:14px; }
+  .topbar h1 { font-size:24px; }
+  .subtitle { font-size:12px; }
+  .layout { grid-template-columns:245px minmax(0,1fr); }
+  .controls-panel { padding:12px; }
+  .stage-toolbar { padding:9px 11px; }
+  .toolbar-groups { justify-content:flex-start; }
+  .icon-btn { min-width:34px; min-height:36px; padding:6px; font-size:12px; }
+  .icon-btn.wide { min-width:60px; }
+  .zoom-label { min-width:38px; }
+}
 
-
-
-
-
-
+/* Small-screen layout: legible explanations, preserved drawing space and
+   a scrollable sheet rather than text hidden behind a fixed-height mask. */
+@media (max-width:760px) {
+  :root { --mobile-step-peek:clamp(220px,30dvh,280px); }
+  .mobile-appbar {
+    grid-template-columns:44px minmax(0,1fr) auto auto;
+    gap:5px;
+  }
+  .mobile-title b { font-size:15px; }
+  .mobile-title span { font-size:11px; }
+  .mobile-icon-btn.text-btn {
+    min-height:44px;
+    max-width:78px;
+    padding:0 8px;
+    font-size:11px;
+  }
+  .stage-toolbar {
+    min-height:50px;
+    padding:5px 8px;
+    grid-template-columns:minmax(30px,auto) minmax(0,1fr);
+    gap:5px;
+  }
+  .step-counter { font-size:clamp(15px,4.3vw,18px); }
+  .view-controls { gap:5px; }
+  .view-controls .icon-btn,
+  .view-controls .icon-btn.wide { min-height:42px; font-size:12px; }
+  .paper-wrap {
+    height:calc(100dvh - var(--mobile-appbar-h) - 50px);
+    min-height:245px;
+    padding:10px 10px calc(var(--mobile-step-peek) + 28px);
+    overflow:auto;
+  }
+  .workspace {
+    padding-bottom:calc(var(--mobile-step-peek) + env(safe-area-inset-bottom));
+  }
+  .explanation-panel,
+  .explanation-panel.is-expanded {
+    max-height:var(--mobile-step-peek);
+    overflow-x:hidden;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+    padding:10px 12px 6px;
+  }
+  .explanation-panel > h2 {
+    max-height:none;
+    overflow:visible;
+    margin:5px 0 4px;
+    font-size:16px;
+    line-height:1.28;
+    overflow-wrap:anywhere;
+  }
+  .step-badge { font-size:11px; padding:4px 8px; }
+  .problem-brief { margin:6px 0 0; }
+  .problem-brief-row { font-size:11.5px; line-height:1.35; }
+  .step-info-tabs { margin-top:8px; gap:4px; }
+  .step-info-tab {
+    min-height:36px;
+    font-size:clamp(10.5px,3vw,12px);
+    letter-spacing:normal;
+  }
+  .step-info-page {
+    min-height:68px;
+    max-height:none;
+    padding:9px 2px 29px;
+    overflow:visible;
+  }
+  .step-info-text {
+    font-size:13px;
+    line-height:1.42;
+    overflow:visible;
+    overflow-wrap:anywhere;
+  }
+  .step-measure-list { font-size:12px; line-height:1.4; }
+  .step-info-pager { height:27px; bottom:0; }
+  .step-info-pager button { height:26px; min-width:34px; }
+  .mobile-step-nav {
+    position:sticky;
+    z-index:2;
+    bottom:-6px;
+    gap:6px;
+    margin-top:4px;
+    padding:8px 0 6px;
+    background:linear-gradient(rgba(255,253,248,.84),#fffdf8 40%);
+  }
+  .mobile-step-nav button { min-height:40px; font-size:12px; }
+  .controls-panel {
+    max-height:min(90dvh,850px);
+    padding-bottom:calc(18px + env(safe-area-inset-bottom));
+    overflow-y:auto;
+  }
+  .choice-heading > b, .choice-summary { overflow:hidden; text-overflow:ellipsis; }
+}
+@media (max-width:760px) and (orientation:landscape) and (max-height:500px) {
+  :root { --mobile-step-peek:185px; }
+  .mobile-appbar { position:relative; }
+  .paper-wrap {
+    width:57%;
+    max-width:57%;
+    height:calc(100dvh - var(--mobile-appbar-h) - 50px);
+    min-height:0;
+    padding:8px 8px 22px;
+  }
+  .workspace { padding-bottom:0; }
+  .explanation-panel,
+  .explanation-panel.is-expanded {
+    left:auto;
+    right:7px;
+    top:calc(var(--mobile-appbar-h) + 57px);
+    bottom:7px;
+    width:calc(43% - 14px);
+    max-height:none;
+    border-radius:14px;
+    padding:8px 9px 4px;
+  }
+  .step-info-tabs { gap:2px; }
+  .step-info-tab { font-size:10.5px; padding:0 2px; }
+  .mobile-step-nav { grid-template-columns:1fr 1fr 1.1fr; }
+  .mobile-step-nav button { font-size:11px; padding:8px 4px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .explanation-panel,.controls-panel,.mobile-backdrop { transition:none; }
+}
