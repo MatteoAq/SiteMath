@@ -16,6 +16,7 @@ jobs:
         with:
           node-version: 22
       - run: node --check multi.js
+      - run: node scripts/build-variants.mjs --check
       - run: node --check variants.js
       - run: npm install jsdom@26 --no-save
       - run: node tests/paper-originals.mjs
