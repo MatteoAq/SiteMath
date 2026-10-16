@@ -872,6 +872,9 @@ for (const vp of [
     });
     if(!(await page.locator('#remoteSourceHint').isVisible()))
       failures.push(variant+'/'+task+': source-focus help is missing');
+    const visibleHint=await page.locator('#remoteSourceHint span').textContent();
+    if(!visibleHint?.includes(variant==='13'?'на другую сторону':'не точное место'))
+      failures.push(variant+'/'+task+': visible step-side raster warning is missing');
     const diagramWarning=await page.locator('#diagramWarning').textContent();
     const expectedWarning=variant==='13'
       ? 'на другую сторону рисунка'
