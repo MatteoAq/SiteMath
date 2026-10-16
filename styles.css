@@ -2808,3 +2808,26 @@ body.offer-modal-open { overflow:hidden; }
   }
 }
 
+/* Desktop variant picker must fit ALL numbered buttons, not clip the sixth
+   column behind the sidebar's overflow mask. */
+@media (min-width:761px) {
+  .controls-panel .variant-chips {
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:6px;
+    width:100%;
+    max-width:100%;
+    overflow:visible;
+  }
+  .controls-panel .variant-chip { min-width:0; max-width:100%; }
+  .controls-panel .variant-chip.own-data {
+    grid-column:span 2;
+    min-width:0;
+  }
+}
+@media (min-width:761px) and (max-width:1080px) {
+  .controls-panel .variant-chips { grid-template-columns:repeat(4,minmax(0,1fr)); }
+}
+@media (min-width:1360px) {
+  .layout { grid-template-columns:clamp(290px,21vw,325px) minmax(0,1fr); }
+}
+

@@ -800,13 +800,19 @@ for (const vp of [
       sidebarScrollable:getComputedStyle(document.querySelector('#controlsPanel')).overflowY==='auto',
       sidebarFits:sidebar.height<=innerHeight-10,
       controlsVisible:sidebar.width>=230,
+      clippedVariants:[...document.querySelectorAll('.variant-chip')]
+        .filter(el=>{
+          const r=el.getBoundingClientRect(), container=rect('#variantChips');
+          return container && (r.left<container.left-1||
+            r.right>container.right+1||r.width<26);
+        }).length,
       drawingVisible:wrap.width>=320&&wrap.height>=350,
       badButtons,
       clippedStep:step.scrollHeight>step.clientHeight+1
     };
   });
   if(!layout.separated||!layout.sideBySide||!layout.sidebarScrollable||!layout.sidebarFits||
-     !layout.controlsVisible||!layout.drawingVisible||layout.badButtons||
+     !layout.controlsVisible||!layout.drawingVisible||layout.badButtons||layout.clippedVariants||
      layout.clippedStep) failures.push(vp.name+': responsive desktop regression '+JSON.stringify(layout));
   await page.screenshot({path:'mobile-screenshots/'+vp.name+'-workspace.png',fullPage:false});
   await context.close();
