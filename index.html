@@ -260,27 +260,15 @@
   </main>
 
 
-  <!-- A single, dismissible invitation after a completed construction.
-       The long terms are intentionally in a separate accessible dialog. -->
-  <aside id="offerToast" class="offer-toast" role="status" aria-live="polite" hidden>
-    <div class="offer-toast-copy">
-      <b>Понравилось решение?</b>
-      <span>Помогу и с вашим вариантом – от 200 ₽.</span>
-    </div>
-    <div class="offer-toast-actions">
-      <button id="offerDetailsBtn" type="button">Подробнее</button>
-      <button id="offerDismissBtn" type="button" aria-label="Закрыть предложение">×</button>
-    </div>
-  </aside>
-
+  <!-- Shown once per tab session on entry, then dismissed before using SiteMath. -->
   <div id="offerOverlay" class="offer-overlay" hidden>
     <section class="offer-dialog" role="dialog" aria-modal="true"
              aria-labelledby="offerDialogTitle" aria-describedby="offerDialogSubtitle">
       <div class="offer-dialog-head">
         <div>
           <p class="offer-eyebrow">Индивидуальные решения</p>
-          <h2 id="offerDialogTitle">Нужно другое задание?</h2>
-          <p id="offerDialogSubtitle">Готовые решения на сайте бесплатны. Новые работы можно заказать отдельно.</p>
+          <h2 id="offerDialogTitle">Понравилось? Помогу и с другими работами</h2>
+          <p id="offerDialogSubtitle">Эти решения бесплатны. Новые задания и варианты могу выполнить на заказ.</p>
         </div>
         <button id="offerCloseBtn" class="offer-dialog-close" type="button" aria-label="Закрыть окно">×</button>
       </div>

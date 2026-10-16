@@ -79,7 +79,7 @@ for (const vp of viewports) {
   });
   const page = await context.newPage();
 
-  await page.addInitScript(() => localStorage.clear());
+  await page.addInitScript(() => { localStorage.clear(); sessionStorage.setItem('sitemath-offer-seen','1'); });
   await page.goto(base,{waitUntil:'networkidle'});
 
   if (!(await page.locator('#firstRunPicker').isVisible())) {
@@ -162,7 +162,7 @@ for (const vp of viewports) {
     hasTouch:true
   });
   const page = await context.newPage();
-  await page.addInitScript(() => localStorage.clear());
+  await page.addInitScript(() => { localStorage.clear(); sessionStorage.setItem('sitemath-offer-seen','1'); });
   await page.goto(base,{waitUntil:'networkidle'});
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
@@ -750,7 +750,7 @@ for (const vp of [
     isMobile:false
   });
   const page=await context.newPage();
-  await page.addInitScript(()=>localStorage.clear());
+  await page.addInitScript(()=>{ localStorage.clear(); sessionStorage.setItem('sitemath-offer-seen','1'); });
   await page.goto(base,{waitUntil:'networkidle'});
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
@@ -783,6 +783,39 @@ for (const vp of [
      !layout.controlsVisible||!layout.drawingVisible||layout.badButtons||
      layout.clippedStep) failures.push(vp.name+': responsive desktop regression '+JSON.stringify(layout));
   await page.screenshot({path:'mobile-screenshots/'+vp.name+'-workspace.png',fullPage:false});
+  await context.close();
+}
+
+// Welcome offer appears on a first opening, not after completing a task.
+{
+  const context=await browser.newContext({
+    viewport:{width:360,height:800},deviceScaleFactor:2,isMobile:true,hasTouch:true
+  });
+  const page=await context.newPage();
+  await page.goto(base,{waitUntil:'networkidle'});
+  if(!(await page.locator('#offerOverlay').isVisible()))
+    failures.push('welcome offer: dialog not visible on first opening');
+  if(!(await page.locator('#offerDialogTitle').isVisible()))
+    failures.push('welcome offer: dialog heading not visible');
+  const tg=await page.locator('.offer-contact').getAttribute('href');
+  if(tg!=='https://t.me/shei1ny') failures.push('welcome offer: wrong Telegram address '+tg);
+  await visibleOverflow(page,'welcome offer 360px');
+  await page.screenshot({path:'mobile-screenshots/welcome-offer.png',fullPage:false});
+  await page.locator('#offerCloseBtn').click();
+  if(await page.locator('#offerOverlay').isVisible())
+    failures.push('welcome offer: dialog did not close');
+  if(!(await page.locator('#firstRunPicker').isVisible()))
+    failures.push('welcome offer: variant picker is not available after dismissal');
+  await page.locator('.first-run-variant[data-variant="12"]').click();
+  await page.locator('.first-run-task[data-task="4"]').click();
+  await page.locator('#firstRunStart').click();
+  await page.locator('#lastBtn').click();
+  await page.waitForTimeout(250);
+  if(await page.locator('#offerOverlay').isVisible())
+    failures.push('welcome offer: reappeared at the final step');
+  await page.reload({waitUntil:'networkidle'});
+  if(await page.locator('#offerOverlay').isVisible())
+    failures.push('welcome offer: shown twice in the same tab session');
   await context.close();
 }
 

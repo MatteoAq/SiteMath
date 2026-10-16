@@ -2480,45 +2480,8 @@ body { color:var(--ui-text); }
   .explanation-panel,.controls-panel,.mobile-backdrop { transition:none; }
 }
 
-/* Dismissible offer after the last step – informational, never blocks the
-   construction. Full details are opened only by an explicit user action. */
-.offer-toast[hidden], .offer-overlay[hidden] { display:none !important; }
-.offer-toast {
-  position:fixed;
-  right:clamp(10px,2.2vw,32px);
-  bottom:clamp(10px,2.2vh,24px);
-  z-index:85;
-  display:flex;
-  align-items:center;
-  gap:14px;
-  width:min(385px,calc(100vw - 20px));
-  padding:13px;
-  background:#fff;
-  border:1px solid #e4d9e9;
-  border-radius:16px;
-  box-shadow:0 12px 42px rgba(33,21,43,.21);
-  color:#2b2031;
-}
-.offer-toast-copy { flex:1; min-width:0; display:grid; gap:4px; }
-.offer-toast-copy b { font-size:14px; line-height:1.2; }
-.offer-toast-copy span { font-size:12px; line-height:1.4; color:#65586e; }
-.offer-toast-actions { flex:none; display:flex; align-items:center; gap:4px; }
-#offerDetailsBtn {
-  min-height:38px;
-  padding:8px 11px;
-  background:#7c3aed;
-  color:white;
-  border-radius:10px;
-  font-size:12px;
-}
-#offerDismissBtn {
-  width:34px;
-  min-height:38px;
-  padding:4px;
-  color:#72667b;
-  background:transparent;
-  font-size:22px;
-}
+/* Welcome offer dialog, shown on the first visit to a tab. */
+.offer-overlay[hidden] { display:none !important; }
 .offer-overlay {
   position:fixed;
   inset:0;
@@ -2607,21 +2570,6 @@ body.offer-modal-open { overflow:hidden; }
 .offer-contact:hover, .offer-contact:focus-visible { background:#662dcc; color:white; }
 #offerLaterBtn { min-height:44px; padding:11px 15px; border-radius:11px; background:#f4eff6; color:#50445b; font-size:12px; }
 @media (max-width:760px) {
-  .offer-toast {
-    top:calc(var(--mobile-appbar-h) + 58px + env(safe-area-inset-top));
-    bottom:auto;
-    right:8px;
-    left:8px;
-    width:auto;
-    padding:10px 11px;
-    border-radius:13px;
-    gap:8px;
-    box-shadow:0 7px 26px rgba(33,21,43,.17);
-  }
-  .offer-toast-copy b { font-size:13px; }
-  .offer-toast-copy span { font-size:11.5px; }
-  #offerDetailsBtn { font-size:11px; padding:7px 9px; min-height:36px; }
-  #offerDismissBtn { width:30px; min-height:36px; }
   .offer-overlay { padding:8px; align-items:center; }
   .offer-dialog {
     width:100%;
@@ -2639,9 +2587,8 @@ body.offer-modal-open { overflow:hidden; }
 }
 @media (max-width:350px) { .offer-price-grid { grid-template-columns:minmax(0,1fr); } }
 @media (max-width:760px) and (orientation:landscape) and (max-height:500px) {
-  .offer-toast { top:calc(var(--mobile-appbar-h) + 56px); left:8px; right:auto; width:min(310px,54vw); }
   .offer-price-grid, .offer-detail-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
 @media (prefers-reduced-motion:reduce) {
-  .offer-toast,.offer-dialog { scroll-behavior:auto; }
+  .offer-dialog { scroll-behavior:auto; }
 }

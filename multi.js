@@ -5505,62 +5505,54 @@
   }
 
 
-  // Show the offer only when a visitor actually reaches the final construction
-  // stage, and at most once per tab session. Never interrupt the initial render.
-  let offerTimer=null;
+  // Show the service notice on the first opening in a tab session, before
+  // choosing a variant. Never trigger it while advancing through the drawing.
   let offerFocusReturn=null;
   function offerAlreadySeen(){
     if(state.offerSeen)return true;
     try { return window.sessionStorage.getItem('sitemath-offer-seen')==='1'; }
     catch (_) { return false; }
   }
-  function dismissOffer(){
-    if(offerTimer!==null){clearTimeout(offerTimer);offerTimer=null;}
-    const toast=$('offerToast');
-    if(toast)toast.hidden=true;
-  }
-  function maybeScheduleOffer(){
-    if(!state.steps.length||state.step!==state.steps.length-1||offerAlreadySeen())return;
-    if(offerTimer!==null)clearTimeout(offerTimer);
-    offerTimer=setTimeout(()=>{
-      offerTimer=null;
-      if(state.step!==state.steps.length-1||offerAlreadySeen())return;
-      if(document.visibilityState==='hidden')return;
-      const toast=$('offerToast');
-      if(!toast)return;
-      toast.hidden=false;
-      state.offerSeen=true;
-      try { window.sessionStorage.setItem('sitemath-offer-seen','1'); } catch (_) {}
-    },2400);
-  }
   function openOfferDetails(){
     const overlay=$('offerOverlay');
-    if(!overlay)return;
+    if(!overlay||!overlay.hidden)return;
     offerFocusReturn=document.activeElement;
-    dismissOffer();
+    const picker=$('firstRunPicker');
+    if(picker&&!picker.hidden)picker.inert=true;
     overlay.hidden=false;
     document.body.classList.add('offer-modal-open');
     $('offerCloseBtn')?.focus();
+  }
+  function showWelcomeOffer(){
+    if(offerAlreadySeen())return;
+    openOfferDetails();
+    state.offerSeen=true;
+    try { window.sessionStorage.setItem('sitemath-offer-seen','1'); }
+    catch (_) {}
   }
   function closeOfferDetails(){
     const overlay=$('offerOverlay');
     if(!overlay||overlay.hidden)return;
     overlay.hidden=true;
     document.body.classList.remove('offer-modal-open');
-    // The source button is now hidden: return focus to the drawing controls.
-    const target=offerFocusReturn&&offerFocusReturn.getClientRects().length
-      ?offerFocusReturn:($('mobileNextBtn')&&innerWidth<=760?$('mobileNextBtn'):$('lastBtn'));
+    const picker=$('firstRunPicker');
+    if(picker)picker.inert=false;
+    // On the first visit the underlying view is the variant chooser; restore
+    // keyboard focus there rather than to a hidden drawing control.
+    const firstVariant=picker&&!picker.hidden
+      ?picker.querySelector('.first-run-variant'):null;
+    const target=firstVariant||
+      (offerFocusReturn&&offerFocusReturn.getClientRects().length?offerFocusReturn:null)||
+      ($('mobileSetupBtn')&&innerWidth<=760?$('mobileSetupBtn'):$('lastBtn'));
     target?.focus();
   }
 
   function moveTo(n){
     stopAuto();
-    dismissOffer();
     state.step=Math.max(0,Math.min(state.steps.length-1,n));
     state.stepInfoMode='action';
     state.stepInfoPage=0;
     renderDrawing();
-    maybeScheduleOffer();
   }
 
   function toggleAuto(){
@@ -5574,7 +5566,6 @@
       state.stepInfoMode='action';
       state.stepInfoPage=0;
       renderDrawing();
-      maybeScheduleOffer();
       state.timer=setTimeout(tick,1900);
     };
     state.timer=setTimeout(tick,350);
@@ -5658,8 +5649,6 @@
   $('mobileSetupClose').addEventListener('click',closeMobileSetup);
   $('mobileBackdrop').addEventListener('click',closeMobileSetup);
   $('stepSheetToggle').addEventListener('click',toggleStepSheet);
-  $('offerDetailsBtn')?.addEventListener('click',openOfferDetails);
-  $('offerDismissBtn')?.addEventListener('click',dismissOffer);
   $('offerCloseBtn')?.addEventListener('click',closeOfferDetails);
   $('offerLaterBtn')?.addEventListener('click',closeOfferDetails);
   $('offerOverlay')?.addEventListener('click',event=>{
@@ -5722,4 +5711,5 @@
     syncChoicePickers();
     showFirstRunPicker();
   }
+  showWelcomeOffer();
 })();
