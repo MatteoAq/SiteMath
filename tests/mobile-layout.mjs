@@ -103,6 +103,26 @@ for (const vp of viewports) {
   if(screenGrid.minorWidth!==5||screenGrid.minorHeight!==5||screenGrid.majorWidth!==25||screenGrid.majorHeight!==25){
     failures.push(vp.name+': wrong grid pattern size '+JSON.stringify(screenGrid));
   }
+
+  // A multi-page explanation must be legible and its pager must not sit
+  // behind the sticky step navigation. This regressed on 320px phones.
+  const guidance=await page.evaluate(()=>{
+    const pager=document.querySelector('#stepInfoPager');
+    const nav=document.querySelector('.mobile-step-nav');
+    const sheet=document.querySelector('#stepSheet');
+    if(!pager||!nav||!sheet)return {found:false};
+    const showing=getComputedStyle(pager).display!=='none';
+    const p=pager.getBoundingClientRect();
+    const n=nav.getBoundingClientRect();
+    const box=sheet.getBoundingClientRect();
+    const pagerAboveNav=p.bottom<=n.top+1;
+    const pagerWithinSheet=p.top>=box.top-1&&p.bottom<=box.bottom+1;
+    return {found:true,showing,pagerAboveNav,pagerWithinSheet,
+      top:Math.round(p.top),bottom:Math.round(p.bottom),navTop:Math.round(n.top)};
+  });
+  if(!guidance.found||(guidance.showing&&(!guidance.pagerAboveNav||!guidance.pagerWithinSheet)))
+    failures.push(vp.name+': explanation pager overlaps bottom navigation '+JSON.stringify(guidance));
+
   await page.screenshot({path:'mobile-screenshots/'+vp.name+'-drawing.png',fullPage:false});
 
   await page.locator('#mobileSetupBtn').click();
