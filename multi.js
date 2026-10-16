@@ -19,6 +19,7 @@
     playing: false,
     timer: null,
     customSchemes: {},
+    practiceMode: false,
     calibrator: null,
     screenZoom: null,
     focusMode: false,
@@ -662,6 +663,24 @@
       (task===1 && v?.task1Mode==='pyramid' ? 'Пирамида SABC' : DATA.tasks[task].title);
     const currentScheme = task>3 && state.variant!=='custom'
       ? window.SITEMATH_SCHEMES?.[state.variant]?.['task'+task] : null;
+    const specialPractice = !!currentScheme?.teachingScheme &&
+      ((state.variant==='12' && task===6) || (state.variant==='13' && task===5));
+    const practicePanel=$('practiceGeometryControl');
+    if(practicePanel){
+      practicePanel.hidden=!specialPractice;
+      practicePanel.classList.toggle('is-redrawn',specialPractice&&state.practiceMode);
+      if(specialPractice){
+        $('practiceGeometryHeadline').textContent=state.practiceMode
+          ? 'Учебная реконструкция – исходные линии изменены'
+          : 'Оригинальная схема – пересечение далеко от рисунка';
+        $('practiceGeometryMessage').textContent=state.practiceMode
+          ? 'В этой схеме положения заданных линий изменены ради удобного построения. Не сдавай такой рисунок как точное решение исходного листа без разрешения преподавателя.'
+          : 'Точные линии исходного скана дают удалённое пересечение. Можно включить отдельную учебную схему с сохранением словесных геометрических условий.';
+        $('practiceGeometryToggle').textContent=state.practiceMode?'Вернуть оригинальную схему':'Показать учебную реконструкцию';
+        $('practiceGeometryToggle').setAttribute('aria-pressed',String(state.practiceMode));
+        $('practiceGeometryOriginal').href='source-photos/scans/variant-'+state.variant+'.jpg';
+      }
+    }
     const disputedSource = !!currentScheme && currentScheme.sourceVerified!==true;
     // Method proven, but finite accuracy of the raster source cannot be certified.
     const rasterPrecisionLimit = (state.variant==='12' && task===6) ||
@@ -674,6 +693,10 @@
       if(task>3){
         const heading=warning.querySelector('b');
         const detail=warning.querySelector('span');
+        if(specialPractice && state.practiceMode){
+          if(heading) heading.textContent='Учебная реконструкция – оригинальные линии изменены.';
+          if(detail) detail.textContent='Показано правильное построение для перестроенной учебной схемы, НЕ для точной копии исходного листа. Прежде чем использовать такую схему как сдаваемую работу, уточни допустимость изменения исходного рисунка.';
+        } else {
         if(heading) heading.textContent=rasterPrecisionLimit
           ? 'Метод проверен. Точность исходного скана ограничена.'
           : disputedSource
@@ -686,6 +709,7 @@
             ? 'Полный скан бумажного листа доступен по ссылке ниже. Исходные условия сверяются с ним; правильность вспомогательных построений и результатов ещё проверяется.'
             : 'Исходная геометрия и формулировка могут отличаться от бумажного листа. Не используй предварительную схему без сверки.')
           : 'Исходный рисунок, последовательность вспомогательных построений и геометрический результат проверены по оригиналу.';
+        }
       }
     }
     $('variantNote').textContent = state.variant==='custom'
@@ -4843,10 +4867,26 @@
   function solveDiagramTask(task,stored){
     const schemeRoot=window.SITEMATH_SCHEMES||{};
     const variantSchemes=schemeRoot[state.variant]||{};
-    const scheme=state.variant==='custom' ? state.customSchemes[task] : variantSchemes['task'+task];
-    if(task===4 && scheme) return solveTask4Scheme(scheme,stored);
-    if(task===5 && scheme) return solveTask5Scheme(scheme,stored);
-    if(task===6 && scheme) return solveTask6Scheme(scheme,stored);
+    const original=state.variant==='custom' ? state.customSchemes[task] : variantSchemes['task'+task];
+    const usePractice=state.practiceMode && !!original?.teachingScheme &&
+      ((state.variant==='12'&&task===6)||(state.variant==='13'&&task===5));
+    const scheme=usePractice?original.teachingScheme:original;
+    let solved;
+    if(task===4 && scheme) solved=solveTask4Scheme(scheme,stored);
+    if(task===5 && scheme) solved=solveTask5Scheme(scheme,stored);
+    if(task===6 && scheme) solved=solveTask6Scheme(scheme,stored);
+    if(solved && !solved.error){
+      if(usePractice && solved.steps.length){
+        const first=solved.steps[0];
+        first.title='Перечерти учебную схему вместо исходного рисунка';
+        first.action='Это изменённая учебная схема, не исходный лист. Перенеси показанные на экране проекции, а не скопированные с фотографии. '+scheme.teachingNote;
+        first.why='В исходном рисунке пересечения очень удалены. Здесь линии сознательно перестроены для отработки того же метода на удобной схеме.';
+        first.check='Не смешивай элементы учебного и исходного рисунков. Это не метрически то же самое условие.';
+        first.measure=[...(first.measure||[]),'Учебная схема ≠ точная копия оригинала'];
+      }
+      return solved;
+    }
+    if(solved)return solved;
 
     const steps=[];
     const title = task===4 ? 'Для этого варианта схема №4 ещё не оцифрована' : task===5 ? 'Положение исходных линий задаётся рисунком' : 'Обе плоскости задаются графически';
@@ -5670,16 +5710,25 @@
   }
 
   $('variantSelect').addEventListener('change',e=>{
+    state.practiceMode=false;
     state.variant=e.target.value||null;
     syncChoicePickers();
     updateMobileSummary();
     if(state.variant&&state.task){ saveSelection(); resetCurrent(); }
   });
   $('taskSelect').addEventListener('change',e=>{
+    state.practiceMode=false;
     state.task=e.target.value?Number(e.target.value):null;
     syncChoicePickers();
     updateMobileSummary();
     if(state.variant&&state.task){ saveSelection(); resetCurrent(); }
+  });
+  $('practiceGeometryToggle')?.addEventListener('click',()=>{
+    if(!((state.variant==='12'&&state.task===6)||(state.variant==='13'&&state.task===5)))return;
+    state.practiceMode=!state.practiceMode;
+    renderInputs();
+    rebuild(true);
+    setDrawingZoom('fit');
   });
   $('resetBtn').addEventListener('click',resetCurrent);
   $('buildBtn').addEventListener('click',()=>{ rebuild(true); closeMobileSetup(); setDrawingZoom('fit'); });
