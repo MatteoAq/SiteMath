@@ -834,6 +834,9 @@ for (const vp of [
     });
     if(!(await page.locator('#remoteSourceHint').isVisible()))
       failures.push(variant+'/'+task+': source-focus help is missing');
+    // A fit command on the FIRST stage already frames only the original
+    // scheme; test the actual problem after the remote answer is drawn.
+    await page.evaluate(()=>document.querySelector('#lastBtn').click());
     await page.evaluate(()=>document.querySelector('#zoomFitBtn').click());
     await page.waitForTimeout(70);
     const before=await page.locator('#drawing').evaluate(el=>el.getBoundingClientRect().width);
