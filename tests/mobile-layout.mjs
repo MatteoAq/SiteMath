@@ -809,6 +809,43 @@ for (const vp of [
   await context.close();
 }
 
+// Distant intersections: the source-only camera control must enlarge
+// the actual paper scheme without changing the current construction step.
+{
+  const context=await browser.newContext({
+    viewport:{width:360,height:800},deviceScaleFactor:2,isMobile:true,hasTouch:true
+  });
+  const page=await context.newPage();
+  await page.addInitScript(()=>localStorage.clear());
+  await page.goto(base,{waitUntil:'networkidle'});
+  await page.locator('#offerCloseBtn').click();
+  await page.locator('.first-run-variant[data-variant="12"]').click();
+  await page.locator('.first-run-task[data-task="6"]').click();
+  await page.locator('#firstRunStart').click();
+  for(const [variant,task] of [['12','6'],['13','5']]){
+    if(variant==='13')await page.evaluate(()=>{
+      const v=document.querySelector('#variantSelect');
+      v.value='13';v.dispatchEvent(new Event('change',{bubbles:true}));
+      const t=document.querySelector('#taskSelect');
+      t.value='5';t.dispatchEvent(new Event('change',{bubbles:true}));
+    });
+    if(!(await page.locator('#remoteSourceHint').isVisible()))
+      failures.push(variant+'/'+task+': source-focus help is missing');
+    await page.evaluate(()=>document.querySelector('#zoomFitBtn').click());
+    await page.waitForTimeout(70);
+    const before=await page.locator('#drawing').evaluate(el=>el.getBoundingClientRect().width);
+    const stepBefore=await page.locator('#stepNumber').textContent();
+    await page.locator('#zoomSourceBtn').click();
+    await page.waitForTimeout(80);
+    const after=await page.locator('#drawing').evaluate(el=>el.getBoundingClientRect().width);
+    const stepAfter=await page.locator('#stepNumber').textContent();
+    if(!(after>before*1.1) || stepBefore!==stepAfter)
+      failures.push(variant+'/'+task+': source-only camera not functional '+JSON.stringify({before,after,stepBefore,stepAfter}));
+    await page.screenshot({path:'mobile-screenshots/source-focus-'+variant+'-'+task+'.png',fullPage:false});
+  }
+  await context.close();
+}
+
 // Welcome offer appears on a first opening, not after completing a task.
 {
   const context=await browser.newContext({
