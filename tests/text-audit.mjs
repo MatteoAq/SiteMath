@@ -44,6 +44,8 @@ for(let vi=1;vi<=20;vi++){
         if(!entry[field])issues.push({variant,task,step:step+1,field,type:'empty'});
         if(/\b(?:проекция|линия|плоскость)\s+(?:этого|данного|полученного)\s+объекта\b/i.test(entry[field]))
           issues.push({variant,task,step:step+1,field,type:'ambiguous-reference',text:entry[field]});
+        if(/на следующем шаге|проверь,? параллельны ли|проверь совпадающую координату|сайт показывает|пока показана только/i.test(entry[field]))
+          issues.push({variant,task,step:step+1,field,type:'procedural-filler',text:entry[field]});
       }
       if(step<total-1)$('nextBtn').click();
     }
@@ -55,7 +57,7 @@ if(errors.length)issues.push({type:'browser-errors',errors});
 const totalSteps=snapshot.reduce((a,v)=>a+v.tasks.reduce((b,t)=>b+t.stepCount,0),0);
 fs.writeFileSync('text-audit.json',JSON.stringify({variants:20,tasks:120,totalSteps,snapshot,issues},null,2));
 console.log('Captured actual UI guidance for 20 variants, 120 tasks, '+totalSteps+' steps. Issues: '+issues.length);
-if(issues.some(x=>x.type==='empty'||x.type==='browser-errors')) {
-  console.error('Structural text-audit errors: '+JSON.stringify(issues.filter(x=>x.type==='empty'||x.type==='browser-errors').slice(0,20)));
+if(issues.length) {
+  console.error('Text-audit errors: '+JSON.stringify(issues.slice(0,20)));
   process.exit(1);
 }
