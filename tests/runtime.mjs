@@ -397,7 +397,7 @@ if (!onlyVariant && !onlyTask) try {
     const idx=prefix=>steps.findIndex(st=>st.title.startsWith(prefix));
     const choose=idx('Выбери T₁ на '),transfer=idx('По линии связи получи T₂ на ');
     const g=steps.findIndex(st=>st.title.startsWith('Соедини ')&&st.title.includes('построй g₁ и g₂'));
-    const omega=idx('Заключи ℓ во вспомогательную');
+    const omega=steps.findIndex(st=>st.title.includes('вспомогательную плоскость Ω'));
     const witness=idx('Видимость на Π₁');
     if(choose<1||transfer!==choose+1||g!==transfer+1||omega<=g||witness<=g){
       failures.push('task5 line-point '+variant+': T₁→T₂→g→Ω→competitor order missing');
@@ -1828,7 +1828,7 @@ if (!onlyVariant && !onlyTask) try {
       const title=$('stepTitle').textContent.trim();
       const labels=[...window.document.querySelectorAll('#drawing text')].map(el=>el.textContent);
       const kCount=labels.filter(x=>/^K[₁₂]$/.test(x)).length;
-      if(title.startsWith('Заключи '+givenSymbol+' во вспомогательную')){
+      if(title.includes('вспомогательную плоскость Ω')){
         sawOmega=true;
         if(labels.some(x=>/^1[₁₂]$|^2[₁₂]$|^K[₁₂]$/.test(x)))
           failures.push('task5 sequence '+variant+': derived points exist while Ω is only introduced');
@@ -2918,7 +2918,7 @@ if (!onlyVariant && !onlyTask) try {
         if(!titles[total-2].startsWith('Построй '))
           missing(variant,task,'terminal positioned point missing');
       }else if(task===5){
-        order(['Заключи ','Найди 1','Перенеси 1','Построй m',
+        order(['вспомогательную плоскость Ω','Найди 1','Перенеси 1','Построй m',
           'Найди K','Перенеси K','Видимость на Π₁',
           'Перенеси 3','Видимость на Π₂','Перенеси 5'],
           'section/intersection/competing-point visibility');
