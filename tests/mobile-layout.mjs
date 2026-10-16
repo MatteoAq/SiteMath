@@ -792,8 +792,11 @@ for (const vp of [
       .filter(r=>r.right>toolbar.right+1||r.left<toolbar.left-1||
         r.top<toolbar.top-1||r.bottom>toolbar.bottom+1).length;
     const step=document.querySelector('.step-info-page');
+    const guidance=rect('#stepSheet');
+    const sideBySide=innerWidth<1360 || (!!guidance && guidance.left>=stage.right-1 && guidance.top<stage.bottom);
     return {
       separated:!!sidebar&&!!stage&&sidebar.right<=stage.left-4,
+      sideBySide,
       sidebarScrollable:getComputedStyle(document.querySelector('#controlsPanel')).overflowY==='auto',
       sidebarFits:sidebar.height<=innerHeight-10,
       controlsVisible:sidebar.width>=230,
@@ -802,7 +805,7 @@ for (const vp of [
       clippedStep:step.scrollHeight>step.clientHeight+1
     };
   });
-  if(!layout.separated||!layout.sidebarScrollable||!layout.sidebarFits||
+  if(!layout.separated||!layout.sideBySide||!layout.sidebarScrollable||!layout.sidebarFits||
      !layout.controlsVisible||!layout.drawingVisible||layout.badButtons||
      layout.clippedStep) failures.push(vp.name+': responsive desktop regression '+JSON.stringify(layout));
   await page.screenshot({path:'mobile-screenshots/'+vp.name+'-workspace.png',fullPage:false});
