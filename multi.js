@@ -479,8 +479,18 @@
   function renderProblemBrief(){
     const box=$('problemBrief');
     if(!box) return;
+    const details=$('problemDetails');
+    if(details){
+      const displayMode=(window.innerWidth||1024)<=760?'mobile':'desktop';
+      if(details.dataset.displayMode!==displayMode){
+        details.open=displayMode==='desktop';
+        details.dataset.displayMode=displayMode;
+      }
+      details.hidden=false;
+    }
     if(!state.task || state.task<=3){
       box.hidden=true;
+      if(details)details.hidden=true;
       return;
     }
     const stored=getStoredTaskData()||{};
@@ -489,6 +499,7 @@
       : (window.SITEMATH_SCHEMES?.[state.variant]?.['task'+state.task]);
     if(!scheme){
       box.hidden=true;
+      if(details)details.hidden=true;
       return;
     }
     const notations=extractPlaneNotations(stored.statement);

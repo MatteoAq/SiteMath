@@ -197,15 +197,13 @@
         <div class="step-badge" id="stepBadge">Шаг 1</div>
         <h2 id="stepTitle">Подготовка</h2>
 
-        <div id="problemBrief" class="problem-brief" hidden>
-          <div class="problem-brief-row"><span>Дано</span><b id="problemGiven"></b></div>
-          <div class="problem-brief-row"><span>Найти</span><b id="problemFind"></b></div>
-        </div>
-
-        <div id="remoteSourceHint" class="remote-source-hint" hidden>
-          <span>Пересечение далеко от исходной схемы.</span>
-          <button id="zoomSourceBtn" type="button">Показать исходный чертёж</button>
-        </div>
+        <details id="problemDetails" class="problem-details" open>
+          <summary>Условие задания</summary>
+          <div id="problemBrief" class="problem-brief" hidden>
+            <div class="problem-brief-row"><span>Дано</span><b id="problemGiven"></b></div>
+            <div class="problem-brief-row"><span>Найти</span><b id="problemFind"></b></div>
+          </div>
+        </details>
 
         <div class="step-info-tabs" role="tablist" aria-label="Пояснение шага">
           <button class="step-info-tab is-active" type="button" data-step-mode="action" role="tab" aria-selected="true">Что делать</button>
@@ -220,6 +218,11 @@
             <span id="stepInfoPageLabel">1 / 1</span>
             <button id="stepInfoNextPage" type="button" aria-label="Следующая часть пояснения">›</button>
           </div>
+        </div>
+
+        <div id="remoteSourceHint" class="remote-source-hint" hidden>
+          <span>Пересечение далеко от исходной схемы.</span>
+          <button id="zoomSourceBtn" type="button">Показать исходный чертёж</button>
         </div>
 
         <div class="mobile-step-nav">

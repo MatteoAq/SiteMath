@@ -2831,3 +2831,25 @@ body.offer-modal-open { overflow:hidden; }
   .layout { grid-template-columns:clamp(290px,21vw,325px) minmax(0,1fr); }
 }
 
+
+/* Keep the construction itself above the optional assignment recap. */
+.problem-details[hidden] { display:none !important; }
+.problem-details { margin:10px 0 6px; }
+.problem-details > summary {
+  cursor:pointer;
+  padding:5px 7px;
+  color:#716278;
+  font-size:11px;
+  font-weight:800;
+  line-height:1.4;
+  border-radius:8px;
+  background:#f5eff8;
+}
+.problem-details[open] > summary { margin-bottom:7px; }
+.problem-details .problem-brief { margin:0; }
+@media (max-width:760px) {
+  .problem-details { margin:5px 0 4px; }
+  .problem-details > summary { font-size:11px; padding:6px 7px; }
+  .explanation-panel .remote-source-hint { margin-top:8px; }
+}
+
