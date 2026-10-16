@@ -2666,3 +2666,11 @@ body.offer-modal-open { overflow:hidden; }
   .mobile-icon-btn.text-btn { padding-left:6px; padding-right:6px; }
   .mobile-contact-link.mobile-icon-btn.text-btn { width:31px; min-width:31px; max-width:31px; }
 }
+
+/* Keep the pager clear of the sticky mobile navigation, including landscape. */
+@media (max-width:760px) {
+  .step-info-page { margin-bottom:18px; }
+}
+@media (max-width:760px) and (orientation:landscape) and (max-height:500px) {
+  .step-info-page { margin-bottom:24px; }
+}
