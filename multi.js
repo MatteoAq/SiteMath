@@ -4993,11 +4993,13 @@
 
   function stepTextLimit(){
     const w=window.innerWidth||1024;
-    if(w<=350) return 46;
-    if(w<=390) return 52;
-    if(w<=520) return 58;
-    if(w<=760) return 64;
-    return 82;
+    // Content fits by wrapping and the guidance panel can scroll.
+    // Desktop should not fragment normal sentences into 82-character pages.
+    if(w<=350) return 56;
+    if(w<=390) return 72;
+    if(w<=520) return 82;
+    if(w<=760) return 100;
+    return 260;
   }
 
   function stepInfoPages(st,mode){
@@ -5042,17 +5044,10 @@
   function fitStepTitle(){
     const el=$('stepTitle');
     if(!el) return;
+    // Titles wrap at the intended readable size. The mobile guidance sheet
+    // scrolls when a long statement needs more room; never shrink to 11px.
     el.style.fontSize='';
     el.style.lineHeight='';
-    if((window.innerWidth||1024)>760) return;
-    let size=16;
-    const maxHeight=38;
-    el.style.fontSize=size+'px';
-    el.style.lineHeight='1.12';
-    while(el.scrollHeight>maxHeight && size>11){
-      size-=.5;
-      el.style.fontSize=size+'px';
-    }
   }
 
   function renderExplanation(){
