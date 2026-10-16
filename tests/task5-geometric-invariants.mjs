@@ -84,7 +84,7 @@ for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
      }
      const titles=drawing.steps.map(st=>st.title||'');
      const source=titles.findIndex(t=>t.startsWith('Сверь исходные проекции'));
-     const omega=titles.findIndex(t=>t.startsWith('Заключи ℓ во вспомогательную'));
+     const omega=titles.findIndex(t=>t.includes('вспомогательную плоскость Ω'));
      const stages=[
        'Выбери T₁','По линии связи перенеси T₁','Выбери U₁',
        'По линии связи перенеси U₁','Соедини T и U'
@@ -115,7 +115,7 @@ for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
          issues.push('01: new g endpoint is not a valid in-plane 3D point');
      }
      const titles=drawing.steps.map(st=>st.title||'');
-     const omega=titles.findIndex(t=>t.startsWith('Заключи ℓ во вспомогательную'));
+     const omega=titles.findIndex(t=>t.includes('вспомогательную плоскость Ω'));
      const stages=['Выбери T₁','По линии связи перенеси T₁','Выбери U₁',
        'По линии связи перенеси U₁','Соедини T и U'].map(prefix=>
          titles.findIndex(t=>t.startsWith(prefix)));
