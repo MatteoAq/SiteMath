@@ -758,6 +758,33 @@ for (const vp of viewports) {
   await context.close();
 }
 
+// A variant chooser narrower than six fixed columns must never clip
+// option 6, 12, 18 or the custom variant on tablet / laptop layouts.
+for(const viewport of [{width:768,height:700},{width:1024,height:768},
+                       {width:1440,height:900}]){
+  const context=await browser.newContext({viewport});
+  const page=await context.newPage();
+  await page.addInitScript(()=>localStorage.clear());
+  await page.goto(base,{waitUntil:'networkidle'});
+  await page.locator('#offerCloseBtn').click();
+  await page.locator('.first-run-variant[data-variant="12"]').click();
+  await page.locator('.first-run-task[data-task="4"]').click();
+  await page.locator('#firstRunStart').click();
+  const cells=await page.evaluate(()=>{
+    const panel=document.querySelector('#controlsPanel').getBoundingClientRect();
+    return [...document.querySelectorAll('#variantChips .variant-chip')]
+      .filter(el=>getComputedStyle(el).display!=='none')
+      .map(el=>{
+        const box=el.getBoundingClientRect();
+        return {label:el.textContent.trim(),left:box.left,right:box.right,
+          clipped:box.left<panel.left-1||box.right>panel.right+1};
+      });
+  });
+  if(cells.length<20||cells.some(x=>x.clipped))
+    failures.push('variant options clipped '+viewport.width+'px '+JSON.stringify(cells.filter(x=>x.clipped)));
+  await context.close();
+}
+
 // Responsive desktop and narrow-tablet checks. Keep the sidebar usable
 // within the window and the drawing free of side-column overlaps.
 for (const vp of [

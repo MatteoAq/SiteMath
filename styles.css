@@ -2853,3 +2853,34 @@ body.offer-modal-open { overflow:hidden; }
   .explanation-panel .remote-source-hint { margin-top:8px; }
 }
 
+/* Final readable layout review: do not crop variant options at narrow desktop
+   widths, and put the actual step instructions before secondary metadata on
+   mobile. These rules intentionally follow earlier historical overrides. */
+@media (min-width:761px) {
+  .controls-panel, .picker-flow, .choice-block, .variant-chips { min-width:0; max-width:100%; }
+  .variant-chips { grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; }
+  .variant-chip { width:100%; min-width:0; min-height:42px; }
+  .choice-heading { min-width:0; }
+  .choice-summary { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+}
+@media (max-width:760px) {
+  .explanation-panel,
+  .explanation-panel.is-expanded {
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .explanation-panel .step-sheet-toggle { order:0; }
+  .explanation-panel .step-badge { order:1; align-self:flex-start; }
+  .explanation-panel > h2 { order:2; flex:0 0 auto; }
+  .explanation-panel .step-info-tabs { order:3; flex:0 0 auto; }
+  .explanation-panel .step-info-page { order:4; flex:0 0 auto; }
+  .explanation-panel .remote-source-hint { order:5; flex:0 0 auto; }
+  .explanation-panel .problem-brief { order:6; flex:0 0 auto; }
+  .explanation-panel .mobile-step-nav {
+    order:7;
+    flex:0 0 auto;
+    margin-top:7px;
+  }
+  .explanation-panel .legacy-step-copy { order:8; }
+}

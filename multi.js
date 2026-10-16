@@ -5060,6 +5060,8 @@
     el.style.lineHeight='';
   }
 
+  let lastGuidanceStepKey='';
+
   function renderExplanation(){
     const st=state.steps[state.step];
     $('stepNumber').textContent=String(state.step+1);
@@ -5076,6 +5078,14 @@
     $('stepCheck').textContent=st.check;
     $('stepMeasure').innerHTML='<ul class="measure-list">'+(st.measure||[]).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';
     renderStepInfoPage(st);
+    // Preserve scrolling while reading one step, but never carry an old
+    // scroll position into a different task, variant, or construction step.
+    const guidanceKey=String(state.variant)+'/'+state.task+'/'+state.step;
+    if(guidanceKey!==lastGuidanceStepKey){
+      const sheet=$('stepSheet');
+      if(sheet)sheet.scrollTop=0;
+      lastGuidanceStepKey=guidanceKey;
+    }
     $('prevBtn').disabled=state.step===0;
     $('firstBtn').disabled=state.step===0;
     $('nextBtn').disabled=state.step===state.steps.length-1;
