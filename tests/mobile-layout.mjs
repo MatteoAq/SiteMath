@@ -872,6 +872,12 @@ for (const vp of [
     });
     if(!(await page.locator('#remoteSourceHint').isVisible()))
       failures.push(variant+'/'+task+': source-focus help is missing');
+    const diagramWarning=await page.locator('#diagramWarning').textContent();
+    const expectedWarning=variant==='13'
+      ? 'на другую сторону рисунка'
+      : 'их общая прямая проходит далеко';
+    if(!diagramWarning?.includes(expectedWarning))
+      failures.push(variant+'/'+task+': raster uncertainty not explained separately');
     const instructionOrder=await page.evaluate(()=>{
       const details=document.querySelector('#problemDetails');
       const text=document.querySelector('#stepInfoText')?.getBoundingClientRect();
