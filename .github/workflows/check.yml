@@ -52,7 +52,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: runtime-diagnostics
-          path: runtime-results.json
+          path: |
+            runtime-results.json
+            text-audit.json
           if-no-files-found: ignore
 
   mobile-layout:
