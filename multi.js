@@ -5504,12 +5504,63 @@
     syncPlayButtons();
   }
 
+
+  // Show the offer only when a visitor actually reaches the final construction
+  // stage, and at most once per tab session. Never interrupt the initial render.
+  let offerTimer=null;
+  let offerFocusReturn=null;
+  function offerAlreadySeen(){
+    if(state.offerSeen)return true;
+    try { return window.sessionStorage.getItem('sitemath-offer-seen')==='1'; }
+    catch (_) { return false; }
+  }
+  function dismissOffer(){
+    if(offerTimer!==null){clearTimeout(offerTimer);offerTimer=null;}
+    const toast=$('offerToast');
+    if(toast)toast.hidden=true;
+  }
+  function maybeScheduleOffer(){
+    if(!state.steps.length||state.step!==state.steps.length-1||offerAlreadySeen())return;
+    if(offerTimer!==null)clearTimeout(offerTimer);
+    offerTimer=setTimeout(()=>{
+      offerTimer=null;
+      if(state.step!==state.steps.length-1||offerAlreadySeen())return;
+      if(document.visibilityState==='hidden')return;
+      const toast=$('offerToast');
+      if(!toast)return;
+      toast.hidden=false;
+      state.offerSeen=true;
+      try { window.sessionStorage.setItem('sitemath-offer-seen','1'); } catch (_) {}
+    },2400);
+  }
+  function openOfferDetails(){
+    const overlay=$('offerOverlay');
+    if(!overlay)return;
+    offerFocusReturn=document.activeElement;
+    dismissOffer();
+    overlay.hidden=false;
+    document.body.classList.add('offer-modal-open');
+    $('offerCloseBtn')?.focus();
+  }
+  function closeOfferDetails(){
+    const overlay=$('offerOverlay');
+    if(!overlay||overlay.hidden)return;
+    overlay.hidden=true;
+    document.body.classList.remove('offer-modal-open');
+    // The source button is now hidden: return focus to the drawing controls.
+    const target=offerFocusReturn&&offerFocusReturn.getClientRects().length
+      ?offerFocusReturn:($('mobileNextBtn')&&innerWidth<=760?$('mobileNextBtn'):$('lastBtn'));
+    target?.focus();
+  }
+
   function moveTo(n){
     stopAuto();
+    dismissOffer();
     state.step=Math.max(0,Math.min(state.steps.length-1,n));
     state.stepInfoMode='action';
     state.stepInfoPage=0;
     renderDrawing();
+    maybeScheduleOffer();
   }
 
   function toggleAuto(){
@@ -5523,6 +5574,7 @@
       state.stepInfoMode='action';
       state.stepInfoPage=0;
       renderDrawing();
+      maybeScheduleOffer();
       state.timer=setTimeout(tick,1900);
     };
     state.timer=setTimeout(tick,350);
@@ -5606,6 +5658,27 @@
   $('mobileSetupClose').addEventListener('click',closeMobileSetup);
   $('mobileBackdrop').addEventListener('click',closeMobileSetup);
   $('stepSheetToggle').addEventListener('click',toggleStepSheet);
+  $('offerDetailsBtn')?.addEventListener('click',openOfferDetails);
+  $('offerDismissBtn')?.addEventListener('click',dismissOffer);
+  $('offerCloseBtn')?.addEventListener('click',closeOfferDetails);
+  $('offerLaterBtn')?.addEventListener('click',closeOfferDetails);
+  $('offerOverlay')?.addEventListener('click',event=>{
+    if(event.target===$('offerOverlay'))closeOfferDetails();
+  });
+  document.addEventListener('keydown',event=>{
+    const overlay=$('offerOverlay');
+    if(!overlay||overlay.hidden)return;
+    if(event.key==='Escape'){event.preventDefault();closeOfferDetails();return;}
+    if(event.key!=='Tab')return;
+    const focusable=[...overlay.querySelectorAll('button:not([disabled]),a[href]')];
+    if(!focusable.length)return;
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&document.activeElement===first){
+      event.preventDefault();last.focus();
+    }else if(!event.shiftKey&&document.activeElement===last){
+      event.preventDefault();first.focus();
+    }
+  });
   $('mobilePrevBtn').addEventListener('click',()=>moveTo(state.step-1));
   $('mobileNextBtn').addEventListener('click',()=>moveTo(state.step+1));
   $('mobilePlayBtn').addEventListener('click',toggleAuto);

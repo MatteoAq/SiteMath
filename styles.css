@@ -2479,3 +2479,169 @@ body { color:var(--ui-text); }
 @media (prefers-reduced-motion:reduce) {
   .explanation-panel,.controls-panel,.mobile-backdrop { transition:none; }
 }
+
+/* Dismissible offer after the last step – informational, never blocks the
+   construction. Full details are opened only by an explicit user action. */
+.offer-toast[hidden], .offer-overlay[hidden] { display:none !important; }
+.offer-toast {
+  position:fixed;
+  right:clamp(10px,2.2vw,32px);
+  bottom:clamp(10px,2.2vh,24px);
+  z-index:85;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  width:min(385px,calc(100vw - 20px));
+  padding:13px;
+  background:#fff;
+  border:1px solid #e4d9e9;
+  border-radius:16px;
+  box-shadow:0 12px 42px rgba(33,21,43,.21);
+  color:#2b2031;
+}
+.offer-toast-copy { flex:1; min-width:0; display:grid; gap:4px; }
+.offer-toast-copy b { font-size:14px; line-height:1.2; }
+.offer-toast-copy span { font-size:12px; line-height:1.4; color:#65586e; }
+.offer-toast-actions { flex:none; display:flex; align-items:center; gap:4px; }
+#offerDetailsBtn {
+  min-height:38px;
+  padding:8px 11px;
+  background:#7c3aed;
+  color:white;
+  border-radius:10px;
+  font-size:12px;
+}
+#offerDismissBtn {
+  width:34px;
+  min-height:38px;
+  padding:4px;
+  color:#72667b;
+  background:transparent;
+  font-size:22px;
+}
+.offer-overlay {
+  position:fixed;
+  inset:0;
+  z-index:210;
+  padding:clamp(8px,3vh,28px) 12px;
+  background:rgba(29,20,37,.64);
+  display:grid;
+  place-items:center;
+}
+body.offer-modal-open { overflow:hidden; }
+.offer-dialog {
+  width:min(690px,100%);
+  max-height:calc(100dvh - 28px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:clamp(17px,3vw,29px);
+  border-radius:20px;
+  background:#fff;
+  color:#261e2c;
+  box-shadow:0 22px 80px rgba(0,0,0,.30);
+  scrollbar-width:thin;
+}
+.offer-dialog-head { display:flex; align-items:flex-start; gap:14px; justify-content:space-between; }
+.offer-dialog-head > div { min-width:0; }
+.offer-eyebrow {
+  margin:0 0 7px;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  color:#7c3aed;
+}
+.offer-dialog h2 {
+  margin:0;
+  font-size:clamp(22px,3.2vw,29px);
+  line-height:1.18;
+  letter-spacing:-.02em;
+}
+.offer-dialog-head p:not(.offer-eyebrow) {
+  margin:9px 0 0;
+  color:#73677b;
+  font-size:13px;
+  line-height:1.5;
+}
+.offer-dialog-close {
+  flex:0 0 38px;
+  min-height:38px;
+  padding:0;
+  background:#f4eff6;
+  color:#67586e;
+  font-size:24px;
+}
+.offer-price-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:20px; }
+.offer-price-card {
+  display:grid;
+  align-content:start;
+  gap:7px;
+  padding:15px;
+  border:1px solid #e9e2ed;
+  border-radius:13px;
+  background:#faf7fc;
+}
+.offer-price-card span { color:#706279; font-size:12px; font-weight:750; }
+.offer-price-card b { color:#682ccf; font-size:22px; line-height:1.25; }
+.offer-price-card small { color:#645a6c; font-size:12px; line-height:1.48; }
+.offer-detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin:20px 0; }
+.offer-detail-grid h3 { margin:0 0 7px; font-size:14px; }
+.offer-detail-grid p { margin:0; font-size:12.5px; line-height:1.6; color:#665a6f; overflow-wrap:anywhere; }
+.offer-dialog-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding-top:16px; border-top:1px solid #eee6f0; }
+.offer-contact {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:1;
+  min-width:220px;
+  min-height:44px;
+  padding:11px 14px;
+  border-radius:11px;
+  background:#7c3aed;
+  color:#fff;
+  text-align:center;
+  font-size:13px;
+  font-weight:800;
+  text-decoration:none;
+}
+.offer-contact:hover, .offer-contact:focus-visible { background:#662dcc; color:white; }
+#offerLaterBtn { min-height:44px; padding:11px 15px; border-radius:11px; background:#f4eff6; color:#50445b; font-size:12px; }
+@media (max-width:760px) {
+  .offer-toast {
+    top:calc(var(--mobile-appbar-h) + 58px + env(safe-area-inset-top));
+    bottom:auto;
+    right:8px;
+    left:8px;
+    width:auto;
+    padding:10px 11px;
+    border-radius:13px;
+    gap:8px;
+    box-shadow:0 7px 26px rgba(33,21,43,.17);
+  }
+  .offer-toast-copy b { font-size:13px; }
+  .offer-toast-copy span { font-size:11.5px; }
+  #offerDetailsBtn { font-size:11px; padding:7px 9px; min-height:36px; }
+  #offerDismissBtn { width:30px; min-height:36px; }
+  .offer-overlay { padding:8px; align-items:center; }
+  .offer-dialog {
+    width:100%;
+    max-height:calc(100dvh - 16px);
+    padding:17px 15px;
+    border-radius:17px;
+  }
+  .offer-price-grid { gap:8px; }
+  .offer-price-card { padding:11px; }
+  .offer-price-card b { font-size:18px; }
+  .offer-price-card small { font-size:11px; }
+  .offer-detail-grid { grid-template-columns:minmax(0,1fr); gap:15px; }
+  .offer-dialog-actions { display:grid; grid-template-columns:minmax(0,1fr); }
+  .offer-contact { min-width:0; }
+}
+@media (max-width:350px) { .offer-price-grid { grid-template-columns:minmax(0,1fr); } }
+@media (max-width:760px) and (orientation:landscape) and (max-height:500px) {
+  .offer-toast { top:calc(var(--mobile-appbar-h) + 56px); left:8px; right:auto; width:min(310px,54vw); }
+  .offer-price-grid, .offer-detail-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .offer-toast,.offer-dialog { scroll-behavior:auto; }
+}

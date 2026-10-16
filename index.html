@@ -259,6 +259,61 @@
     </section>
   </main>
 
+
+  <!-- A single, dismissible invitation after a completed construction.
+       The long terms are intentionally in a separate accessible dialog. -->
+  <aside id="offerToast" class="offer-toast" role="status" aria-live="polite" hidden>
+    <div class="offer-toast-copy">
+      <b>Понравилось решение?</b>
+      <span>Помогу и с вашим вариантом – от 200 ₽.</span>
+    </div>
+    <div class="offer-toast-actions">
+      <button id="offerDetailsBtn" type="button">Подробнее</button>
+      <button id="offerDismissBtn" type="button" aria-label="Закрыть предложение">×</button>
+    </div>
+  </aside>
+
+  <div id="offerOverlay" class="offer-overlay" hidden>
+    <section class="offer-dialog" role="dialog" aria-modal="true"
+             aria-labelledby="offerDialogTitle" aria-describedby="offerDialogSubtitle">
+      <div class="offer-dialog-head">
+        <div>
+          <p class="offer-eyebrow">Индивидуальные решения</p>
+          <h2 id="offerDialogTitle">Нужно другое задание?</h2>
+          <p id="offerDialogSubtitle">Готовые решения на сайте бесплатны. Новые работы можно заказать отдельно.</p>
+        </div>
+        <button id="offerCloseBtn" class="offer-dialog-close" type="button" aria-label="Закрыть окно">×</button>
+      </div>
+
+      <div class="offer-price-grid">
+        <div class="offer-price-card">
+          <span>Одно задание</span>
+          <b>200 ₽</b>
+          <small>Обычно добавляю нужное решение за 1 день.</small>
+        </div>
+        <div class="offer-price-card">
+          <span>Полный вариант</span>
+          <b>По объёму</b>
+          <small>Обычно ещё около 3 дней для всего варианта, сложные работы – до недели.</small>
+        </div>
+      </div>
+      <div class="offer-detail-grid">
+        <div>
+          <h3>Что прислать</h3>
+          <p>Полный лист своего варианта с выданным заданием. Если он в личном кабинете ДВГУПС, скачайте и отправьте файл. Логин и пароль передавать не нужно.</p>
+        </div>
+        <div>
+          <h3>Публикация и другие предметы</h3>
+          <p>Сообщите, можно ли разместить решённый вариант на сайте бесплатно для других. Берусь за чертёжные задания, включая ОКЖД.</p>
+        </div>
+      </div>
+      <div class="offer-dialog-actions">
+        <a class="offer-contact" href="https://t.me/shei1ny" target="_blank" rel="noopener noreferrer">Написать в Telegram · @shei1ny</a>
+        <button id="offerLaterBtn" type="button">Не сейчас</button>
+      </div>
+    </section>
+  </div>
+
   <script src="./variants.js"></script>
   <script src="./multi.js"></script>
 </body>
