@@ -1591,7 +1591,12 @@ if (!onlyVariant && !onlyTask) try {
       if((variant==='12'&&task===6)||(variant==='13'&&task===5)){
         const notice=$('diagramWarning').textContent;
         const status=$('dynamicInputs').textContent;
-        if(!notice.includes('без координат') || !notice.includes('метод построения проверены'))
+        const variantSpecificWarning=task===5
+          ? 'на другую сторону рисунка'
+          : 'их общая прямая проходит далеко';
+        if(!notice.includes('без координат') ||
+           !notice.includes('метод построения сверены с оригинальным альбомом') ||
+           !notice.includes(variantSpecificWarning))
           failures.push('problem brief '+variant+'/'+task+': graphical-source precision explanation missing');
         if(!status.includes('исходный лист и метод построения проверены'))
           failures.push('problem brief '+variant+'/'+task+': audited method misreported as pending');
