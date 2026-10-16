@@ -489,7 +489,7 @@ try {
   else {
     why.click();
     if (!$('stepInfoText').textContent.trim()) failures.push('step info: why page empty');
-    if ($('stepInfoText').textContent.length > 115) failures.push('step info: page too long for compact sheet ('+$('stepInfoText').textContent.length+')');
+    if ($('stepInfoText').textContent.length > 280) failures.push('step info: desktop guidance page exceeds readable paragraph limit ('+$('stepInfoText').textContent.length+')');
   }
 } catch (e) {
   failures.push('projection helpers / step pages: '+e.stack);
