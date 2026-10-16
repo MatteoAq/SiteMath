@@ -5073,8 +5073,14 @@
     $('stepBadge').textContent='Шаг '+(state.step+1);
     $('stepTitle').textContent=st.title;
     const remoteHint=$('remoteSourceHint');
-    if(remoteHint)remoteHint.hidden=!((state.variant==='12'&&state.task===6)||
-      (state.variant==='13'&&state.task===5));
+    if(remoteHint){
+      const isRemote12=state.variant==='12'&&state.task===6;
+      const isRemote13=state.variant==='13'&&state.task===5;
+      remoteHint.hidden=!(isRemote12||isRemote13);
+      if(isRemote12||isRemote13) remoteHint.querySelector('span').textContent=isRemote13
+        ? 'Точка ℓ∩Σ далека от рисунка. Её положение по скану ненадёжно: небольшое изменение наклона может перенести точку на другую сторону.'
+        : 'Линия Σ∩Θ далека от рисунка. По скану можно проверить способ построения, но не точное место пересечения почти параллельных плоскостей.';
+    }
     fitStepTitle();
     renderProblemBrief();
     $('stepAction').textContent=st.action;
