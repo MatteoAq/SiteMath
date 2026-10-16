@@ -1,0 +1,31 @@
+name: Critical geometry evidence
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/critical-geometry-evidence.yml'
+      - 'tests/critical-geometry-evidence.mjs'
+jobs:
+  inspect-five-constructions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install playwright@1.55.0 --no-save
+      - run: npx playwright install --with-deps chromium
+      - name: Start local SiteMath
+        run: |
+          python3 -m http.server 4173 >/tmp/sitemath-http.log 2>&1 &
+          echo $! >/tmp/sitemath-http.pid
+      - name: Capture and inspect critical steps
+        run: node tests/critical-geometry-evidence.mjs
+      - name: Upload geometry evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: critical-geometry-evidence
+          path: critical-geometry-evidence/
+          if-no-files-found: error
