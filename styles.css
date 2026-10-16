@@ -2674,3 +2674,13 @@ body.offer-modal-open { overflow:hidden; }
 @media (max-width:760px) and (orientation:landscape) and (max-height:500px) {
   .step-info-page { margin-bottom:24px; }
 }
+
+/* A short landscape viewport already has a step counter in the toolbar;
+   omit the redundant badge to keep the text pager above navigation. */
+@media (max-width:760px) and (orientation:landscape) and (max-height:500px) {
+  .explanation-panel .step-badge { display:none; }
+  .explanation-panel > h2 { margin:1px 0 0; font-size:14px; line-height:1.18; }
+  .explanation-panel .problem-brief { margin-top:2px; padding:3px 5px; }
+  .explanation-panel .step-info-tabs { margin-top:3px; }
+  .explanation-panel .step-info-page { padding-top:3px; }
+}
