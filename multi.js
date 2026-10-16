@@ -5055,6 +5055,9 @@
     $('stepTotal').textContent=String(state.steps.length);
     $('stepBadge').textContent='Шаг '+(state.step+1);
     $('stepTitle').textContent=st.title;
+    const remoteHint=$('remoteSourceHint');
+    if(remoteHint)remoteHint.hidden=!((state.variant==='12'&&state.task===6)||
+      (state.variant==='13'&&state.task===5));
     fitStepTitle();
     renderProblemBrief();
     $('stepAction').textContent=st.action;
@@ -5103,6 +5106,40 @@
 
   // Focus only changes camera/scroll position. The normalized Monge
   // drawing, 5 mm grid, all source lines and printer geometry remain intact.
+  // Isolate the fixed original geometry of the assignment without
+  // changing the step or moving the calculated intersection.
+  function focusOriginalSource(){
+    const g=state.geometry,wrap=document.querySelector('.paper-wrap');
+    const original=state.steps[0];
+    if(!g||!wrap||!original)return;
+    const entities=original.sourceEntities?.length
+      ? original.sourceEntities : original.entities||[];
+    const pts=[];
+    for(const e of entities){
+      if(e.type==='text'||e.cls==='axis')continue;
+      collectEntityPoints(e,pts);
+    }
+    const finite=pts.filter(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y));
+    if(!finite.length)return;
+    const margin=15,mm=96/25.4,viewport=visibleDrawingViewport();
+    const cs=getComputedStyle(wrap),px=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0);
+    const py=(parseFloat(cs.paddingTop)||0)+8;
+    const minX=Math.min(...finite.map(p=>p.x))-margin;
+    const maxX=Math.max(...finite.map(p=>p.x))+margin;
+    const minY=Math.min(...finite.map(p=>p.y))-margin;
+    const maxY=Math.max(...finite.map(p=>p.y))+margin;
+    const zoom=Math.max(.005,Math.min(1,
+      Math.max(120,viewport.width-px)/(Math.max(70,maxX-minX)*mm),
+      Math.max(120,viewport.height-py)/(Math.max(70,maxY-minY)*mm)));
+    state.focusMode=false;
+    state.screenZoom=zoom;
+    applyDrawingZoom();
+    requestAnimationFrame(()=>{
+      wrap.scrollLeft=Math.max(0,((minX+maxX)/2)*mm*zoom-viewport.width/2);
+      wrap.scrollTop=Math.max(0,((minY+maxY)/2)*mm*zoom-viewport.height/2);
+    });
+  }
+
   function currentStepBounds(){
     const g=state.geometry;
     if(!g)return {minX:0,minY:0,maxX:180,maxY:145};
@@ -5635,6 +5672,7 @@
   $('zoomInBtn').addEventListener('click',()=>setDrawingZoom('in'));
   $('mobileFitBtn').addEventListener('click',()=>setDrawingZoom('fit'));
   $('mobileFocusBtn').addEventListener('click',()=>setDrawingZoom('step'));
+  $('zoomSourceBtn')?.addEventListener('click',focusOriginalSource);
   $('mobileSetupBtn').addEventListener('click',openMobileSetup);
   $('mobileSetupClose').addEventListener('click',closeMobileSetup);
   $('mobileBackdrop').addEventListener('click',closeMobileSetup);

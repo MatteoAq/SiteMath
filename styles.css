@@ -2712,3 +2712,36 @@ body.offer-modal-open { overflow:hidden; }
   .explanation-panel .step-measure-list { font-size:12px; line-height:1.45; }
 }
 
+.remote-source-hint[hidden] { display:none !important; }
+.remote-source-hint {
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:7px 11px;
+  margin:11px 0 4px;
+  padding:9px 11px;
+  border:1px solid #e8d9c1;
+  border-radius:11px;
+  background:#fff9ee;
+  font-size:12px;
+  line-height:1.4;
+  color:#65533c;
+}
+.remote-source-hint span { flex:1 1 190px; min-width:0; }
+.remote-source-hint button {
+  flex:0 0 auto;
+  min-height:34px;
+  padding:7px 10px;
+  border-radius:8px;
+  color:#705019;
+  background:#f2e7cf;
+  font-size:12px;
+  font-weight:750;
+}
+.remote-source-hint button:hover,.remote-source-hint button:focus-visible { background:#e8d6b3; }
+@media (max-width:760px) {
+  .remote-source-hint { margin:7px 0 3px; padding:7px 9px; }
+  .remote-source-hint span { flex-basis:170px; }
+  .remote-source-hint button { font-size:11px; min-height:32px; }
+}
+
