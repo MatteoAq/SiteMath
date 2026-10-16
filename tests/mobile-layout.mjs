@@ -772,16 +772,21 @@ for(const viewport of [{width:768,height:700},{width:1024,height:768},
   await page.locator('#firstRunStart').click();
   const cells=await page.evaluate(()=>{
     const panel=document.querySelector('#controlsPanel').getBoundingClientRect();
-    return [...document.querySelectorAll('#variantChips .variant-chip')]
+    const grid=document.querySelector('#variantChips').getBoundingClientRect();
+    const buttons=[...document.querySelectorAll('#variantChips .variant-chip')]
       .filter(el=>getComputedStyle(el).display!=='none')
       .map(el=>{
         const box=el.getBoundingClientRect();
         return {label:el.textContent.trim(),left:box.left,right:box.right,
           clipped:box.left<panel.left-1||box.right>panel.right+1};
       });
+    return {buttons,gridClipped:grid.left<panel.left-1||grid.right>panel.right+1,
+      panelRight:panel.right,gridRight:grid.right};
   });
-  if(cells.length<20||cells.some(x=>x.clipped))
-    failures.push('variant options clipped '+viewport.width+'px '+JSON.stringify(cells.filter(x=>x.clipped)));
+  if(cells.buttons.length<20||cells.gridClipped||cells.buttons.some(x=>x.clipped))
+    failures.push('variant options clipped '+viewport.width+'px '+JSON.stringify({
+      gridClipped:cells.gridClipped,panelRight:cells.panelRight,gridRight:cells.gridRight,
+      buttons:cells.buttons.filter(x=>x.clipped)}));
   await context.close();
 }
 

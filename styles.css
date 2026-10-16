@@ -2884,3 +2884,33 @@ body.offer-modal-open { overflow:hidden; }
   }
   .explanation-panel .legacy-step-copy { order:8; }
 }
+
+/* Prevent intrinsic content sizing from expanding the desktop variant picker
+   beyond its sidebar. Constrain every intermediate grid track. */
+@media (min-width:761px) {
+  .controls-panel,
+  .controls-panel .picker-flow,
+  .controls-panel .choice-block {
+    grid-template-columns:minmax(0,1fr);
+    width:100%;
+    min-width:0;
+    max-width:100%;
+  }
+  .controls-panel .variant-chips {
+    min-width:0;
+    max-width:100%;
+    width:100%;
+  }
+  .controls-panel .variant-chip {
+    min-width:0;
+    max-width:100%;
+    box-sizing:border-box;
+  }
+}
+@media (max-width:760px) {
+  .explanation-panel .problem-details {
+    order:6;
+    flex:0 0 auto;
+    min-height:0;
+  }
+}
