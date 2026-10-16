@@ -4994,65 +4994,23 @@
     if(s && s.tool) drawTool(s.tool);
   }
 
-  function paginateStepText(value,limit){
-    const text=String(value||'').trim();
-    if(!text) return [''];
-    const max=limit||72;
-    const sentences=text.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[text];
-    const pages=[];
-    let current='';
-    const pushWords=part=>{
-      const words=part.trim().split(/\s+/);
-      words.forEach(word=>{
-        const next=current ? current+' '+word : word;
-        if(next.length>max && current){
-          pages.push(current.trim());
-          current=word;
-        } else current=next;
-      });
-    };
-    sentences.forEach(raw=>{
-      const sentence=raw.trim();
-      const next=current ? current+' '+sentence : sentence;
-      if(next.length<=max){
-        current=next;
-      }else{
-        if(current){ pages.push(current.trim()); current=''; }
-        if(sentence.length<=max) current=sentence;
-        else pushWords(sentence);
-      }
-    });
-    if(current) pages.push(current.trim());
-    return pages.length?pages:[''];
+  // All of the current instruction belongs on one scrollable page.
+  // Splitting sentences and measurements into unrelated mini-pages made the
+  // drafting sequence hard to follow, especially on a narrow phone.
+  function paginateStepText(value){
+    return [String(value||'').trim()];
   }
 
-  function stepTextLimit(){
-    const w=window.innerWidth||1024;
-    // Content fits by wrapping and the guidance panel can scroll.
-    // Desktop should not fragment normal sentences into 82-character pages.
-    if(w<=350) return 56;
-    if(w<=390) return 72;
-    if(w<=520) return 82;
-    if(w<=760) return 100;
-    return 260;
-  }
+  function stepTextLimit(){ return 10000; }
 
   function stepInfoPages(st,mode){
-    const limit=stepTextLimit();
     if(mode==='action'){
-      const pages=paginateStepText(st.action,limit).map(text=>({text,items:[]}));
-      (st.measure||[]).forEach(item=>{
-        pages.push({text:'Отмерь и проверь:',items:[item]});
-      });
-      return pages.length?pages:[{text:'Выполни построение текущего шага.',items:[]}];
+      return [{text:st.action||'',items:st.measure||[]}];
     }
     if(mode==='measure'){
-      const m=st.measure||[];
-      if(!m.length) return [{text:'На этом шаге ничего дополнительно отмерять не нужно.',items:[]}];
-      return m.map(item=>({text:'Отмерь и проверь:',items:[item]}));
+      return [{text:'Размеры и ориентиры для текущего построения',items:st.measure||[]}];
     }
-    const value=mode==='why'?st.why:st.check;
-    return paginateStepText(value,limit).map(text=>({text,items:[]}));
+    return [{text:mode==='why'?st.why||'':st.check||'',items:[]}];
   }
 
   function renderStepInfoPage(st){
@@ -5067,7 +5025,7 @@
     const page=pages[state.stepInfoPage]||pages[0];
     $('stepInfoText').textContent=page.text||'';
     $('stepInfoMeasure').innerHTML=page.items&&page.items.length
-      ? '<ul class="step-measure-list">'+page.items.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>'
+      ? '<p class="step-measure-heading">Размеры и ориентиры</p><ul class="step-measure-list">'+page.items.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>'
       : '';
     const pager=$('stepInfoPager');
     pager.hidden=pages.length<=1;

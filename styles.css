@@ -2684,3 +2684,31 @@ body.offer-modal-open { overflow:hidden; }
   .explanation-panel .step-info-tabs { margin-top:3px; }
   .explanation-panel .step-info-page { padding-top:3px; }
 }
+
+/* Each instruction and its dimensions now share one readable scrollable page. */
+.step-info-page {
+  padding-bottom:9px;
+  max-height:none;
+  overflow:visible;
+  margin-bottom:0;
+}
+.step-info-page .step-info-text {
+  overflow:visible;
+  overflow-wrap:anywhere;
+  line-height:1.5;
+}
+.step-measure-heading {
+  margin:10px 0 5px;
+  font-size:11px;
+  color:var(--ui-muted,#64586b);
+  font-weight:800;
+  letter-spacing:.015em;
+}
+.step-info-page .step-measure-list { gap:5px; }
+@media (max-width:760px) {
+  .explanation-panel .step-info-page { padding:8px 2px 10px; margin-bottom:0; }
+  .explanation-panel .step-info-pager { display:none !important; }
+  .explanation-panel .step-info-text { font-size:13px; line-height:1.5; }
+  .explanation-panel .step-measure-list { font-size:12px; line-height:1.45; }
+}
+
