@@ -814,7 +814,9 @@ for (const vp of [
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
   await page.locator('#firstRunStart').click();
-  await page.locator('#lastBtn').click();
+  // On phones the desktop transport toolbar is intentionally hidden.
+  // Trigger the same last-step handler directly for this behavior check.
+  await page.evaluate(()=>document.querySelector('#lastBtn')?.click());
   await page.waitForTimeout(250);
   if(await page.locator('#offerOverlay').isVisible())
     failures.push('welcome offer: reappeared at the final step');
