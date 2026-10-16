@@ -5505,14 +5505,9 @@
   }
 
 
-  // Show the service notice on the first opening in a tab session, before
-  // choosing a variant. Never trigger it while advancing through the drawing.
+  // Display the service notice on every page load, before using the site.
+  // Closing it is sufficient for the current load. No persistent suppression.
   let offerFocusReturn=null;
-  function offerAlreadySeen(){
-    if(state.offerSeen)return true;
-    try { return window.sessionStorage.getItem('sitemath-offer-seen')==='1'; }
-    catch (_) { return false; }
-  }
   function openOfferDetails(){
     const overlay=$('offerOverlay');
     if(!overlay||!overlay.hidden)return;
@@ -5524,11 +5519,7 @@
     $('offerCloseBtn')?.focus();
   }
   function showWelcomeOffer(){
-    if(offerAlreadySeen())return;
     openOfferDetails();
-    state.offerSeen=true;
-    try { window.sessionStorage.setItem('sitemath-offer-seen','1'); }
-    catch (_) {}
   }
   function closeOfferDetails(){
     const overlay=$('offerOverlay');

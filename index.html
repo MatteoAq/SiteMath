@@ -14,6 +14,7 @@
       <b>SiteMath</b>
       <span id="mobileTaskSummary">Выбери вариант и задание</span>
     </div>
+    <a id="mobileContactLink" class="mobile-icon-btn text-btn mobile-contact-link" href="https://t.me/shei1ny" target="_blank" rel="noopener noreferrer" title="Заказать задание – Telegram @shei1ny" aria-label="Telegram автора: @shei1ny">TG</a>
     <button id="mobileFocusBtn" class="mobile-icon-btn text-btn" type="button" title="Приблизить текущий шаг">К шагу</button>
     <button id="mobileFitBtn" class="mobile-icon-btn text-btn" type="button">Вписать</button>
   </div>
@@ -55,7 +56,10 @@
       <h1>Начертательная геометрия пошагово</h1>
       <p class="subtitle">Выбери вариант и номер задания. Для координатных задач сайт сам рассчитывает построение, размеры, клетки и каждый ход карандашом. Для задач со схемами исходный рисунок варианта хранится отдельно и решается по тем же геометрическим правилам.</p>
     </div>
-    <a class="repo-link" href="https://github.com/MatteoAq/SiteMath" target="_blank" rel="noreferrer">GitHub</a>
+    <nav class="topbar-links" aria-label="Ссылки проекта">
+      <a class="contact-link" href="https://t.me/shei1ny" target="_blank" rel="noopener noreferrer">Заказать задание · @shei1ny</a>
+      <a class="repo-link" href="https://github.com/MatteoAq/SiteMath" target="_blank" rel="noreferrer">GitHub</a>
+    </nav>
   </header>
 
   <main class="layout">
@@ -91,6 +95,7 @@
         </div>
 
         <p id="variantNote" class="picker-note hint"></p>
+        <p class="site-contact-note">Нет нужного варианта или задания? <a href="https://t.me/shei1ny" target="_blank" rel="noopener noreferrer">Напиши автору · @shei1ny</a></p>
       </section>
 
       <details class="task-card task-details">
@@ -260,7 +265,7 @@
   </main>
 
 
-  <!-- Shown once per tab session on entry, then dismissed before using SiteMath. -->
+  <!-- Service information at every site opening, dismissible before solving. -->
   <div id="offerOverlay" class="offer-overlay" hidden>
     <section class="offer-dialog" role="dialog" aria-modal="true"
              aria-labelledby="offerDialogTitle" aria-describedby="offerDialogSubtitle">

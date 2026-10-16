@@ -79,8 +79,9 @@ for (const vp of viewports) {
   });
   const page = await context.newPage();
 
-  await page.addInitScript(() => { localStorage.clear(); sessionStorage.setItem('sitemath-offer-seen','1'); });
+  await page.addInitScript(() => localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
+  await page.locator('#offerCloseBtn').click();
 
   if (!(await page.locator('#firstRunPicker').isVisible())) {
     failures.push(vp.name+': first-run chooser not visible with empty storage');
@@ -162,8 +163,9 @@ for (const vp of viewports) {
     hasTouch:true
   });
   const page = await context.newPage();
-  await page.addInitScript(() => { localStorage.clear(); sessionStorage.setItem('sitemath-offer-seen','1'); });
+  await page.addInitScript(() => localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
+  await page.locator('#offerCloseBtn').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
   await page.locator('#firstRunStart').click();
@@ -750,8 +752,9 @@ for (const vp of [
     isMobile:false
   });
   const page=await context.newPage();
-  await page.addInitScript(()=>{ localStorage.clear(); sessionStorage.setItem('sitemath-offer-seen','1'); });
+  await page.addInitScript(()=>localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
+  await page.locator('#offerCloseBtn').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
   await page.locator('#firstRunStart').click();
@@ -797,6 +800,8 @@ for (const vp of [
     failures.push('welcome offer: dialog not visible on first opening');
   if(!(await page.locator('#offerDialogTitle').isVisible()))
     failures.push('welcome offer: dialog heading not visible');
+  if(!(await page.locator('#offerCloseBtn').isVisible()))
+    failures.push('welcome offer: close button not visible above first-run chooser');
   const tg=await page.locator('.offer-contact').getAttribute('href');
   if(tg!=='https://t.me/shei1ny') failures.push('welcome offer: wrong Telegram address '+tg);
   await visibleOverflow(page,'welcome offer 360px');
@@ -814,8 +819,15 @@ for (const vp of [
   if(await page.locator('#offerOverlay').isVisible())
     failures.push('welcome offer: reappeared at the final step');
   await page.reload({waitUntil:'networkidle'});
+  if(!(await page.locator('#offerOverlay').isVisible()))
+    failures.push('welcome offer: not shown after reloading the page');
+  await page.locator('#offerCloseBtn').click();
   if(await page.locator('#offerOverlay').isVisible())
-    failures.push('welcome offer: shown twice in the same tab session');
+    failures.push('welcome offer: cannot be dismissed after reload');
+  if(await page.locator('#mobileContactLink').getAttribute('href')!=='https://t.me/shei1ny')
+    failures.push('welcome offer: mobile persistent contact incorrect');
+  if(await page.locator('.site-contact-note a').getAttribute('href')!=='https://t.me/shei1ny')
+    failures.push('welcome offer: sidebar persistent contact incorrect');
   await context.close();
 }
 
