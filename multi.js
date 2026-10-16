@@ -3447,6 +3447,9 @@
       check:'По исходному листу проверь символ плоскости, обозначение прямой и индексы её проекций. Заданные линии связи остаются на своих местах.'
     },starter);
     if(scheme.sourceGeometry)steps[0].sourceEntities=starterEntitiesFromScheme(scheme.sourceGeometry,0,true);
+    if(scanSensitive){
+      steps[0].why+=' Здесь исходная прямая почти параллельна плоскости. По растровому листу можно проверить способ построения, но не точное положение далёкого пересечения.';
+    }
 
     diagramReferenceAxisStep(push,steps,scheme);
 
@@ -4294,6 +4297,9 @@
       point(i,sourceK1,throughLabel+'₁')
     ]);
     if(scheme.sourceGeometry)steps[0].sourceEntities=rawTask6StarterEntities(scheme,0,throughLabel);
+    if(scheme.sourceId==='source-photos/scans/variant-12.jpg'){
+      steps[0].why+=' На этом листе плоскости пересекаются далеко за пределами исходной схемы. Свободно выбрать можно вспомогательные сечения, но не положение самой линии пересечения.';
+    }
 
     diagramReferenceAxisStep(push,steps,scheme);
 
