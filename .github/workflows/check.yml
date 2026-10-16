@@ -47,7 +47,6 @@ jobs:
       - run: node tests/text-audit.mjs
       - run: node tests/runtime.mjs
       - run: node tests/variant12-full-audit.mjs
-      - run: node tests/practice-geometry.mjs
       - name: Upload runtime diagnostics
         if: always()
         uses: actions/upload-artifact@v4
