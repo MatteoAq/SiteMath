@@ -2914,3 +2914,15 @@ body.offer-modal-open { overflow:hidden; }
     min-height:0;
   }
 }
+
+/* Opaque sticky transport controls: labels from the scrolling explanation
+   must not bleed through the step-navigation bar on narrow screens. */
+@media (max-width:760px) {
+  .explanation-panel .mobile-step-nav {
+    z-index:4;
+    background:#fffdf8;
+    border-top:1px solid #eae3ed;
+    padding:8px 0 6px;
+    box-shadow:0 -9px 15px rgba(255,253,248,.98);
+  }
+}
