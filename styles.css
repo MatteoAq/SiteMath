@@ -2359,7 +2359,7 @@ body { color:var(--ui-text); }
 /* Small-screen layout: legible explanations, preserved drawing space and
    a scrollable sheet rather than text hidden behind a fixed-height mask. */
 @media (max-width:760px) {
-  :root { --mobile-step-peek:clamp(220px,30dvh,280px); }
+  :root { --mobile-step-peek:clamp(250px,32dvh,308px); }
   .mobile-appbar {
     grid-template-columns:44px minmax(0,1fr) auto auto;
     gap:5px;
