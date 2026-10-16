@@ -840,6 +840,15 @@ for (const vp of [
     });
     if(!(await page.locator('#remoteSourceHint').isVisible()))
       failures.push(variant+'/'+task+': source-focus help is missing');
+    const instructionOrder=await page.evaluate(()=>{
+      const details=document.querySelector('#problemDetails');
+      const text=document.querySelector('#stepInfoText')?.getBoundingClientRect();
+      const nav=document.querySelector('.mobile-step-nav')?.getBoundingClientRect();
+      return {collapsed:!!details&&!details.open,
+        textBeforeNav:!!text&&!!nav&&text.top<nav.top};
+    });
+    if(!instructionOrder.collapsed||!instructionOrder.textBeforeNav)
+      failures.push(variant+'/'+task+': instruction hidden behind recap '+JSON.stringify(instructionOrder));
     // A fit command on the FIRST stage already frames only the original
     // scheme; test the actual problem after the remote answer is drawn.
     await page.evaluate(()=>document.querySelector('#lastBtn').click());
