@@ -736,6 +736,56 @@ for (const vp of viewports) {
   await context.close();
 }
 
+// Responsive desktop and narrow-tablet checks. Keep the sidebar usable
+// within the window and the drawing free of side-column overlaps.
+for (const vp of [
+  {name:'tablet-portrait',width:768,height:700},
+  {name:'laptop',width:1024,height:768},
+  {name:'desktop',width:1440,height:900},
+  {name:'wide-desktop',width:1920,height:1080}
+]) {
+  const context=await browser.newContext({
+    viewport:{width:vp.width,height:vp.height},
+    deviceScaleFactor:1,
+    isMobile:false
+  });
+  const page=await context.newPage();
+  await page.addInitScript(()=>localStorage.clear());
+  await page.goto(base,{waitUntil:'networkidle'});
+  await page.locator('.first-run-variant[data-variant="12"]').click();
+  await page.locator('.first-run-task[data-task="4"]').click();
+  await page.locator('#firstRunStart').click();
+  await page.locator('#zoomFitBtn').click();
+  await visibleOverflow(page,vp.name+' main');
+  const layout=await page.evaluate(()=>{
+    const rect=s=>document.querySelector(s)?.getBoundingClientRect();
+    const sidebar=rect('#controlsPanel');
+    const stage=rect('.stage-panel');
+    const toolbar=rect('.stage-toolbar');
+    const wrap=rect('.paper-wrap');
+    const badButtons=[...document.querySelectorAll('.stage-toolbar button')]
+      .filter(el=>getComputedStyle(el).display!=='none')
+      .map(el=>el.getBoundingClientRect())
+      .filter(r=>r.right>toolbar.right+1||r.left<toolbar.left-1||
+        r.top<toolbar.top-1||r.bottom>toolbar.bottom+1).length;
+    const step=document.querySelector('.step-info-page');
+    return {
+      separated:!!sidebar&&!!stage&&sidebar.right<=stage.left-4,
+      sidebarScrollable:getComputedStyle(document.querySelector('#controlsPanel')).overflowY==='auto',
+      sidebarFits:sidebar.height<=innerHeight-10,
+      controlsVisible:sidebar.width>=230,
+      drawingVisible:wrap.width>=320&&wrap.height>=350,
+      badButtons,
+      clippedStep:step.scrollHeight>step.clientHeight+1
+    };
+  });
+  if(!layout.separated||!layout.sidebarScrollable||!layout.sidebarFits||
+     !layout.controlsVisible||!layout.drawingVisible||layout.badButtons||
+     layout.clippedStep) failures.push(vp.name+': responsive desktop regression '+JSON.stringify(layout));
+  await page.screenshot({path:'mobile-screenshots/'+vp.name+'-workspace.png',fullPage:false});
+  await context.close();
+}
+
 await browser.close();
 fs.writeFileSync('mobile-layout-results.json',JSON.stringify({failures},null,2));
 if (failures.length) {
