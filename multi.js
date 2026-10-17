@@ -1788,7 +1788,7 @@
           '|y| = '+Math.abs(p.y)+' мм по профильной оси',
           '|z| = '+Math.abs(p.z)+' мм по вертикали'
         ],
-        check:'Проведи горизонталь от '+name+'₂ к '+name+'₃: они должны быть на одном уровне. От профильной вертикали до '+name+'₃ – '+fmt(Math.abs(p.y))+' мм.',
+        check:'Горизонтальная линия от '+name+'₂ проходит через '+name+'₃. Расстояние от вертикальной оси профильного вида через O до '+name+'₃ по горизонтали – '+fmt(Math.abs(p.y))+' мм.',
       },[
         line(i,q.yFoot,q.y3Foot,'construction-line'),
         line(i,q.y3Foot,q.p3,'construction-line'),
@@ -4902,7 +4902,7 @@
     pair.forEach((c,index)=>{
       const name=index===0?'P':'Q';
       const planeName=index===0?'α':'β';
-      const kind=levelType==='horizontal'?'горизонтальной':'фронтальной';
+      const kind=levelType==='horizontal'?'горизонтальная':'фронтальная';
       const degenerateProj=levelType==='horizontal'?'₂':'₁';
       const primary=levelType==='horizontal'?'p2':'p1';
       const hasProjectingPlane=[scheme.planeA,scheme.planeB]
