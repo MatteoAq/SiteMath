@@ -74,6 +74,26 @@ for(let variant=1;variant<=20;variant++){
       finalHeight:final?+((final.height)*scale).toFixed(1):null});
   }
 }
+// The original task-3 A/B/C points are fixed; only the free K position
+// may be optimized for visible CK on both Monge projections.
+const recommended={};
+for(const id of ['02','06','16','18','19']){
+  $('variantSelect').value=id;
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='3';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  const percent=Number($('kSlider').value);
+  if(percent===50||percent<20||percent>80)
+    throw new Error('Task 3 free K is not optimized for informative projections in variant '+id+': '+percent);
+  recommended[id]=percent;
+}
+$('variantSelect').value='12';
+$('variantSelect').dispatchEvent(new window.Event('change'));
+$('taskSelect').value='3';
+$('taskSelect').dispatchEvent(new window.Event('change'));
+if(Number($('kSlider').value)!==50)
+  throw new Error('Priority variant 12 default free K changed without an improvement requirement');
+console.log('TASK3_INFORMATIVE_K',JSON.stringify(recommended));
 fs.writeFileSync('informativeness-report.json',JSON.stringify(audit,null,2));
 const critical=audit.filter(x=>x.status==='review').sort((a,b)=>
   (a.sourceShare??1)-(b.sourceShare??1)||a.scale-b.scale);
