@@ -2574,9 +2574,15 @@
     const a=add2(P,mul2(u,s));
     const b=add2(a,mul2(v,s));
     const c=add2(P,mul2(v,s));
+    // Keep this paper-only right-angle glyph distinct from the mathematical
+    // segments; only its rendered size may change after fitting the A4 sheet.
+    const mark={anchor:P,u,v,size:s,
+      available:Math.min(norm2(uRaw),norm2(vRaw))};
     return [
-      line(step,a,b,'construction-line'),
-      line(step,b,c,'construction-line')
+      Object.assign(line(step,a,b,'construction-line'),
+        {rightAngleMark:{...mark,part:0}}),
+      Object.assign(line(step,b,c,'construction-line'),
+        {rightAngleMark:{...mark,part:1}})
     ];
   }
 
@@ -5305,11 +5311,26 @@
 
   function drawEntity(e,active){
     if(e.type==='line'){
+      let start=e.a,end=e.b;
+      if(e.rightAngleMark){
+        const mark=e.rightAngleMark,scale=state.paperFrame?.scale||1;
+        // A right-angle mark should be about 4 mm on the physical page,
+        // not an unreadable 1–2 mm after layout reduction. Its two strokes
+        // remain mathematically perpendicular and attached to the same
+        // original vertex. Limit its size to the actual supporting segments.
+        const m=Math.max(mark.size,Math.min(4/scale,mark.available*.27));
+        const P=mark.anchor,A=add2(P,mul2(mark.u,m));
+        const C=add2(P,mul2(mark.v,m));
+        const B=add2(A,mul2(mark.v,m));
+        if(mark.part===0){start=A;end=B;}
+        else {start=B;end=C;}
+      }
       const n=E('line',{
-        x1:e.a.x,y1:e.a.y,x2:e.b.x,y2:e.b.y,
+        x1:start.x,y1:start.y,x2:end.x,y2:end.y,
         class:'draw-line '+e.cls+(active?' active-line':''),
         'data-active':active?'1':'0',
         'data-role':e.role||lineRole(e.cls),
+        'data-right-angle-mark':e.rightAngleMark?'1':null,
         'data-source-given-line':e.sourceGivenLine?'1':null,
         'data-source-coincident-aux':e.sourceCoincidentAux?'1':null
       });
