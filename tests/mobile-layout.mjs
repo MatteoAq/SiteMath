@@ -925,6 +925,8 @@ for (const vp of [
     const visibleHint=await page.locator('#remoteSourceHint span').textContent();
     if(!visibleHint?.includes('учебная реконструкция'))
       failures.push(variant+'/'+task+': reconstruction is not disclosed beside steps');
+    if(await page.locator('#remoteSourceDetails').evaluate(el=>el.open))
+      failures.push(variant+'/'+task+': adapted source details cover the instruction by default');
     const diagramWarning=await page.locator('#diagramWarning').textContent();
     if(!diagramWarning?.includes('Учебная реконструкция исходной схемы'))
       failures.push(variant+'/'+task+': reconstructed source not disclosed in mobile brief');
@@ -944,6 +946,9 @@ for (const vp of [
     await page.waitForTimeout(70);
     const before=await page.locator('#drawing').evaluate(el=>el.getBoundingClientRect().width);
     const stepBefore=await page.locator('#stepNumber').textContent();
+    await page.locator('#remoteSourceDetails > summary').click();
+    if(!(await page.locator('.remote-source-message').isVisible()))
+      failures.push(variant+'/'+task+': source adaptation details cannot be opened');
     await page.locator('#zoomSourceBtn').click();
     await page.waitForTimeout(80);
     const after=await page.locator('#drawing').evaluate(el=>el.getBoundingClientRect().width);
