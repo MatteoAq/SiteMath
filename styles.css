@@ -3279,6 +3279,22 @@ button.assignment-card:focus-visible,
   .first-run-picker[data-view="setup"] .catalog-brand small {display:none;}
   .first-run-picker[data-view="setup"] .catalog-nav-link {display:none;}
 }
+/* On narrow phones the course-back and commission actions need their own row. */
+@media(max-width:600px) {
+  .first-run-picker[data-view="catalog"] .catalog-nav {
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    row-gap:10px;
+    padding:12px 0;
+  }
+  .first-run-picker[data-view="catalog"] .catalog-nav-actions {
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+}
 @media(max-width:360px) {
   .catalog-list-back {font-size:10px;}
 }
