@@ -77,8 +77,29 @@ for(let variant=1;variant<=20;variant++){
 fs.writeFileSync('informativeness-report.json',JSON.stringify(audit,null,2));
 const critical=audit.filter(x=>x.status==='review').sort((a,b)=>
   (a.sourceShare??1)-(b.sourceShare??1)||a.scale-b.scale);
+if(audit.length!==120 || new Set(audit.map(x=>x.variant)).size!==20)
+  throw new Error('Incomplete 20 × 6 all-variant informativity audit');
+const graphical=audit.filter(x=>x.task>=4);
+const compact=xs=>xs.map(x=>({variant:x.variant,task:x.task,
+  sourceShare:x.sourceShare,scale:x.scale,shortest:x.shortest,
+  shortCount:x.shortCount,final:[x.finalWidth,x.finalHeight]}));
+const worstSource=graphical.filter(x=>x.sourceShare!==null)
+  .sort((a,b)=>a.sourceShare-b.sourceShare).slice(0,12);
+const worstShort=graphical.filter(x=>x.shortest!==null)
+  .sort((a,b)=>a.shortest-b.shortest).slice(0,12);
+const worstScale=graphical.slice().sort((a,b)=>a.scale-b.scale).slice(0,12);
+const byTask=Object.fromEntries([1,2,3,4,5,6].map(task=>{
+  const rows=audit.filter(x=>x.task===task);
+  return [task,{count:rows.length,
+    smallestScale:Math.min(...rows.map(x=>x.scale)),
+    shortestLine:Math.min(...rows.map(x=>x.shortest??Infinity)),
+    highestShortCount:Math.max(...rows.map(x=>x.shortCount)),
+    minSourceShare:Math.min(...rows.map(x=>x.sourceShare??1))}];
+}));
 console.log('INFORMATIVENESS_AUDIT',JSON.stringify({
   tasks:audit.length,review:critical.length,
   reviewByTask:Object.fromEntries([1,2,3,4,5,6].map(t=>[t,critical.filter(x=>x.task===t).length])),
+  byTask,worstSource:compact(worstSource),
+  worstShort:compact(worstShort),worstScale:compact(worstScale),
   reviewCases:critical
 }));
