@@ -90,6 +90,11 @@ for(let vi=1;vi<=20;vi++){
             issues.push({variant,task,step:step+1,type:'wrong-cell-declension',text:match[0]});
         }
       }
+      for(const value of [entry.title,entry.action,entry.why,entry.check]){
+        if(/за (?:левого|правого|верхнего|нижнего) концом/u.test(value))
+          issues.push({variant,task,step:step+1,type:'wrong-extended-end-declension',
+            text:value});
+      }
       for(const field of ['title','action','why','check']){
         if(!entry[field])issues.push({variant,task,step:step+1,field,type:'empty'});
         if(/\b(?:проекция|линия|плоскость)\s+(?:этого|данного|полученного)\s+объекта\b/i.test(entry[field]))

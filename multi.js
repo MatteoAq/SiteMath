@@ -2834,7 +2834,10 @@
         const opposite=steep?'нижнего':'правого';
         if(ratio>=0&&ratio<=1)
           return 'примерно на '+Math.round(ratio*100)+'% длины штриха от '+origin+' конца';
-        return 'на продолжении штриха за '+(ratio<0?origin:opposite)+' концом';
+        const past=ratio<0?origin:opposite;
+        const correctEnd={'левого':'левым','правого':'правым',
+          'верхнего':'верхним','нижнего':'нижним'}[past];
+        return 'на продолжении штриха за '+correctEnd+' концом';
       };
 
       dh=cross3(plane.n,{x:0,y:0,z:1});
