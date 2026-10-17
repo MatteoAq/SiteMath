@@ -48,6 +48,16 @@ for(let vi=1;vi<=20;vi++){
          !/середин/u.test(entry.action))
         issues.push({variant,task,step:step+1,type:'auxiliary-point-placement-not-described',
           title:entry.title,action:entry.action});
+      if(task===4&&/^Выбери вспомогательную точку N[₁₂]/u.test(entry.title) &&
+         (!entry.measure.some(x=>/N[₁₂] ∈ /u.test(x)) ||
+          /На опорной линии/u.test(entry.action)))
+        issues.push({variant,task,step:step+1,type:'generic-n-point-instruction',
+          title:entry.title,action:entry.action,measure:entry.measure});
+      if(task===5&&/^Перенеси 1[₁₂] и 2[₁₂] на /u.test(entry.title) &&
+         (!/Точки 1 и 2 переносят по отдельности/u.test(entry.why) ||
+          !/проекторе из 1/u.test(entry.check)))
+        issues.push({variant,task,step:step+1,type:'paired-transfers-confused',
+          title:entry.title,why:entry.why,check:entry.check});
       if(task===4&&/^Выбери точку (?:1₂|3₁) на /.test(entry.title)&&
          !/(?:\d+% длины|продолжении штриха|положение в схеме)/.test(entry.action))
         issues.push({variant,task,step:step+1,type:'free-point-placement-not-reproducible',
