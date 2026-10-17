@@ -3845,3 +3845,7 @@ html[data-theme="dark"] .first-run-variant.is-selected:focus-visible {
     background:#ab82bb; border-radius:99px;
   }
 }
+
+/* Arrowheads follow the drawing palette, including dark mode. */
+.axis-arrow {fill:#352a3c;}
+html[data-theme="dark"] .axis-arrow {fill:#decfe7;}

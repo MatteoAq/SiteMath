@@ -5184,13 +5184,17 @@
     svg.setAttribute('data-grid-cell-mm','5');
     const defs=E('defs');
     const minor=E('pattern',{id:'minorGrid',x:ox,y:oy,width:cell,height:cell,patternUnits:'userSpaceOnUse'});
-    minor.append(E('path',{d:'M '+cell+' 0 L 0 0 0 '+cell,class:'grid-minor',fill:'none'}));
+    // Keep ink thickness constant in *physical* A4 mm. Without this the
+    // grid virtually disappears when a large construction is reduced.
+    minor.append(E('path',{d:'M '+cell+' 0 L 0 0 0 '+cell,class:'grid-minor',
+      fill:'none',style:'stroke-width:'+(0.14/(p?.scale||1))}));
     defs.append(minor);
     const major=E('pattern',{id:'majorGrid',x:ox,y:oy,width:majorCell,height:majorCell,patternUnits:'userSpaceOnUse'});
-    major.append(E('path',{d:'M '+majorCell+' 0 L 0 0 0 '+majorCell,class:'grid-major',fill:'none'}));
+    major.append(E('path',{d:'M '+majorCell+' 0 L 0 0 0 '+majorCell,class:'grid-major',
+      fill:'none',style:'stroke-width:'+(0.24/(p?.scale||1))}));
     defs.append(major);
     const marker=E('marker',{id:'axisArrow',viewBox:'0 0 10 10',refX:'8',refY:'5',markerWidth:'4',markerHeight:'4',orient:'auto-start-reverse'});
-    marker.append(E('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#352a3c'}));
+    marker.append(E('path',{d:'M 0 0 L 10 5 L 0 10 z',class:'axis-arrow'}));
     defs.append(marker);
     svg.append(defs);
     const x=p?.left||0,y=p?.top||0,w=p?.viewW||width,h=p?.viewH||height;
@@ -5198,8 +5202,9 @@
     svg.append(E('rect',{x,y,width:w,height:h,fill:'url(#majorGrid)'}));
     const inset=10/(p?.scale||1);
     svg.append(E('rect',{x:x+inset,y:y+inset,width:w-2*inset,height:h-2*inset,
-      class:'paper-safe-area'}));
-    svg.append(E('rect',{x,y,width:w,height:h,class:'paper-outline'}));
+      class:'paper-safe-area',style:'stroke-width:'+(0.22/(p?.scale||1))}));
+    svg.append(E('rect',{x,y,width:w,height:h,class:'paper-outline',
+      style:'stroke-width:'+(0.3/(p?.scale||1))}));
   }
 
   function drawDimension(e,active){
