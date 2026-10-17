@@ -48,6 +48,15 @@ for(let vi=1;vi<=20;vi++){
          !/середин/u.test(entry.action))
         issues.push({variant,task,step:step+1,type:'auxiliary-point-placement-not-described',
           title:entry.title,action:entry.action});
+      if(task===6&&/^Выбери точку [TM]₁ на /u.test(entry.title) &&
+         (!/лежит на /u.test(entry.check) || /не появляется до/u.test(entry.check)))
+        issues.push({variant,task,step:step+1,type:'unhelpful-first-projection-check',
+          title:entry.title,check:entry.check});
+      if(task===6&&/^Выбери вспомогательную плоскость /u.test(entry.title) &&
+         (!/пересекает опорные прямые/u.test(entry.action) ||
+          !/сечения обеих исходных плоскостей/u.test(entry.check)))
+        issues.push({variant,task,step:step+1,type:'unqualified-auxiliary-level',
+          title:entry.title,action:entry.action,check:entry.check});
       if(task===4&&/^Выбери точку (?:1₂|3₁) на /.test(entry.title)&&
          !/(?:\d+% длины|продолжении штриха|положение в схеме)/.test(entry.action))
         issues.push({variant,task,step:step+1,type:'free-point-placement-not-reproducible',
