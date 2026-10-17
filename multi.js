@@ -5177,14 +5177,23 @@
   // Graphical tasks have no source millimetres: scale is a layout factor only.
   // All solver geometry remains in its original coordinate system.
   function makePaperFrame(g){
-    const landscape=g.width>g.height*1.08;
-    const paperW=landscape?297:210,paperH=landscape?210:297;
-    const allowable=Math.min(1,(paperW-24)/Math.max(g.width,1),
-      (paperH-24)/Math.max(g.height,1));
+    // Test BOTH legitimate A4 orientations. A near-square construction
+    // formerly defaulted to portrait and was abruptly reduced from 1:1 to
+    // 1:2 even though it fit comfortably on landscape A4.
     const reductions=[1,.5,.4,.25,.2,.1,.05,.025,.02,.01,.005,.0025,.001];
-    const scale=state.task<=3
-      ? (reductions.find(v=>v<=allowable)||allowable)
-      : allowable;
+    const options=[{paperW:210,paperH:297,landscape:false},
+      {paperW:297,paperH:210,landscape:true}].map(format=>{
+      const allowable=Math.min(1,(format.paperW-24)/Math.max(g.width,1),
+        (format.paperH-24)/Math.max(g.height,1));
+      const scale=state.task<=3
+        ? (reductions.find(v=>v<=allowable+1e-9)||allowable)
+        : allowable;
+      return {...format,scale,allowable};
+    });
+    options.sort((a,b)=>b.scale-a.scale||b.allowable-a.allowable||
+      (g.width>g.height?Number(b.landscape)-Number(a.landscape):
+        Number(a.landscape)-Number(b.landscape)));
+    const {paperW,paperH,landscape,scale}=options[0];
     const viewW=paperW/scale,viewH=paperH/scale;
     const left=(g.width-viewW)/2,top=(g.height-viewH)/2;
     return {paperW,paperH,scale,viewW,viewH,left,top,landscape};
