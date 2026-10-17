@@ -10,6 +10,31 @@
   const $ = id => document.getElementById(id);
   const svg = $('drawing');
 
+  function applyTheme(theme){
+    const dark=theme==='dark';
+    document.documentElement.dataset.theme=dark?'dark':'light';
+    const meta=$('siteThemeColor');
+    if(meta)meta.setAttribute('content',dark?'#17121f':'#f8f3fb');
+    for(const id of ['catalogThemeToggle','desktopThemeToggle','mobileThemeToggle']){
+      const button=$(id);
+      if(!button)continue;
+      button.setAttribute('aria-pressed',dark?'true':'false');
+      button.setAttribute('aria-label',dark?'Включить светлую тему':'Включить тёмную тему');
+      const icon=button.querySelector('.theme-icon');
+      const label=button.querySelector('.theme-copy');
+      if(icon)icon.textContent=dark?'☀':'☾';
+      if(label)label.textContent=dark?'Светлая тема':'Тёмная тема';
+    }
+  }
+  function toggleTheme(){
+    const next=document.documentElement.dataset.theme==='dark'?'light':'dark';
+    try{localStorage.setItem('sitemath-theme',next);}catch(_){}
+    applyTheme(next);
+  }
+  for(const id of ['catalogThemeToggle','desktopThemeToggle','mobileThemeToggle'])
+    $(id)?.addEventListener('click',toggleTheme);
+  applyTheme(document.documentElement.dataset.theme);
+
   const state = {
     variant: null,
     task: null,
@@ -431,15 +456,17 @@
     document.body.classList.remove('first-run-open');
     // The catalogue may be several screens tall. Never inherit its scroll
     // position inside the drawing workspace on a phone or narrow laptop.
-    window.scrollTo(0,0);
+    document.documentElement.scrollTop=0;
+    document.body.scrollTop=0;
     const paper=document.querySelector('.paper-wrap');
     if(paper){paper.scrollLeft=0;paper.scrollTop=0;}
     renderInputs();
     rebuild(true);
-    setDrawingZoom('fit');
+    setDrawingZoom(window.innerWidth<=760?'step':'fit');
     updateMobileSummary();
     requestAnimationFrame(()=>{
-      window.scrollTo(0,0);
+      document.documentElement.scrollTop=0;
+      document.body.scrollTop=0;
       if(paper)focusVisibleDrawing();
     });
   }
@@ -5798,7 +5825,9 @@
     state.paperFrame=p;
     svg.replaceChildren();
     svg.setAttribute('viewBox',[p.left,p.top,p.viewW,p.viewH].join(' '));
-    svg.setAttribute('data-paper-scale',String(p.scale));
+    // The original reconstruction scale is unchanged; page reduction is separate.
+    svg.setAttribute('data-paper-scale',String(g.paperScale||1));
+    svg.setAttribute('data-layout-scale',String(p.scale));
     svg.setAttribute('data-paper-format','A4');
     svg.setAttribute('width',p.paperW+'mm');
     svg.setAttribute('height',p.paperH+'mm');
