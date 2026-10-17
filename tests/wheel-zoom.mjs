@@ -7,6 +7,8 @@ const context=await browser.newContext({viewport:{width:1360,height:900}});
 const page=await context.newPage();
 try{
   await page.goto(base,{waitUntil:'networkidle'});
+  if(await page.locator('#offerOverlay').isVisible())await page.locator('#offerCloseBtn').click();
+  await page.locator('#courseCatalog button.course-card').click();
   await page.locator('#assignmentCatalog button.assignment-card').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="6"]').click();
