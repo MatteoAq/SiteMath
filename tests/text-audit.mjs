@@ -57,7 +57,9 @@ for(let vi=1;vi<=20;vi++){
         const required=plane.planeType==='ABC'
           ?['A₁/A₂','B₁/B₂','C₁/C₂']
           :plane.planeType==='line_point'
-            ?[plane.planePoint+'₁/₂',plane.planeLine+'₁',plane.planeLine+'₂']
+            ?[plane.planePoint+'₁ и '+plane.planePoint+'₂',
+              'не принадлежит прямой '+plane.planeLine,
+              plane.planeLine+'₁',plane.planeLine+'₂']
             :plane.planeType==='parallel_lines'
               ?[plane.planeLines[0]+'₁ ∥ '+plane.planeLines[1]+'₁',
                  plane.planeLines[0]+'₂ ∥ '+plane.planeLines[1]+'₂']
