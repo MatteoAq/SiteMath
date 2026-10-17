@@ -77,6 +77,8 @@ jobs:
         run: node tests/wheel-zoom.mjs
       - name: Verify line conventions from the teaching materials
         run: node tests/line-conventions.mjs
+      - name: Verify course projection and right-triangle methods
+        run: node tests/lecture-projections.mjs
       - name: Upload mobile screenshots
         if: always()
         uses: actions/upload-artifact@v4

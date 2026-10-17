@@ -1495,62 +1495,6 @@
       textEntity(0,{x:complexWidth-26,y:16},'Π₃','svg-note')
     ],{kind:'line',a:{x:8,y:O.y},b:{x:complexWidth-8,y:O.y}});
 
-    names.forEach(name=>{
-      const p=coords[name], q=project[name];
-      let i=steps.length;
-      push({
-        title:'Точка '+name+': задай линию связи по x',
-        action:Math.abs(p.x)<EPS
-          ? 'Для '+name+' координата x равна нулю: линия связи проходит через O, отступ по оси x не нужен.'
-          : 'От O по оси x отложи '+fmt(Math.abs(p.x))+' мм '+(p.x>0?'влево':'вправо')+'. Через отметку проведи вертикальную линию связи.',
-        why:'У '+name+'₁ и '+name+'₂ одинаковое положение по x, поэтому обе проекции нужно строить на одной вертикали.',
-        measure:['|x| = '+Math.abs(p.x)+' мм = '+fmt(Math.abs(p.x)/GRID)+' клеток'],
-        check:'Линия связи перпендикулярна оси x₁₂ и проходит через отметку '+fmt(Math.abs(p.x))+' мм от O.',
-      },[
-        dim(i,O,q.xFoot,Math.abs(p.x)+' мм',{x:0,y:-4}),
-        line(i,{x:q.xFoot.x,y:Math.min(q.p1.y,q.p2.y)-5},{x:q.xFoot.x,y:Math.max(q.p1.y,q.p2.y)+5},'construction-line')
-      ],{kind:'line',a:O,b:q.xFoot});
-
-      i=steps.length;
-      push({
-        title:'Построй '+name+'₁ и '+name+'₂',
-        action:coordinateYZ(name,p),
-        why:'Положение '+name+'₁ задаёт координата y, а '+name+'₂ – высота z. Обе величины отсчитываются от одной оси x₁₂.',
-        measure:[
-          '|y| = '+Math.abs(p.y)+' мм = '+fmt(Math.abs(p.y)/GRID)+' клеток',
-          '|z| = '+Math.abs(p.z)+' мм = '+fmt(Math.abs(p.z)/GRID)+' клеток'
-        ],
-        check:'Линейкой измерь расстояния от x₁₂: до '+name+'₁ должно быть '+fmt(Math.abs(p.y))+' мм, до '+name+'₂ – '+fmt(Math.abs(p.z))+' мм.',
-      },[
-        line(i,q.yFoot,q.p1,'construction-line'),
-        line(i,q.zFoot,q.p2,'construction-line'),
-        point(i,q.yFoot,'y₁='+signedCoord(p.y),'construction-dot'),
-        point(i,q.zFoot,'z='+signedCoord(p.z),'construction-dot'),
-        point(i,q.p1,name+'₁'),
-        point(i,q.p2,name+'₂'),
-        dim(i,q.xFoot,q.p1,Math.abs(p.y)+' мм',{x:3,y:0}),
-        dim(i,q.xFoot,q.p2,Math.abs(p.z)+' мм',{x:-3,y:0})
-      ]);
-
-      i=steps.length;
-      push({
-        title:'Дострой профильную проекцию '+name+'₃',
-        action:coordinateProfile(name,p),
-        why:'На профильной проекции нужны только y и z. Поэтому '+name+'₃ должна иметь ту же высоту, что '+name+'₂.',
-        measure:[
-          '|y| = '+Math.abs(p.y)+' мм по профильной оси',
-          '|z| = '+Math.abs(p.z)+' мм по вертикали'
-        ],
-        check:'Проведи горизонталь от '+name+'₂ к '+name+'₃: они должны быть на одном уровне. От профильной вертикали до '+name+'₃ – '+fmt(Math.abs(p.y))+' мм.',
-      },[
-        line(i,q.yFoot,q.y3Foot,'construction-line'),
-        line(i,q.y3Foot,q.p3,'construction-line'),
-        line(i,q.zFoot,q.p3,'construction-line'),
-        point(i,q.y3Foot,'y₃='+signedCoord(p.y),'construction-dot'),
-        point(i,q.p3,name+'₃','answer-dot')
-      ],{kind:'line',a:q.zFoot,b:q.p3});
-    });
-
     // This paper has a different assignment 1: construct the pyramid SABC,
     // not five unrelated points. Draw every base/lateral edge in all three
     // Monge views, then in the same axonometric model as the four vertices.
@@ -1585,6 +1529,75 @@
         return outward*dot3(n,observer)>1e-7;
       });
     }
+
+    // The professor's Topic 7 specifies parentheses around hidden surface
+    // points. This is a DISPLAY convention, not a change to point identity:
+    // keep the canonical data-label and geometric coordinates untouched.
+    const pyramidProjectedPoint=(step,P,name,suffix,cls)=>{
+      const item=point(step,P,name+suffix,cls);
+      const eye=suffix==='₁'?{x:0,y:0,z:1}
+        :suffix==='₂'?{x:0,y:1,z:0}:{x:1,y:0,z:0};
+      if(pyramid&&!isVisiblePyramidEdge(name,name,eye))
+        item.visualLabel='('+item.label+')';
+      return item;
+    };
+
+    names.forEach(name=>{
+      const p=coords[name], q=project[name];
+      let i=steps.length;
+      push({
+        title:'Точка '+name+': задай линию связи по x',
+        action:Math.abs(p.x)<EPS
+          ? 'Для '+name+' координата x равна нулю: линия связи проходит через O, отступ по оси x не нужен.'
+          : 'От O по оси x отложи '+fmt(Math.abs(p.x))+' мм '+(p.x>0?'влево':'вправо')+'. Через отметку проведи вертикальную линию связи.',
+        why:'У '+name+'₁ и '+name+'₂ одинаковое положение по x, поэтому обе проекции нужно строить на одной вертикали.',
+        measure:['|x| = '+Math.abs(p.x)+' мм = '+fmt(Math.abs(p.x)/GRID)+' клеток'],
+        check:'Линия связи перпендикулярна оси x₁₂ и проходит через отметку '+fmt(Math.abs(p.x))+' мм от O.',
+      },[
+        dim(i,O,q.xFoot,Math.abs(p.x)+' мм',{x:0,y:-4}),
+        line(i,{x:q.xFoot.x,y:Math.min(q.p1.y,q.p2.y)-5},{x:q.xFoot.x,y:Math.max(q.p1.y,q.p2.y)+5},'construction-line')
+      ],{kind:'line',a:O,b:q.xFoot});
+
+      i=steps.length;
+      push({
+        title:'Построй '+name+'₁ и '+name+'₂',
+        action:coordinateYZ(name,p),
+        why:'Положение '+name+'₁ задаёт координата y, а '+name+'₂ – высота z. Обе величины отсчитываются от одной оси x₁₂.'+(pyramid?' Если вершина на виде скрыта гранью пирамиды, её обозначение показано в скобках.':''),
+        measure:[
+          '|y| = '+Math.abs(p.y)+' мм = '+fmt(Math.abs(p.y)/GRID)+' клеток',
+          '|z| = '+Math.abs(p.z)+' мм = '+fmt(Math.abs(p.z)/GRID)+' клеток'
+        ],
+        check:'Линейкой измерь расстояния от x₁₂: до '+name+'₁ должно быть '+fmt(Math.abs(p.y))+' мм, до '+name+'₂ – '+fmt(Math.abs(p.z))+' мм.',
+      },[
+        line(i,q.yFoot,q.p1,'construction-line'),
+        line(i,q.zFoot,q.p2,'construction-line'),
+        point(i,q.yFoot,'y₁='+signedCoord(p.y),'construction-dot'),
+        point(i,q.zFoot,'z='+signedCoord(p.z),'construction-dot'),
+        pyramidProjectedPoint(i,q.p1,name,'₁'),
+        pyramidProjectedPoint(i,q.p2,name,'₂'),
+        dim(i,q.xFoot,q.p1,Math.abs(p.y)+' мм',{x:3,y:0}),
+        dim(i,q.xFoot,q.p2,Math.abs(p.z)+' мм',{x:-3,y:0})
+      ]);
+
+      i=steps.length;
+      push({
+        title:'Дострой профильную проекцию '+name+'₃',
+        action:coordinateProfile(name,p),
+        why:'На профильной проекции нужны только y и z. Поэтому '+name+'₃ должна иметь ту же высоту, что '+name+'₂.'+(pyramid?' Невидимую вершину пирамиды отмечаем обозначением в скобках.':''),
+        measure:[
+          '|y| = '+Math.abs(p.y)+' мм по профильной оси',
+          '|z| = '+Math.abs(p.z)+' мм по вертикали'
+        ],
+        check:'Проведи горизонталь от '+name+'₂ к '+name+'₃: они должны быть на одном уровне. От профильной вертикали до '+name+'₃ – '+fmt(Math.abs(p.y))+' мм.',
+      },[
+        line(i,q.yFoot,q.y3Foot,'construction-line'),
+        line(i,q.y3Foot,q.p3,'construction-line'),
+        line(i,q.zFoot,q.p3,'construction-line'),
+        point(i,q.y3Foot,'y₃='+signedCoord(p.y),'construction-dot'),
+        pyramidProjectedPoint(i,q.p3,name,'₃','answer-dot')
+      ],{kind:'line',a:q.zFoot,b:q.p3});
+    });
+
     if(pyramid){
       const views=[
         ['₁','p1',{x:0,y:0,z:1},'горизонтальной Π₁'],
@@ -5004,7 +5017,7 @@
     } else if(e.type==='point'){
       const n=E('circle',{cx:e.p.x,cy:e.p.y,r:e.cls.includes('answer')?1.05:.88,class:e.cls+(active?' active-dot':''),'data-active':active?'1':'0','data-label':e.label||'','data-role':e.role||pointRole(e.cls)});
       svg.append(n);
-      if(e.label) svg.append(E('text',{x:e.p.x+2.1,y:e.p.y-2.0,class:'svg-label','data-active':active?'1':'0'},e.label));
+      if(e.label) svg.append(E('text',{x:e.p.x+2.1,y:e.p.y-2.0,class:'svg-label','data-active':active?'1':'0'},e.visualLabel||e.label));
     } else if(e.type==='text'){
       svg.append(E('text',{x:e.p.x,y:e.p.y,class:e.cls,
         'text-anchor':e.lineLabel?'middle':null,
