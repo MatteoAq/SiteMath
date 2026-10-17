@@ -4889,13 +4889,32 @@
         return;
       }
 
+      // In the supplied tasks a frontal-projecting plane is sectioned by a
+      // frontal auxiliary plane, and a horizontal-projecting one by a
+      // horizontal auxiliary plane. On one view the complete section follows
+      // the plane's given degenerate projection; on the other it follows the
+      // chosen auxiliary level. Say this explicitly instead of guessing an
+      // undefined "intersection or coincident direction".
+      const projectingIdx=def.type==='frontal_projecting'?'₂':'₁';
+      const levelIdx=levelType==='horizontal'?'₂':'₁';
+      const sameFamily=(def.type==='frontal_projecting'&&levelType==='frontal')||
+        (def.type==='horizontal_projecting'&&levelType==='horizontal');
+      const projectedView=projectingIdx==='₂'?'Π₂':'Π₁';
+      const levelView=levelIdx==='₂'?'Π₂':'Π₁';
+      const fromProjecting=sectionSymbol+projectingIdx;
+      const fromLevel=sectionSymbol+levelIdx;
       i=steps.length;
       push({
         title:'Построй сечение '+planeName+' с проецирующей плоскостью '+planeSymbol,
-        action:'Используй заданную вырожденную проекцию '+planeSymbol+' и уровень '+planeName+pIdx+'. Их пересечение или совпадающее направление сразу задаёт одну проекцию линии сечения; вторую дострой линиями связи.',
-        why:'Для проецирующей плоскости отдельные опорные точки 1–8 не требуются: положение линии сечения определяется её заданной проецирующей проекцией.',
-        measure:['Сечение принадлежит '+planeName,'Сечение принадлежит '+planeSymbol],
-        check:'Обе проекции сечения согласованы одним и тем же положением относительно x₁₂.'
+        action:sameFamily
+          ?'На '+projectedView+' проекция '+fromProjecting+' совпадает с заданной '+planeSymbol+projectingIdx+'. На '+levelView+' проекция '+fromLevel+' лежит на уровне '+planeName+levelIdx+'. Проведи оба штриха и согласуй одноимённые точки вертикальными линиями связи.'
+          :'Проведи линию сечения вспомогательной плоскости '+planeName+' с '+planeSymbol+' через точку пересечения их проекций и перенеси парные точки линиями связи.',
+        why:'Для проецирующей плоскости заданная вырожденная проекция определяет одну проекцию сечения, а выбранный уровень '+planeName+' определяет вторую. Две произвольные опорные точки здесь не нужны.',
+        measure:sameFamily?[fromProjecting+' = '+planeSymbol+projectingIdx,fromLevel+' = '+planeName+levelIdx]
+          :['Сечение принадлежит '+planeName,'Сечение принадлежит '+planeSymbol],
+        check:sameFamily
+          ?fromProjecting+' совпадает с '+planeSymbol+projectingIdx+', а '+fromLevel+' лежит на '+planeName+levelIdx+'. Парные точки имеют общую абсциссу.'
+          :'Обе проекции сечения связаны вертикальными проекторами и принадлежат обеим заданным плоскостям.'
       },sectionDrawEntities(i,sec,sectionSymbol,null));
     };
 
