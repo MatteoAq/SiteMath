@@ -31,6 +31,22 @@ for(const [name,[x,y,z]] of Object.entries(data)){
    'incorrect '+name+suffix+' projection on Monge grid');
  }
 }
+// The teacher's topic on surfaces marks projections of hidden vertices in
+// parentheses. C is hidden by front face SAB on Π2, while B is hidden by
+// side face SAC on Π3. Preserve canonical semantic labels and coordinates.
+for(const [label,expected] of [['C₂','(C₂)'],['B₃','(B₃)']]){
+ const entity=g.steps.flatMap(s=>s.entities||[])
+  .find(e=>e.type==='point'&&e.label===label);
+ assert(entity&&entity.visualLabel===expected,
+  'hidden pyramid vertex '+label+' must be bracketed');
+}
+for(const label of ['S₁','A₁','B₁','C₁','S₂','A₂','B₂','S₃','A₃','C₃']){
+ const entity=g.steps.flatMap(s=>s.entities||[])
+  .find(e=>e.type==='point'&&e.label===label);
+ assert(entity&&!entity.visualLabel,
+  'visible pyramid vertex should not be bracketed: '+label);
+}
+
 for(const [suffix,name] of [['₁','горизонтальной'],['₂','фронтальной'],
  ['₃','профильной']]){
  const step=g.steps.find(s=>s.title==='Соедини рёбра пирамиды на '+name+
