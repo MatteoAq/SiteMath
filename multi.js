@@ -21,11 +21,11 @@
       const button=$(id);
       if(typeof button?.setAttribute!=='function')continue;
       button.setAttribute('aria-pressed',dark?'true':'false');
-      button.setAttribute('aria-label',dark?'Включить светлую тему':'Включить тёмную тему');
-      const icon=button.querySelector?.('.theme-icon');
+      const tip=dark?'Включить светлую тему':'Включить тёмную тему';
+      button.setAttribute('aria-label',tip);
+      button.setAttribute('title',tip);
       const label=button.querySelector?.('.theme-copy');
-      if(icon)icon.textContent=dark?'☀':'☾';
-      if(label)label.textContent=dark?'Светлая тема':'Тёмная тема';
+      if(label)label.textContent='Тема';
     }
   }
   function toggleTheme(){
@@ -5660,6 +5660,10 @@
     // drawing without changing scale or construction coordinates.
     wrap.addEventListener('pointerdown',ev=>{
       if(ev.pointerType==='touch'||(ev.button!==0&&ev.button!==1)||!state.geometry)return;
+      // Once dragged, stop auto-fit refocusing the page during the gesture.
+      const current=drawingZoom();
+      state.screenZoom=current;
+      state.focusMode=false;
       mouseDrag={id:ev.pointerId,x:ev.clientX,y:ev.clientY,
         left:wrap.scrollLeft,top:wrap.scrollTop};
       wrap.classList.add('is-panning');
