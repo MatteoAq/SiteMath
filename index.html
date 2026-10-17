@@ -3,9 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f8f3fb">
+  <meta name="theme-color" content="#f8f3fb" id="siteThemeColor">
+  <script>
+    try {
+      document.documentElement.dataset.theme=localStorage.getItem('sitemath-theme')==='dark'?'dark':'light';
+      document.querySelector('#siteThemeColor').content=document.documentElement.dataset.theme==='dark'?'#17121f':'#f8f3fb';
+    } catch (_) {document.documentElement.dataset.theme='light';}
+  </script>
   <title>SiteMath – библиотека чертежей и пошаговых решений</title>
-  <link rel="stylesheet" href="./styles.css?v=20261017-a4">
+  <link rel="stylesheet" href="./styles.css?v=20261017-dark1">
 </head>
 <body>
   <div class="mobile-appbar">
@@ -29,6 +35,7 @@
           <div><b>SiteMath</b><small>Библиотека чертежей</small></div>
         </div>
         <div class="catalog-nav-actions">
+          <button id="catalogThemeToggle" class="theme-toggle" type="button" aria-label="Переключить тему" aria-pressed="false"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-copy">Тёмная тема</span></button>
           <button id="catalogListBackBtn" class="catalog-list-back" type="button" hidden>← К курсам</button>
           <button id="catalogCommissionBtn" class="catalog-nav-link" type="button">Предложить задание <span aria-hidden="true">↗</span></button>
         </div>
@@ -65,7 +72,7 @@
       <section id="activeAssignment" class="catalog-work-setup" aria-labelledby="activeAssignmentTitle" hidden>
         <div class="catalog-work-head">
           <div>
-            <span class="catalog-kicker">Задание · <span id="setupCourseLabel">I курс</span></span>
+            <span class="catalog-kicker">Задание · <strong id="setupCourseLabel">I курс</strong></span>
             <h2 id="activeAssignmentTitle" tabindex="-1">Задание № 1</h2>
             <p>Альбом из 6 задач. Выбери вариант и номер задачи, чтобы открыть построение по шагам.</p>
           </div>
@@ -107,6 +114,7 @@
       <p class="subtitle">Начертательная геометрия · I курс. Альбом из 6 задач. Переходи между этапами построения и сравнивай их с исходным условием.</p>
     </div>
     <nav class="topbar-links" aria-label="Ссылки проекта">
+      <button id="desktopThemeToggle" class="theme-toggle" type="button" aria-label="Переключить тему" aria-pressed="false"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-copy">Тёмная тема</span></button>
       <button id="catalogBackBtn" class="catalog-back-btn" type="button">← К курсам</button>
       <a class="contact-link" href="https://t.me/shei1ny" target="_blank" rel="noopener noreferrer">Заказать задание · @shei1ny</a>
     </nav>
@@ -119,7 +127,10 @@
           <b>Выбор задачи</b>
           <span id="mobileSheetSummary">вариант и задание</span>
         </div>
-        <button id="mobileSetupClose" class="mobile-icon-btn" type="button" aria-label="Закрыть параметры">×</button>
+        <div class="mobile-sheet-actions">
+          <button id="mobileThemeToggle" class="theme-toggle theme-toggle-mobile" type="button" aria-label="Переключить тему" aria-pressed="false"><span class="theme-icon" aria-hidden="true">☾</span><span class="theme-copy">Тёмная тема</span></button>
+          <button id="mobileSetupClose" class="mobile-icon-btn" type="button" aria-label="Закрыть параметры">×</button>
+        </div>
       </div>
       <div class="mobile-sheet-handle" aria-hidden="true"></div>
       <section class="picker-flow">
@@ -377,6 +388,6 @@
 
   <script src="./variants.js?v=20261017-a4"></script>
   <script src="./data/assignments.js?v=20261017-a4"></script>
-  <script src="./multi.js?v=20261017-a4"></script>
+  <script src="./multi.js?v=20261017-dark1"></script>
 </body>
 </html>
