@@ -11,7 +11,7 @@
     } catch (_) {document.documentElement.dataset.theme='light';}
   </script>
   <title>SiteMath – библиотека чертежей и пошаговых решений</title>
-  <link rel="stylesheet" href="./styles.css?v=20261017-ui5">
+  <link rel="stylesheet" href="./styles.css?v=20261017-ui6">
 </head>
 <body>
   <div class="mobile-appbar">
@@ -291,8 +291,11 @@
         </div>
 
         <div id="remoteSourceHint" class="remote-source-hint" hidden>
-          <span>Пересечение далеко от исходной схемы.</span>
-          <button id="zoomSourceBtn" type="button">Показать исходный чертёж</button>
+          <details id="remoteSourceDetails">
+            <summary><span>Внимание: учебная реконструкция · подробнее</span></summary>
+            <p class="remote-source-message">Построение использует адаптированную схему.</p>
+            <button id="zoomSourceBtn" type="button">Показать исходный чертёж</button>
+          </details>
         </div>
 
         <div class="mobile-step-nav">
@@ -388,6 +391,6 @@
 
   <script src="./variants.js?v=20261017-a4"></script>
   <script src="./data/assignments.js?v=20261017-a4"></script>
-  <script src="./multi.js?v=20261017-ui5"></script>
+  <script src="./multi.js?v=20261017-ui6"></script>
 </body>
 </html>
