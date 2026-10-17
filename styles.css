@@ -3898,3 +3898,78 @@ html[data-theme="dark"] .offer-detail-grid p {color:#d7c6df;}
   .legend-note {display:none !important;}
   .offer-detail-grid > div {padding:13px 14px;}
 }
+
+/* Disclosure of adapted source schemes must not consume the instruction
+   viewport until the student explicitly opens its details. */
+.remote-source-hint {
+  display:block;
+  padding:0;
+  border:1px solid #dcc6e5;
+  background:#f9f1fc;
+  border-radius:11px;
+  overflow:hidden;
+}
+.remote-source-hint details {display:block;}
+.remote-source-hint summary {
+  cursor:pointer;
+  list-style:none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  min-height:36px;
+  padding:8px 12px;
+  font-size:12px;
+  font-weight:800;
+  color:#743685;
+  line-height:1.35;
+}
+.remote-source-hint summary::-webkit-details-marker {display:none;}
+.remote-source-hint summary::after {
+  content:'▾';
+  flex:0 0 auto;
+  margin-left:8px;
+  transition:transform .16s ease;
+}
+.remote-source-hint details[open] summary::after {transform:rotate(180deg);}
+.remote-source-hint .remote-source-message {
+  margin:0;
+  padding:9px 12px 4px;
+  border-top:1px solid #ead9ef;
+  line-height:1.5;
+  font-size:12px;
+  color:#5a4667;
+}
+.remote-source-hint button {
+  margin:8px 12px 12px;
+  min-height:36px;
+}
+html[data-theme="dark"] .remote-source-hint {
+  border-color:#684575;
+  background:#38283f;
+}
+html[data-theme="dark"] .remote-source-hint summary {color:#ebc6f5;}
+html[data-theme="dark"] .remote-source-hint .remote-source-message {
+  color:#dacbe2;
+  border-top-color:#60426c;
+}
+@media(max-width:760px) {
+  body:not(.first-run-open) .explanation-panel .remote-source-hint {
+    margin:5px 0 0;
+    flex:0 0 auto;
+    border-radius:9px;
+  }
+  body:not(.first-run-open) .remote-source-hint summary {
+    min-height:32px;
+    padding:6px 10px;
+    font-size:11px;
+  }
+  body:not(.first-run-open) .remote-source-hint details[open] {
+    max-height:min(30dvh,190px);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+  }
+  body:not(.first-run-open) .remote-source-hint .remote-source-message {
+    padding:8px 10px 4px;
+    font-size:11px;
+  }
+}
