@@ -5408,18 +5408,22 @@
     const wrap=document.querySelector('.paper-wrap');
     if(!wrap||!state.geometry) return;
     const prev=Math.max(.001,drawingZoom());
-    const cs=getComputedStyle(wrap);
-    const padX=parseFloat(cs.paddingLeft)||0;
-    const padY=parseFloat(cs.paddingTop)||0;
+    // Keep the actual SVG coordinate beneath the pointer while zooming.
+    // Measuring rectangles also handles a centered page that is initially
+    // smaller than the scrollport (the old padding-only math could jump).
+    const before=svg.getBoundingClientRect();
+    const viewport=wrap.getBoundingClientRect();
     const ax=anchor&&Number.isFinite(anchor.x)?anchor.x:wrap.clientWidth/2;
     const ay=anchor&&Number.isFinite(anchor.y)?anchor.y:wrap.clientHeight/2;
-    const contentX=(wrap.scrollLeft+ax-padX)/prev;
-    const contentY=(wrap.scrollTop+ay-padY)/prev;
+    const clientX=viewport.left+ax,clientY=viewport.top+ay;
+    const ratioX=Math.max(0,Math.min(1,(clientX-before.left)/Math.max(1,before.width)));
+    const ratioY=Math.max(0,Math.min(1,(clientY-before.top)/Math.max(1,before.height)));
     state.focusMode=false;
     state.screenZoom=Math.max(.005,Math.min(6,next));
     applyDrawingZoom();
-    wrap.scrollLeft=Math.max(0,contentX*state.screenZoom-ax+padX);
-    wrap.scrollTop=Math.max(0,contentY*state.screenZoom-ay+padY);
+    const after=svg.getBoundingClientRect();
+    wrap.scrollLeft+=after.left+after.width*ratioX-clientX;
+    wrap.scrollTop+=after.top+after.height*ratioY-clientY;
   }
 
   function setDrawingZoom(mode){
@@ -5460,6 +5464,18 @@
     const values=()=>[...pointers.values()];
     const distance=pts=>Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);
     const center=pts=>({x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2});
+
+    // Mouse-wheel zoom is scoped to the drawing surface. In particular,
+    // Ctrl+wheel must NOT trigger the browser's page-level zoom here.
+    // Everywhere else on the page the browser keeps its normal behavior.
+    wrap.addEventListener('wheel',ev=>{
+      if(!state.geometry || ev.deltaY===0)return;
+      ev.preventDefault();
+      const pixels=ev.deltaY*(ev.deltaMode===1?16:ev.deltaMode===2?wrap.clientHeight:1);
+      const limited=Math.max(-240,Math.min(240,pixels));
+      const factor=Math.exp(-limited*0.0018);
+      setZoomAround(drawingZoom()*factor,pointOf(ev));
+    },{passive:false});
 
     wrap.addEventListener('pointerdown',ev=>{
       if(ev.pointerType!=='touch')return;
