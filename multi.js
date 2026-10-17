@@ -3816,14 +3816,33 @@
       ]);
     }
 
-    i=steps.length;
+    // The split and the visibility are two physical pencil operations.
+    // Do not bury the continuation and the division at K in the prose of
+    // the completed drawing. Temporary guide strokes disappear as soon as
+    // the solid/dashed answer replaces them, including behind dash gaps.
     const p1a=l1[0],p1b=l1[1],p2a=l2[0],p2b=l2[1];
+    i=steps.length;
     push({
-      title:'Нанеси видимость ℓ по результату конкурирующих точек',
-      action:'Используй сравнение 3/4 для Π₁ и 5/6 для Π₂. Если K лежит за концом напечатанного штриха ℓ, продли прямую до K и немного за неё. Раздели прямую точкой K на два неперекрывающихся участка; на противоположной стороне K видимость меняется.',
-      why:'Сплошным остаётся участок ℓ, точка которого ближе к наблюдателю, чем конкурирующая точка плоскости. Штриховым показывается участок, закрытый плоскостью.',
-      measure:['Π₁: сравнение z через 3₂/4₂','Π₂: сравнение y через 5₁/6₁'],
-      check:'Сверь сплошной и штриховой участки по парам 3/4 и 5/6. В K прямая проходит через плоскость и меняет видимость.'
+      title:'Продли ℓ и раздели обе проекции точкой K',
+      action:'На Π₁ проведи ℓ₁ от левого конца до K₁ и далее до правого; на Π₂ так же проведи ℓ₂ через K₂. Если K вне исходного штриха, продолжение должно быть видно на чертеже. Пока оба участка тонкие: видимость определим следующим шагом.',
+      why:'Точка K делит каждую проекцию прямой на два участка. Продление необходимо, если K находится за пределом заданного отрезка; нельзя считать его уже нарисованным по одному описанию.',
+      measure:['ℓ₁: два участка с общим концом K₁','ℓ₂: два участка с общим концом K₂'],
+      check:'На обеих проекциях видны построенные продолжения и граница K без разрывов и наложений.'
+    },[
+      line(i,p1a,K1,'construction-line',{visibilityScaffold:true}),
+      line(i,K1,p1b,'construction-line',{visibilityScaffold:true}),
+      line(i,p2a,K2,'construction-line',{visibilityScaffold:true}),
+      line(i,K2,p2b,'construction-line',{visibilityScaffold:true}),
+      point(i,K1,'K₁','answer-dot'),point(i,K2,'K₂','answer-dot')
+    ]);
+
+    i=steps.length;
+    push({
+      title:'Нанеси видимость ℓ по конкурирующим точкам',
+      action:'По парам 3/4 на Π₁ и 5/6 на Π₂ замени построенные части ℓ на сплошные и штриховые. Граница видимости – K. Оба участка и их начертание показаны на самом чертеже.',
+      why:'Сплошным показан участок ℓ перед плоскостью; штриховым – закрытый ею. По разные стороны точки K видимость меняется.',
+      measure:['Π₁: глубина по 3₂/4₂','Π₂: глубина по 5₁/6₁'],
+      check:'На Π₁ и Π₂ от K отходят по одному сплошному и штриховому участку. Вспомогательные сплошные линии под штрихами исчезли.'
     },[
       line(i,p1a,K1,vis1[0]?'answer-line':'hidden-line'),
       line(i,K1,p1b,vis1[1]?'answer-line':'hidden-line'),
@@ -5573,7 +5592,7 @@
         // Once visibility is shown, neither the original unbroken ℓ nor the
         // coincident Ω guide may fill the gaps of hidden strokes. Preserve
         // their labels and restore both lines when stepping backward.
-        if(visibilityDone && (e.sourceGivenLine||e.sourceCoincidentAux)) return;
+        if(visibilityDone && (e.sourceGivenLine||e.sourceCoincidentAux||e.visibilityScaffold)) return;
         const placement=positionedLineLabel(entities,index);
         drawEntity(placement?{...e,p:placement,lineLabel:true}:e,idx===state.step);
       });
