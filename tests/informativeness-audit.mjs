@@ -61,7 +61,8 @@ for(let variant=1;variant<=20;variant++){
         geometry:[+(final.width*scale).toFixed(2),+(final.height*scale).toFixed(2)],
         paper:[paperWidth,paperHeight],outsideFrame:!!outsideFrame});
     const lengths=[...drawn].filter(el=>el.classList.contains('answer-line')||el.classList.contains('aux-line')||el.classList.contains('construction-line'))
-      .map(el=>({type:el.getAttribute('class'),len:Math.hypot(
+      .map(el=>({type:el.getAttribute('class'),
+        step:Number(el.getAttribute('data-created-step')||0),len:Math.hypot(
         Number(el.getAttribute('x2'))-Number(el.getAttribute('x1')),
         Number(el.getAttribute('y2'))-Number(el.getAttribute('y1')))*scale,
         x1:Number(el.getAttribute('x1')),y1:Number(el.getAttribute('y1')),
@@ -78,7 +79,7 @@ for(let variant=1;variant<=20;variant++){
     const sourceShare=source&&final?Math.max(0,Math.min(1,
       Math.min(source.width/Math.max(final.width,1),source.height/Math.max(final.height,1)))):null;
     const shortLines=lengths.filter(x=>x.len<3).map(x=>({
-      type:x.type,mm:+x.len.toFixed(2),
+      type:x.type,step:x.step||null,mm:+x.len.toFixed(2),
       start:[+x.x1.toFixed(2),+x.y1.toFixed(2)],
       end:[+x.x2.toFixed(2),+x.y2.toFixed(2)]
     }));

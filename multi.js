@@ -5342,6 +5342,7 @@
         class:'draw-line '+e.cls+(active?' active-line':''),
         'data-active':active?'1':'0',
         'data-role':e.role||lineRole(e.cls),
+        'data-created-step':Number.isInteger(e.step)?e.step+1:null,
         'data-right-angle-mark':e.rightAngleMark?'1':null,
         'data-source-given-line':e.sourceGivenLine?'1':null,
         'data-source-coincident-aux':e.sourceCoincidentAux?'1':null
