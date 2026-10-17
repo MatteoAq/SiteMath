@@ -29,16 +29,25 @@
           <div><b>SiteMath</b><small>Библиотека чертежей</small></div>
         </div>
         <div class="catalog-nav-actions">
-          <button id="catalogListBackBtn" class="catalog-list-back" type="button" hidden>← К списку работ</button>
+          <button id="catalogListBackBtn" class="catalog-list-back" type="button" hidden>← К курсам</button>
           <button id="catalogCommissionBtn" class="catalog-nav-link" type="button">Предложить задание <span aria-hidden="true">↗</span></button>
         </div>
       </div>
 
-      <div id="catalogListView" class="catalog-list-view">
+      <section id="catalogCoursesView" class="catalog-courses-view" aria-labelledby="catalogCoursesTitle">
+        <header class="catalog-hero">
+          <div class="catalog-kicker"><span></span> Начертательная геометрия и инженерная графика</div>
+          <h1 id="catalogCoursesTitle" tabindex="-1">Выбери <em>курс</em></h1>
+          <p>Задания распределены по курсам. Сначала выбери свой курс, затем нужное задание и вариант.</p>
+        </header>
+        <div id="courseCatalog" class="course-catalog" aria-label="Доступные курсы"></div>
+      </section>
+
+      <div id="catalogListView" class="catalog-list-view" hidden>
       <header class="catalog-hero">
-        <div class="catalog-kicker"><span></span> Учебные работы · Начертательная геометрия</div>
-        <h1 id="firstRunTitle">Чертежи, которые можно разобрать <em>по шагам</em></h1>
-        <p>Выбери работу из библиотеки, затем свой вариант и задачу. Каждый этап построения показан на чертеже с пояснением.</p>
+        <div class="catalog-kicker"><span></span> <span id="catalogCurrentCourse">I курс</span> · Начертательная геометрия</div>
+        <h1 id="firstRunTitle" tabindex="-1">Задания <em>выбранного курса</em></h1>
+        <p>Выбери задание, затем номер варианта и задачу внутри него. Каждый этап построения можно рассмотреть отдельно.</p>
         <div class="catalog-hero-metrics" aria-label="Содержимое библиотеки">
           <span><b id="catalogAvailableCount">1</b> доступная работа</span>
           <span><b>20</b> вариантов текущего альбома</span>
@@ -47,7 +56,7 @@
       </header>
 
       <div class="catalog-section-heading">
-        <div><span class="catalog-kicker">Каталог</span><h2>Выбери учебную работу</h2></div>
+        <div><span class="catalog-kicker">Задания</span><h2 id="catalogAssignmentHeading">Выбери задание</h2></div>
         <p>Библиотека будет пополняться</p>
       </div>
       <div id="assignmentCatalog" class="assignment-catalog" aria-label="Список учебных работ"></div>
@@ -56,9 +65,9 @@
       <section id="activeAssignment" class="catalog-work-setup" aria-labelledby="activeAssignmentTitle" hidden>
         <div class="catalog-work-head">
           <div>
-            <span class="catalog-kicker">Открытая работа</span>
-            <h2 id="activeAssignmentTitle" tabindex="-1">Задание № 1 Альбом из 6 задач (для очников)</h2>
-            <p>Укажи номер варианта и задачу. Решатель покажет построение от исходных данных до результата.</p>
+            <span class="catalog-kicker">Задание · <span id="setupCourseLabel">I курс</span></span>
+            <h2 id="activeAssignmentTitle" tabindex="-1">Задание № 1</h2>
+            <p>Альбом из 6 задач. Выбери вариант и номер задачи, чтобы открыть построение по шагам.</p>
           </div>
           <span class="catalog-work-mark" aria-hidden="true">01</span>
         </div>
@@ -93,12 +102,12 @@
 
   <header class="topbar">
     <div>
-      <p class="eyebrow">SiteMath / Библиотека / Задание № 1</p>
-      <h1>Альбом из 6 задач</h1>
-      <p class="subtitle">Задание № 1 · Начертательная геометрия. Выбери вариант и задачу внутри альбома, чтобы увидеть каждый этап построения. Другие учебные работы появятся в каталоге отдельно.</p>
+      <p class="eyebrow">SiteMath / I курс / Задание № 1</p>
+      <h1>Задание № 1</h1>
+      <p class="subtitle">Начертательная геометрия · I курс. Альбом из 6 задач. Переходи между этапами построения и сравнивай их с исходным условием.</p>
     </div>
     <nav class="topbar-links" aria-label="Ссылки проекта">
-      <button id="catalogBackBtn" class="catalog-back-btn" type="button">← Все работы</button>
+      <button id="catalogBackBtn" class="catalog-back-btn" type="button">← К курсам</button>
       <a class="contact-link" href="https://t.me/shei1ny" target="_blank" rel="noopener noreferrer">Заказать задание · @shei1ny</a>
     </nav>
   </header>
@@ -114,7 +123,7 @@
       </div>
       <div class="mobile-sheet-handle" aria-hidden="true"></div>
       <section class="picker-flow">
-        <button id="mobileCatalogBackBtn" class="mobile-catalog-back" type="button">← Каталог учебных работ</button>
+        <button id="mobileCatalogBackBtn" class="mobile-catalog-back" type="button">← К курсам</button>
         <div class="choice-block variant-choice-block">
           <div class="choice-heading">
             <b>Вариант</b>
@@ -323,7 +332,7 @@
   </main>
 
 
-  <!-- Service information at every site opening, dismissible before solving. -->
+  <!-- The existing commission dialog opens once per tab session and on demand. -->
   <div id="offerOverlay" class="offer-overlay" hidden>
     <section class="offer-dialog" role="dialog" aria-modal="true"
              aria-labelledby="offerDialogTitle" aria-describedby="offerDialogSubtitle">
