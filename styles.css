@@ -3973,3 +3973,19 @@ html[data-theme="dark"] .remote-source-hint .remote-source-message {
     font-size:11px;
   }
 }
+
+/* Mobile stage title is already visible directly above the drawing.
+   Avoid repeating the same tall heading in the compact instruction sheet,
+   where it previously displaced several lines of useful construction text. */
+@media (max-width:760px) {
+  body:not(.first-run-open) .explanation-panel:not(.is-expanded) > .step-badge,
+  body:not(.first-run-open) .explanation-panel:not(.is-expanded) > h2 {
+    display:none !important;
+  }
+  body:not(.first-run-open) .explanation-panel.is-expanded > .step-badge {
+    display:inline-flex;
+  }
+  body:not(.first-run-open) .explanation-panel.is-expanded > h2 {
+    display:block;
+  }
+}
