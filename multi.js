@@ -350,7 +350,7 @@
     renderFirstRunPicker();
     $('firstRunPicker').hidden=false;
     document.body.classList.add('first-run-open');
-    window.scrollTo?.(0,0);
+    // The library scrolls like a normal document, not a fixed modal.
   }
 
   function finishFirstRun(){
