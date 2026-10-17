@@ -4696,6 +4696,14 @@
       steps[0].why='Здесь сохранены типы плоскостей и узлы исходного задания, но изменены некоторые наклоны штрихов. Построение относится к этой схеме, а не к метрически точной копии архивного листа.';
       steps[0].check='Угольником проверь: a₁ ∥ b₁, a₂ ∥ b₂, h₂ ∥ x₁₂ и f₁ ∥ x₁₂. Две проекции узла h∩f и две проекции '+throughLabel+' лежат на своих вертикальных линиях связи.';
     }
+    if(scheme.planeA?.type==='intersecting_lines' &&
+       scheme.planeB?.type==='line_point'){
+      const aNames=Object.keys(scheme.planeA.lines||{});
+      const hName=scheme.planeB.lineName||Object.keys(scheme.planeB.lines||{})[0]||'h';
+      const aName=scheme.planeB.pointName||Object.keys(scheme.planeB.points||{})[0]||'A';
+      if(aNames.length===2)
+        steps[0].check='В '+planeASymbol+' пересекаются '+aNames[0]+'₁ и '+aNames[1]+'₁, а также '+aNames[0]+'₂ и '+aNames[1]+'₂; оба узла расположены на одной вертикальной линии связи. В '+planeBSymbol+' задана прямая '+hName+'₁/'+hName+'₂ и отдельная точка '+aName+'₁/'+aName+'₂, парные проекции которой соединены проектором. Проекции '+throughLabel+'₁ и '+throughLabel+'₂ тоже связаны одним проектором.';
+    }
     if(scheme.sourceId==='source-photos/scans/variant-12.jpg'&&!scheme.adaptedSource){
       steps[0].why+=' На этом листе плоскости пересекаются далеко за пределами исходной схемы. Свободно выбрать можно вспомогательные сечения, но не положение самой линии пересечения.';
     }
