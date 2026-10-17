@@ -3340,7 +3340,7 @@
       // Prefer an interior level with the same defining lines.
       let endpointPenalty=0;
       for(let k=0;k<2;k++){
-        const near=Math.min(...segs[k].map(p=>Math.hypot(x0===null?0:([x0,x1][k]-p[0]),y-p[1])));
+        const near=Math.min(...segs[k].map(p=>Math.hypot([x0,x1][k]-p[0],y-p[1])));
         endpointPenalty+=Math.max(0,14-near)*3;
       }
       const score=separation-outside*.8-endpointPenalty;
