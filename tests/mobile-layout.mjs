@@ -873,14 +873,11 @@ for (const vp of [
     if(!(await page.locator('#remoteSourceHint').isVisible()))
       failures.push(variant+'/'+task+': source-focus help is missing');
     const visibleHint=await page.locator('#remoteSourceHint span').textContent();
-    if(!visibleHint?.includes(variant==='13'?'на другую сторону':'не точное место'))
-      failures.push(variant+'/'+task+': visible step-side raster warning is missing');
+    if(!visibleHint?.includes('учебная реконструкция'))
+      failures.push(variant+'/'+task+': reconstruction is not disclosed beside steps');
     const diagramWarning=await page.locator('#diagramWarning').textContent();
-    const expectedWarning=variant==='13'
-      ? 'на другую сторону рисунка'
-      : 'их общая прямая проходит далеко';
-    if(!diagramWarning?.includes(expectedWarning))
-      failures.push(variant+'/'+task+': raster uncertainty not explained separately');
+    if(!diagramWarning?.includes('Учебная реконструкция исходной схемы'))
+      failures.push(variant+'/'+task+': reconstructed source not disclosed in mobile brief');
     const instructionOrder=await page.evaluate(()=>{
       const details=document.querySelector('#problemDetails');
       const text=document.querySelector('#stepInfoText')?.getBoundingClientRect();
