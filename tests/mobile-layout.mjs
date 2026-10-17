@@ -99,6 +99,26 @@ for (const vp of viewports) {
   await page.waitForTimeout(100);
 
   await visibleOverflow(page,vp.name+' drawing');
+  const readableCanvas=await page.evaluate(()=>{
+    const wrap=document.querySelector('.paper-wrap');
+    const svg=document.querySelector('#drawing');
+    const sheet=document.querySelector('#stepSheet');
+    if(!wrap||!svg||!sheet)return {visible:false,reason:'missing element'};
+    const w=wrap.getBoundingClientRect(),v=svg.getBoundingClientRect(),
+      panel=sheet.getBoundingClientRect();
+    const screenRight=window.innerWidth,screenBottom=window.innerHeight;
+    const left=Math.max(0,w.left,v.left),right=Math.min(screenRight,w.right,v.right);
+    const top=Math.max(0,w.top,v.top);
+    const bottom=Math.min(screenBottom,w.bottom,v.bottom,panel.top-6);
+    return {visible:(right-left)>100&&(bottom-top)>90,
+      width:Math.round(right-left),height:Math.round(bottom-top),
+      svg:{x:Math.round(v.left),y:Math.round(v.top),width:Math.round(v.width),height:Math.round(v.height)},
+      wrap:{y:Math.round(w.top),height:Math.round(w.height)},
+      sheetY:Math.round(panel.top),
+      documentScroll:Math.round(document.documentElement.scrollTop)};
+  });
+  if(!readableCanvas.visible)
+    failures.push(vp.name+': drawing concealed by empty space or bottom sheet '+JSON.stringify(readableCanvas));
   const canvasOperation=await page.locator('#stageCurrentTitle').textContent();
   const sheetOperation=await page.locator('#stepTitle').textContent();
   if(!canvasOperation?.trim() || canvasOperation!==sheetOperation ||
