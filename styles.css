@@ -3634,3 +3634,111 @@ html[data-theme="dark"] .theme-toggle:hover {background:#483155;border-color:#b7
   .mobile-appbar {grid-template-columns:40px minmax(0,1fr) 34px auto auto;}
   .mobile-contact-link {width:34px;min-width:34px;max-width:34px;height:36px;min-height:36px;}
 }
+
+/* Dark mode must include the paper and ALL neutral controls.
+   Grid spacing and drawing geometry are unchanged: only screen colors. */
+html[data-theme="dark"] {
+  --paper:#22212b;
+  --paper-line:#383643;
+  --paper-major:#504b5c;
+  --construction:#a99aaf;
+  --blue:#c2a2ff;
+  --ui-bg:#17121f;
+  --ui-surface:#281f31;
+  --ui-soft:#382a43;
+  --ui-text:#f2eaf6;
+  --ui-muted:#c4b3cf;
+  --ui-line:#584462;
+  --ui-violet:#c49bfd;
+  --ui-pink:#f096d4;
+  --ui-accent:#e394f5;
+  --panel:#271c30;
+}
+html[data-theme="dark"] .paper-wrap #drawing {
+  background:#22212b !important;
+  box-shadow:0 6px 24px rgba(0,0,0,.5);
+}
+html[data-theme="dark"] .grid-minor {stroke:#383643;}
+html[data-theme="dark"] .grid-major {stroke:#554e62;}
+html[data-theme="dark"] .paper-outline {stroke:#8c7d9d;}
+html[data-theme="dark"] .paper-safe-area {stroke:#473c50;}
+html[data-theme="dark"] .axis,
+html[data-theme="dark"] .axis.active-line {stroke:#dccbe5 !important;}
+html[data-theme="dark"] .object-line,
+html[data-theme="dark"] .object-line.active-line {stroke:#f0e6f5 !important;}
+html[data-theme="dark"] .source-guide-line,
+html[data-theme="dark"] .source-guide-line.active-line {stroke:#9f8ea7 !important;}
+html[data-theme="dark"] .construction-line,
+html[data-theme="dark"] .construction-line.active-line {stroke:#baacc8 !important;}
+html[data-theme="dark"] .aux-line,
+html[data-theme="dark"] .aux-line.active-line {stroke:#cc8fe3 !important;}
+html[data-theme="dark"] .hidden-line,
+html[data-theme="dark"] .hidden-line.active-line {stroke:#a5b4ff !important;}
+html[data-theme="dark"] .answer-line,
+html[data-theme="dark"] .answer-line.active-line {stroke:#bd91ff !important;}
+html[data-theme="dark"] .point-dot {fill:#fff0fa;}
+html[data-theme="dark"] .construction-dot {fill:#c8b8d4;}
+html[data-theme="dark"] .answer-dot {fill:#bd91ff;stroke:#bd91ff;}
+html[data-theme="dark"] .svg-label,
+html[data-theme="dark"] .svg-big-note {fill:#f4e6fb;stroke:#22212b;}
+html[data-theme="dark"] .svg-note {fill:#d2bfdc;stroke:#22212b;}
+html[data-theme="dark"] .dimension {stroke:#f1a1d2;}
+html[data-theme="dark"] .dimension-text {fill:#f5b4de;stroke:#22212b;}
+html[data-theme="dark"] .tick {stroke:#ddd0e6;}
+html[data-theme="dark"] .ruler-body {fill:rgba(244,180,222,.15);stroke:#d49bdb;}
+html[data-theme="dark"] .ruler-tick {stroke:#e4c0eb;}
+html[data-theme="dark"] .pencil-body {fill:#d598ef;stroke:#ab61d6;}
+html[data-theme="dark"] .pencil-tip {fill:#e6d7eb;}
+html[data-theme="dark"] .legend .swatch.object {background:#efe6f4;}
+html[data-theme="dark"] .legend .swatch.answer {background:#bd91ff;}
+html[data-theme="dark"] .legend .swatch {background:#baaac7;}
+html[data-theme="dark"] button:not(.primary):not(.primary-step):not(.first-run-start):not(.offer-contact):not(.repo-link):not(.theme-toggle):not(.is-selected):not([aria-selected="true"]),
+html[data-theme="dark"] .coord-input,
+html[data-theme="dark"] .step-info-pager button,
+html[data-theme="dark"] input:not([type="range"]):not([type="checkbox"]),
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+  background:#36283f;
+  color:#f4eaf8;
+  border-color:#6b5278;
+}
+html[data-theme="dark"] button:not(.primary):not(.primary-step):not(.first-run-start):not(.offer-contact):not(.theme-toggle):not(.is-selected):hover,
+html[data-theme="dark"] .step-info-pager button:hover {
+  background:#483351;
+  border-color:#b17bc5;
+}
+html[data-theme="dark"] button:disabled {
+  opacity:.52;
+  cursor:not-allowed;
+}
+html[data-theme="dark"] .primary,
+html[data-theme="dark"] .primary-step,
+html[data-theme="dark"] .first-run-start:not(:disabled) {
+  background:linear-gradient(135deg,#8a46da,#b43eab);
+  color:#fff;
+}
+html[data-theme="dark"] .first-run-start:disabled {background:#493950;color:#b8a7c3;}
+html[data-theme="dark"] .catalog-section-heading,
+html[data-theme="dark"] .choice-heading,
+html[data-theme="dark"] .first-run-heading {color:#f1e5f7;}
+html[data-theme="dark"] .step-info-page,
+html[data-theme="dark"] .step-info-text,
+html[data-theme="dark"] .problem-details,
+html[data-theme="dark"] .problem-brief,
+html[data-theme="dark"] .source-panel,
+html[data-theme="dark"] .source-body,
+html[data-theme="dark"] .calibrator-panel,
+html[data-theme="dark"] .metric-row {color:#efe3f5;}
+html[data-theme="dark"] .status-panel,
+html[data-theme="dark"] .coverage-grid > div,
+html[data-theme="dark"] .validation,
+html[data-theme="dark"] .calibrator-panel,
+html[data-theme="dark"] .source-panel,
+html[data-theme="dark"] .picker-flow,
+html[data-theme="dark"] .step-info-pager {
+  background:#2b2135; border-color:#5b4368; color:#ecdbf3;
+}
+html[data-theme="dark"] .offer-overlay {background:rgba(4,2,7,.83);}
+html[data-theme="dark"] .offer-dialog {background:#281e32;color:#f1e7f7;}
+html[data-theme="dark"] .mobile-step-nav {background:#291e33 !important;}
+html[data-theme="dark"] .paper-copy-info {background:#30233a;color:#e9c6f7;border-color:#5a4269;}
