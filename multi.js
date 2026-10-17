@@ -16,6 +16,7 @@
     step: 0,
     steps: [],
     geometry: null,
+    paperFrame: null,
     playing: false,
     timer: null,
     customSchemes: {},
@@ -5061,27 +5062,51 @@
     return {width:190,height:120,O:{x:95,y:60},steps:steps,diagramPending:true};
   }
 
+  // A4 is a physical output page, not the unconstrained original coordinate
+  // canvas. For coordinate tasks the factor is a standard reduction 1:N.
+  // Graphical tasks have no source millimetres: scale is a layout factor only.
+  // All solver geometry remains in its original coordinate system.
+  function makePaperFrame(g){
+    const landscape=g.width>g.height*1.08;
+    const paperW=landscape?297:210,paperH=landscape?210:297;
+    const allowable=Math.min(1,(paperW-24)/Math.max(g.width,1),
+      (paperH-24)/Math.max(g.height,1));
+    const reductions=[1,.5,.4,.25,.2,.1,.05,.025,.02,.01,.005,.0025,.001];
+    const scale=state.task<=3
+      ? (reductions.find(v=>v<=allowable)||allowable)
+      : allowable;
+    const viewW=paperW/scale,viewH=paperH/scale;
+    const left=(g.width-viewW)/2,top=(g.height-viewH)/2;
+    return {paperW,paperH,scale,viewW,viewH,left,top,landscape};
+  }
+
   function drawGrid(width,height,anchor){
+    const p=state.paperFrame;
     const phase=anchor||{x:0,y:0};
-    const ox=((phase.x%GRID)+GRID)%GRID;
-    const oy=((phase.y%GRID)+GRID)%GRID;
+    const cell=GRID/(p?.scale||1),majorCell=cell*5;
+    const ox=((phase.x%cell)+cell)%cell,oy=((phase.y%cell)+cell)%cell;
     svg.setAttribute('data-grid-phase-x',String(ox));
     svg.setAttribute('data-grid-phase-y',String(oy));
+    svg.setAttribute('data-grid-cell-units',String(cell));
+    svg.setAttribute('data-grid-cell-mm','5');
     const defs=E('defs');
-    const minor=E('pattern',{id:'minorGrid',x:ox,y:oy,width:GRID,height:GRID,patternUnits:'userSpaceOnUse'});
-    minor.append(E('path',{d:'M '+GRID+' 0 L 0 0 0 '+GRID,class:'grid-minor',fill:'none'}));
+    const minor=E('pattern',{id:'minorGrid',x:ox,y:oy,width:cell,height:cell,patternUnits:'userSpaceOnUse'});
+    minor.append(E('path',{d:'M '+cell+' 0 L 0 0 0 '+cell,class:'grid-minor',fill:'none'}));
     defs.append(minor);
-    const major=E('pattern',{id:'majorGrid',x:ox,y:oy,width:GRID*5,height:GRID*5,patternUnits:'userSpaceOnUse'});
-    major.append(E('path',{d:'M '+GRID*5+' 0 L 0 0 0 '+GRID*5,class:'grid-major',fill:'none'}));
+    const major=E('pattern',{id:'majorGrid',x:ox,y:oy,width:majorCell,height:majorCell,patternUnits:'userSpaceOnUse'});
+    major.append(E('path',{d:'M '+majorCell+' 0 L 0 0 0 '+majorCell,class:'grid-major',fill:'none'}));
     defs.append(major);
     const marker=E('marker',{id:'axisArrow',viewBox:'0 0 10 10',refX:'8',refY:'5',markerWidth:'4',markerHeight:'4',orient:'auto-start-reverse'});
-    marker.append(E('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#37332e'}));
+    marker.append(E('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#352a3c'}));
     defs.append(marker);
     svg.append(defs);
-    // Compose both patterns on the same root user-space grid. Nesting the
-    // 5 mm pattern inside the shifted 25 mm tile applies a second offset.
-    svg.append(E('rect',{x:0,y:0,width,height,fill:'url(#minorGrid)'}));
-    svg.append(E('rect',{x:0,y:0,width,height,fill:'url(#majorGrid)'}));
+    const x=p?.left||0,y=p?.top||0,w=p?.viewW||width,h=p?.viewH||height;
+    svg.append(E('rect',{x,y,width:w,height:h,fill:'url(#minorGrid)'}));
+    svg.append(E('rect',{x,y,width:w,height:h,fill:'url(#majorGrid)'}));
+    const inset=10/(p?.scale||1);
+    svg.append(E('rect',{x:x+inset,y:y+inset,width:w-2*inset,height:h-2*inset,
+      class:'paper-safe-area'}));
+    svg.append(E('rect',{x,y,width:w,height:h,class:'paper-outline'}));
   }
 
   function drawDimension(e,active){
@@ -5359,15 +5384,16 @@
     const maxX=Math.max(...finite.map(p=>p.x))+margin;
     const minY=Math.min(...finite.map(p=>p.y))-margin;
     const maxY=Math.max(...finite.map(p=>p.y))+margin;
-    const zoom=Math.max(.005,Math.min(1,
-      Math.max(120,viewport.width-px)/(Math.max(70,maxX-minX)*mm),
-      Math.max(120,viewport.height-py)/(Math.max(70,maxY-minY)*mm)));
+    const p=state.paperFrame;
+    const zoom=Math.max(.005,Math.min(3,
+      Math.max(120,viewport.width-px)/(Math.max(70,maxX-minX)*p.scale*mm),
+      Math.max(120,viewport.height-py)/(Math.max(70,maxY-minY)*p.scale*mm)));
     state.focusMode=false;
     state.screenZoom=zoom;
     applyDrawingZoom();
     requestAnimationFrame(()=>{
-      wrap.scrollLeft=Math.max(0,((minX+maxX)/2)*mm*zoom-viewport.width/2);
-      wrap.scrollTop=Math.max(0,((minY+maxY)/2)*mm*zoom-viewport.height/2);
+      wrap.scrollLeft=Math.max(0,(((minX+maxX)/2-p.left)*p.scale)*mm*zoom-viewport.width/2);
+      wrap.scrollTop=Math.max(0,(((minY+maxY)/2-p.top)*p.scale)*mm*zoom-viewport.height/2);
     });
   }
 
@@ -5443,21 +5469,22 @@
     if(!g||!wrap)return 1;
     const viewport=visibleDrawingViewport(),bounds=localOperationBounds();
     const cs=getComputedStyle(wrap),mm=96/25.4;
-    const width=Math.max(65,bounds.maxX-bounds.minX);
-    const height=Math.max(65,bounds.maxY-bounds.minY);
+    const p=state.paperFrame||makePaperFrame(g);
+    const width=Math.max(65*p.scale,(bounds.maxX-bounds.minX)*p.scale);
+    const height=Math.max(65*p.scale,(bounds.maxY-bounds.minY)*p.scale);
     const availableW=Math.max(120,viewport.width-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0));
     const availableH=Math.max(120,viewport.height-(parseFloat(cs.paddingTop)||0)-8);
-    return Math.max(.005,Math.min(1,availableW/(width*mm),availableH/(height*mm)));
+    return Math.max(.005,Math.min(3,availableW/(width*mm),availableH/(height*mm)));
   }
 
   function focusCurrentStep(){
     const wrap=document.querySelector('.paper-wrap');
     if(!wrap||!state.geometry)return;
-    const b=localOperationBounds(),z=drawingZoom(),mm=96/25.4;
+    const b=localOperationBounds(),z=drawingZoom(),mm=96/25.4,p=state.paperFrame;
     const viewport=visibleDrawingViewport(),cs=getComputedStyle(wrap);
     const padX=parseFloat(cs.paddingLeft)||0,padY=parseFloat(cs.paddingTop)||0;
-    wrap.scrollLeft=Math.max(0,(b.minX+b.maxX)*.5*mm*z-viewport.width*.5+padX);
-    wrap.scrollTop=Math.max(0,(b.minY+b.maxY)*.5*mm*z-viewport.height*.5+padY);
+    wrap.scrollLeft=Math.max(0,((b.minX+b.maxX)*.5-p.left)*p.scale*mm*z-viewport.width*.5+padX);
+    wrap.scrollTop=Math.max(0,((b.minY+b.maxY)*.5-p.top)*p.scale*mm*z-viewport.height*.5+padY);
   }
 
   function visibleDrawingViewport(){
@@ -5481,38 +5508,28 @@
     const wrap=document.querySelector('.paper-wrap');
     if(!g || !wrap) return 1;
     const cssMm=96/25.4;
+    const p=state.paperFrame||makePaperFrame(g);
     const cs=getComputedStyle(wrap);
     const px=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0);
-    // Bottom padding is deliberate scroll reserve for the fixed step sheet,
-    // not usable drawing space, so do not subtract it twice here.
     const py=(parseFloat(cs.paddingTop)||0)+8;
     const viewport=visibleDrawingViewport();
     const availableW=Math.max(120,viewport.width-px);
     const availableH=Math.max(120,viewport.height-py);
-    const vb=visibleDrawingBounds();
-    const visibleW=Math.max(20,vb.maxX-vb.minX);
-    const visibleH=Math.max(20,vb.maxY-vb.minY);
-    const fitW=availableW/(visibleW*cssMm);
-    const fitH=availableH/(visibleH*cssMm);
-    // Some legitimate descriptive-geometry constructions intersect far outside
-    // the compact source drawing (especially nearly parallel planes/lines).
-    // Fit must be allowed below 6%, otherwise the whole result can remain
-    // off-screen even after pressing "Вписать".
-    return Math.max(.005,Math.min(1,fitW,fitH));
+    // Fit the complete real A4 page, never an arbitrarily huge schematic.
+    return Math.max(.005,Math.min(1,availableW/(p.paperW*cssMm),
+      availableH/(p.paperH*cssMm)));
   }
 
   function focusVisibleDrawing(){
     const wrap=document.querySelector('.paper-wrap');
     if(!wrap||!state.geometry) return;
-    const z=drawingZoom(),cssMm=96/25.4;
-    const vb=visibleDrawingBounds();
-    const left=vb.minX*cssMm*z;
-    const top=vb.minY*cssMm*z;
-    const w=(vb.maxX-vb.minX)*cssMm*z;
-    const h=(vb.maxY-vb.minY)*cssMm*z;
+    const z=drawingZoom(),cssMm=96/25.4,p=state.paperFrame;
+    if(!p)return;
     const viewport=visibleDrawingViewport();
-    wrap.scrollLeft=Math.max(0,left-(viewport.width-w)/2);
-    wrap.scrollTop=Math.max(0,top-(viewport.height-h)/2);
+    // Keep the complete A4 sheet centered when it is too large for the
+    // viewport; CSS layout centers smaller sheets via auto margins.
+    wrap.scrollLeft=Math.max(0,(p.paperW*cssMm*z-viewport.width)/2);
+    wrap.scrollTop=Math.max(0,(p.paperH*cssMm*z-viewport.height)/2);
   }
 
   function ensureDrawingClearOfStepSheet(){
@@ -5535,8 +5552,9 @@
     if(!g) return;
     const cssMm=96/25.4;
     const z=drawingZoom();
-    svg.style.width=(g.width*cssMm*z)+'px';
-    svg.style.height=(g.height*cssMm*z)+'px';
+    const p=state.paperFrame||makePaperFrame(g);
+    svg.style.width=(p.paperW*cssMm*z)+'px';
+    svg.style.height=(p.paperH*cssMm*z)+'px';
     $('zoomLabel').textContent=(z<.1?(z*100).toFixed(1):Math.round(z*100))+'%';
     if(state.screenZoom===null){
       requestAnimationFrame(()=>{
@@ -5776,11 +5794,14 @@
 
   function renderDrawing(){
     const g=state.geometry;
+    const p=state.paperFrame||makePaperFrame(g);
+    state.paperFrame=p;
     svg.replaceChildren();
-    svg.setAttribute('viewBox','0 0 '+g.width+' '+g.height);
-    svg.setAttribute('data-paper-scale',String(g.paperScale||1));
-    svg.setAttribute('width',g.width+'mm');
-    svg.setAttribute('height',g.height+'mm');
+    svg.setAttribute('viewBox',[p.left,p.top,p.viewW,p.viewH].join(' '));
+    svg.setAttribute('data-paper-scale',String(p.scale));
+    svg.setAttribute('data-paper-format','A4');
+    svg.setAttribute('width',p.paperW+'mm');
+    svg.setAttribute('height',p.paperH+'mm');
     drawGrid(g.width,g.height,drawingGridAnchor());
     const visibilityDone=state.task===5 && state.steps
       .slice(0,state.step+1).some(step=>step.title?.startsWith('Нанеси видимость '));
@@ -5899,18 +5920,20 @@
     }
     validation.hidden=true;
     state.geometry=solved;
+    state.paperFrame=makePaperFrame(solved);
     state.steps=solved.steps;
     if(resetStep!==false) state.step=0;
     state.step=Math.max(0,Math.min(state.step,state.steps.length-1));
+    const p=state.paperFrame;
+    const denominator=Number((1/p.scale).toFixed(2));
     if(state.task<=3){
-      $('scaleValue').textContent='1:1';
-      $('gridValue').textContent='5 мм = 0,5 см';
-      $('sheetSize').textContent=Math.round(solved.width)+' × '+Math.round(solved.height)+' мм';
+      $('scaleValue').textContent='1:'+denominator+' (размеры задания пересчитываются)';
+      $('gridValue').textContent='5 мм – одна клетка на A4';
     } else {
-      $('scaleValue').textContent='условный, пропорции сохранены';
-      $('gridValue').textContent='5 мм – для переноса в тетрадь';
-      $('sheetSize').textContent=Math.round(solved.width)+' × '+Math.round(solved.height)+' мм';
+      $('scaleValue').textContent='схема уменьшена под A4, исходных мм нет';
+      $('gridValue').textContent='5 мм – одна клетка на A4';
     }
+    $('sheetSize').textContent='A4 '+p.paperW+' × '+p.paperH+' мм';
     $('diagramStatus').textContent=solved.diagramPending?'нужна исходная схема':'решаются автоматически';
     renderDrawing();
   }
