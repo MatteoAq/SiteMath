@@ -2226,7 +2226,13 @@
       check:'Общие точки пересечения на Π₁ и Π₂ лежат на одном проекторе K₁K₂; a₁ ∥ A₁B₁ и a₂ ∥ A₂B₂.',
     },le2,l2?{kind:'line',a:l2.a,b:l2.b}:null);
 
-    return {width,height,O,steps};
+    // Auxiliary parallel/intersection lines may extend well beyond the
+    // original A/B/C point envelope. Reframe the COMPLETE drawing before
+    // selecting A4 orientation, otherwise those legitimate strokes can fall
+    // outside the real page even when the initial points fit.
+    const pageBounds=normalizeSteps(steps,width,height);
+    return {width:pageBounds.width,height:pageBounds.height,
+      O:shiftPoint(O,pageBounds.shift.x,pageBounds.shift.y),steps};
   }
 
 
