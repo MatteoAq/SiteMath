@@ -1591,15 +1591,12 @@ if (!onlyVariant && !onlyTask) try {
       if((variant==='12'&&task===6)||(variant==='13'&&task===5)){
         const notice=$('diagramWarning').textContent;
         const status=$('dynamicInputs').textContent;
-        const variantSpecificWarning=task===5
-          ? 'на другую сторону рисунка'
-          : 'их общая прямая проходит далеко';
-        if(!notice.includes('без координат') ||
-           !notice.includes('метод построения сверены с оригинальным альбомом') ||
-           !notice.includes(variantSpecificWarning))
-          failures.push('problem brief '+variant+'/'+task+': graphical-source precision explanation missing');
-        if(!status.includes('исходный лист и метод построения проверены'))
-          failures.push('problem brief '+variant+'/'+task+': audited method misreported as pending');
+        if(!notice.includes('Учебная реконструкция исходной схемы') ||
+           !notice.includes('адаптированная схема') ||
+           !status.includes('учебная реконструкция оригинала'))
+          failures.push('problem brief '+variant+'/'+task+': adapted source was not disclosed');
+        if(!window.SITEMATH_SCHEMES[variant]['task'+task].adaptedSource)
+          failures.push('problem brief '+variant+'/'+task+': reconstruction flag missing');
       }
       if(task===4 && !/пл\./i.test(given)){
         failures.push('problem brief '+variant+'/4: Дано does not identify the source plane');
