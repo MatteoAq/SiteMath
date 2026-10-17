@@ -3241,12 +3241,16 @@
           const secondIdx=depthRelation?'₁':'₂';
           const firstPos=depthRelation?Ref.p2:Ref.p1;
           const secondPos=depthRelation?Ref.p1:Ref.p2;
+          const baseName=op.relation==='above_named'
+            ?(op.target||'a')
+            :['above_line','below_line','behind_line','front_of_line'].includes(op.relation)
+              ?'ℓ':op.relation==='front_of_plane'?'f':'h';
           push({
             title:'Выбери вспомогательную точку N'+firstIdx+' '+refWhere,
-            action:'На опорной линии примерно посередине её видимого отрезка отметь N'+firstIdx+' '+refWhere+'. Вторую проекцию N получи по линии связи.',
-            why:'Исходную проекцию точки N допустимо выбрать на существующей линии; вторую нужно получить только проектором до одноимённой проекции того же пространственного объекта.',
-            measure:['N'+firstIdx+' – на опорной линии'],
-            check:'N'+firstIdx+' отмечена непосредственно '+refWhere+'. Парная N'+secondIdx+' будет определена проектором.'
+            action:'На '+baseName+firstIdx+' отметь N'+firstIdx+' примерно посередине видимого штриха. Парную проекцию определит пересечение вертикального проектора с '+baseName+secondIdx+'.',
+            why:'Точка N выбирается на уже построенной пространственной прямой '+baseName+'. Её вторая проекция не произвольна: обе проекции N имеют одну абсциссу.',
+            measure:['N'+firstIdx+' ∈ '+baseName+firstIdx],
+            check:'N'+firstIdx+' находится на '+baseName+firstIdx+'. Для N'+secondIdx+' понадобится та же вертикальная линия связи.'
           },[
             point(i,firstPos,'N'+firstIdx,'construction-dot')
           ]);
@@ -3938,9 +3942,9 @@
     push({
       title:'Перенеси 1'+pIdx+' и 2'+pIdx+' на '+oPlane,
       action:'Из 1'+pIdx+' и 2'+pIdx+' проведи линии связи. На соответствующих проекциях '+refs[0].name+oIdx+' и '+refs[1].name+oIdx+' получи 1'+oIdx+' и 2'+oIdx+'.',
-      why:'Это две проекции одной пространственной точки. После пересечения на '+pPlane+' её положение на '+oPlane+' находится линией связи и парной проекцией той же опорной прямой.',
+      why:'Точки 1 и 2 переносят по отдельности. У каждой точки парные проекции имеют общую абсциссу; на '+oPlane+' её находят по линии связи и парной проекции своей опорной прямой.',
       measure:['1'+pIdx+'↔1'+oIdx+' – одна линия связи','2'+pIdx+'↔2'+oIdx+' – одна линия связи'],
-      check:'1'+oIdx+' и 2'+oIdx+' лежат на соответствующих опорных линиях.'
+      check:'1'+oIdx+' лежит на '+refs[0].name+oIdx+' и проекторе из 1'+pIdx+'; 2'+oIdx+' – на '+refs[1].name+oIdx+' и проекторе из 2'+pIdx+'.'
     },[
       ...segmentExtensionEntities(i,refs[0].rec[other],J1),
       ...segmentExtensionEntities(i,refs[1].rec[other],J2),
