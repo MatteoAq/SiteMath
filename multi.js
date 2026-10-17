@@ -350,7 +350,9 @@
     renderFirstRunPicker();
     $('firstRunPicker').hidden=false;
     document.body.classList.add('first-run-open');
-    // The library scrolls like a normal document, not a fixed modal.
+    // Returning from a deeply scrolled drawing should open at the beginning
+    // of the new full-page catalogue, not halfway down its task picker.
+    $('firstRunPicker').scrollIntoView?.({block:'start'});
   }
 
   function finishFirstRun(){

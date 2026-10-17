@@ -6,7 +6,9 @@ const browser=await chromium.launch({headless:true});
 try {
   for(const size of [{width:1440,height:900},{width:393,height:873},{width:320,height:720}]){
     const page=await browser.newPage({viewport:size});
-    await page.addInitScript(()=>localStorage.clear());
+    // browser.newPage provides an isolated, empty context. Do not install a
+    // persistent init script clearing localStorage: it would also clear the
+    // saved selection on the reload being tested.
     await page.goto(base,{waitUntil:'networkidle'});
     const home=page.locator('#firstRunPicker');
     assert(await home.isVisible(),'Catalogue entry missing at '+size.width);
@@ -39,6 +41,8 @@ try {
     }
     assert(await home.isVisible(),'Cannot return to catalogue from solver');
     assert.equal(await page.locator('#firstRunVariantSummary').textContent(),'Вариант 12');
+    const saved=await page.evaluate(()=>localStorage.getItem('sitemath-selection'));
+    assert(saved&&saved.includes('"variant":"12"'),'Solver did not persist the chosen variant');
     await page.reload({waitUntil:'networkidle'});
     assert(await home.isVisible(),
       'A returning visitor must see the growing assignment library');
