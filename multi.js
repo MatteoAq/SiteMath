@@ -2266,7 +2266,10 @@
     if(t>=0&&t<=1)return [];
     const end=t<0?a:b;
     if(dist2(end,P)<.5)return [];
-    return [line(step,end,P,cls||'construction-line')];
+    // A continuation to an intersection is a real geometric segment.
+    // Keep its original endpoints in the solver and mark its drawing-only
+    // overrun separately so sub-2mm strokes remain pencil-legible on A4.
+    return [line(step,end,P,cls||'construction-line',{sourceContinuation:true})];
   }
 
   function schemeLine3(rec){
@@ -5339,6 +5342,16 @@
   function drawEntity(e,active){
     if(e.type==='line'){
       let start=e.a,end=e.b;
+      if(e.sourceContinuation){
+        const scale=state.paperFrame?.scale||1;
+        const v=vec2(start,end),length=norm2(v);
+        // A light construction line may run slightly PAST its intersection.
+        // Never move the intersection, the original printed segment, or
+        // any other construction object. On the physical A4 sheet extend
+        // only a near-invisible source-line continuation to 2.7 mm.
+        if(length>EPS && length*scale<2.1)
+          end=add2(end,mul2(v,(2.7/scale-length)/length));
+      }
       if(e.rightAngleMark){
         const mark=e.rightAngleMark,scale=state.paperFrame?.scale||1;
         // A right-angle mark should be about 4 mm on the physical page,
@@ -5366,6 +5379,7 @@
         'data-created-step':Number.isInteger(e.step)?e.step+1:null,
         'data-right-angle-mark':e.rightAngleMark?'1':null,
         'data-source-given-line':e.sourceGivenLine?'1':null,
+        'data-source-continuation':e.sourceContinuation?'1':null,
         'data-source-coincident-aux':e.sourceCoincidentAux?'1':null
       });
       if(e.arrow) n.setAttribute('marker-end','url(#axisArrow)');
