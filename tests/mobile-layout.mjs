@@ -81,7 +81,6 @@ for (const vp of viewports) {
 
   await page.addInitScript(() => localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
-  await page.locator('#offerCloseBtn').click();
 
   if (!(await page.locator('#firstRunPicker').isVisible())) {
     failures.push(vp.name+': first-run chooser not visible with empty storage');
@@ -190,7 +189,6 @@ for (const vp of viewports) {
   const page = await context.newPage();
   await page.addInitScript(() => localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
-  await page.locator('#offerCloseBtn').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
   await page.locator('#firstRunStart').click();
@@ -771,7 +769,6 @@ for(const viewport of [{width:768,height:700},{width:1024,height:768},
   const page=await context.newPage();
   await page.addInitScript(()=>localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
-  await page.locator('#offerCloseBtn').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
   await page.locator('#firstRunStart').click();
@@ -811,7 +808,6 @@ for (const vp of [
   const page=await context.newPage();
   await page.addInitScript(()=>localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
-  await page.locator('#offerCloseBtn').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
   await page.locator('#firstRunStart').click();
@@ -864,7 +860,6 @@ for (const vp of [
   const page=await context.newPage();
   await page.addInitScript(()=>localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
-  await page.locator('#offerCloseBtn').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="6"]').click();
   await page.locator('#firstRunStart').click();
@@ -910,15 +905,19 @@ for (const vp of [
   await context.close();
 }
 
-// Welcome offer appears on a first opening, not after completing a task.
+// Order details open on explicit request from the catalogue, instead of
+// obstructing the list of available teaching assignments.
 {
   const context=await browser.newContext({
     viewport:{width:360,height:800},deviceScaleFactor:2,isMobile:true,hasTouch:true
   });
   const page=await context.newPage();
   await page.goto(base,{waitUntil:'networkidle'});
+  if(await page.locator('#offerOverlay').isVisible())
+    failures.push('catalogue: unsolicited sales dialog covers the library');
+  await page.locator('#catalogCommissionBtn').click();
   if(!(await page.locator('#offerOverlay').isVisible()))
-    failures.push('welcome offer: dialog not visible on first opening');
+    failures.push('catalogue: order dialog did not open on request');
   if(!(await page.locator('#offerDialogTitle').isVisible()))
     failures.push('welcome offer: dialog heading not visible');
   if((await page.locator('#offerDialogTitle').textContent()).trim()!=='Помогу и с другими работами')
@@ -950,11 +949,16 @@ for (const vp of [
   if(await page.locator('#offerOverlay').isVisible())
     failures.push('welcome offer: reappeared at the final step');
   await page.reload({waitUntil:'networkidle'});
+  if(await page.locator('#offerOverlay').isVisible())
+    failures.push('catalogue: dialog unexpectedly reappears on reload');
+  if(!(await page.locator('#firstRunPicker').isVisible()))
+    failures.push('catalogue: not displayed when returning with saved selection');
+  await page.locator('#catalogCommissionBtn').click();
   if(!(await page.locator('#offerOverlay').isVisible()))
-    failures.push('welcome offer: not shown after reloading the page');
+    failures.push('catalogue: order dialog cannot reopen after returning to library');
   await page.locator('#offerCloseBtn').click();
   if(await page.locator('#offerOverlay').isVisible())
-    failures.push('welcome offer: cannot be dismissed after reload');
+    failures.push('catalogue: dialog cannot be dismissed');
   if(await page.locator('#mobileContactLink').getAttribute('href')!=='https://t.me/shei1ny')
     failures.push('welcome offer: mobile persistent contact incorrect');
   if(await page.locator('.site-contact-note a').getAttribute('href')!=='https://t.me/shei1ny')

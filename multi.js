@@ -235,6 +235,59 @@
     } catch (_) {}
   }
 
+  // A library entry is a university assignment (album), not one of the
+  // six independent exercises within that album.
+  const ASSIGNMENTS=Array.isArray(window.SITEMATH_ASSIGNMENTS)&&window.SITEMATH_ASSIGNMENTS.length
+    ? window.SITEMATH_ASSIGNMENTS
+    : [{id:'album-1',title:'Задание № 1 Альбом из 6 задач (для очников)',
+        subject:'Начертательная геометрия',description:'Шесть задач на построение.',
+        variantCount:20,taskCount:6,status:'available',solver:'legacy-album-1'}];
+  const ACTIVE_ASSIGNMENT=ASSIGNMENTS.find(a=>a.status==='available'&&a.solver==='legacy-album-1');
+
+  function renderAssignmentCatalog(){
+    const root=$('assignmentCatalog');
+    if(!root)return;
+    root.replaceChildren();
+    const available=ASSIGNMENTS.filter(a=>a.status==='available'&&a.solver==='legacy-album-1');
+    $('catalogAvailableCount').textContent=String(available.length);
+    for(const assignment of ASSIGNMENTS){
+      const supported=assignment.status==='available'&&assignment.solver==='legacy-album-1';
+      const card=document.createElement(supported?'button':'article');
+      if(supported){card.type='button';card.dataset.assignment=assignment.id;}
+      card.className='assignment-card '+(supported?'is-available':'is-upcoming');
+      if(supported)card.setAttribute('aria-label','Выбрать '+assignment.title);
+      const icon='<svg class="assignment-sketch" viewBox="0 0 230 130" fill="none" aria-hidden="true">'+
+        '<path d="M22 115L85 24L181 105L22 115M85 24L213 20M181 105L213 20" stroke="currentColor" stroke-width="1.8"/>'+
+        '<path d="M22 115L22 62L85 24M181 105L181 43L213 20M22 62L181 43" stroke="currentColor" stroke-dasharray="5 5" opacity=".35"/>'+
+        '<circle cx="22" cy="115" r="4"/><circle cx="85" cy="24" r="4"/><circle cx="181" cy="105" r="4"/>'+
+        '</svg>';
+      card.innerHTML='<div class="assignment-visual">'+icon+
+        '<span class="assignment-number">01</span></div>'+
+        '<div class="assignment-main">'+
+          '<span class="assignment-status">'+(supported?'Доступно':'В подготовке')+'</span>'+
+          '<h3>'+esc(assignment.title)+'</h3>'+
+          '<p>'+esc(assignment.description||'Материал появится после подготовки решений.')+'</p>'+
+          '<div class="assignment-meta"><span>'+esc(assignment.subject||'Учебная работа')+'</span>'+
+          (supported?'<span>'+assignment.variantCount+' вариантов · '+assignment.taskCount+' задач</span>':'')+
+          '</div>'+
+          '<div class="assignment-open">'+(supported?'Выбрать вариант и задачу ↗':'Пока недоступно')+'</div>'+
+        '</div>';
+      if(supported)card.addEventListener('click',()=>{
+        const setup=$('activeAssignment');
+        if(setup)setup.scrollIntoView({behavior:'smooth',block:'start'});
+      });
+      root.appendChild(card);
+    }
+    // A clearly non-actionable slot signals extensibility, without
+    // advertising a fictitious existing assignment.
+    const future=document.createElement('div');
+    future.className='assignment-future';
+    future.innerHTML='<div class="future-symbol" aria-hidden="true">＋</div>'+
+      '<b>Следующие работы</b><p>Другие альбомы будут появляться здесь по мере готовности.</p>';
+    root.appendChild(future);
+    if(ACTIVE_ASSIGNMENT)$('activeAssignmentTitle').textContent=ACTIVE_ASSIGNMENT.title;
+  }
+
   function renderFirstRunPicker(){
     const root=$('firstRunPicker');
     if(!root) return;
@@ -286,12 +339,20 @@
     $('firstRunVariantSummary').textContent=state.variant ? variantDisplayLabel(state.variant) : 'не выбран';
     $('firstRunTaskSummary').textContent=state.task ? '№'+state.task+' · '+taskPickerLabel(state.task) : 'не выбрано';
     $('firstRunStart').disabled=!(state.variant&&state.task);
+    $('firstRunStart').firstChild.textContent=state.variant&&state.task
+      ? 'Открыть пошаговое решение ' : 'Выбери вариант и задачу ';
   }
 
   function showFirstRunPicker(){
+    stopAuto();
+    closeMobileSetup();
+    renderAssignmentCatalog();
     renderFirstRunPicker();
     $('firstRunPicker').hidden=false;
     document.body.classList.add('first-run-open');
+    // Returning from a deeply scrolled drawing should open at the beginning
+    // of the new full-page catalogue, not halfway down its task picker.
+    $('firstRunPicker').scrollIntoView?.({block:'start'});
   }
 
   function finishFirstRun(){
@@ -5824,6 +5885,9 @@
     renderStepInfoPage(state.steps[state.step]);
   });
   $('firstRunStart').addEventListener('click',finishFirstRun);
+  $('catalogBackBtn').addEventListener('click',showFirstRunPicker);
+  $('mobileCatalogBackBtn').addEventListener('click',showFirstRunPicker);
+  $('catalogCommissionBtn').addEventListener('click',openOfferDetails);
   window.addEventListener('resize',()=>{
     if(state.screenZoom===null) applyDrawingZoom();
     fitStepTitle();
@@ -5842,13 +5906,11 @@
   initSelectors();
   setupCanvasGestures();
   updateMobileSummary();
-  if(remembered){
-    renderInputs();
-    rebuild(true);
-    setDrawingZoom('fit');
-  } else {
-    syncChoicePickers();
-    showFirstRunPicker();
-  }
-  showWelcomeOffer();
+  // Always enter through the assignment library, even when a previous
+  // variant was saved. Its selection is restored, so returning takes one
+  // click and new albums remain discoverable on every visit.
+  syncChoicePickers();
+  showFirstRunPicker();
+  // The catalogue is the entry point: never cover it with a sales modal.
+  // Commission details remain available on demand from its header.
 })();
