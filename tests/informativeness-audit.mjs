@@ -83,8 +83,20 @@ for(let variant=1;variant<=20;variant++){
       end:[+x.x2.toFixed(2),+x.y2.toFixed(2)]
     }));
     const shortCount=shortLines.length;
-    const status=task>=4 && (sourceShare!==null&&sourceShare<.14 || scale<.15 || shortCount>=4)?'review':'ok';
-    audit.push({variant:id,task,status,scale:+scale.toFixed(4),
+    // A single legitimate but very short pencil continuation can be hard
+    // to reproduce on a five-millimetre grid. A pass of mathematical
+    // invariants is not the same as passing a human legibility check.
+    const reviewReasons=[];
+    if(task>=4&&sourceShare!==null&&sourceShare<.14)
+      reviewReasons.push('source-smaller-than-14-percent-of-construction');
+    if(task>=4&&scale<.15)
+      reviewReasons.push('construction-reduced-more-than-1-to-6.67');
+    if(task>=4&&shortCount>=4)
+      reviewReasons.push('four-or-more-sub-3mm-strokes');
+    if(shortest!==null&&shortest<2)
+      reviewReasons.push('sub-2mm-pencil-stroke');
+    const status=reviewReasons.length?'review':'ok';
+    audit.push({variant:id,task,status,reviewReasons,scale:+scale.toFixed(4),
       sourceLines:sourceCount,sourceShare:sourceShare===null?null:+sourceShare.toFixed(3),
       shortest:shortest===null?null:+shortest.toFixed(2),shortCount,
       angleMarkMin:markMin===null?null:+markMin.toFixed(2),
