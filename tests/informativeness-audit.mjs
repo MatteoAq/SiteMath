@@ -94,6 +94,18 @@ $('taskSelect').dispatchEvent(new window.Event('change'));
 if(Number($('kSlider').value)!==50)
   throw new Error('Priority variant 12 default free K changed without an improvement requirement');
 console.log('TASK3_INFORMATIVE_K',JSON.stringify(recommended));
+// Task 1 has a separate axonometric view. Most variants now fit at 1:1,
+// while the unusually large pyramid of variant 18 still needs 1:2.
+// Its onscreen instruction must convert coordinates to A4 cell distances.
+$('variantSelect').value='18';
+$('variantSelect').dispatchEvent(new window.Event('change'));
+$('taskSelect').value='1';
+$('taskSelect').dispatchEvent(new window.Event('change'));
+$('nextBtn').click();
+const note=$('stepInfoText').textContent;
+const measures=$('stepInfoMeasure').textContent;
+if(!note.includes('Масштаб A4 1:2')||!measures.includes('на A4'))
+  throw new Error('Reduced coordinate instructions lack physical paper distances');
 fs.writeFileSync('informativeness-report.json',JSON.stringify(audit,null,2));
 const critical=audit.filter(x=>x.status==='review').sort((a,b)=>
   (a.sourceShare??1)-(b.sourceShare??1)||a.scale-b.scale);
