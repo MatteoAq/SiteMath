@@ -2753,7 +2753,7 @@
       dh=teacherBuild.dh;
       df=teacherBuild.df;
     } else {
-      const refs=planeReferenceLines(scheme);
+      const refs=planeReferenceLines(scheme,true);
       const hCut=sourceAnchoredLevelLine(refs,'p2');
       const fCut=sourceAnchoredLevelLine(refs,'p1');
 
@@ -3282,12 +3282,32 @@
     return {p1:[A.p1,B.p1],p2:[A.p2,B.p2]};
   }
 
-  function planeReferenceLines(scheme){
+  function planeReferenceLines(scheme,preferLegible=false){
     if(scheme.planeType==='ABC'){
-      return [
+      // Any two of AB, AC and BC define the same original plane.
+      // For task 4 prefer edges with readable INTERIOR crossings in both
+      // projections. This changes only freely chosen helper construction,
+      // never the source A/B/C points or the plane.
+      const sides=[
         {name:'AB',rec:abcLineRec(scheme,'A','B')},
-        {name:'AC',rec:abcLineRec(scheme,'A','C')}
+        {name:'AC',rec:abcLineRec(scheme,'A','C')},
+        {name:'BC',rec:abcLineRec(scheme,'B','C')}
       ];
+      if(preferLegible){
+        let best=null;
+        for(let i=0;i<sides.length;i++)for(let j=i+1;j<sides.length;j++){
+          const pair=[sides[i],sides[j]];
+          const horizontal=chooseLevelCut(pair,'p2');
+          const frontal=chooseLevelCut(pair,'p1');
+          if(!horizontal||!frontal)continue;
+          // Avoid a good horizontal at the price of an unreadable frontal.
+          const quality=Math.min(horizontal.score,frontal.score)+
+            .25*(horizontal.score+frontal.score);
+          if(!best||quality>best.quality) best={pair,quality};
+        }
+        if(best)return best.pair;
+      }
+      return sides.slice(0,2);
     }
     if(scheme.planeType==='line_point'){
       const lineName=scheme.planeLine || Object.keys(scheme.lines||{})[0];
@@ -3316,36 +3336,58 @@
   }
 
   function chooseLevelCut(refs,proj){
-    if(!refs || refs.length<2 || !refs[0].rec || !refs[1].rec) return null;
+    if(!refs||refs.length<2||!refs[0].rec||!refs[1].rec)return null;
     const segs=refs.slice(0,2).map(ref=>ref.rec[proj]);
-    const ys=segs.flat().map(p=>+p[1]).filter(Number.isFinite);
-    if(ys.length<4) return null;
-    const minY=Math.min(...ys),maxY=Math.max(...ys);
-    if(maxY-minY<EPS) return null;
+    if(segs.some(s=>!s||s.length!==2))return null;
+    const minY=Math.min(...segs.flat().map(p=>+p[1]));
+    const maxY=Math.max(...segs.flat().map(p=>+p[1]));
+    if(!(maxY-minY>EPS))return null;
+    // First search the shared vertical interval of the PRINTED segments.
+    // The old maximum-separation score favored extrapolations hundreds of
+    // units beyond ABC, making the given figure tiny on a real A4 sheet.
+    const sharedLo=Math.max(...segs.map(s=>Math.min(s[0][1],s[1][1])));
+    const sharedHi=Math.min(...segs.map(s=>Math.max(s[0][1],s[1][1])));
+    const interior=sharedHi-sharedLo>EPS;
+    const levels=interior
+      ? [.14,.25,.36,.50,.64,.75,.86].map(t=>sharedLo+(sharedHi-sharedLo)*t)
+      : [.24,.34,.44,.54,.64,.74].map(t=>minY+(maxY-minY)*t);
     let best=null;
-    for(const t of [.30,.38,.46,.54,.62,.70]){
-      const y=minY+(maxY-minY)*t;
-      const x0=lineXAtY(segs[0],y),x1=lineXAtY(segs[1],y);
-      if(!Number.isFinite(x0)||!Number.isFinite(x1)) continue;
-      const separation=Math.abs(x1-x0);
-      if(separation<6) continue;
-      let outside=0;
-      [x0,x1].forEach((x,k)=>{
-        const xs=segs[k].map(p=>+p[0]);
-        const lo=Math.min(...xs),hi=Math.max(...xs);
-        if(x<lo) outside+=lo-x;
-        if(x>hi) outside+=x-hi;
-      });
-      // A barely visible extension at a source-line endpoint makes an
-      // otherwise correct horizontal/frontal difficult to copy to paper.
-      // Prefer an interior level with the same defining lines.
-      let endpointPenalty=0;
+    for(const y of levels){
+      const xs=segs.map(seg=>lineXAtY(seg,y));
+      if(!xs.every(Number.isFinite))continue;
+      const separation=Math.abs(xs[1]-xs[0]);
+      if(separation<6)continue;
+      let outside=0,closest=Infinity;
       for(let k=0;k<2;k++){
-        const near=Math.min(...segs[k].map(p=>Math.hypot([x0,x1][k]-p[0],y-p[1])));
-        endpointPenalty+=Math.max(0,14-near)*3;
+        const x=xs[k],seg=segs[k],lo=Math.min(...seg.map(p=>p[0])),
+          hi=Math.max(...seg.map(p=>p[0]));
+        if(x<lo)outside+=lo-x;
+        if(x>hi)outside+=x-hi;
+        closest=Math.min(closest,...seg.map(p=>Math.hypot(x-p[0],y-p[1])));
       }
-      const score=separation-outside*.8-endpointPenalty;
-      if(!best || score>best.score) best={y:y,xs:[x0,x1],score:score};
+      // 10–25 unit interior clearances are easier to draw and annotate.
+      // Excessive line extensions are penalized rather than rewarded.
+      const score=Math.min(separation,115)+Math.min(closest,25)*.9
+        -outside*2.2-Math.max(0,12-closest)*3;
+      if(!best||score>best.score)
+        best={y,xs,score,separation,outside,endpointClearance:closest};
+    }
+    // If the original line segments do not share a useful level, still
+    // construct the exact mathematical plane using their continuations.
+    if(!best&&interior){
+      for(const t of [.20,.35,.50,.65,.80]){
+        const y=minY+(maxY-minY)*t;
+        const xs=segs.map(seg=>lineXAtY(seg,y));
+        if(!xs.every(Number.isFinite))continue;
+        const separation=Math.abs(xs[1]-xs[0]);
+        if(separation<6)continue;
+        const outside=segs.reduce((sum,seg,k)=>{
+          const lo=Math.min(...seg.map(p=>p[0])),hi=Math.max(...seg.map(p=>p[0]));
+          return sum+Math.max(0,lo-xs[k],xs[k]-hi);
+        },0);
+        const score=Math.min(separation,115)-outside*2.2;
+        if(!best||score>best.score)best={y,xs,score,separation,outside};
+      }
     }
     return best;
   }
