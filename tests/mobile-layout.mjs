@@ -968,8 +968,9 @@ for (const vp of [
   if(await page.locator('#offerOverlay').isVisible())
     failures.push('welcome offer: reappeared at the final step');
   await page.reload({waitUntil:'networkidle'});
-  if(await page.locator('#offerOverlay').isVisible())
-    failures.push('catalogue: dialog unexpectedly reappears on reload');
+  if(!(await page.locator('#offerOverlay').isVisible()))
+    failures.push('welcome offer: dialog must open on each new page load');
+  await page.locator('#offerCloseBtn').click();
   if(!(await page.locator('#firstRunPicker').isVisible()))
     failures.push('catalogue: not displayed when returning with saved selection');
   await page.locator('#catalogCommissionBtn').click();
