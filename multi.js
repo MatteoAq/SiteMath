@@ -5777,8 +5777,8 @@
   }
 
 
-  // The same service notice returns once per browser tab session.
-  // Visitors can reopen it via the catalogue navigation action.
+  // Show the commission notice once on every page load, not on internal
+  // course/assignment navigation. A close action dismisses it for this load.
   let offerFocusReturn=null;
   function openOfferDetails(){
     const overlay=$('offerOverlay');
@@ -5791,10 +5791,6 @@
     $('offerCloseBtn')?.focus();
   }
   function showWelcomeOffer(){
-    try{
-      if(sessionStorage.getItem('sitemath-offer-seen-session-v1'))return;
-      sessionStorage.setItem('sitemath-offer-seen-session-v1','1');
-    }catch(_) { /* Some privacy modes disable storage. */ }
     openOfferDetails();
   }
   function closeOfferDetails(){
