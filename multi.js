@@ -5934,6 +5934,13 @@
       $('gridValue').textContent='5 мм – одна клетка на A4';
     }
     $('sheetSize').textContent='A4 '+p.paperW+' × '+p.paperH+' мм';
+    const paperInfo=$('paperCopyInfo');
+    if(paperInfo) paperInfo.textContent=state.task<=3
+      ? 'A4 '+p.paperW+' × '+p.paperH+' мм · клетка 5 мм · масштаб 1:'+denominator+
+        (denominator===1?' · размеры на рисунке совпадают с листом':
+          ' · размеры из условия при переносе дели на '+denominator)
+      : 'A4 '+p.paperW+' × '+p.paperH+
+        ' мм · клетка 5 мм · пропорциональная схема, без исходного масштаба';
     $('diagramStatus').textContent=solved.diagramPending?'нужна исходная схема':'решаются автоматически';
     renderDrawing();
   }
