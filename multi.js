@@ -5262,13 +5262,20 @@
       if(!(length>1e-6))continue;
       // Place near the middle, above/alongside the stroke with a clear gap.
       // No overlap with its vertices and no confusion with point subscripts.
-      const off=4.1;
+      const off=4.1*paperInkScale();
       return {
         x:(stroke.a.x+stroke.b.x)/2+(-vy/length)*off,
         y:(stroke.a.y+stroke.b.y)/2+(vx/length)*off
       };
     }
     return null;
+  }
+
+  // Preserve original coordinates; compensate only typographic and stroke
+  // sizes when a large construction is reduced to a physical A4 sheet.
+  function paperInkScale(){
+    const paperReduction=state.paperFrame?.scale||1;
+    return Math.min(3.5,Math.max(1,.9/paperReduction));
   }
 
   function drawEntity(e,active){
@@ -5284,9 +5291,13 @@
       if(e.arrow) n.setAttribute('marker-end','url(#axisArrow)');
       svg.append(n);
     } else if(e.type==='point'){
-      const n=E('circle',{cx:e.p.x,cy:e.p.y,r:e.cls.includes('answer')?1.05:.88,class:e.cls+(active?' active-dot':''),'data-active':active?'1':'0','data-label':e.label||'','data-role':e.role||pointRole(e.cls)});
+      const ink=paperInkScale();
+      const n=E('circle',{cx:e.p.x,cy:e.p.y,
+        r:(e.cls.includes('answer')?1.05:.88)*ink,
+        class:e.cls+(active?' active-dot':''),'data-active':active?'1':'0','data-label':e.label||'','data-role':e.role||pointRole(e.cls)});
       svg.append(n);
-      if(e.label) svg.append(E('text',{x:e.p.x+2.1,y:e.p.y-2.0,class:'svg-label','data-active':active?'1':'0'},e.visualLabel||e.label));
+      if(e.label)svg.append(E('text',{x:e.p.x+2.1*ink,y:e.p.y-2*ink,
+        class:'svg-label','data-active':active?'1':'0'},e.visualLabel||e.label));
     } else if(e.type==='text'){
       svg.append(E('text',{x:e.p.x,y:e.p.y,class:e.cls,
         'text-anchor':e.lineLabel?'middle':null,
@@ -5913,6 +5924,9 @@
     // The original reconstruction scale is unchanged; page reduction is separate.
     svg.setAttribute('data-paper-scale',String(g.paperScale||1));
     svg.setAttribute('data-layout-scale',String(p.scale));
+    const ink=paperInkScale();
+    svg.style.setProperty('--paper-ink-scale',String(ink));
+    svg.setAttribute('data-ink-scale',String(ink));
     svg.setAttribute('data-paper-format','A4');
     svg.setAttribute('width',p.paperW+'mm');
     svg.setAttribute('height',p.paperH+'mm');
