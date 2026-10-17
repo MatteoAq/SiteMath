@@ -154,6 +154,10 @@ const critical=audit.filter(x=>x.status==='review').sort((a,b)=>
 if(audit.length!==120 || new Set(audit.map(x=>x.variant)).size!==20)
   throw new Error('Incomplete 20 × 6 all-variant informativity audit');
 const graphical=audit.filter(x=>x.task>=4);
+const tinyExtensions=graphical.filter(x=>x.shortest!==null&&x.shortest<2);
+if(tinyExtensions.length)
+  throw new Error('Graphical A4 pencil strokes shorter than 2mm: '+
+    JSON.stringify(tinyExtensions.map(x=>({variant:x.variant,task:x.task,shortest:x.shortest,shortLines:x.shortLines}))));
 const compact=xs=>xs.map(x=>({variant:x.variant,task:x.task,
   sourceShare:x.sourceShare,scale:x.scale,shortest:x.shortest,
   shortCount:x.shortCount,angleMarkMin:x.angleMarkMin,
