@@ -466,6 +466,7 @@
     const paper=document.querySelector('.paper-wrap');
     if(paper){paper.scrollLeft=0;paper.scrollTop=0;}
     renderInputs();
+    setDefaultKPosition();
     rebuild(true);
     setDrawingZoom(window.innerWidth<=760?'step':'fit');
     updateMobileSummary();
@@ -6001,10 +6002,53 @@
     renderDrawing();
   }
 
+  // For task 3 the intersection K is a free point on the GIVEN segment
+  // AB. Choose a position that separates C and K in BOTH projections instead
+  // of mechanically using the midpoint, which gives almost invisible ℓ₂
+  // in some original variants. Never modify the coordinates of A, B or C.
+  function informativeKPercent(variant){
+    const data=DATA.variants?.[variant]?.task3;
+    if(!data || !['A','B','C'].every(k=>Array.isArray(data[k]) &&
+      data[k].length===3 && data[k].every(Number.isFinite))) return 50;
+    const {A,B,C}=data;
+    const norm=(x,y)=>Math.hypot(x,y);
+    const sin=(u,v,w)=>{
+      const abx=v[0]-u[0],aby=v[1]-u[1];
+      const ckx=w[0]-u[0],cky=w[1]-u[1];
+      const den=norm(abx,aby)*norm(ckx,cky);
+      return den>1e-8?Math.abs(abx*cky-aby*ckx)/den:0;
+    };
+    const absin=Math.min(sin([A[0],A[1]],[B[0],B[1]],[C[0],C[1]]),
+      sin([A[0],A[2]],[B[0],B[2]],[C[0],C[2]]));
+    const score=p=>{
+      const k=p/100,K=A.map((x,i)=>x+(B[i]-x)*k);
+      const one=norm(K[0]-C[0],K[1]-C[1]);
+      const two=norm(K[0]-C[0],K[2]-C[2]);
+      return Math.min(one,two)*(.2+absin);
+    };
+    const midpoint=score(50);
+    let best={percent:50,score:midpoint};
+    for(let percent=20;percent<=80;percent++){
+      const value=score(percent);
+      if(value>best.score+1e-8)best={percent,score:value};
+    }
+    return best.score>midpoint*1.5 && best.score-midpoint>=2
+      ? best.percent:50;
+  }
+
+  function setDefaultKPosition(){
+    const k=state.task===3?informativeKPercent(state.variant):50;
+    $('kSlider').value=String(k);
+    $('kOutput').textContent=k+'%';
+    const hint=$('kSelectionHint');
+    if(hint) hint.textContent=k===50
+      ? 'Точка K находится внутри AB. Её положение можно изменить ползунком, не нарушая условие.'
+      : 'Выбрано '+k+'% длины AB от A: так отрезок CK отчётливее виден в обеих проекциях. Точку K можно переместить.';
+  }
+
   function resetCurrent(){
     renderInputs();
-    $('kSlider').value='50';
-    $('kOutput').textContent='50%';
+    setDefaultKPosition();
     rebuild(true);
   }
 
@@ -6086,6 +6130,8 @@
   });
   $('kSlider').addEventListener('input',()=>{
     $('kOutput').textContent=$('kSlider').value+'%';
+    const hint=$('kSelectionHint');
+    if(hint)hint.textContent='Точка K выбрана вручную. Она остаётся на AB; обе проекции перестраиваются автоматически.';
     if(state.task===3) rebuild(false);
   });
 
