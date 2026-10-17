@@ -3874,3 +3874,27 @@ html[data-theme="dark"] .axis-arrow {fill:#decfe7;}
 #drawing .hidden-line {stroke-width:calc(.30px * var(--paper-ink-scale,1));}
 #drawing .axis {stroke-width:calc(.30px * var(--paper-ink-scale,1));}
 #drawing .dimension {stroke-width:calc(.28px * var(--paper-ink-scale,1));}
+
+/* The commission information should read as two distinct, scannable notes,
+   rather than flat colored blocks with text touching their edges. */
+.offer-detail-grid > div {
+  padding:16px 17px;
+  border-radius:15px;
+  border:1px solid #e5d6eb;
+  background:#fcf8ff;
+}
+.offer-detail-grid h3 {margin-bottom:8px;line-height:1.3;}
+.offer-detail-grid p {line-height:1.56;}
+html[data-theme="dark"] .offer-detail-grid > div {
+  background:#30243b;
+  border:1px solid #624873;
+  box-shadow:inset 0 1px rgba(245,205,255,.04);
+}
+html[data-theme="dark"] .offer-detail-grid h3 {color:#f2dcfa;}
+html[data-theme="dark"] .offer-detail-grid p {color:#d7c6df;}
+/* The explanatory key belongs with desktop drafting controls. On phones
+   it previously overlaid the working paper without helping the construction. */
+@media (max-width:760px) {
+  .legend-note {display:none !important;}
+  .offer-detail-grid > div {padding:13px 14px;}
+}
