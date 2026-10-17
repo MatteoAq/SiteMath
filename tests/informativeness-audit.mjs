@@ -49,6 +49,13 @@ for(let variant=1;variant<=20;variant++){
     const drawn=svg.querySelectorAll('line.draw-line:not(.axis)');
     const final=box(positions(drawn));
     const scale=Number(svg.getAttribute('data-layout-scale')||1);
+    const paperWidth=parseFloat(svg.getAttribute('width'));
+    const paperHeight=parseFloat(svg.getAttribute('height'));
+    if(final && (final.width*scale>paperWidth+0.01||
+       final.height*scale>paperHeight+0.01))
+      throw new Error('A4 page overflow '+id+'/'+task+': '+
+        (final.width*scale).toFixed(2)+' × '+(final.height*scale).toFixed(2)+
+        ' mm exceeds '+paperWidth+' × '+paperHeight+' mm');
     const lengths=[...drawn].filter(el=>el.classList.contains('answer-line')||el.classList.contains('aux-line')||el.classList.contains('construction-line'))
       .map(el=>({type:el.getAttribute('class'),len:Math.hypot(
         Number(el.getAttribute('x2'))-Number(el.getAttribute('x1')),
