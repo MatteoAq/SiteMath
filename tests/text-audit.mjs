@@ -65,6 +65,22 @@ for(let vi=1;vi<=20;vi++){
   }
   snapshot.push({variant,tasks});
 }
+// The two user-approved reconstructed drawings are not metric copies of
+// the originals. Their first visible instructions must name and test the
+// actual projected relationships, not send the student back to raw pixels.
+for(const [variant,task,required] of [
+  ['12',6,['a₁ ∥ b₁','a₂ ∥ b₂','h₂ ∥ x₁₂','f₁ ∥ x₁₂']],
+  ['13',5,['a₁','b₁','a₂','b₂','ℓ₁','ℓ₂']]
+]){
+  const initial=snapshot.find(v=>v.variant===variant).tasks
+    .find(t=>t.task===task).stages[0];
+  for(const token of required)
+    if(!(initial.action+' '+initial.check).includes(token))
+      issues.push({variant,task,step:1,type:'adapted-source-relationship-missing',token});
+  if(!/реконструкц/u.test(initial.action) ||
+     /по исходному листу проверь/iu.test(initial.check))
+    issues.push({variant,task,step:1,type:'adapted-source-misleading-original-reference'});
+}
 if(errors.length)issues.push({type:'browser-errors',errors});
 const totalSteps=snapshot.reduce((a,v)=>a+v.tasks.reduce((b,t)=>b+t.stepCount,0),0);
 fs.writeFileSync('text-audit.json',JSON.stringify({variants:20,tasks:120,totalSteps,snapshot,issues},null,2));
