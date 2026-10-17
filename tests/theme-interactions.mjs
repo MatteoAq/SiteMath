@@ -22,10 +22,13 @@ try {
     await page.locator('.first-run-variant[data-variant="12"]').click();
     const selected=await page.locator('.first-run-variant[data-variant="12"]').evaluate(el=>{
       const cs=getComputedStyle(el), bg=cs.backgroundColor, rgb=bg.match(/\d+/g)?.map(Number)||[];
-      return {bg,contrast:rgb.length>=3 && rgb[0]>145 && rgb[1]>110 && rgb[2]>150,
+      const ink=cs.color.match(/\d+/g)?.map(Number)||[];
+      return {bg,darkFill:rgb.length>=3 && rgb[0]<145 && rgb[1]<110 && rgb[2]<160,
+        lightText:ink.length>=3 && ink[0]>210 && ink[1]>200 && ink[2]>210,
         text:cs.color,border:cs.borderColor};
     });
-    assert(selected.contrast,'Selected variant lacks solid contrast in dark mode: '+JSON.stringify(selected));
+    assert(selected.darkFill&&selected.lightText,
+      'Selected variant must be dark with legible pale text: '+JSON.stringify(selected));
     await page.screenshot({path:'theme-screenshots/catalog-'+vp.width+'.png',fullPage:false});
     await page.locator('#catalogListBackBtn').click();
     await page.locator('#catalogListBackBtn').click();
@@ -78,7 +81,7 @@ try {
       const darkChosen=page.locator('.variant-chip.is-selected');
       assert(await darkChosen.count(),'Mobile selected variant missing');
       const bg=await darkChosen.first().evaluate(el=>getComputedStyle(el).backgroundColor);
-      assert.equal(bg,'rgb(211, 172, 235)','Mobile chosen variant is not readable: '+bg);
+      assert.equal(bg,'rgb(89, 55, 109)','Mobile chosen variant reverted to a pale button: '+bg);
       assert(await page.locator('#mobileContactLink svg').isVisible(),'Telegram icon missing');
       await page.locator('#mobileSetupClose').click();
     }
