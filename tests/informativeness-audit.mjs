@@ -57,6 +57,13 @@ for(let variant=1;variant<=20;variant++){
         x2:Number(el.getAttribute('x2')),y2:Number(el.getAttribute('y2'))}))
       .filter(x=>x.len>0);
     const shortest=lengths.length?Math.min(...lengths.map(x=>x.len)):null;
+    const marks=[...svg.querySelectorAll('line[data-right-angle-mark="1"]')]
+      .map(el=>Math.hypot(
+        Number(el.getAttribute('x2'))-Number(el.getAttribute('x1')),
+        Number(el.getAttribute('y2'))-Number(el.getAttribute('y1')))*scale);
+    if(marks.some(mm=>!Number.isFinite(mm)||mm<=0))
+      throw new Error('Right-angle glyph collapsed: '+id+'/'+task);
+    const markMin=marks.length?Math.min(...marks):null;
     const sourceShare=source&&final?Math.max(0,Math.min(1,
       Math.min(source.width/Math.max(final.width,1),source.height/Math.max(final.height,1)))):null;
     const shortLines=lengths.filter(x=>x.len<3).map(x=>({
@@ -69,6 +76,8 @@ for(let variant=1;variant<=20;variant++){
     audit.push({variant:id,task,status,scale:+scale.toFixed(4),
       sourceLines:sourceCount,sourceShare:sourceShare===null?null:+sourceShare.toFixed(3),
       shortest:shortest===null?null:+shortest.toFixed(2),shortCount,
+      angleMarkMin:markMin===null?null:+markMin.toFixed(2),
+      angleMarkCount:marks.length,
       shortLines:shortLines.slice(0,8),
       finalWidth:final?+((final.width)*scale).toFixed(1):null,
       finalHeight:final?+((final.height)*scale).toFixed(1):null});
@@ -114,7 +123,8 @@ if(audit.length!==120 || new Set(audit.map(x=>x.variant)).size!==20)
 const graphical=audit.filter(x=>x.task>=4);
 const compact=xs=>xs.map(x=>({variant:x.variant,task:x.task,
   sourceShare:x.sourceShare,scale:x.scale,shortest:x.shortest,
-  shortCount:x.shortCount,final:[x.finalWidth,x.finalHeight]}));
+  shortCount:x.shortCount,angleMarkMin:x.angleMarkMin,
+  final:[x.finalWidth,x.finalHeight]}));
 const worstSource=graphical.filter(x=>x.sourceShare!==null)
   .sort((a,b)=>a.sourceShare-b.sourceShare).slice(0,12);
 const worstShort=graphical.filter(x=>x.shortest!==null)
