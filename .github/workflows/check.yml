@@ -75,6 +75,13 @@ jobs:
           echo $! > /tmp/sitemath-http.pid
       - name: Verify dark theme, A4 paper, Telegram and drag
         run: node tests/theme-interactions.mjs
+      - name: Upload dark theme screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: theme-screenshots
+          path: theme-screenshots/
+          if-no-files-found: ignore
       - name: Run mobile browser layout checks
         run: node tests/mobile-layout.mjs
       - name: Check mouse wheel and reconstructed variants
