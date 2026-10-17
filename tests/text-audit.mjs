@@ -113,7 +113,7 @@ for(let vi=1;vi<=20;vi++){
           /точки 2₁ на этом шаге ещё нет/u.test(entry.check)))
         issues.push({variant,task,step:step+1,type:'non-geometric-point-3-check',
           title:entry.title,check:entry.check});
-      if(task===4&&/^Через 3₁ проведи f₁/u.test(entry.title)&&
+      if(task===4&&/^Через 3₁ проведи f₁ ∥ x₁₂ и получи 2₁$/u.test(entry.title)&&
          (!/f₁ проходит через 3₁ параллельно x₁₂/u.test(entry.check) ||
           !/точно на пересечении f₁ с /u.test(entry.check)))
         issues.push({variant,task,step:step+1,type:'non-geometric-point-2-check',
