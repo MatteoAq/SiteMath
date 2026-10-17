@@ -317,6 +317,8 @@
     if(!picker)return;
     const setup=view==='setup',catalog=view==='catalog',courses=view==='courses';
     picker.dataset.view=view;
+    picker.setAttribute('aria-labelledby',courses?'catalogCoursesTitle':
+      setup?'activeAssignmentTitle':'firstRunTitle');
     $('catalogCoursesView').hidden=!courses;
     $('catalogListView').hidden=!catalog;
     $('activeAssignment').hidden=!setup;
