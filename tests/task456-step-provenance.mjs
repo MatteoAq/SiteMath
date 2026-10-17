@@ -94,7 +94,7 @@ for(const id of ids){
     });
   }
 }
-assert.equal(steps,1010,'unexpected number of current construction steps');
+assert.equal(steps,1030,'unexpected number of current construction steps after making task-5 split a drawn stage');
 assert.equal(points,960,'unexpected count of first named point introductions');
 assert.equal(intersections,40,'every task-5 K requires both projected intersections');
 assert.equal(transfers,468,'expected all real projector transfers in 60 tasks');
