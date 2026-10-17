@@ -123,6 +123,15 @@ for (const vp of viewports) {
   });
   if(!readableCanvas.visible)
     failures.push(vp.name+': drawing concealed by empty space or bottom sheet '+JSON.stringify(readableCanvas));
+  if(vp.name==='landscape-mobile'){
+    const metadata=await page.evaluate(()=>{
+      const meta=document.querySelector('#paperCopyInfo').getBoundingClientRect();
+      const pane=document.querySelector('#stepSheet').getBoundingClientRect();
+      return {right:meta.right,paneLeft:pane.left};
+    });
+    if(metadata.right>metadata.paneLeft+2)
+      failures.push('landscape A4 metadata hidden under instruction sheet '+JSON.stringify(metadata));
+  }
   const canvasOperation=await page.locator('#stageCurrentTitle').textContent();
   const sheetOperation=await page.locator('#stepTitle').textContent();
   if(!canvasOperation?.trim() || canvasOperation!==sheetOperation ||
