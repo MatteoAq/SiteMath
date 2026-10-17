@@ -1639,7 +1639,8 @@
     // nearly all task-1 variants needlessly shrink from 1:1 to 1:2 on A4.
     const leftmostAx=Math.min(0,...names.map(n=>{
       const p=coords[n];
-      return ex.x*p.x+ey.x*p.y;
+      return Math.min(ex.x*p.x,ex.x*p.x+ey.x*p.y,
+        ex.x*p.x+ey.x*p.y+ez.x*p.z);
     }));
     const axGap=Math.max(32,12-leftmostAx);
     const axOrigin={x:complexWidth+axGap,y:Math.max(70,O.y)};
@@ -1653,8 +1654,18 @@
         }
       };
     });
+    // Keep the entire coordinate-construction path on the paper, not just
+    // its final vertex. Unlike a radial O–P guide, the three projected
+    // components are lines a student can reproduce using the axonometric axes.
+    const axGuides={};
     const axPoints=[axOrigin];
-    Object.values(ax).forEach(v=>axPoints.push(v.p));
+    names.forEach(name=>{
+      const p=coords[name];
+      const X=add2(axOrigin,mul2(ex,p.x));
+      const XY=add2(X,mul2(ey,p.y));
+      axGuides[name]=[axOrigin,X,XY,ax[name].p];
+      axPoints.push(X,XY,ax[name].p);
+    });
     const allPts=raw.map(p=>shiftPoint(p,dx,dy)).concat(axPoints);
     const bb=bounds(allPts,18);
     const width=Math.max(complexWidth+28,bb.maxX+10);
@@ -1827,8 +1838,10 @@
       textEntity(i,add2(axOrigin,mul2(ez,axisLen/axScale+4)),'z')
     ];
     names.forEach(name=>{
-      const P=ax[name].p;
-      axEntities.push(line(i,axOrigin,P,'construction-line'));
+      const path=axGuides[name];
+      for(let j=0;j<3;j++)
+        if(dist2(path[j],path[j+1])>EPS)
+          axEntities.push(line(i,path[j],path[j+1],'construction-line'));
     });
     if(pyramid){
       const eye={x:1,y:1,z:1};
@@ -1843,11 +1856,15 @@
     push({
       title:pyramid?'Построй наглядное изображение пирамиды SABC':'Построй наглядное изображение точек',
       action:pyramid
-        ? 'В аксонометрии соедини вершины основания A, B, C и проведи рёбра S–A, S–B и S–C. Невидимые рёбра покажи штриховыми линиями.'
-        : 'На отдельном поле проведи из O три аксонометрические оси x, y, z. Для каждой точки отложи её координаты по соответствующим направлениям: положительные – по оси, отрицательные – в противоположную сторону. Проведи линии, параллельные осям, до общего пересечения и подпиши пространственную точку.',
-      why:'Наглядное изображение не вводит новые данные – это та же точка (x,y,z), только показанная в пространственной системе осей.',
-      measure:['Используются исходные x, y, z без пересчёта значений'],
-      check:'Знаки координат определяют, по какую сторону от O лежит каждая составляющая.'
+        ? 'На трёх аксонометрических осях построй вершины S, A, B, C по координатам: от O откладывай x, от полученной точки – y параллельно оси y, затем z параллельно оси z. После этого соедини A–B–C–A и S с A, B, C; невидимые рёбра покажи штриховыми.'
+        : 'На отдельном поле проведи оси x, y, z. Для каждой точки последовательно построй три тонких отрезка: от O по направлению x, от их конца параллельно оси y и затем параллельно оси z. Положительные координаты откладывай по направлению оси, отрицательные – против него. Конец последнего отрезка обозначь именем точки.',
+      why:pyramid
+        ? 'По трём координатным составляющим можно построить каждую вершину пирамиды. Соединение этих вершин даёт её шесть пространственных рёбер.'
+        : 'Три последовательных перемещения вдоль направлений x, y, z приводят к той же пространственной точке, координаты которой даны в условии.',
+      measure:['Наглядный вид выполнен в условном аксонометрическом масштабе, а не в миллиметрах исходных осей.','Сохраняй направления и пропорции составляющих, показанные на рисунке.'],
+      check:pyramid
+        ? 'У каждой вершины построены составляющие x, y, z; основание имеет рёбра AB, BC, CA, а боковые рёбра – SA, SB, SC. Скрытые части показаны штриховой линией.'
+        : 'Для каждой точки все три направляющих отрезка параллельны соответствующим осям. Конечная отметка совпадает с подписью этой пространственной точки.'
     },axEntities);
 
     return {width,height,O,steps};
