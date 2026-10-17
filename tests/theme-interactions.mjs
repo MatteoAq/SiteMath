@@ -1,5 +1,7 @@
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+fs.mkdirSync('theme-screenshots',{recursive:true});
 const browser=await chromium.launch({headless:true});
 const base=process.env.BASE_URL||'http://127.0.0.1:4173';
 try {
@@ -24,6 +26,7 @@ try {
         text:cs.color,border:cs.borderColor};
     });
     assert(selected.contrast,'Selected variant lacks solid contrast in dark mode: '+JSON.stringify(selected));
+    await page.screenshot({path:'theme-screenshots/catalog-'+vp.width+'.png',fullPage:false});
     await page.locator('#catalogListBackBtn').click();
     await page.locator('#catalogListBackBtn').click();
     const background=await page.locator('body').evaluate(el=>getComputedStyle(el).background);
@@ -51,6 +54,7 @@ try {
       assert.equal(await root.getAttribute('data-theme'),'dark','Desktop switch failed');
       const paperBg=await paper.evaluate(el=>getComputedStyle(el).backgroundColor);
       assert.equal(paperBg,'rgb(34, 33, 43)','Drawing paper remained bright: '+paperBg);
+      await page.screenshot({path:'theme-screenshots/solver-'+vp.width+'.png',fullPage:false});
       const gridStroke=await paper.locator('.grid-minor').first().evaluate(el=>getComputedStyle(el).stroke);
       assert.notEqual(gridStroke,'rgb(234, 223, 237)','Bright grid persisted');
       for(let i=0;i<7;i++)await page.locator('#zoomInBtn').click();
