@@ -3589,3 +3589,48 @@ html[data-theme="dark"] .site-contact-note,
 html[data-theme="dark"] .source-body {color:#c9b6d6;}
 html[data-theme="dark"] a {color:#d3a7ff;}
 html[data-theme="dark"] .mobile-contact-link {background:#8b4dec;color:#fff;}
+
+/* Finished theme switch – compact and consistent on all breakpoints. */
+.theme-toggle {
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  height:42px; min-width:42px; min-height:42px; padding:0 13px;
+  border:1px solid #dfcfe7; border-radius:14px;
+  background:linear-gradient(145deg,#fff,#f9f0ff); color:#7d4295;
+  font-size:12px; font-weight:800; line-height:1;
+  box-shadow:0 1px 2px rgba(80,40,100,.07);
+  transition:background .15s,border-color .15s,transform .15s;
+}
+.theme-toggle:hover {background:#f3e5fb; border-color:#bb87d4;transform:translateY(-1px);}
+.theme-toggle:active {transform:translateY(0);}
+.theme-toggle:focus-visible {outline:3px solid #af74e9;outline-offset:3px;}
+.theme-glyph {width:21px;height:21px;flex:0 0 21px;}
+.theme-toggle .theme-sun {display:none;}
+html[data-theme="dark"] .theme-toggle .theme-moon {display:none;}
+html[data-theme="dark"] .theme-toggle .theme-sun {display:initial;}
+.catalog-nav-actions .theme-toggle {height:40px;min-width:40px;min-height:40px;width:40px;padding:0;flex:0 0 40px;}
+.catalog-nav-actions .theme-toggle .theme-copy {display:none;}
+html[data-theme="dark"] .theme-toggle,
+html[data-theme="dark"] .catalog-nav-actions .theme-toggle {
+  background:#382948;color:#f2d6ff;border-color:#725184;box-shadow:0 1px 2px rgba(0,0,0,.2);
+}
+html[data-theme="dark"] .theme-toggle:hover {background:#483155;border-color:#b784d2;}
+.mobile-contact-link {
+  display:grid;place-items:center;
+  min-height:40px;height:40px;width:40px;min-width:40px;max-width:40px;
+  padding:0;border-radius:12px;
+  color:#fff !important;background:#8b4fec !important;
+  border:1px solid #7842de !important;text-decoration:none;
+}
+.mobile-contact-link svg {display:block;width:21px;height:21px;}
+.mobile-contact-link:hover {background:#783acb !important;}
+@media (max-width:760px){
+  .mobile-appbar {grid-template-columns:44px minmax(0,1fr) 40px auto auto;}
+  .mobile-contact-link {min-height:38px;height:38px;width:38px;min-width:38px;max-width:38px;}
+  .mobile-sheet-head .mobile-sheet-actions {display:flex;align-items:center;gap:7px;min-width:0;}
+  .mobile-sheet-head .mobile-sheet-actions .theme-toggle {width:40px;height:40px;min-width:40px;min-height:40px;padding:0;}
+  .mobile-sheet-actions .theme-copy {display:none;}
+}
+@media (max-width:360px){
+  .mobile-appbar {grid-template-columns:40px minmax(0,1fr) 34px auto auto;}
+  .mobile-contact-link {width:34px;min-width:34px;max-width:34px;height:36px;min-height:36px;}
+}
