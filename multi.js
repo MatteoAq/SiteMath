@@ -235,54 +235,79 @@
     } catch (_) {}
   }
 
-  // A library entry is a university assignment (album), not one of the
-  // six independent exercises within that album.
+  // A university assignment is a complete album, not an individual task.
   const ASSIGNMENTS=Array.isArray(window.SITEMATH_ASSIGNMENTS)&&window.SITEMATH_ASSIGNMENTS.length
     ? window.SITEMATH_ASSIGNMENTS
-    : [{id:'album-1',title:'Задание № 1 Альбом из 6 задач (для очников)',
-        subject:'Начертательная геометрия',description:'Шесть задач на построение.',
-        variantCount:20,taskCount:6,status:'available',solver:'legacy-album-1'}];
+    : [{id:'album-1',title:'Задание № 1',course:'I курс',courseOrder:1,
+        subject:'Начертательная геометрия и инженерная графика',
+        description:'Альбом из 6 задач.',variantCount:20,taskCount:6,
+        status:'available',solver:'legacy-album-1'}];
   const ACTIVE_ASSIGNMENT=ASSIGNMENTS.find(a=>a.status==='available'&&a.solver==='legacy-album-1');
+  const COURSES=[...new Map(ASSIGNMENTS.filter(a=>a.course)
+    .map(a=>[a.course,{name:a.course,order:Number(a.courseOrder)||999}])).values()]
+    .sort((a,b)=>a.order-b.order||a.name.localeCompare(b.name,'ru'));
+  let activeCourse=null;
+
+  function renderCourseCatalog(){
+    const root=$('courseCatalog');
+    if(!root)return;
+    root.replaceChildren();
+    for(const course of COURSES){
+      const available=ASSIGNMENTS.filter(a=>a.course===course.name&&a.status==='available'&&a.solver==='legacy-album-1');
+      if(!available.length)continue;
+      const card=document.createElement('button');
+      card.type='button';
+      card.className='course-card';
+      card.dataset.course=course.name;
+      card.setAttribute('aria-label','Открыть задания: '+course.name);
+      card.innerHTML='<span class="course-card-number">'+esc(course.name)+'</span>'+
+        '<strong>Задания '+esc(course.name.replace('курс','курса'))+'</strong>'+
+        '<span>'+available.length+' '+(available.length===1?'задание':'заданий')+' доступно · Начертательная геометрия</span>'+
+        '<b>Посмотреть задания <span aria-hidden="true">↗</span></b>';
+      card.addEventListener('click',()=>openCourse(course.name));
+      root.appendChild(card);
+    }
+  }
 
   function renderAssignmentCatalog(){
     const root=$('assignmentCatalog');
     if(!root)return;
     root.replaceChildren();
-    const available=ASSIGNMENTS.filter(a=>a.status==='available'&&a.solver==='legacy-album-1');
+    const inCourse=ASSIGNMENTS.filter(a=>a.course===activeCourse);
+    const available=inCourse.filter(a=>a.status==='available'&&a.solver==='legacy-album-1');
     $('catalogAvailableCount').textContent=String(available.length);
-    for(const assignment of ASSIGNMENTS){
+    $('catalogCurrentCourse').textContent=activeCourse||'';
+    $('setupCourseLabel').textContent=activeCourse||'';
+    for(const assignment of inCourse){
       const supported=assignment.status==='available'&&assignment.solver==='legacy-album-1';
       const card=document.createElement(supported?'button':'article');
       if(supported){card.type='button';card.dataset.assignment=assignment.id;}
       card.className='assignment-card '+(supported?'is-available':'is-upcoming');
       if(supported)card.setAttribute('aria-label','Выбрать '+assignment.title);
+      const n=(/№\s*(\d+)/.exec(assignment.title)||[])[1]||'1';
       const icon='<svg class="assignment-sketch" viewBox="0 0 230 130" fill="none" aria-hidden="true">'+
         '<path d="M22 115L85 24L181 105L22 115M85 24L213 20M181 105L213 20" stroke="currentColor" stroke-width="1.8"/>'+
         '<path d="M22 115L22 62L85 24M181 105L181 43L213 20M22 62L181 43" stroke="currentColor" stroke-dasharray="5 5" opacity=".35"/>'+
         '<circle cx="22" cy="115" r="4"/><circle cx="85" cy="24" r="4"/><circle cx="181" cy="105" r="4"/>'+
         '</svg>';
       card.innerHTML='<div class="assignment-visual">'+icon+
-        '<span class="assignment-number">01</span></div>'+
+        '<span class="assignment-number">'+esc(String(n).padStart(2,'0'))+'</span></div>'+
         '<div class="assignment-main">'+
           '<span class="assignment-status">'+(supported?'Доступно':'В подготовке')+'</span>'+
           '<h3>'+esc(assignment.title)+'</h3>'+
-          '<p>'+esc(assignment.description||'Материал появится после подготовки решений.')+'</p>'+
+          '<p>'+esc(assignment.description||'Решение пока не опубликовано.')+'</p>'+
           '<div class="assignment-meta"><span>'+esc(assignment.subject||'Учебная работа')+'</span>'+
           (supported?'<span>'+assignment.variantCount+' вариантов · '+assignment.taskCount+' задач</span>':'')+
           '</div>'+
           '<div class="assignment-open">'+(supported?'Выбрать вариант и задачу ↗':'Пока недоступно')+'</div>'+
         '</div>';
-      if(supported)card.addEventListener('click',()=>{
-        openAssignment(assignment);
-      });
+      if(supported)card.addEventListener('click',()=>openAssignment(assignment));
       root.appendChild(card);
     }
-    // A clearly non-actionable slot signals extensibility, without
-    // advertising a fictitious existing assignment.
     const future=document.createElement('div');
     future.className='assignment-future';
     future.innerHTML='<div class="future-symbol" aria-hidden="true">＋</div>'+
-      '<b>Следующие работы</b><p>Другие альбомы будут появляться здесь по мере готовности.</p>';
+      '<b>Другие задания</b><p>Здесь появятся следующие задания этого курса.</p>';
     root.appendChild(future);
     if(ACTIVE_ASSIGNMENT)$('activeAssignmentTitle').textContent=ACTIVE_ASSIGNMENT.title;
   }
@@ -290,17 +315,25 @@
   function setCatalogView(view){
     const picker=$('firstRunPicker');
     if(!picker)return;
-    const setup=view==='setup';
-    picker.dataset.view=setup?'setup':'catalog';
-    $('catalogListView').hidden=setup;
+    const setup=view==='setup',catalog=view==='catalog',courses=view==='courses';
+    picker.dataset.view=view;
+    $('catalogCoursesView').hidden=!courses;
+    $('catalogListView').hidden=!catalog;
     $('activeAssignment').hidden=!setup;
-    $('catalogListBackBtn').hidden=!setup;
+    $('catalogListBackBtn').hidden=courses;
+    $('catalogListBackBtn').textContent=setup?'← К заданиям':'← К курсам';
     picker.scrollIntoView?.({block:'start'});
   }
 
+  function openCourse(course){
+    if(!COURSES.some(c=>c.name===course))return;
+    activeCourse=course;
+    renderAssignmentCatalog();
+    setCatalogView('catalog');
+    $('firstRunTitle').focus();
+  }
+
   function openAssignment(assignment){
-    // The current engine supports one complete album. Future albums
-    // can expose their own setup only after a matching solver is wired.
     if(!assignment||assignment.id!==ACTIVE_ASSIGNMENT?.id)return;
     setCatalogView('setup');
     $('activeAssignmentTitle').focus();
@@ -308,8 +341,17 @@
 
   function returnToAssignmentList(){
     setCatalogView('catalog');
-    const selected=$('assignmentCatalog').querySelector('button.assignment-card');
-    selected?.focus();
+    $('assignmentCatalog').querySelector('button.assignment-card')?.focus();
+  }
+
+  function returnToCourses(){
+    setCatalogView('courses');
+    $('courseCatalog').querySelector('button.course-card')?.focus();
+  }
+
+  function handleCatalogBack(){
+    if($('firstRunPicker').dataset.view==='setup')returnToAssignmentList();
+    else returnToCourses();
   }
 
   function renderFirstRunPicker(){
@@ -370,11 +412,11 @@
   function showFirstRunPicker(){
     stopAuto();
     closeMobileSetup();
-    renderAssignmentCatalog();
+    renderCourseCatalog();
     renderFirstRunPicker();
     $('firstRunPicker').hidden=false;
     document.body.classList.add('first-run-open');
-    setCatalogView('catalog');
+    setCatalogView('courses');
   }
 
   function finishFirstRun(){
@@ -5735,8 +5777,8 @@
   }
 
 
-  // Display the service notice on every page load, before using the site.
-  // Closing it is sufficient for the current load. No persistent suppression.
+  // The same service notice returns once per browser tab session.
+  // Visitors can reopen it via the catalogue navigation action.
   let offerFocusReturn=null;
   function openOfferDetails(){
     const overlay=$('offerOverlay');
@@ -5749,6 +5791,10 @@
     $('offerCloseBtn')?.focus();
   }
   function showWelcomeOffer(){
+    try{
+      if(sessionStorage.getItem('sitemath-offer-seen-session-v1'))return;
+      sessionStorage.setItem('sitemath-offer-seen-session-v1','1');
+    }catch(_) { /* Some privacy modes disable storage. */ }
     openOfferDetails();
   }
   function closeOfferDetails(){
@@ -5760,10 +5806,11 @@
     if(picker)picker.inert=false;
     // On the first visit the underlying view is the variant chooser; restore
     // keyboard focus there rather than to a hidden drawing control.
-    const firstVariant=picker&&!picker.hidden
-      ?picker.querySelector('.first-run-variant'):null;
-    const target=firstVariant||
-      (offerFocusReturn&&offerFocusReturn.getClientRects().length?offerFocusReturn:null)||
+    const firstCourse=picker&&!picker.hidden
+      ?picker.querySelector('#courseCatalog .course-card'):null;
+    const prior=offerFocusReturn&&offerFocusReturn!==document.body&&
+      offerFocusReturn.getClientRects().length?offerFocusReturn:null;
+    const target=prior||firstCourse||
       ($('mobileSetupBtn')&&innerWidth<=760?$('mobileSetupBtn'):$('lastBtn'));
     target?.focus();
   }
@@ -5907,7 +5954,7 @@
     renderStepInfoPage(state.steps[state.step]);
   });
   $('firstRunStart').addEventListener('click',finishFirstRun);
-  $('catalogListBackBtn').addEventListener('click',returnToAssignmentList);
+  $('catalogListBackBtn').addEventListener('click',handleCatalogBack);
   $('catalogBackBtn').addEventListener('click',showFirstRunPicker);
   $('mobileCatalogBackBtn').addEventListener('click',showFirstRunPicker);
   $('catalogCommissionBtn').addEventListener('click',openOfferDetails);
@@ -5934,6 +5981,5 @@
   // click and new albums remain discoverable on every visit.
   syncChoicePickers();
   showFirstRunPicker();
-  // The catalogue is the entry point: never cover it with a sales modal.
-  // Commission details remain available on demand from its header.
+  showWelcomeOffer();
 })();
