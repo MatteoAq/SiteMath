@@ -5113,6 +5113,8 @@
     $('stepTotal').textContent=String(state.steps.length);
     $('stepBadge').textContent='Шаг '+(state.step+1);
     $('stepTitle').textContent=st.title;
+    $('stageCurrentCount').textContent='Шаг '+(state.step+1);
+    $('stageCurrentTitle').textContent=st.title;
     const remoteHint=$('remoteSourceHint');
     if(remoteHint){
       const isRemote12=state.variant==='12'&&state.task===6;
