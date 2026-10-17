@@ -12,28 +12,33 @@
 
   function applyTheme(theme){
     const dark=theme==='dark';
-    document.documentElement.dataset.theme=dark?'dark':'light';
+    if(document.documentElement?.dataset)
+      document.documentElement.dataset.theme=dark?'dark':'light';
     const meta=$('siteThemeColor');
-    if(meta)meta.setAttribute('content',dark?'#17121f':'#f8f3fb');
+    if(typeof meta?.setAttribute==='function')
+      meta.setAttribute('content',dark?'#17121f':'#f8f3fb');
     for(const id of ['catalogThemeToggle','desktopThemeToggle','mobileThemeToggle']){
       const button=$(id);
-      if(!button)continue;
+      if(typeof button?.setAttribute!=='function')continue;
       button.setAttribute('aria-pressed',dark?'true':'false');
       button.setAttribute('aria-label',dark?'Включить светлую тему':'Включить тёмную тему');
-      const icon=button.querySelector('.theme-icon');
-      const label=button.querySelector('.theme-copy');
+      const icon=button.querySelector?.('.theme-icon');
+      const label=button.querySelector?.('.theme-copy');
       if(icon)icon.textContent=dark?'☀':'☾';
       if(label)label.textContent=dark?'Светлая тема':'Тёмная тема';
     }
   }
   function toggleTheme(){
-    const next=document.documentElement.dataset.theme==='dark'?'light':'dark';
+    const next=document.documentElement?.dataset?.theme==='dark'?'light':'dark';
     try{localStorage.setItem('sitemath-theme',next);}catch(_){}
     applyTheme(next);
   }
-  for(const id of ['catalogThemeToggle','desktopThemeToggle','mobileThemeToggle'])
-    $(id)?.addEventListener('click',toggleTheme);
-  applyTheme(document.documentElement.dataset.theme);
+  for(const id of ['catalogThemeToggle','desktopThemeToggle','mobileThemeToggle']){
+    const button=$(id);
+    if(typeof button?.addEventListener==='function')
+      button.addEventListener('click',toggleTheme);
+  }
+  applyTheme(document.documentElement?.dataset?.theme);
 
   const state = {
     variant: null,
