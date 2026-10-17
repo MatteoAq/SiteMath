@@ -85,7 +85,7 @@ for(const proj of ['₁','₂']){
 // 5. Line-plane: source l is almost parallel to Sigma(a intersect b).
 const five=W.__v13.solveTask5Scheme(s.task5,{});
 assert(s.task5.planeType==='intersecting_lines'&&
- s.task5.planeLines.join(',')==='a,b'&&five.steps.length===13);
+ s.task5.planeLines.join(',')==='a,b'&&five.steps.length===14);
 const calc=scheme=>{
  const pl=W.__v13.planeFromScheme(scheme);
  const [a,b]=W.__v13.schemeLine3(scheme.lines.l),direction=sub(b,a);
