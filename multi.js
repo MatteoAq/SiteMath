@@ -4849,7 +4849,7 @@
             pointNames[0]+pIdx+'↔'+pointNames[0]+oIdx+' – одна линия связи',
             pointNames[1]+pIdx+'↔'+pointNames[1]+oIdx+' – одна линия связи'
           ],
-          check:pointNames[0]+oIdx+' и '+pointNames[1]+oIdx+' лежат на тех же пространственных опорных линиях.'
+          check:pointNames[0]+oIdx+' лежит на '+sec.refs[0].name+oIdx+', а '+pointNames[1]+oIdx+' – на '+sec.refs[1].name+oIdx+'. Каждая точка получена по линии связи со своей парной проекцией.'
         },[
           ...segmentExtensionEntities(i,sec.refs[0].rec[other],otherSeg[0]),
           ...segmentExtensionEntities(i,sec.refs[1].rec[other],otherSeg[1]),
@@ -5067,7 +5067,7 @@
       action:'Сверь по исходному листу проекции обеих плоскостей и точку '+throughLabel+'. Перенеси их на тетрадный лист по совмещённой с чертежом сетке, сохраняя геометрические связи между проекциями.',
       why:'Положение линий на варианте является исходными данными. Решение строится уже поверх них.',
       measure:['Плоскость '+planeASymbol+' – первый набор','Плоскость '+planeBSymbol+' – второй набор',throughLabel+'₁/'+throughLabel+'₂ – одна линия связи'],
-      check:'На обеих плоскостях проекций показаны исходные линии Σ и Θ. Точки '+throughLabel+'₁ и '+throughLabel+'₂ лежат на одной линии связи.'
+      check:'На обоих видах показаны заданные прямые плоскостей '+planeASymbol+' и '+planeBSymbol+'. Точки '+throughLabel+'₁ и '+throughLabel+'₂ стоят на одной линии связи.'
     },starter);
     if(scheme.sourceGeometry)steps[0].sourceEntities=rawTask6StarterEntities(scheme,0,throughLabel);
 
@@ -5088,7 +5088,7 @@
         action:'Проведи вспомогательную горизонтальную плоскость уровня через будущую точку P. Она пересекает '+planeASymbol+' и '+planeBSymbol+' по двум горизонталям.',
         why:'Две горизонтали лежат в одной вспомогательной плоскости. Их пересечение P принадлежит одновременно '+planeASymbol+' и '+planeBSymbol+'.',
         measure:['На Π₂ обе горизонтали имеют один уровень z.','На Π₁ строятся их действительные направления.'],
-        check:'P₁ – пересечение горизонталей обеих плоскостей.'
+        check:'P₁ находится в пересечении построенных горизонталей на Π₁; P₂ должна лежать с ней на одной линии связи.'
       },[
         line(i,pA0.p2,pA1.p2,'construction-line'),textEntity(i,pA1.p2,'h'+planeASymbol+'₂','svg-note'),
         line(i,pB0.p2,pB1.p2,'construction-line'),textEntity(i,pB1.p2,'h'+planeBSymbol+'₂','svg-note'),
@@ -5107,7 +5107,7 @@
         action:'На другом уровне повтори построение и получи вторую общую точку Q.',
         why:'Две различные общие точки однозначно задают линию пересечения плоскостей.',
         measure:['Q ∈ '+planeASymbol,'Q ∈ '+planeBSymbol],
-        check:'Q₁/Q₂ находятся на одной линии связи.'
+        check:'Q₁ и Q₂ должны иметь одинаковую абсциссу и соединяться вертикальной линией связи.'
       },[
         line(i,qA0.p2,qA1.p2,'construction-line'),textEntity(i,qA1.p2,'h'+planeASymbol+'₂','svg-note'),
         line(i,qB0.p2,qB1.p2,'construction-line'),textEntity(i,qB1.p2,'h'+planeBSymbol+'₂','svg-note'),
@@ -5126,7 +5126,7 @@
         action:'Проведи вспомогательную фронтальную плоскость через P. Она пересекает обе заданные плоскости по фронталям.',
         why:'Пересечение двух полученных фронталей даёт общую точку P.',
         measure:['На Π₁ фронтали имеют одинаковый уровень y.'],
-        check:'P принадлежит обеим плоскостям.'
+        check:'P₂ находится в пересечении двух построенных фронталей на Π₂; P₁ лежит с ней на одной линии связи.'
       },[
         line(i,pA0.p1,pA1.p1,'construction-line'),textEntity(i,pA1.p1,'f'+planeASymbol+'₁','svg-note'),
         line(i,pB0.p1,pB1.p1,'construction-line'),textEntity(i,pB1.p1,'f'+planeBSymbol+'₁','svg-note'),
@@ -5143,7 +5143,7 @@
         action:'Повтори на другом уровне y и получи Q.',
         why:'P и Q задают искомую линию пересечения.',
         measure:['Q ∈ '+planeASymbol+' и '+planeBSymbol],
-        check:'Q₁/Q₂ согласованы линией связи.'
+        check:'Q₁ и Q₂ должны иметь одинаковую абсциссу и соединяться вертикальной линией связи.'
       },[
         line(i,qA0.p1,qA1.p1,'construction-line'),textEntity(i,qA1.p1,'f'+planeASymbol+'₁','svg-note'),
         line(i,qB0.p1,qB1.p1,'construction-line'),textEntity(i,qB1.p1,'f'+planeBSymbol+'₁','svg-note'),
@@ -5162,7 +5162,7 @@
       action:'Проведи r₁ через P₁,Q₁ и r₂ через P₂,Q₂.',
       why:'Линия, проходящая через две общие точки плоскостей, целиком принадлежит обеим плоскостям.',
       measure:['r = '+planeASymbol+' ∩ '+planeBSymbol],
-      check:'P и Q лежат на обеих проекциях r.'
+      check:'Проекция r₁ проходит через P₁ и Q₁, а r₂ – через P₂ и Q₂.'
     },[
       line(i,pp.p1,qq.p1,'answer-line'),textEntity(i,qq.p1,'r₁','svg-label'),
       line(i,pp.p2,qq.p2,'answer-line'),textEntity(i,qq.p2,'r₂','svg-label')
