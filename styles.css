@@ -3407,3 +3407,43 @@ button.assignment-card:focus-visible,
     line-height:1.47;
   }
 }
+
+/* Standard A4 artboard with physical 5 mm squares. The source reconstruction
+   stays geometrically unchanged; drawing zoom is a separate camera control. */
+.paper-copy-info {
+  padding:7px 14px;
+  font-size:11px;
+  line-height:1.45;
+  background:#fbf5ff;
+  color:#653e79;
+  border-bottom:1px solid #e8d8eb;
+  font-weight:650;
+}
+.paper-wrap #drawing {
+  margin:0 auto auto;
+  background:#fffdfd;
+  flex-shrink:0;
+  box-shadow:0 5px 22px rgba(49,29,63,.22);
+}
+.paper-safe-area {
+  fill:none;
+  stroke:#dccce4;
+  stroke-width:.25;
+  pointer-events:none;
+}
+.paper-outline {
+  fill:none;
+  stroke:#9f8aab;
+  stroke-width:.35;
+  pointer-events:none;
+}
+@media (max-width:760px) {
+  .paper-copy-info {
+    padding:5px 9px;
+    font-size:10px;
+    flex:0 0 auto;
+    text-align:center;
+    line-height:1.3;
+  }
+  body:not(.first-run-open) .paper-wrap #drawing {margin:0 auto auto;}
+}
