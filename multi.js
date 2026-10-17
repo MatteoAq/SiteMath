@@ -6185,8 +6185,29 @@
       const value=score(percent);
       if(value>best.score+1e-8)best={percent,score:value};
     }
-    return best.score>midpoint*1.5 && best.score-midpoint>=2
+    const basic=best.score>midpoint*1.5 && best.score-midpoint>=2
       ? best.percent:50;
+    // The same source AB may cross the x12 axis in such a way that K1 and K2
+    // almost coincide on the A4 sheet. The user must then draw an unreadable
+    // one-millimetre projector despite a perfectly good CK. Rescue only
+    // those free K choices while retaining at least 82% of CK legibility.
+    const projectorSpan=percent=>{
+      const k=percent/100;
+      const y=A[1]+(B[1]-A[1])*k;
+      const z=A[2]+(B[2]-A[2])*k;
+      return Math.abs(y+z);
+    };
+    if(projectorSpan(basic)>=18)return basic;
+    let rescue=null;
+    for(let percent=20;percent<=80;percent++){
+      if(projectorSpan(percent)<18 || score(percent)<score(basic)*.82)
+        continue;
+      const distance=Math.abs(percent-basic);
+      if(!rescue||distance<rescue.distance||
+         (distance===rescue.distance&&score(percent)>rescue.score))
+        rescue={percent,distance,score:score(percent)};
+    }
+    return rescue?rescue.percent:basic;
   }
 
   function setDefaultKPosition(){
@@ -6196,7 +6217,7 @@
     const hint=$('kSelectionHint');
     if(hint) hint.textContent=k===50
       ? 'Точка K находится внутри AB. Её положение можно изменить ползунком, не нарушая условие.'
-      : 'Выбрано '+k+'% длины AB от A: так отрезок CK отчётливее виден в обеих проекциях. Точку K можно переместить.';
+      : 'Выбрано '+k+'% длины AB от A, чтобы линии CK и связь K₁K₂ были различимы на чертеже. Точку K можно переместить.';
   }
 
   function resetCurrent(){

@@ -110,7 +110,7 @@ for(let variant=1;variant<=20;variant++){
 // The original task-3 A/B/C points are fixed; only the free K position
 // may be optimized for visible CK on both Monge projections.
 const recommended={};
-for(const id of ['02','06','16','18','19']){
+for(const id of ['02','03','05','06','07','08','13','16','18','19']){
   $('variantSelect').value=id;
   $('variantSelect').dispatchEvent(new window.Event('change'));
   $('taskSelect').value='3';
@@ -118,6 +118,14 @@ for(const id of ['02','06','16','18','19']){
   const percent=Number($('kSlider').value);
   if(percent===50||percent<20||percent>80)
     throw new Error('Task 3 free K is not optimized for informative projections in variant '+id+': '+percent);
+  if(['03','05','07','08','13'].includes(id)){
+    const {A,B}=JSON.parse(fs.readFileSync('data/variants/'+id+'.json','utf8')).variant.task3;
+    const ratio=percent/100;
+    const y=A[1]+(B[1]-A[1])*ratio,z=A[2]+(B[2]-A[2])*ratio;
+    const physical=Math.abs(y+z)*Number(svg.getAttribute('data-layout-scale')||1);
+    if(physical<8)
+      throw new Error('Free K projector remains too short to draw on A4: '+id+'/'+physical.toFixed(2)+' mm');
+  }
   recommended[id]=percent;
 }
 $('variantSelect').value='12';
