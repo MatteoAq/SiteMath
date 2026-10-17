@@ -52,16 +52,24 @@ for(let variant=1;variant<=20;variant++){
     const lengths=[...drawn].filter(el=>el.classList.contains('answer-line')||el.classList.contains('aux-line')||el.classList.contains('construction-line'))
       .map(el=>({type:el.getAttribute('class'),len:Math.hypot(
         Number(el.getAttribute('x2'))-Number(el.getAttribute('x1')),
-        Number(el.getAttribute('y2'))-Number(el.getAttribute('y1')))*scale}))
+        Number(el.getAttribute('y2'))-Number(el.getAttribute('y1')))*scale,
+        x1:Number(el.getAttribute('x1')),y1:Number(el.getAttribute('y1')),
+        x2:Number(el.getAttribute('x2')),y2:Number(el.getAttribute('y2'))}))
       .filter(x=>x.len>0);
     const shortest=lengths.length?Math.min(...lengths.map(x=>x.len)):null;
     const sourceShare=source&&final?Math.max(0,Math.min(1,
       Math.min(source.width/Math.max(final.width,1),source.height/Math.max(final.height,1)))):null;
-    const shortCount=lengths.filter(x=>x.len<3).length;
+    const shortLines=lengths.filter(x=>x.len<3).map(x=>({
+      type:x.type,mm:+x.len.toFixed(2),
+      start:[+x.x1.toFixed(2),+x.y1.toFixed(2)],
+      end:[+x.x2.toFixed(2),+x.y2.toFixed(2)]
+    }));
+    const shortCount=shortLines.length;
     const status=task>=4 && (sourceShare!==null&&sourceShare<.14 || scale<.15 || shortCount>=4)?'review':'ok';
     audit.push({variant:id,task,status,scale:+scale.toFixed(4),
       sourceLines:sourceCount,sourceShare:sourceShare===null?null:+sourceShare.toFixed(3),
       shortest:shortest===null?null:+shortest.toFixed(2),shortCount,
+      shortLines:shortLines.slice(0,8),
       finalWidth:final?+((final.width)*scale).toFixed(1):null,
       finalHeight:final?+((final.height)*scale).toFixed(1):null});
   }
