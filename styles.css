@@ -3989,3 +3989,22 @@ html[data-theme="dark"] .remote-source-hint .remote-source-message {
     display:block;
   }
 }
+
+/* In landscape mobile mode the instructions dock at the right, so page
+   metadata must stay above the 56% drawing column instead of sliding
+   beneath the instruction sheet. */
+@media (max-width:760px) and (orientation:landscape) and (max-height:500px) {
+  body:not(.first-run-open) .paper-copy-info {
+    box-sizing:border-box;
+    align-self:flex-start;
+    width:56%;
+    max-width:56%;
+    min-width:0;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    overflow:hidden;
+    padding:5px 8px;
+    text-align:left;
+    font-size:10px;
+  }
+}
