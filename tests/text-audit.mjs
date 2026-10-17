@@ -118,6 +118,12 @@ for(let vi=1;vi<=20;vi++){
           !/точно на пересечении f₁ с /u.test(entry.check)))
         issues.push({variant,task,step:step+1,type:'non-geometric-point-2-check',
           title:entry.title,check:entry.check});
+      if(task===4&&/^Выбери точку (?:1₂|3₁) на /u.test(entry.title)&&
+         /^На исходной /u.test(entry.action)&&
+         (!/(?:\d+% длины|на продолжении штриха|положени[еи] в схеме)/u.test(entry.check)||
+          /Следующая точка будет определяться|Фронтальная проекция через выбранную точку/u.test(entry.check)))
+        issues.push({variant,task,step:step+1,type:'first-point-location-not-checkable',
+          title:entry.title,action:entry.action,check:entry.check});
       if(task===4&&/^Выбери точку (?:1₂|3₁) на /.test(entry.title)&&
          !/(?:\d+% длины|продолжении штриха|положение в схеме)/.test(entry.action))
         issues.push({variant,task,step:step+1,type:'free-point-placement-not-reproducible',
