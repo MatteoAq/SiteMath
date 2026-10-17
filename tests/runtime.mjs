@@ -726,12 +726,11 @@ try {
       const dy=Number(a2.getAttribute('y2'))-Number(a2.getAttribute('y1'));
       const rawDx=rawA2[1][0]-rawA2[0][0],rawDy=rawA2[1][1]-rawA2[0][1];
       const cleanDx=cleanA2[1][0]-cleanA2[0][0],cleanDy=cleanA2[1][1]-cleanA2[0][1];
-      if(Math.abs(dx*rawDy-dy*rawDx)>1e-6){
-        failures.push('variant12 source reconstruction: initial a₂ must use raw photographed direction');
+      if(Math.abs(dx*cleanDy-dy*cleanDx)>1e-6){
+        failures.push('variant12 adapted source: first frame differs from published reconstruction');
       }
-      if(Math.abs(rawDx*cleanDy-rawDy*cleanDx)>1e-6 &&
-         Math.abs(dx*cleanDy-dy*cleanDx)<1e-6){
-        failures.push('variant12 source reconstruction: solver direction leaked into initial frame');
+      if(Math.abs(rawDx*cleanDy-rawDy*cleanDx)<1e-6){
+        failures.push('variant12 adapted source: archived original unexpectedly matches reconstruction');
       }
     }
     const k1=window.document.querySelector('#drawing circle[data-label="K₁"]');
@@ -739,11 +738,11 @@ try {
     if(!k1||!k2) failures.push('variant12 source reconstruction: K₁/K₂ missing');
     else {
       const x1=Number(k1.getAttribute('cx')),x2=Number(k2.getAttribute('cx'));
-      const rawGap=raw6.pointK.p1[0]-raw6.pointK.p2[0];
-      const paperScale=Number(window.document.querySelector('#drawing')?.getAttribute('data-paper-scale'))||1;
-      if(Math.abs((x1-x2)-rawGap*paperScale)>1e-6){
-        failures.push('variant12 source reconstruction: raw K projector gap must remain unchanged on initial frame');
+      if(Math.abs(x1-x2)>1e-6){
+        failures.push('variant12 adapted source: K projector must be geometrically aligned');
       }
+      if(raw6.pointK.p1[0]!==199||raw6.pointK.p2[0]!==196)
+        failures.push('variant12 adapted source: original scanned K not retained in sourceGeometry');
     }
     $('nextBtn').click();
     const c1=[...window.document.querySelectorAll('#drawing circle[data-label="K₁"]')].at(-1);
@@ -922,8 +921,10 @@ if (!onlyVariant && !onlyTask) try {
       $('taskSelect').value=String(task);
       $('taskSelect').dispatchEvent(new window.Event('change'));
       $('firstBtn').click();
-      const raw=group['task'+task].sourceGeometry;
-      const expected=expectedLines(task,raw,group['task'+task]);
+      const scheme=group['task'+task];
+      const raw=scheme.sourceGeometry;
+      const frame=scheme.adaptedSource?scheme:raw;
+      const expected=expectedLines(task,frame,scheme);
       const actual=[...window.document.querySelectorAll('#drawing line.object-line')];
       const key=variant+'/'+task;
       if(expected.length!==actual.length){
@@ -954,12 +955,14 @@ if (!onlyVariant && !onlyTask) try {
             guides.push({x:rec.p2[0],y:rec.p2[1],X:rec.p1[0],Y:rec.p1[1]});
       };
       if(task===6){
-        addGuides(raw.planeA);
-        addGuides(raw.planeB);
-        const K=raw.pointK||raw.pointThrough;
-        if(K?.p1&&K?.p2)
-          guides.push({x:K.p2[0],y:K.p2[1],X:K.p1[0],Y:K.p1[1]});
-      }else addGuides(raw);
+        addGuides(frame.planeA);
+        addGuides(frame.planeB);
+        const K=frame.pointK||frame.pointThrough;
+        if(K?.p1&&K?.p2){
+          const x=scheme.adaptedSource?(K.p1[0]+K.p2[0])/2:null;
+          guides.push({x:x??K.p2[0],y:K.p2[1],X:x??K.p1[0],Y:K.p1[1]});
+        }
+      }else addGuides(frame);
       const drawnGuides=[...window.document.querySelectorAll('#drawing line.source-guide-line')];
       if(drawnGuides.length!==guides.length)
         failures.push(key+': original projector count '+drawnGuides.length+' != '+guides.length);
@@ -971,7 +974,7 @@ if (!onlyVariant && !onlyTask) try {
            !same(el.getAttribute('y2'),ref.Y*scale+dy))
           failures.push(key+': source projector '+i+' changed by solver normalization');
       });
-      const names=task===6?{[group.task6.pointLabel||'K']:raw.pointK||raw.pointThrough}:(raw.points||{});
+      const names=task===6?{[group.task6.pointLabel||'K']:frame.pointK||frame.pointThrough}:(frame.points||{});
       for(const [name,rec] of Object.entries(names)){
         if(!rec?.p1||!rec?.p2)continue;
         for(const [proj,sub] of [['p1','₁'],['p2','₂']]){
@@ -979,7 +982,9 @@ if (!onlyVariant && !onlyTask) try {
           const label=name+(reversed?(sub==='₁'?'₂':'₁'):sub);
           const el=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
           const P=rec[proj];
-          if(!el||!same(el.getAttribute('cx'),P[0]*scale+dx) ||
+          const x=task===6&&scheme.adaptedSource
+            ? (rec.p1[0]+rec.p2[0])/2 : P[0];
+          if(!el||!same(el.getAttribute('cx'),x*scale+dx) ||
              !same(el.getAttribute('cy'),P[1]*scale+dy))
             failures.push(key+': first-frame source point '+label+' moved or missing');
         }
@@ -2418,7 +2423,10 @@ if (!onlyVariant && !onlyTask) try {
     if($('diagramWarning').hidden) failures.push('diagram warning: hidden for task '+task);
     const text=$('diagramWarning').textContent;
     const sourceVerified=window.SITEMATH_SCHEMES['12']['task'+task].sourceVerified===true;
-    if(sourceVerified){
+    if(window.SITEMATH_SCHEMES['12']['task'+task].adaptedSource){
+      if(!text.includes('Учебная реконструкция')||!text.includes('адаптированная схема'))
+        failures.push('diagram warning '+task+': adapted teaching drawing status not stated');
+    }else if(sourceVerified){
       if(!text.includes('оригинал') || !text.includes('проверены'))
         failures.push('diagram warning '+task+': reviewed construction still presented as unverified');
     }else{
@@ -2780,7 +2788,10 @@ try {
       const scheme=group?.['task'+task];
       if(!scheme) continue;
       const expected=task===4 || ((variant==='12'&&task===5)||(variant==='13'&&task===6)) || ['01','02','03','04','05','06','07','08','09','10','11','14','15','16','17','18','19','20'].includes(variant);
-      if(scheme.sourceVerified!==expected ||
+      if(scheme.adaptedSource){
+        if(scheme.sourceVerified!==false || scheme.sourceRecheckRequired!==false || !scheme.sourceGeometry)
+          failures.push('source verification '+variant+'/'+task+': adaptation must preserve the archive without claiming photo equivalence');
+      }else if(scheme.sourceVerified!==expected ||
          scheme.sourceRecheckRequired===expected)
         failures.push('source verification '+variant+'/'+task+': status differs from independent source review');
     }
