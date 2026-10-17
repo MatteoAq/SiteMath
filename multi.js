@@ -2794,6 +2794,27 @@
       const refs=planeReferenceLines(scheme,true);
       const hCut=sourceAnchoredLevelLine(refs,'p2');
       const fCut=sourceAnchoredLevelLine(refs,'p1');
+      // Give a reproducible position for a FREE helper point. A percentage
+      // along the original printed stroke survives A4 reduction and avoids
+      // making the student guess what "convenient" meant in the screenshot.
+      const sourcePointHint=(ref,proj,P)=>{
+        const seg=ref?.rec?.[proj];
+        if(!Array.isArray(seg)||seg.length!==2||!P)
+          return 'ориентируясь на отмеченное положение в схеме';
+        const a={x:+seg[0][0],y:+seg[0][1]};
+        const b={x:+seg[1][0],y:+seg[1][1]};
+        const steep=Math.abs(a.x-b.x)<Math.abs(a.y-b.y)*.5;
+        const first=steep?(a.y<=b.y?a:b):(a.x<=b.x?a:b);
+        const second=first===a?b:a;
+        const dx=second.x-first.x,dy=second.y-first.y,den=dx*dx+dy*dy;
+        if(!(den>EPS))return 'ориентируясь на отмеченное положение в схеме';
+        const ratio=((P.x-first.x)*dx+(P.y-first.y)*dy)/den;
+        const origin=steep?'верхнего':'левого';
+        const opposite=steep?'нижнего':'правого';
+        if(ratio>=0&&ratio<=1)
+          return 'примерно на '+Math.round(ratio*100)+'% длины штриха от '+origin+' конца';
+        return 'на продолжении штриха за '+(ratio<0?origin:opposite)+' концом';
+      };
 
       dh=cross3(plane.n,{x:0,y:0,z:1});
       if(norm3(dh)<EPS) dh={x:1,y:0,z:0};
@@ -2820,7 +2841,7 @@
       i=steps.length;
       push({
         title:'Выбери точку 1₂ на '+refs[0].name+'₂',
-        action:'На уже существующей линии '+refs[0].name+'₂ выбери удобную точку 1₂. Она задаёт, какую именно горизонталь плоскости будем строить.',
+        action:'На исходной '+refs[0].name+'₂ отметь 1₂ '+sourcePointHint(refs[0],'p2',hPrimary[0])+'. Эта точка задаёт уровень выбранной горизонтали; другую допустимую точку можно взять без изменения условия.',
         why:'Горизонталей в одной плоскости бесконечно много. Поэтому первая точка не вычисляется из условия – её разрешено выбрать, но только на линии, принадлежащей плоскости.',
         measure:['1₂ ∈ '+refs[0].name+'₂'],
         check:'1₂ должна лежать точно на '+refs[0].name+'₂. Следующая точка будет определяться пересечением, а не произвольным выбором.'
@@ -2866,7 +2887,7 @@
       i=steps.length;
       push({
         title:'Выбери точку 3₁ на '+refs[0].name+'₁',
-        action:'На уже существующей линии '+refs[0].name+'₁ выбери удобную точку 3₁. Она задаёт конкретную фронталь этой плоскости.',
+        action:'На исходной '+refs[0].name+'₁ отметь 3₁ '+sourcePointHint(refs[0],'p1',fPrimary[0])+'. По ней построим одну из возможных фронталей данной плоскости.',
         why:'Фронталей в плоскости тоже бесконечно много. Первую точку разрешено выбрать только на линии, принадлежащей плоскости.',
         measure:['3₁ ∈ '+refs[0].name+'₁'],
         check:'3₁ лежит на '+refs[0].name+'₁. Фронтальная проекция через выбранную точку должна быть параллельна x₁₂.'
@@ -2936,10 +2957,10 @@
         i=steps.length;
         push({
           title:'Выбери точку S₁ на h₁',
-          action:'На уже построенной горизонтали h₁ выбери удобную точку S₁.',
+          action:'На h₁ отметь S₁ примерно посередине между уже построенными 1₁ и 2₁. Это свободная опорная точка для линии наибольшего ската.',
           why:'Линий наибольшего ската в плоскости можно провести несколько параллельных. Поэтому сначала явно задаётся точка, через которую строится конкретная ЛС.',
           measure:['S₁ ∈ h₁'],
-          check:'Проверь линейкой, что S₁ находится на h₁. Через неё должен пройти перпендикуляр к h₁ – первая проекция линии наибольшего ската.'
+          check:'S₁ расположена между 1₁ и 2₁ на h₁. На следующем шаге через неё строится ЛС₁ под прямым углом к h₁.'
         },[
           point(i,S1,'S₁','construction-dot')
         ]);
