@@ -1913,7 +1913,7 @@ if (!onlyVariant && !onlyTask) try {
   $('taskSelect').value='5';
   $('taskSelect').dispatchEvent(new window.Event('change'));
   const warning=$('dynamicInputs').textContent;
-  if(!warning.includes('повторно сверено с доступным оригиналом') ||
+  if(!warning.includes('повторно сверено с доступным исходным листом') ||
      !$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-10.jpg"]')){
     failures.push('source correction audit: variant 10/5 must show recovered original');
   }
@@ -2466,13 +2466,15 @@ if (!onlyVariant && !onlyTask) try {
   $('variantSelect').dispatchEvent(new window.Event('change'));
   $('taskSelect').value='4';
   $('taskSelect').dispatchEvent(new window.Event('change'));
-  if(!$('dynamicInputs').textContent.includes('source-photos/scans/variant-12.jpg')) failures.push('source status 12: canonical scan ID missing');
+  if(!$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-12.jpg"]'))
+    failures.push('source status 12: original scan link missing');
 
   $('variantSelect').value='03';
   $('variantSelect').dispatchEvent(new window.Event('change'));
   $('taskSelect').value='4';
   $('taskSelect').dispatchEvent(new window.Event('change'));
-  if(!$('dynamicInputs').textContent.includes('повторно сверено с доступным оригиналом')) failures.push('source status 03: verified task4 source not reflected in UI');
+  if(!$('dynamicInputs').textContent.includes('повторно сверено с доступным исходным листом'))
+    failures.push('source status 03: verified task4 source not reflected in UI');
 } catch(e) {
   failures.push('source role/status regression: '+e.stack);
 }
@@ -2639,7 +2641,8 @@ try {
     $('nextBtn').click();
     const axes=[...svg.querySelectorAll('line.axis')];
     const nearGrid=(value,offset)=>{
-      const k=(value-offset)/5;
+      const cell=Number(svg.getAttribute('data-grid-cell-units'));
+      const k=(value-offset)/cell;
       return Math.abs(k-Math.round(k))<1e-6;
     };
     const v=axes.find(e=>Math.abs(Number(e.getAttribute('x1'))-Number(e.getAttribute('x2')))<1e-6);
