@@ -71,6 +71,8 @@ jobs:
         run: |
           python3 -m http.server 4173 >/tmp/sitemath-http.log 2>&1 &
           echo $! > /tmp/sitemath-http.pid
+      - name: Verify dark theme, A4 paper, Telegram and drag
+        run: node tests/theme-interactions.mjs
       - name: Run mobile browser layout checks
         run: node tests/mobile-layout.mjs
       - name: Check mouse wheel and reconstructed variants
