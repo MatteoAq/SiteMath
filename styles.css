@@ -2936,3 +2936,32 @@ body.offer-modal-open { overflow:hidden; }
     box-shadow:0 -9px 15px rgba(255,253,248,.98);
   }
 }
+
+/* The current drawing operation stays adjacent to the graphic, not solely
+   in the explanatory sheet after the paper. */
+.stage-current-step {
+  display:flex;
+  align-items:baseline;
+  flex-wrap:wrap;
+  gap:5px 10px;
+  padding:8px 16px;
+  background:linear-gradient(110deg,#fceaf5 0%,#f7eefb 70%,#f4f0ff 100%);
+  color:#49314f;
+  border-block:1px solid rgba(174,93,178,.15);
+}
+.stage-current-step > span {
+  flex:0 0 auto;
+  color:#b03b94;
+  font-size:11px;
+  font-weight:850;
+}
+.stage-current-step > strong {
+  min-width:0;
+  font-size:13px;
+  line-height:1.38;
+  font-weight:750;
+}
+@media (max-width:760px) {
+  .stage-current-step { padding:7px 10px; gap:4px 8px; }
+  .stage-current-step > strong { font-size:12px; }
+}
