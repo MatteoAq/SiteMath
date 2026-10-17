@@ -9,7 +9,8 @@ const scheme = id => JSON.parse(fs.readFileSync(
 const s12 = scheme('12').task6, s13 = scheme('13').task5;
 for (const [name, s] of [['12/6', s12], ['13/5', s13]]) {
   assert.equal(s.sourceVerified, false, name + ' must not claim metric verification');
-  assert.equal(s.sourceRecheckRequired, true, name + ' source warning was removed');
+  assert.equal(s.sourceRecheckRequired, false, name + ' is a deliberately adapted drawing');
+  assert.equal(s.adaptedSource, true, name + ' missing user-approved reconstruction flag');
   assert(s.sourceGeometry && s.sourceAvailable, name + ' original scan data missing');
   assert(!s.teachingScheme, name + ' must not silently replace the given lines');
 }
@@ -78,61 +79,89 @@ function rng(seed) {
   return () => ((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
 }
 const clone=s=>JSON.parse(JSON.stringify(s));
-const base13=xLinePlane(s13),base12=atHeight(s12);
-assert(base13.x < -8000 && base13.sine < .01,'13/5 conditioning changed');
-assert(base12.x > 3000 && base12.angle > 3 && base12.angle < 5,
-  '12/6 conditioning changed');
-
-const rand13=rng(981731);
-let min13=Infinity,max13=-Infinity,flipped13=0,near13=0;
-for(let i=0;i<12000;i++) {
-  const s=clone(s13);
-  for(const name of ['a','b','l'])for(const proj of ['p1','p2'])
-    for(let k=0;k<2;k++)
-      s.lines[name][proj][k][1]+=(2*rand13()-1);
-  const {x}=xLinePlane(s);
-  assert(Number.isFinite(x),'13/5 singular perturbed input');
-  min13=Math.min(min13,x);max13=Math.max(max13,x);
-  if(x>0)flipped13++;
-  if(Math.abs(x)<1200)near13++;
+const raw12=s12.sourceGeometry,raw13=s13.sourceGeometry;
+const original12=atHeight(raw12),original13=xLinePlane(raw13);
+const adapted12=atHeight(s12),adapted13=xLinePlane(s13);
+assert(Math.abs(original12.x)>1600&&original12.angle<7,'archived 12/6 must retain challenging source geometry');
+assert(Math.abs(original13.x)>1500&&original13.sine<.03,'archived 13/5 must retain challenging source geometry');
+assert(adapted12.x>650&&adapted12.x<1500&&adapted12.angle>7,
+ '12/6 adapted planes should meet considerably closer to the source drawing');
+assert(adapted13.x>620&&adapted13.x<1000&&adapted13.sine>.12,
+ '13/5 adapted line and plane must meet near the drawing at a usable angle');
+const xIntersection=(left,right,proj)=>{
+ const [a,b]=left,[c,d]=right;
+ const den=(a[0]-b[0])*(c[1]-d[1])-(a[1]-b[1])*(c[0]-d[0]);
+ assert(Math.abs(den)>1e-10,'parallel source lines have no junction');
+ return ((a[0]*b[1]-a[1]*b[0])*(c[0]-d[0]) -
+   (a[0]-b[0])*(c[0]*d[1]-c[1]*d[0]))/den;
+};
+const close=(x,y,tol=1e-5)=>Math.abs(x-y)<=tol;
+function fixedJunction(a,b,projection,x){
+ const aa=a[projection],bb=b[projection];
+ assert(close(xIntersection(aa,bb),x,1e-5),
+   'intersecting adapted source lines must meet at stated projector x='+x);
 }
-assert(flipped13>0 && min13<0 && max13>0,
-  '13/5 sub-pixel tracing uncertainty no longer demonstrates sign instability');
-assert.equal(near13,0,
-  '13/5 unexpected nearby intersection in chosen illustrative tracing ensemble');
-
-const rand12=rng(315);
-let min12=Infinity,max12=-Infinity;
-for(let i=0;i<4000;i++) {
-  const s=clone(s12);
-  for(const planeName of ['planeA','planeB']) {
-    for(const [name,L] of Object.entries(s[planeName].lines)) {
-      for(const proj of ['p1','p2']) {
-        // h₂ and f₁ are horizontals in their respective projections.
-        // Vary only their position, never the required horizontal direction.
-        if((name==='h'&&proj==='p2')||(name==='f'&&proj==='p1')){
-          const shift=(2*rand12()-1);
-          for(const end of L[proj])end[1]+=shift;
-        } else {
-          for(const end of L[proj])end[1]+=(2*rand12()-1);
-        }
-      }
-    }
+for(const projection of ['p1','p2']){
+ fixedJunction(s12.planeB.lines.h,s12.planeB.lines.f,projection,452);
+ fixedJunction(s13.lines.a,s13.lines.b,projection,418.867);
+ const norm12=s12.planeA.lines;
+ assert(close((norm12.a[projection][1][1]-norm12.a[projection][0][1])/
+   (norm12.a[projection][1][0]-norm12.a[projection][0][0]),
+   (norm12.b[projection][1][1]-norm12.b[projection][0][1])/
+   (norm12.b[projection][1][0]-norm12.b[projection][0][0]),1e-8),
+   '12/6 plane Sigma lost original a parallel b');
+}
+assert(close(s12.planeB.lines.h.p2[0][1],s12.planeB.lines.h.p2[1][1])&&
+ close(s12.planeB.lines.f.p1[0][1],s12.planeB.lines.f.p1[1][1]),
+ '12/6 horizontal h and frontal f must remain axis-parallel');
+for(const [name,raw,adapted] of [
+  ['12/6',raw12,s12],
+  ['13/5',raw13,s13]
+]){
+ const lineSets=name==='12/6'
+   ? [['planeA',raw.planeA.lines,adapted.planeA.lines],
+      ['planeB',raw.planeB.lines,adapted.planeB.lines]]
+   : [['plane',raw.lines,adapted.lines]];
+ for(const [kind,rawLines,drawnLines] of lineSets){
+  for(const [label,line] of Object.entries(drawnLines)){
+   for(const proj of ['p1','p2']){
+    const reference=rawLines[label][proj],altered=line[proj];
+    assert(Math.abs(reference[1][0]-reference[0][0])>0 &&
+      close(reference[0][0],altered[0][0])&&close(reference[1][0],altered[1][0]),
+      name+' must preserve drawn line segment horizontal endpoints '+kind+label+proj);
+    for(let i=0;i<2;i++)assert(Math.abs(reference[i][1]-altered[i][1])<35,
+      name+' reconstructed stroke exceeds silhouette deformation limit: '+kind+label+proj);
+   }
   }
-  const {x}=atHeight(s);
-  assert(Number.isFinite(x),'12/6 singular perturbed input');
-  min12=Math.min(min12,x);max12=Math.max(max12,x);
+ }
 }
-assert(min12>2000 && max12>base12.x+250,
-  '12/6 remote intersection or source sensitivity unexpectedly changed');
-
+const rand13=rng(981731),rand12=rng(315);
+let range13=[Infinity,-Infinity],range12=[Infinity,-Infinity];
+for(let i=0;i<12000;i++){
+ const copy=clone(s13);
+ for(const name of ['a','b','l'])for(const proj of ['p1','p2'])for(let k=0;k<2;k++)
+   copy.lines[name][proj][k][1]+=(2*rand13()-1);
+ const {x}=xLinePlane(copy);
+ assert(Number.isFinite(x),'13/5 unstable even after deliberate reconstruction');
+ range13=[Math.min(range13[0],x),Math.max(range13[1],x)];
+}
+for(let i=0;i<4000;i++){
+ const copy=clone(s12);
+ for(const planeName of ['planeA','planeB'])for(const [name,L] of Object.entries(copy[planeName].lines))
+  for(const proj of ['p1','p2']){
+   const amount=(2*rand12()-1);
+   if((name==='h'&&proj==='p2')||(name==='f'&&proj==='p1'))
+     L[proj].forEach(p=>p[1]+=amount);
+   else L[proj].forEach(p=>p[1]+=(2*rand12()-1));
+  }
+ const {x}=atHeight(copy);
+ assert(Number.isFinite(x),'12/6 unstable even after reconstruction');
+ range12=[Math.min(range12[0],x),Math.max(range12[1],x)];
+}
+assert(range12[0]>500&&range12[1]<2000,'12/6 adapted source now unstable near one-pixel uncertainty');
+assert(range13[0]>500&&range13[1]<1150,'13/5 adapted source now unstable near one-pixel uncertainty');
 console.log(JSON.stringify({
-  type:'Source-tracing conditioning diagnostic, NOT a metric certification',
-  units:'internal image coordinates (not millimetres)',
-  perturbation:'uniform independent ordinate deviations within one image unit; fixed-seed demonstration, not a probability model',
-  '12/6':{baseline_x:base12.x,plane_angle_deg:base12.angle,
-    x_range_at_z_minus_230:[min12,max12],samples:4000},
-  '13/5':{baseline_x:base13.x,line_plane_sine:base13.sine,
-    sampled_x_extremes:[min13,max13],sign_flips:flipped13,
-    nearby_within_1200:near13,samples:12000}
+  source:'Original-photo and adapted geometry comparison, not original-photo measurement',
+  '12/6':{original_x:original12.x,adapted_x:adapted12.x,adapted_angle_degrees:adapted12.angle,perturbed_x:range12},
+  '13/5':{original_x:original13.x,adapted_x:adapted13.x,adapted_sine:adapted13.sine,perturbed_x:range13}
 },null,2));
