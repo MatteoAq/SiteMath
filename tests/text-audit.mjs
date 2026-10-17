@@ -70,6 +70,21 @@ for(let vi=1;vi<=20;vi++){
           issues.push({variant,task,step:step+1,type:'line-point-free-point-check-not-geometric',
             title:entry.title,action:entry.action,check:entry.check});
       }
+      if(task===6&&step===0){
+        const s6=w.SITEMATH_SCHEMES[variant].task6;
+        if(s6.planeA?.type==='intersecting_lines'&&s6.planeB?.type==='line_point'){
+          const lines=Object.keys(s6.planeA.lines||{});
+          const h=s6.planeB.lineName||Object.keys(s6.planeB.lines||{})[0];
+          const point=s6.planeB.pointName||Object.keys(s6.planeB.points||{})[0];
+          const required=[
+            lines[0]+'₁ и '+lines[1]+'₁',lines[0]+'₂ и '+lines[1]+'₂',
+            h+'₁/'+h+'₂',point+'₁/'+point+'₂','вертикальной линии связи'
+          ];
+          if(required.some(x=>!entry.check.includes(x)))
+            issues.push({variant,task,step:1,type:'line-point-source-plane-check-vague',
+              required,check:entry.check});
+        }
+      }
       if(task===4&&step===0){
         const plane=w.SITEMATH_SCHEMES[variant].task4;
         const required=plane.planeType==='ABC'
