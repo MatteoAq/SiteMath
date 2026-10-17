@@ -81,6 +81,7 @@ for (const vp of viewports) {
 
   await page.addInitScript(() => localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
+  if(await page.locator('#offerOverlay').isVisible())await page.locator('#offerCloseBtn').click();
 
   if (!(await page.locator('#firstRunPicker').isVisible())) {
     failures.push(vp.name+': first-run chooser not visible with empty storage');
@@ -88,6 +89,7 @@ for (const vp of viewports) {
   await visibleOverflow(page,vp.name+' first-run');
   await page.screenshot({path:'mobile-screenshots/'+vp.name+'-first-run.png',fullPage:true});
 
+  await page.locator('#courseCatalog button.course-card').click();
   await page.locator('#assignmentCatalog button.assignment-card').click();
   await page.screenshot({path:'mobile-screenshots/'+vp.name+'-album-setup.png',fullPage:true});
   await page.locator('.first-run-variant[data-variant="13"]').click();
@@ -191,6 +193,8 @@ for (const vp of viewports) {
   const page = await context.newPage();
   await page.addInitScript(() => localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
+  if(await page.locator('#offerOverlay').isVisible())await page.locator('#offerCloseBtn').click();
+  await page.locator('#courseCatalog button.course-card').click();
   await page.locator('#assignmentCatalog button.assignment-card').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
@@ -772,6 +776,8 @@ for(const viewport of [{width:768,height:700},{width:1024,height:768},
   const page=await context.newPage();
   await page.addInitScript(()=>localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
+  if(await page.locator('#offerOverlay').isVisible())await page.locator('#offerCloseBtn').click();
+  await page.locator('#courseCatalog button.course-card').click();
   await page.locator('#assignmentCatalog button.assignment-card').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
@@ -812,6 +818,8 @@ for (const vp of [
   const page=await context.newPage();
   await page.addInitScript(()=>localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
+  if(await page.locator('#offerOverlay').isVisible())await page.locator('#offerCloseBtn').click();
+  await page.locator('#courseCatalog button.course-card').click();
   await page.locator('#assignmentCatalog button.assignment-card').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
@@ -865,6 +873,8 @@ for (const vp of [
   const page=await context.newPage();
   await page.addInitScript(()=>localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
+  if(await page.locator('#offerOverlay').isVisible())await page.locator('#offerCloseBtn').click();
+  await page.locator('#courseCatalog button.course-card').click();
   await page.locator('#assignmentCatalog button.assignment-card').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="6"]').click();
@@ -919,8 +929,9 @@ for (const vp of [
   });
   const page=await context.newPage();
   await page.goto(base,{waitUntil:'networkidle'});
+  if(await page.locator('#offerOverlay').isVisible())await page.locator('#offerCloseBtn').click();
   if(await page.locator('#offerOverlay').isVisible())
-    failures.push('catalogue: unsolicited sales dialog covers the library');
+    failures.push('welcome offer: did not dismiss initial notice');
   await page.locator('#catalogCommissionBtn').click();
   if(!(await page.locator('#offerOverlay').isVisible()))
     failures.push('catalogue: order dialog did not open on request');
@@ -945,6 +956,7 @@ for (const vp of [
     failures.push('welcome offer: dialog did not close');
   if(!(await page.locator('#firstRunPicker').isVisible()))
     failures.push('welcome offer: variant picker is not available after dismissal');
+  await page.locator('#courseCatalog button.course-card').click();
   await page.locator('#assignmentCatalog button.assignment-card').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
