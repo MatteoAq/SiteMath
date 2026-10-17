@@ -107,11 +107,15 @@ for (const vp of viewports) {
     const w=wrap.getBoundingClientRect(),v=svg.getBoundingClientRect(),
       panel=sheet.getBoundingClientRect();
     const screenRight=window.innerWidth,screenBottom=window.innerHeight;
-    const left=Math.max(0,w.left,v.left),right=Math.min(screenRight,w.right,v.right);
+    // On landscape phones the instruction sheet docks to the RIGHT of
+    // the drawing. Compare x-extent there, not its top against the canvas.
+    const beside=panel.left>=w.left+w.width*.45;
+    const left=Math.max(0,w.left,v.left);
+    const right=Math.min(screenRight,w.right,v.right,beside?panel.left-6:screenRight);
     const top=Math.max(0,w.top,v.top);
-    const bottom=Math.min(screenBottom,w.bottom,v.bottom,panel.top-6);
+    const bottom=Math.min(screenBottom,w.bottom,v.bottom,beside?screenBottom:panel.top-6);
     return {visible:(right-left)>100&&(bottom-top)>90,
-      width:Math.round(right-left),height:Math.round(bottom-top),
+      beside,width:Math.round(right-left),height:Math.round(bottom-top),
       svg:{x:Math.round(v.left),y:Math.round(v.top),width:Math.round(v.width),height:Math.round(v.height)},
       wrap:{y:Math.round(w.top),height:Math.round(w.height)},
       sheetY:Math.round(panel.top),
@@ -190,10 +194,20 @@ for (const vp of viewports) {
       await tab.click();
       await page.waitForTimeout(30);
       await visibleOverflow(page,vp.name+' step-'+mode);
-      const clipped=await page.locator('#stepInfoPage').count()
-        ? await page.locator('#stepInfoPage').evaluate(el=>el.scrollHeight>el.clientHeight+1)
-        : await page.locator('.step-info-page').evaluate(el=>el.scrollHeight>el.clientHeight+1);
-      if(clipped) failures.push(vp.name+': step '+mode+' text is clipped inside fixed explanation area');
+      const content=await page.locator('#stepInfoPage').count()
+        ? page.locator('#stepInfoPage') : page.locator('.step-info-page');
+      const access=await content.evaluate(el=>{
+        const overflow=el.scrollHeight>el.clientHeight+1;
+        const mode=getComputedStyle(el).overflowY;
+        if(!overflow)return {accessible:true,overflow:false};
+        const before=el.scrollTop;
+        el.scrollTop=el.scrollHeight;
+        const accessible=/(auto|scroll)/.test(mode) && el.scrollTop>before+2;
+        el.scrollTop=0;
+        return {accessible,overflow,mode,room:el.clientHeight};
+      });
+      if(!access.accessible || access.room<42)
+        failures.push(vp.name+': step '+mode+' text cannot be read by scrolling '+JSON.stringify(access));
     } else {
       failures.push(vp.name+': missing step info tab '+mode);
     }

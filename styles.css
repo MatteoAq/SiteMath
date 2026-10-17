@@ -3787,3 +3787,61 @@ html[data-theme="dark"] .first-run-variant.is-selected:focus-visible {
   outline:3px solid #fff5ff;
   outline-offset:3px;
 }
+
+/* Landscape phones: a real side-by-side workbench.
+   The previous generic mobile rule overrode the 57% canvas width and put the
+   fixed explanation sheet over the entire drawing. */
+@media (max-width:760px) and (orientation:landscape) and (max-height:500px) {
+  body:not(.first-run-open) .stage-panel {position:relative;}
+  body:not(.first-run-open) .paper-wrap {
+    width:56% !important;
+    max-width:56% !important;
+    flex:1 1 auto;
+    min-height:0;
+    height:auto;
+    padding:9px 8px 16px;
+    margin:0 auto 0 0;
+  }
+  body:not(.first-run-open) .explanation-panel,
+  body:not(.first-run-open) .explanation-panel.is-expanded {
+    position:fixed;
+    left:auto;
+    right:8px;
+    top:calc(var(--mobile-appbar-h) + 56px);
+    bottom:7px;
+    width:calc(44% - 14px);
+    height:auto;
+    min-height:0;
+    max-height:none !important;
+    overflow:hidden !important;
+    border-radius:14px;
+    padding:8px 9px 5px;
+  }
+  body:not(.first-run-open) .explanation-panel .step-info-page {
+    flex:1 1 auto;
+    overflow-y:auto !important;
+    min-height:44px;
+    scrollbar-width:thin;
+  }
+  body:not(.first-run-open) .explanation-panel .mobile-step-nav {
+    padding:4px 0 3px;
+    gap:4px;
+  }
+  body:not(.first-run-open) .explanation-panel > h2 {font-size:14px;}
+  body:not(.first-run-open) .stage-current-step {
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+}
+@media (max-width:760px) {
+  body:not(.first-run-open) .explanation-panel .step-info-page {
+    scrollbar-width:thin;
+    scrollbar-color:#ab82bb transparent;
+    scroll-padding-bottom:20px;
+  }
+  body:not(.first-run-open) .explanation-panel .step-info-page::-webkit-scrollbar {width:5px;}
+  body:not(.first-run-open) .explanation-panel .step-info-page::-webkit-scrollbar-thumb {
+    background:#ab82bb; border-radius:99px;
+  }
+}
