@@ -27,12 +27,15 @@ async function inspect(page,label){
         const s=getComputedStyle(el),r=el.getBoundingClientRect();
         const excluded=el.matches('.is-selected,[aria-selected=true],.is-active')||
           !!el.closest('.is-selected,[aria-selected=true]');
+        // Selected variant tiles are actual buttons and must not evade the
+        // light-surface audit merely because they are selected.
+        const chosenVariant=el.matches('.first-run-variant.is-selected,.variant-chip.is-selected');
         const grad=/rgb\((?:25[0-5],\s*){3}\)|#fff(?:fff)?\b/i.test(s.backgroundImage);
         return {
           element:el.tagName.toLowerCase(),id:el.id,cls:String(el.className).slice(0,80),
           title:(el.getAttribute('aria-label')||el.textContent||'').trim().slice(0,40),
           background:s.backgroundColor,image:s.backgroundImage.slice(0,95),
-          light:!excluded&&(isBright(s.backgroundColor)||grad),
+          light:(!excluded||chosenVariant)&&(isBright(s.backgroundColor)||grad),
           rect:{x:r.x,y:r.y,width:r.width,height:r.height}
         };
       });
