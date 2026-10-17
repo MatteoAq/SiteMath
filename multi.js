@@ -79,6 +79,16 @@
     return Number.isInteger(v) ? String(v) : v.toFixed(d).replace('.', ',');
   }
 
+  function cellCount(mm){
+    const value=Math.abs(mm)/GRID;
+    const whole=Math.round(value);
+    const word=Number.isInteger(value)
+      ? ((whole%100>=11&&whole%100<=14)||whole%10===0||whole%10>=5
+          ? 'клеток' : whole%10===1?'клетка':'клетки')
+      : 'клетки';
+    return fmt(value)+' '+word;
+  }
+
   function signedCoord(n){
     const v=Math.abs(n)<1e-9?0:n;
     return v<0?'−'+fmt(Math.abs(v)):fmt(v);
@@ -1721,7 +1731,7 @@
           ? 'Для '+name+' координата x равна нулю: линия связи проходит через O, отступ по оси x не нужен.'
           : 'От O по оси x отложи '+fmt(Math.abs(p.x))+' мм '+(p.x>0?'влево':'вправо')+'. Через отметку проведи вертикальную линию связи.',
         why:'У '+name+'₁ и '+name+'₂ одинаковое положение по x, поэтому обе проекции нужно строить на одной вертикали.',
-        measure:['|x| = '+Math.abs(p.x)+' мм = '+fmt(Math.abs(p.x)/GRID)+' клеток'],
+        measure:['|x| = '+Math.abs(p.x)+' мм = '+cellCount(Math.abs(p.x))],
         check:'Линия связи перпендикулярна оси x₁₂ и проходит через отметку '+fmt(Math.abs(p.x))+' мм от O.',
       },[
         dim(i,O,q.xFoot,Math.abs(p.x)+' мм',{x:0,y:-4}),
@@ -1734,8 +1744,8 @@
         action:coordinateYZ(name,p),
         why:'Положение '+name+'₁ задаёт координата y, а '+name+'₂ – высота z. Обе величины отсчитываются от одной оси x₁₂.'+(pyramid?' Если вершина на виде скрыта гранью пирамиды, её обозначение показано в скобках.':''),
         measure:[
-          '|y| = '+Math.abs(p.y)+' мм = '+fmt(Math.abs(p.y)/GRID)+' клеток',
-          '|z| = '+Math.abs(p.z)+' мм = '+fmt(Math.abs(p.z)/GRID)+' клеток'
+          '|y| = '+Math.abs(p.y)+' мм = '+cellCount(Math.abs(p.y)),
+          '|z| = '+Math.abs(p.z)+' мм = '+cellCount(Math.abs(p.z))
         ],
         check:'Линейкой измерь расстояния от x₁₂: до '+name+'₁ должно быть '+fmt(Math.abs(p.y))+' мм, до '+name+'₂ – '+fmt(Math.abs(p.z))+' мм.',
       },[
@@ -1958,7 +1968,7 @@
         ? 'Разность высот равна нулю, поэтому A₀ совпадает с A₁. Проекция A₁B₁ уже показывает натуральную длину AB.'
         : 'Из A₁ угольником проведи перпендикуляр к A₁B₁. Отложи на нём '+fmt(Math.abs(dz3))+' мм до A₀ и соедини A₀ с B₁.',
       why:'Катеты A₁B₁ и |zB−zA| взаимно перпендикулярны. Гипотенуза B₁A₀ равна натуральной величине AB.',
-      measure:['|Δz| = '+fmt(Math.abs(dz3))+' мм = '+fmt(Math.abs(dz3)/GRID)+' клеток','НВ AB = '+fmt(L)+' мм','α = '+fmt(alpha)+'°'],
+      measure:['|Δz| = '+fmt(Math.abs(dz3))+' мм = '+cellCount(Math.abs(dz3)),'НВ AB = '+fmt(L)+' мм','α = '+fmt(alpha)+'°'],
       check:Math.abs(dz3)<EPS
         ? 'Поскольку Δz = 0, натуральная длина равна A₁B₁ = '+fmt(L)+' мм.'
         : 'Прямой угол должен быть у A₁, гипотенуза B₁A₀ – '+fmt(L)+' мм.',
@@ -1977,7 +1987,7 @@
         ? 'Расстояния A и B от Π₂ одинаковы: B₀ совпадает с B₂. Отрезок A₂B₂ уже имеет натуральную длину AB.'
         : 'Из B₂ угольником проведи перпендикуляр к A₂B₂, отложи на нём '+fmt(Math.abs(dy3))+' мм до B₀ и соедини B₀ с A₂.',
       why:'Теперь второй катет – разность удалений точек от Π₂. Полученная гипотенуза снова равна AB, что даёт независимую проверку.',
-      measure:['|Δy| = '+fmt(Math.abs(dy3))+' мм = '+fmt(Math.abs(dy3)/GRID)+' клеток','НВ AB = '+fmt(L)+' мм','β = '+fmt(beta)+'°'],
+      measure:['|Δy| = '+fmt(Math.abs(dy3))+' мм = '+cellCount(Math.abs(dy3)),'НВ AB = '+fmt(L)+' мм','β = '+fmt(beta)+'°'],
       check:Math.abs(dy3)<EPS
         ? 'При Δy = 0 длина A₂B₂ должна быть '+fmt(L)+' мм, как и у первой гипотенузы.'
         : 'Измерь A₂B₀ и B₁A₀. Оба отрезка должны иметь длину '+fmt(L)+' мм.',
@@ -4694,7 +4704,7 @@
         action:'Из T₁ проведи проектор; если '+lineA+'₂ короче, продли исходный штрих до T₂.',
         why:'T₁ и T₂ – проекции одной точки заданной прямой '+lineA+'.',
         measure:['T₁T₂ – линия связи','T₂ ∈ '+lineA+'₂ или её продолжению'],
-        check:'T₂ находится на одновременно проведённых проекторе и '+lineA+'₂.'
+        check:'T₂ лежит на линии связи из T₁ и на '+lineA+'₂. Обе отметки должны совпадать в одной точке.'
       },[
         ...segmentExtensionEntities(i,item.def.lines[lineA].p2,T2),
         line(i,T1,T2,'construction-line'),point(i,T2,'T₂','construction-dot')
