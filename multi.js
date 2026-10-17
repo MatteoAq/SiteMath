@@ -1629,11 +1629,20 @@
     });
 
     const complexWidth=frame.width;
-    const axOrigin={x:complexWidth+55,y:Math.max(70,O.y)};
     const axScale=.52;
     const ex={x:-.78*axScale,y:.44*axScale};
     const ey={x:.78*axScale,y:.44*axScale};
     const ez={x:0,y:-1*axScale};
+    // The axonometric picture is an explanatory view, not a fixed source
+    // coordinate. Move only this free view, leaving at least 12 mm between it
+    // and the Monge fields. The old unconditional +110 mm reservation made
+    // nearly all task-1 variants needlessly shrink from 1:1 to 1:2 on A4.
+    const leftmostAx=Math.min(0,...names.map(n=>{
+      const p=coords[n];
+      return ex.x*p.x+ey.x*p.y;
+    }));
+    const axGap=Math.max(32,12-leftmostAx);
+    const axOrigin={x:complexWidth+axGap,y:Math.max(70,O.y)};
     const ax={};
     names.forEach(n=>{
       const p=coords[n];
@@ -1648,8 +1657,8 @@
     Object.values(ax).forEach(v=>axPoints.push(v.p));
     const allPts=raw.map(p=>shiftPoint(p,dx,dy)).concat(axPoints);
     const bb=bounds(allPts,18);
-    const width=Math.max(complexWidth+110,bb.maxX+10);
-    const height=ceilToGrid(Math.max(frame.height,bb.maxY+15,145));
+    const width=Math.max(complexWidth+28,bb.maxX+10);
+    const height=ceilToGrid(Math.max(frame.height,bb.maxY+10,145));
 
     const steps=[];
     const push=(meta,entities,tool)=>steps.push(Object.assign({},meta,{entities:entities||[],tool:tool||null}));
