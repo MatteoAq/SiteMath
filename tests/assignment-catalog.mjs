@@ -39,6 +39,13 @@ try {
     }
     assert(await home.isVisible(),'Cannot return to catalogue from solver');
     assert.equal(await page.locator('#firstRunVariantSummary').textContent(),'Вариант 12');
+    await page.reload({waitUntil:'networkidle'});
+    assert(await home.isVisible(),
+      'A returning visitor must see the growing assignment library');
+    assert.equal(await page.locator('#firstRunVariantSummary').textContent(),'Вариант 12',
+      'Returning visitor lost the selected variant');
+    assert(!(await page.locator('#firstRunStart').isDisabled()),
+      'Saved variant and task should enable reopening the solver');
     await page.close();
   }
   console.log('Assignment catalogue, exact university title, mobile layout, solver routing and navigation OK');

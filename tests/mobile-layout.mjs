@@ -951,8 +951,8 @@ for (const vp of [
   await page.reload({waitUntil:'networkidle'});
   if(await page.locator('#offerOverlay').isVisible())
     failures.push('catalogue: dialog unexpectedly reappears on reload');
-  await page.locator('#mobileSetupBtn').click();
-  await page.locator('#mobileCatalogBackBtn').click();
+  if(!(await page.locator('#firstRunPicker').isVisible()))
+    failures.push('catalogue: not displayed when returning with saved selection');
   await page.locator('#catalogCommissionBtn').click();
   if(!(await page.locator('#offerOverlay').isVisible()))
     failures.push('catalogue: order dialog cannot reopen after returning to library');

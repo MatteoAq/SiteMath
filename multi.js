@@ -5904,14 +5904,11 @@
   initSelectors();
   setupCanvasGestures();
   updateMobileSummary();
-  if(remembered){
-    renderInputs();
-    rebuild(true);
-    setDrawingZoom('fit');
-  } else {
-    syncChoicePickers();
-    showFirstRunPicker();
-  }
+  // Always enter through the assignment library, even when a previous
+  // variant was saved. Its selection is restored, so returning takes one
+  // click and new albums remain discoverable on every visit.
+  syncChoicePickers();
+  showFirstRunPicker();
   // The catalogue is the entry point: never cover it with a sales modal.
   // Commission details remain available on demand from its header.
 })();
