@@ -40,6 +40,17 @@ try {
       'Album details should replace the list rather than extend the long page');
     assert(await page.locator('#activeAssignment').isVisible(),
       'Choosing an album did not show its variants and tasks');
+    if(size.width<=420){
+      const visible=await page.locator('.catalog-work-fields .first-run-heading').evaluateAll(headings=>
+        headings.map(h=>{
+          const label=h.querySelector('b'),summary=h.querySelector('em');
+          return {labelVisible:label.scrollWidth<=label.clientWidth+1,
+            summaryVisible:summary.scrollWidth<=summary.clientWidth+1,
+            wrapped:getComputedStyle(summary).whiteSpace!=='nowrap'};
+        }));
+      assert(visible.every(h=>h.labelVisible&&h.summaryVisible&&h.wrapped),
+        'Narrow catalogue hides selected task name: '+JSON.stringify(visible));
+    }
     await page.locator('#catalogListBackBtn').click();
     assert(await page.locator('#catalogListView').isVisible(),
       'Cannot return from setup to assignments');
