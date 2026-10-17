@@ -121,7 +121,18 @@ button { border: 0; border-radius: 11px; padding: 10px 12px; font-weight: 750; }
 .swatch.object { background: var(--ink); height: 3px; }
 .swatch.source-guide { background:#77716a; height:1px; }
 .swatch.active { background: var(--accent); height: 3px; }
-.swatch.auxiliary { background:#7b6a8a; height:2px; border-top:1px dashed #7b6a8a; }
+.swatch.auxiliary { background:#7b6a8a; height:2px; border:0; }
+.swatch.hidden {
+  height:2px;
+  background:repeating-linear-gradient(90deg,#285f78 0 8px,transparent 8px 13px);
+}
+.legend-note {
+  margin:-6px 0 10px;
+  padding:0 17px;
+  font-size:11px;
+  line-height:1.5;
+  color:var(--muted);
+}
 
 .explanation-panel { padding: 18px; }
 .step-badge { display: inline-block; padding: 6px 9px; border-radius: 999px; background: var(--accent-soft); color: #7f3426; font-size: 12px; font-weight: 850; }
@@ -142,12 +153,14 @@ button { border: 0; border-radius: 11px; padding: 10px 12px; font-weight: 750; }
 /* SVG */
 .grid-minor { stroke: var(--paper-line); stroke-width: .18; }
 .grid-major { stroke: var(--paper-major); stroke-width: .28; }
-.axis { stroke: #37332e; stroke-width: .55; fill: none; }
+.axis { stroke: #37332e; stroke-width: .30; fill: none; }
 .construction-line { stroke: var(--construction); stroke-width: .32; fill: none; stroke-dasharray: none; }
 .source-guide-line { stroke:#77716a; stroke-width:.28; fill:none; }
 .object-line { stroke: #26231f; stroke-width: .72; fill: none; }
 .answer-line { stroke: var(--blue); stroke-width: .72; fill: none; }
-.active-line { stroke-width: .9 !important; }
+/* Active-step highlighting must not change a line's drafting type.
+   Use a halo instead of making thin and dashed strokes thick. */
+.active-line { filter:drop-shadow(0 0 .85px rgba(207,54,165,.65)); }
 .object-line.active-line { stroke:#26231f !important; }
 .source-guide-line.active-line { stroke:#77716a !important; }
 .construction-line.active-line { stroke:var(--construction) !important; }
@@ -219,7 +232,10 @@ select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(184,79,58
 }
 
 .aux-line { stroke: #7b6a8a; stroke-width: .30; fill: none; stroke-dasharray: none; opacity:.9; }
-.hidden-line { stroke: #285f78; stroke-width: .68; fill: none; stroke-dasharray: 3 2; }
+/* ГОСТ 2.303–68* in the supplied lecture: dashed invisible outlines use
+   S/3…S/2, with a dash approximately ten stroke widths long.
+   Here the visible reference stroke is S=.72, so .30 is about .417S. */
+.hidden-line { stroke: #285f78; stroke-width: .30; fill: none; stroke-dasharray: 3 2; }
 .construction-dot { fill: var(--construction); }
 .source-guide-dot { fill:#77716a; }
 

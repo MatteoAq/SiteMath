@@ -75,6 +75,8 @@ jobs:
         run: node tests/mobile-layout.mjs
       - name: Check mouse wheel and reconstructed variants
         run: node tests/wheel-zoom.mjs
+      - name: Verify line conventions from the teaching materials
+        run: node tests/line-conventions.mjs
       - name: Upload mobile screenshots
         if: always()
         uses: actions/upload-artifact@v4
