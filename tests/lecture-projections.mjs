@@ -57,6 +57,32 @@ for(const [variant,entry] of Object.entries(W.SITEMATH_DATA.variants)){
     }
     projections+=3;
   }
+  // The final pictorial view must expose the actual three coordinate
+  // transfers x, y, z, not just a radial O→P line ending at the answer.
+  const picture=g1.steps.at(-1),pictureAxes=picture.entities.filter(e=>
+    e.type==='line'&&e.cls==='axis');
+  assert.equal(pictureAxes.length,3,variant+'/1: three pictorial axes missing');
+  const pictureO=pictureAxes[0].a;
+  const basis=pictureAxes.map(e=>({
+    x:(e.b.x-e.a.x)/(55/.52),y:(e.b.y-e.a.y)/(55/.52)
+  }));
+  const guides=picture.entities.filter(e=>e.type==='line'&&e.cls==='construction-line');
+  for(const [name,P] of Object.entries(c1)){
+    const path=[pictureO];
+    for(const [j,v] of [P.x,P.y,P.z].entries()){
+      const last=path.at(-1),u=basis[j];
+      path.push({x:last.x+u.x*v,y:last.y+u.y*v});
+    }
+    const point=picture.entities.find(e=>e.type==='point'&&e.label===name);
+    if(!point||length(point.p,path[3])>1e-5)
+      issues.push(variant+'/1: axonometric point '+name+' mismatch');
+    for(let i=0;i<3;i++){
+      if(length(path[i],path[i+1])<1e-7)continue;
+      if(!guides.some(e=>length(e.a,path[i])<1e-5&&
+         length(e.b,path[i+1])<1e-5))
+        issues.push(variant+'/1: missing coordinate transfer '+name+' component '+i);
+    }
+  }
   const c2=points(entry.task2),g2=solver.solveTask2(c2);
   assert(!g2.error,variant+'/2: '+g2.error);
   const A=c2.A,B=c2.B,D={

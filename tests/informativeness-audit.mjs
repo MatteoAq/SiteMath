@@ -151,6 +151,8 @@ fs.writeFileSync('informativeness-report.json',JSON.stringify(audit,null,2));
 if(overflows.length)throw new Error('A4_OVERFLOWS '+JSON.stringify(overflows));
 const critical=audit.filter(x=>x.status==='review').sort((a,b)=>
   (a.sourceShare??1)-(b.sourceShare??1)||a.scale-b.scale);
+if(critical.length)
+  throw new Error('Readable-A4 regression across 120 tasks: '+JSON.stringify(critical));
 if(audit.length!==120 || new Set(audit.map(x=>x.variant)).size!==20)
   throw new Error('Incomplete 20 × 6 all-variant informativity audit');
 const graphical=audit.filter(x=>x.task>=4);
