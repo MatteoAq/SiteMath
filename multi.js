@@ -5478,6 +5478,12 @@
     $('stageCurrentTitle').textContent=st.title;
     const remoteHint=$('remoteSourceHint');
     if(remoteHint){
+      const sourceKey=state.variant+'/'+state.task;
+      if(remoteHint.dataset.sourceKey!==sourceKey){
+        const details=$('remoteSourceDetails');
+        if(details)details.open=false;
+        remoteHint.dataset.sourceKey=sourceKey;
+      }
       const isRemote12=state.variant==='12'&&state.task===6;
       const isRemote13=state.variant==='13'&&state.task===5;
       remoteHint.hidden=!(isRemote12||isRemote13);
