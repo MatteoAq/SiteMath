@@ -40,6 +40,14 @@ for(let vi=1;vi<=20;vi++){
         measure:[...$('stepMeasure').querySelectorAll('li')].map(x=>x.textContent.trim())
       };
       stages.push(entry);
+      if(task===1&&/^Дострой профильную проекцию/u.test(entry.title)&&
+         (!/вертикал/u.test(entry.action)||!/горизонтал/u.test(entry.action)))
+        issues.push({variant,task,step:step+1,type:'profile-construction-not-reproducible',
+          title:entry.title,action:entry.action});
+      if(task===4&&/^Выбери (?:T[₁₂]|вспомогательную точку N[₁₂])/u.test(entry.title)&&
+         !/середин/u.test(entry.action))
+        issues.push({variant,task,step:step+1,type:'auxiliary-point-placement-not-described',
+          title:entry.title,action:entry.action});
       if(task===4&&/^Выбери точку (?:1₂|3₁) на /.test(entry.title)&&
          !/(?:\d+% длины|продолжении штриха|положение в схеме)/.test(entry.action))
         issues.push({variant,task,step:step+1,type:'free-point-placement-not-reproducible',
