@@ -5408,9 +5408,26 @@
     const pages=stepInfoPages(st,mode);
     state.stepInfoPage=Math.max(0,Math.min(state.stepInfoPage||0,pages.length-1));
     const page=pages[state.stepInfoPage]||pages[0];
-    $('stepInfoText').textContent=page.text||'';
-    $('stepInfoMeasure').innerHTML=page.items&&page.items.length
-      ? '<p class="step-measure-heading">Размеры и ориентиры</p><ul class="step-measure-list">'+page.items.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>'
+    const paperScale=state.task<=3 ? (state.paperFrame?.scale||1) : 1;
+    const reduced=paperScale<.999;
+    const reductionLabel=reduced
+      ? 'Масштаб A4 1:'+fmt(1/paperScale)+': расстояния из условия на листе откладывай в '+fmt(1/paperScale)+' раза меньше. '
+      : '';
+    $('stepInfoText').textContent=(reduced&&['action','check'].includes(mode)
+      ? reductionLabel:'')+(page.text||'');
+    // Keep the original numerical condition intact, but show exactly how
+    // many physical 5 mm cells the reduced drawing uses. This prevents
+    // students from copying ten source cells when the A4 plan has five.
+    const paperItems=(page.items||[]).map(item=>{
+      if(!reduced||/^Сетка[: ]/.test(item))return item;
+      return item.replace(/(\d+(?:[.,]\d+)?)\s*мм\s*=\s*\d+(?:[.,]\d+)?\s*клет(?:ок|ка|ки)/g,
+        (_,raw)=>{
+          const mm=Number(raw.replace(',','.'));
+          return fmt(mm)+' мм по условию; на A4 '+fmt(mm*paperScale)+' мм = '+cellCount(mm*paperScale);
+        });
+    });
+    $('stepInfoMeasure').innerHTML=paperItems.length
+      ? '<p class="step-measure-heading">Размеры и ориентиры</p><ul class="step-measure-list">'+paperItems.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>'
       : '';
     const pager=$('stepInfoPager');
     pager.hidden=pages.length<=1;
