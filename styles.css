@@ -3447,3 +3447,145 @@ button.assignment-card:focus-visible,
   }
   body:not(.first-run-open) .paper-wrap #drawing {margin:0 auto auto;}
 }
+
+/* Alternate interface palette – drawing paper deliberately stays light.
+   All interaction surfaces use the same rose-violet hue family. */
+.theme-toggle {
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  min-height:39px; padding:8px 12px; border-radius:11px;
+  border:1px solid #e3d3ec; background:#fffaff; color:#71358f;
+  font-size:12px; font-weight:750; white-space:nowrap;
+}
+.theme-toggle:hover {border-color:#c478dd;background:#fcf1ff;}
+.theme-toggle:focus-visible {outline:2px solid #a855f7;outline-offset:2px;}
+.theme-icon {font-size:18px;line-height:1;}
+.mobile-sheet-actions {display:flex;align-items:center;gap:7px;justify-content:flex-end;}
+@media (max-width:760px) {
+  .controls-panel .mobile-sheet-head {grid-template-columns:minmax(0,1fr) auto;}
+  .mobile-sheet-actions .theme-toggle-mobile {
+    padding:0;width:40px;min-width:40px;min-height:40px;height:40px;
+  }
+  .theme-toggle-mobile .theme-copy {display:none;}
+  .catalog-nav-actions {flex-wrap:wrap;justify-content:flex-end;}
+  .catalog-nav-actions .theme-toggle .theme-copy {display:none;}
+  .catalog-nav-actions .theme-toggle {width:39px;padding:0;flex:0 0 39px;}
+}
+html[data-theme="dark"] {
+  color-scheme:dark;
+  --ink:#efe5f5; --muted:#bfaeca; --panel:#241a2c;
+  --accent:#d946b3; --accent-soft:#583050;
+  --ui-surface:#22192a; --ui-muted:#c4b2ce;
+  --ui-line:#ae69cb; --paper:#fffdfd;
+}
+html[data-theme="dark"] body,
+html[data-theme="dark"] body.first-run-open {
+  background:radial-gradient(circle at 12% 0%,rgba(194,67,173,.15),transparent 30rem),
+    radial-gradient(circle at 92% 20%,rgba(132,72,228,.11),transparent 27rem),#17121f;
+  color:#efe5f5;
+}
+html[data-theme="dark"] .first-run-picker:not([hidden]) {background:#17121f;}
+html[data-theme="dark"] .first-run-card,
+html[data-theme="dark"] .catalog-work-setup,
+html[data-theme="dark"] .assignment-card,
+html[data-theme="dark"] .course-card,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .controls-panel,
+html[data-theme="dark"] .picker-card,
+html[data-theme="dark"] .task-card,
+html[data-theme="dark"] .choice-card,
+html[data-theme="dark"] .scale-card,
+html[data-theme="dark"] .offer-dialog {
+  background:#241b2e; color:#f1e9f4; border-color:#4a3558;box-shadow:0 5px 22px rgba(0,0,0,.13);
+}
+html[data-theme="dark"] .catalog-nav,
+html[data-theme="dark"] .catalog-footer,
+html[data-theme="dark"] .catalog-work-head,
+html[data-theme="dark"] .catalog-section-heading {border-color:#45334e;}
+html[data-theme="dark"] .catalog-brand b,
+html[data-theme="dark"] .catalog-hero h1,
+html[data-theme="dark"] .catalog-section-heading h2,
+html[data-theme="dark"] .catalog-work-head h2,
+html[data-theme="dark"] .assignment-main h3,
+html[data-theme="dark"] .course-card strong,
+html[data-theme="dark"] .offer-dialog h2 {color:#f5edf9;}
+html[data-theme="dark"] .catalog-hero > p,
+html[data-theme="dark"] .catalog-work-head p,
+html[data-theme="dark"] .assignment-main p,
+html[data-theme="dark"] .assignment-future p,
+html[data-theme="dark"] .catalog-footer,
+html[data-theme="dark"] .catalog-brand small,
+html[data-theme="dark"] .catalog-section-heading p,
+html[data-theme="dark"] .course-card > span:not(.course-card-number) {color:#bda9c9;}
+html[data-theme="dark"] .catalog-nav-link,
+html[data-theme="dark"] .catalog-list-back,
+html[data-theme="dark"] .catalog-back-btn,
+html[data-theme="dark"] .mobile-catalog-back,
+html[data-theme="dark"] .theme-toggle,
+html[data-theme="dark"] .ghost,
+html[data-theme="dark"] .icon-btn,
+html[data-theme="dark"] .mobile-icon-btn,
+html[data-theme="dark"] .first-run-variant,
+html[data-theme="dark"] .first-run-task,
+html[data-theme="dark"] .variant-chip,
+html[data-theme="dark"] .task-choice,
+html[data-theme="dark"] .step-nav-btn.secondary,
+html[data-theme="dark"] .offer-dialog button:not(.offer-contact) {
+  background:#33243e; color:#f0e5f7; border-color:#61446f;
+}
+html[data-theme="dark"] .catalog-nav-link:hover,
+html[data-theme="dark"] .theme-toggle:hover,
+html[data-theme="dark"] .first-run-variant:hover,
+html[data-theme="dark"] .first-run-task:hover {background:#453052;border-color:#bb6ad1;}
+html[data-theme="dark"] .course-card {background:linear-gradient(135deg,#251b2e 30%,#35213e);}
+html[data-theme="dark"] .catalog-hero-metrics span,
+html[data-theme="dark"] .assignment-status,
+html[data-theme="dark"] .first-run-task > span,
+html[data-theme="dark"] .task-choice-number,
+html[data-theme="dark"] .first-run-heading em {background:#362740;color:#dec3ea;border-color:#583b69;}
+html[data-theme="dark"] .assignment-visual {background:linear-gradient(130deg,#352340,#4c2857);}
+html[data-theme="dark"] .assignment-number {color:#e9c2f1;}
+html[data-theme="dark"] .assignment-future {background:#261b30;border-color:#533b62;}
+html[data-theme="dark"] .catalog-work-mark {color:#644170;}
+html[data-theme="dark"] .first-run-task.is-selected,
+html[data-theme="dark"] .task-choice.is-selected,
+html[data-theme="dark"] .variant-chip.is-selected {background:linear-gradient(135deg,#5e2a68,#36285b);border-color:#c269d5;color:#fff;}
+html[data-theme="dark"] .stage-panel,
+html[data-theme="dark"] .paper-wrap,
+html[data-theme="dark"] body:not(.first-run-open) .paper-wrap {background:#1d1823;}
+html[data-theme="dark"] .stage-toolbar,
+html[data-theme="dark"] .mobile-appbar,
+html[data-theme="dark"] .mobile-sheet-head {background:#271e30;border-color:#43334e;color:#eee4f4;}
+html[data-theme="dark"] .stage-current-step {background:linear-gradient(100deg,#3c2544,#30254c);border-color:#60406d;color:#f0deef;}
+html[data-theme="dark"] .stage-current-step > span {color:#f1a9d9;}
+html[data-theme="dark"] .explanation-panel,
+html[data-theme="dark"] body:not(.first-run-open) .explanation-panel {background:#291e33;border-color:#51355e;color:#f1e9f6;}
+html[data-theme="dark"] .explanation-panel .mobile-step-nav,
+html[data-theme="dark"] body:not(.first-run-open) .explanation-panel .mobile-step-nav {
+  background:#291e33;box-shadow:0 -8px 15px #291e33;border-color:#4a3456;
+}
+html[data-theme="dark"] .explanation-panel .step-sheet-toggle {color:#d89be7;}
+html[data-theme="dark"] .step-info-tabs {background:#392842;}
+html[data-theme="dark"] .step-info-tab {color:#cfbbdc;}
+html[data-theme="dark"] .step-info-tab.is-active {background:#563365;color:#fff;}
+html[data-theme="dark"] .step-badge {background:#613153;color:#ffe2f5;}
+html[data-theme="dark"] .problem-brief,
+html[data-theme="dark"] .diagram-info,
+html[data-theme="dark"] .paper-copy-info,
+html[data-theme="dark"] .workflow-card,
+html[data-theme="dark"] .remote-source-hint,
+html[data-theme="dark"] .diagram-warning {background:#30223a;border-color:#563761;color:#e9dbef;}
+html[data-theme="dark"] .problem-details > summary {background:#3b2b49;color:#dcbbe9;}
+html[data-theme="dark"] .coord-table input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] .custom-form input,
+html[data-theme="dark"] textarea {background:#332740;color:#f4eefa;border-color:#624974;}
+html[data-theme="dark"] .offer-price-card,
+html[data-theme="dark"] .offer-detail-grid > * {background:#342740;color:#ebdbea;border-color:#614671;}
+html[data-theme="dark"] .offer-dialog p,
+html[data-theme="dark"] .offer-dialog span {color:#e1cee9;}
+html[data-theme="dark"] .paper-wrap #drawing {background:#fffdfd;}
+html[data-theme="dark"] .paper-copy-info {color:#e7c9f5;}
+html[data-theme="dark"] .site-contact-note,
+html[data-theme="dark"] .source-body {color:#c9b6d6;}
+html[data-theme="dark"] a {color:#d3a7ff;}
+html[data-theme="dark"] .mobile-contact-link {background:#8b4dec;color:#fff;}
