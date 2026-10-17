@@ -63,6 +63,8 @@ if (!onlyVariant && !onlyTask) {
   try {
     if ($('firstRunPicker').hidden) failures.push('first run: chooser is not shown with empty storage');
     if ($('variantSelect').value==='10' && $('taskSelect').value==='1') failures.push('first run: silently defaulted to variant 10 task 1');
+    window.document.querySelector('button.assignment-card')?.click();
+    if($('activeAssignment').hidden)failures.push('catalogue: album card does not open setup');
     const v13=window.document.querySelector('.first-run-variant[data-variant="13"]');
     const t2=window.document.querySelector('.first-run-task[data-task="2"]');
     if(!v13 || !t2) failures.push('first run: variant/task buttons missing');

@@ -88,6 +88,8 @@ for (const vp of viewports) {
   await visibleOverflow(page,vp.name+' first-run');
   await page.screenshot({path:'mobile-screenshots/'+vp.name+'-first-run.png',fullPage:true});
 
+  await page.locator('#assignmentCatalog button.assignment-card').click();
+  await page.screenshot({path:'mobile-screenshots/'+vp.name+'-album-setup.png',fullPage:true});
   await page.locator('.first-run-variant[data-variant="13"]').click();
   await page.locator('.first-run-task[data-task="2"]').click();
   if (await page.locator('#firstRunStart').isDisabled()) failures.push(vp.name+': Continue remains disabled');
@@ -189,6 +191,7 @@ for (const vp of viewports) {
   const page = await context.newPage();
   await page.addInitScript(() => localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
+  await page.locator('#assignmentCatalog button.assignment-card').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
   await page.locator('#firstRunStart').click();
@@ -769,6 +772,7 @@ for(const viewport of [{width:768,height:700},{width:1024,height:768},
   const page=await context.newPage();
   await page.addInitScript(()=>localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
+  await page.locator('#assignmentCatalog button.assignment-card').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
   await page.locator('#firstRunStart').click();
@@ -808,6 +812,7 @@ for (const vp of [
   const page=await context.newPage();
   await page.addInitScript(()=>localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
+  await page.locator('#assignmentCatalog button.assignment-card').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
   await page.locator('#firstRunStart').click();
@@ -860,6 +865,7 @@ for (const vp of [
   const page=await context.newPage();
   await page.addInitScript(()=>localStorage.clear());
   await page.goto(base,{waitUntil:'networkidle'});
+  await page.locator('#assignmentCatalog button.assignment-card').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="6"]').click();
   await page.locator('#firstRunStart').click();
@@ -939,6 +945,7 @@ for (const vp of [
     failures.push('welcome offer: dialog did not close');
   if(!(await page.locator('#firstRunPicker').isVisible()))
     failures.push('welcome offer: variant picker is not available after dismissal');
+  await page.locator('#assignmentCatalog button.assignment-card').click();
   await page.locator('.first-run-variant[data-variant="12"]').click();
   await page.locator('.first-run-task[data-task="4"]').click();
   await page.locator('#firstRunStart').click();

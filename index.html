@@ -28,9 +28,13 @@
           <div class="first-run-logo" aria-hidden="true">S</div>
           <div><b>SiteMath</b><small>Библиотека чертежей</small></div>
         </div>
-        <button id="catalogCommissionBtn" class="catalog-nav-link" type="button">Предложить задание <span aria-hidden="true">↗</span></button>
+        <div class="catalog-nav-actions">
+          <button id="catalogListBackBtn" class="catalog-list-back" type="button" hidden>← К списку работ</button>
+          <button id="catalogCommissionBtn" class="catalog-nav-link" type="button">Предложить задание <span aria-hidden="true">↗</span></button>
+        </div>
       </div>
 
+      <div id="catalogListView" class="catalog-list-view">
       <header class="catalog-hero">
         <div class="catalog-kicker"><span></span> Учебные работы · Начертательная геометрия</div>
         <h1 id="firstRunTitle">Чертежи, которые можно разобрать <em>по шагам</em></h1>
@@ -47,12 +51,13 @@
         <p>Библиотека будет пополняться</p>
       </div>
       <div id="assignmentCatalog" class="assignment-catalog" aria-label="Список учебных работ"></div>
+      </div>
 
-      <section id="activeAssignment" class="catalog-work-setup" aria-labelledby="activeAssignmentTitle">
+      <section id="activeAssignment" class="catalog-work-setup" aria-labelledby="activeAssignmentTitle" hidden>
         <div class="catalog-work-head">
           <div>
             <span class="catalog-kicker">Открытая работа</span>
-            <h2 id="activeAssignmentTitle">Задание № 1 Альбом из 6 задач (для очников)</h2>
+            <h2 id="activeAssignmentTitle" tabindex="-1">Задание № 1 Альбом из 6 задач (для очников)</h2>
             <p>Укажи номер варианта и задачу. Решатель покажет построение от исходных данных до результата.</p>
           </div>
           <span class="catalog-work-mark" aria-hidden="true">01</span>

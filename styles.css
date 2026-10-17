@@ -3244,3 +3244,28 @@ button.assignment-card:focus-visible,
   .assignment-visual {min-height:232px;}
   .assignment-meta span+span::before {display:none;}
 }
+
+/* Two genuine catalogue screens: the album picker does not live below the
+   entire library. When many albums are added, starting one remains one click. */
+.catalog-nav-actions {display:flex;align-items:center;gap:10px;}
+.catalog-list-back {
+  background:#f8eefb;color:#803995;border:1px solid #e4cfea;
+  border-radius:12px;padding:10px 13px;font-size:12px;font-weight:800;
+}
+.catalog-list-back:hover {background:#efdff4;border-color:#cba5d6;}
+.catalog-list-back[hidden],
+.catalog-list-view[hidden],
+.catalog-work-setup[hidden] {display:none !important;}
+.first-run-picker[data-view="setup"] .catalog-work-setup {
+  max-width:1040px;margin:28px auto 0;
+}
+@media(max-width:760px) {
+  .catalog-nav-actions {gap:6px;}
+  .catalog-list-back {padding:9px 8px;font-size:11px;white-space:nowrap;}
+  .first-run-picker[data-view="setup"] .catalog-work-setup {margin-top:17px;}
+  .first-run-picker[data-view="setup"] .catalog-brand small {display:none;}
+  .first-run-picker[data-view="setup"] .catalog-nav-link {display:none;}
+}
+@media(max-width:360px) {
+  .catalog-list-back {font-size:10px;}
+}

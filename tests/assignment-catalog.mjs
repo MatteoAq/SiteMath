@@ -20,6 +20,8 @@ try {
     assert.equal(title,'Задание № 1 Альбом из 6 задач (для очников)');
     assert(await page.locator('#assignmentCatalog .assignment-future').isVisible(),
       'Non-actionable future slot missing');
+    assert(!(await page.locator('#activeAssignment').isVisible()),
+      'Variant picker must stay hidden on the actual catalogue screen');
     assert.equal(await page.locator('#firstRunVariants .first-run-variant').count(),21);
     assert.equal(await page.locator('#firstRunTasks .first-run-task').count(),6);
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
@@ -28,6 +30,15 @@ try {
     assert(await page.locator('#offerOverlay').isVisible(),
       'Existing offer window must be accessible from catalogue');
     await page.locator('#offerCloseBtn').click();
+    await page.locator('#assignmentCatalog button.assignment-card').click();
+    assert(!(await page.locator('#catalogListView').isVisible()),
+      'Album details should replace the list rather than extend the long page');
+    assert(await page.locator('#activeAssignment').isVisible(),
+      'Choosing an album did not show its variants and tasks');
+    await page.locator('#catalogListBackBtn').click();
+    assert(await page.locator('#catalogListView').isVisible(),
+      'Cannot return to the album list before starting a solver');
+    await page.locator('#assignmentCatalog button.assignment-card').click();
     await page.locator('.first-run-variant[data-variant="12"]').click();
     await page.locator('.first-run-task[data-task="6"]').click();
     await page.locator('#firstRunStart').click();
@@ -41,6 +52,8 @@ try {
     }
     assert(await home.isVisible(),'Cannot return to catalogue from solver');
     assert.equal(await page.locator('#firstRunVariantSummary').textContent(),'Вариант 12');
+    assert(!(await page.locator('#activeAssignment').isVisible()),
+      'Return from solver should open the whole library');
     const saved=await page.evaluate(()=>localStorage.getItem('sitemath-selection'));
     assert(saved&&saved.includes('"variant":"12"'),'Solver did not persist the chosen variant');
     await page.reload({waitUntil:'networkidle'});
@@ -48,6 +61,7 @@ try {
       'A returning visitor must see the growing assignment library');
     assert.equal(await page.locator('#firstRunVariantSummary').textContent(),'Вариант 12',
       'Returning visitor lost the selected variant');
+    await page.locator('#assignmentCatalog button.assignment-card').click();
     assert(!(await page.locator('#firstRunStart').isDisabled()),
       'Saved variant and task should enable reopening the solver');
     await page.close();

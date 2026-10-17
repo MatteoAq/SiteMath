@@ -273,8 +273,7 @@
           '<div class="assignment-open">'+(supported?'Выбрать вариант и задачу ↗':'Пока недоступно')+'</div>'+
         '</div>';
       if(supported)card.addEventListener('click',()=>{
-        const setup=$('activeAssignment');
-        if(setup)setup.scrollIntoView({behavior:'smooth',block:'start'});
+        openAssignment(assignment);
       });
       root.appendChild(card);
     }
@@ -286,6 +285,31 @@
       '<b>Следующие работы</b><p>Другие альбомы будут появляться здесь по мере готовности.</p>';
     root.appendChild(future);
     if(ACTIVE_ASSIGNMENT)$('activeAssignmentTitle').textContent=ACTIVE_ASSIGNMENT.title;
+  }
+
+  function setCatalogView(view){
+    const picker=$('firstRunPicker');
+    if(!picker)return;
+    const setup=view==='setup';
+    picker.dataset.view=setup?'setup':'catalog';
+    $('catalogListView').hidden=setup;
+    $('activeAssignment').hidden=!setup;
+    $('catalogListBackBtn').hidden=!setup;
+    picker.scrollIntoView?.({block:'start'});
+  }
+
+  function openAssignment(assignment){
+    // The current engine supports one complete album. Future albums
+    // can expose their own setup only after a matching solver is wired.
+    if(!assignment||assignment.id!==ACTIVE_ASSIGNMENT?.id)return;
+    setCatalogView('setup');
+    $('activeAssignmentTitle').focus();
+  }
+
+  function returnToAssignmentList(){
+    setCatalogView('catalog');
+    const selected=$('assignmentCatalog').querySelector('button.assignment-card');
+    selected?.focus();
   }
 
   function renderFirstRunPicker(){
@@ -350,9 +374,7 @@
     renderFirstRunPicker();
     $('firstRunPicker').hidden=false;
     document.body.classList.add('first-run-open');
-    // Returning from a deeply scrolled drawing should open at the beginning
-    // of the new full-page catalogue, not halfway down its task picker.
-    $('firstRunPicker').scrollIntoView?.({block:'start'});
+    setCatalogView('catalog');
   }
 
   function finishFirstRun(){
@@ -5885,6 +5907,7 @@
     renderStepInfoPage(state.steps[state.step]);
   });
   $('firstRunStart').addEventListener('click',finishFirstRun);
+  $('catalogListBackBtn').addEventListener('click',returnToAssignmentList);
   $('catalogBackBtn').addEventListener('click',showFirstRunPicker);
   $('mobileCatalogBackBtn').addEventListener('click',showFirstRunPicker);
   $('catalogCommissionBtn').addEventListener('click',openOfferDetails);
