@@ -40,6 +40,14 @@ for(let vi=1;vi<=20;vi++){
         measure:[...$('stepMeasure').querySelectorAll('li')].map(x=>x.textContent.trim())
       };
       stages.push(entry);
+      for(const phrase of [entry.title,entry.action,entry.why,entry.check,...entry.measure]){
+        for(const match of phrase.matchAll(/(\d+(?:[.,]\d+)?)\s+клеток\b/g)){
+          const count=Number(match[1].replace(',','.'));
+          const tail=count%10,hundred=count%100;
+          if(Number.isInteger(count)&&!(hundred>=11&&hundred<=14)&&tail>=1&&tail<=4)
+            issues.push({variant,task,step:step+1,type:'wrong-cell-declension',text:match[0]});
+        }
+      }
       for(const field of ['title','action','why','check']){
         if(!entry[field])issues.push({variant,task,step:step+1,field,type:'empty'});
         if(/\b(?:проекция|линия|плоскость)\s+(?:этого|данного|полученного)\s+объекта\b/i.test(entry[field]))
