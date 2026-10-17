@@ -162,6 +162,22 @@ for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
    issues.push(variant+': unnecessary additional competitor g');
  const givenDisplay=s.givenLine==='f'?'f':'ℓ';
  const finish=drawing.steps.find(st=>st.title?.startsWith('Нанеси видимость '+givenDisplay));
+ const splitIndex=drawing.steps.findIndex(st=>st.title?.startsWith('Продли '+givenDisplay+' и раздели'));
+ const finalIndex=drawing.steps.indexOf(finish);
+ if(splitIndex<0||finalIndex!==splitIndex+1){
+   issues.push(variant+': line continuation and K division must precede the visibility result as a drawing step');
+ }else{
+   const guides=drawing.steps[splitIndex].entities.filter(e=>e.type==='line'&&e.visibilityScaffold);
+   if(guides.length!==4||guides.some(e=>e.cls!=='construction-line')){
+     issues.push(variant+': explicit line halves missing from the penultimate K division');
+   }
+   for(let n=0;n<4&&n<guides.length;n++){
+     const g=guides[n],v=(finish.entities||[]).filter(e=>e.type==='line')[n];
+     if(!v||Math.hypot(g.a.x-v.a.x,g.a.y-v.a.y)>1e-5||
+       Math.hypot(g.b.x-v.b.x,g.b.y-v.b.y)>1e-5)
+       issues.push(variant+': final visible/hidden halves diverge from drawn K split '+n);
+   }
+ }
  const strokes=(finish?.entities||[]).filter(e=>e.type==='line'&&(e.cls==='answer-line'||e.cls==='hidden-line'));
  if(strokes.length!==4){
    issues.push(variant+': final stroke geometry missing ('+strokes.length+')');
