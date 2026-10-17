@@ -128,6 +128,8 @@ for (const vp of viewports) {
   if(!canvasOperation?.trim() || canvasOperation!==sheetOperation ||
      !(await page.locator('.stage-current-step').isVisible()))
     failures.push(vp.name+': current construction operation is not visible beside the drawing');
+  if(await page.locator('#stepTitle').isVisible())
+    failures.push(vp.name+': duplicate mobile heading displaces actual step instructions');
   const screenGrid=await gridState(page);
   if(!screenGrid.minor.ok||!screenGrid.major.ok){
     failures.push(vp.name+': 5 mm grid is not visible '+JSON.stringify(screenGrid));
