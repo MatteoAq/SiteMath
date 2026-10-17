@@ -13,7 +13,7 @@ window.SVGElement.prototype.getTotalLength=function(){return 100};
 window.eval(fs.readFileSync('variants.js','utf8'));
 window.eval(fs.readFileSync('multi.js','utf8'));
 const $=id=>window.document.getElementById(id),svg=$('drawing');
-const audit=[];
+const audit=[],overflows=[];
 function positions(nodes){
   const out=[];
   for(const el of nodes){
@@ -51,11 +51,15 @@ for(let variant=1;variant<=20;variant++){
     const scale=Number(svg.getAttribute('data-layout-scale')||1);
     const paperWidth=parseFloat(svg.getAttribute('width'));
     const paperHeight=parseFloat(svg.getAttribute('height'));
-    if(final && (final.width*scale>paperWidth+0.01||
-       final.height*scale>paperHeight+0.01))
-      throw new Error('A4 page overflow '+id+'/'+task+': '+
-        (final.width*scale).toFixed(2)+' × '+(final.height*scale).toFixed(2)+
-        ' mm exceeds '+paperWidth+' × '+paperHeight+' mm');
+    const frame=String(svg.getAttribute('viewBox')||'').split(/\s+/).map(Number);
+    const outsideFrame=final&&frame.length===4&&frame.every(Number.isFinite)&&(
+      final.minX<frame[0]-.1 || final.maxX>frame[0]+frame[2]+.1 ||
+      final.minY<frame[1]-.1 || final.maxY>frame[1]+frame[3]+.1);
+    if(final && (final.width*scale>paperWidth+.01||
+       final.height*scale>paperHeight+.01||outsideFrame))
+      overflows.push({variant:id,task,
+        geometry:[+(final.width*scale).toFixed(2),+(final.height*scale).toFixed(2)],
+        paper:[paperWidth,paperHeight],outsideFrame:!!outsideFrame});
     const lengths=[...drawn].filter(el=>el.classList.contains('answer-line')||el.classList.contains('aux-line')||el.classList.contains('construction-line'))
       .map(el=>({type:el.getAttribute('class'),len:Math.hypot(
         Number(el.getAttribute('x2'))-Number(el.getAttribute('x1')),
@@ -123,6 +127,7 @@ const measures=$('stepInfoMeasure').textContent;
 if(!note.includes('Масштаб A4 1:2')||!measures.includes('на A4'))
   throw new Error('Reduced coordinate instructions lack physical paper distances');
 fs.writeFileSync('informativeness-report.json',JSON.stringify(audit,null,2));
+if(overflows.length)throw new Error('A4_OVERFLOWS '+JSON.stringify(overflows));
 const critical=audit.filter(x=>x.status==='review').sort((a,b)=>
   (a.sourceShare??1)-(b.sourceShare??1)||a.scale-b.scale);
 if(audit.length!==120 || new Set(audit.map(x=>x.variant)).size!==20)
