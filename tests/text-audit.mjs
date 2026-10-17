@@ -52,6 +52,23 @@ for(let vi=1;vi<=20;vi++){
          (!/вертикал/u.test(entry.action)||!/горизонтал/u.test(entry.action)))
         issues.push({variant,task,step:step+1,type:'profile-construction-not-reproducible',
           title:entry.title,action:entry.action});
+      if(task===4&&/^Выбери T₁ на фронтали f₁/u.test(entry.title)&&
+         (!/T₁ лежит на f₁/u.test(entry.check) || /опорной линии/u.test(entry.check)))
+        issues.push({variant,task,step:step+1,type:'frontale-point-check-not-specific',
+          title:entry.title,check:entry.check});
+      if(task===4&&/^Выбери T₁ на прямой /u.test(entry.title)){
+        const source=entry.title.slice('Выбери T₁ на прямой '.length);
+        if(!entry.check.includes('T₁ лежит на '+source))
+          issues.push({variant,task,step:step+1,type:'named-line-point-check-not-specific',
+            title:entry.title,check:entry.check});
+      }
+      if(task===4&&/^По линии связи получи N[₁₂]$/u.test(entry.title)){
+        const subscript=entry.title.slice(-1);
+        if(!entry.measure.some(m=>m.startsWith('N'+subscript+' ∈ ')) ||
+           /парной проекции исходного объекта/u.test(entry.check))
+          issues.push({variant,task,step:step+1,type:'supporting-N-line-not-specific',
+            title:entry.title,check:entry.check,measure:entry.measure});
+      }
       if(task===4&&/^Выбери (?:T[₁₂]|вспомогательную точку N[₁₂])/u.test(entry.title)&&
          !/середин/u.test(entry.action))
         issues.push({variant,task,step:step+1,type:'auxiliary-point-placement-not-described',
