@@ -663,9 +663,12 @@
     const currentScheme = task>3 && state.variant!=='custom'
       ? window.SITEMATH_SCHEMES?.[state.variant]?.['task'+task] : null;
     const disputedSource = !!currentScheme && currentScheme.sourceVerified!==true;
-    // Method proven, but finite accuracy of the raster source cannot be certified.
-    const rasterPrecisionLimit = (state.variant==='12' && task===6) ||
-      (state.variant==='13' && task===5);
+    // These two tasks use deliberately reconstructed, recognisable teaching
+    // geometry. The raw scan is still retained, but it is no longer used as
+    // the geometry of the step-by-step construction.
+    const adaptedSource=!!currentScheme?.adaptedSource;
+    const rasterPrecisionLimit = !adaptedSource && ((state.variant==='12' && task===6) ||
+      (state.variant==='13' && task===5));
     const recoveredSource = currentScheme?.sourceAvailable===true;
     const hasArchivedSheet = window.SITEMATH_SCHEMES?.[state.variant]?.task4?.sourceAvailable===true;
     const warning=$('diagramWarning');
@@ -674,12 +677,16 @@
       if(task>3){
         const heading=warning.querySelector('b');
         const detail=warning.querySelector('span');
-        if(heading) heading.textContent=rasterPrecisionLimit
+        if(heading) heading.textContent=adaptedSource
+          ? 'Учебная реконструкция исходной схемы.'
+          : rasterPrecisionLimit
           ? 'Метод проверен, но точное положение результата по скану неизвестно.'
           : disputedSource
           ? (recoveredSource ? 'Исходный лист восстановлен. Проверяется точность построения.' : 'Исходное условие НЕ проверено по бумажному оригиналу.')
           : 'Построение сверено с оригиналом.';
-        if(detail) detail.textContent=rasterPrecisionLimit
+        if(detail) detail.textContent=adaptedSource
+          ? 'Исходный рисунок аккуратно изменён для выполнимого построения: сохранены типы прямых, узлы пересечений, основные пропорции и узнаваемый силуэт. Это адаптированная схема, а не точная копия скана университета. Оригинальный лист доступен по ссылке ниже.'
+          : rasterPrecisionLimit
           ? (task===5
             ? 'Исходное условие задано графически, без координат. Линии и метод построения сверены с оригинальным альбомом. Прямая ℓ почти параллельна плоскости Σ: небольшая погрешность наклона штриха может переместить точку пересечения на тысячи единиц и даже на другую сторону рисунка. Показанная точка получена из конкретной оцифровки и не является точным результатом исходного листа.'
             : 'Исходное условие задано графически, без координат. Линии и метод построения сверены с оригинальным альбомом. Плоскости почти параллельны, поэтому их общая прямая проходит далеко от исходного рисунка. Её точное положение чувствительно к погрешности чтения штрихов; экранные координаты не заданы в условии.')
@@ -696,7 +703,9 @@
         ? (hasArchivedSheet
           ? 'Исходный лист ' + variantDisplayLabel(state.variant) + ' доступен для сверки координат.'
           : 'Координаты сохранены из архивной записи ' + variantDisplayLabel(state.variant) + '; бумажный оригинал сейчас недоступен для повторной сверки.')
-        : rasterPrecisionLimit
+        : adaptedSource
+          ? 'Учебная схема '+variantDisplayLabel(state.variant)+' реконструирована по оригинальному рисунку. Все построения относятся к реконструкции, а скан сохранён для сравнения.'
+          : rasterPrecisionLimit
           ? 'Метод построения проверен; точный результат ограничен погрешностью исходного растрового листа '+variantDisplayLabel(state.variant)+'.'
           : disputedSource
           ? (recoveredSource
@@ -749,7 +758,9 @@
           '<p><b>Тип данных:</b> графическая схема на листе, а не координаты.</p>' +
           (knownScheme
             ? '<p><b>Статус:</b> '+(
-                knownScheme.sourceVerified && knownScheme.sourceId
+                knownScheme.adaptedSource
+                  ? 'учебная реконструкция оригинала. Сохраняет характерные элементы рисунка, но намеренно отличается наклонами прямых.'
+                  : knownScheme.sourceVerified && knownScheme.sourceId
                   ? 'повторно сверено с доступным оригиналом '+esc(knownScheme.sourceId)+'.'
                   : rasterPrecisionLimit && knownScheme.sourceId && knownScheme.sourceAvailable
                     ? 'исходный лист и метод построения проверены; далёкое пересечение чувствительно к погрешности графического оригинала.'
@@ -767,12 +778,12 @@
               (state.variant==='06' && task===4
                 ? '<p><b>Исправление по оригиналу:</b> верхняя фронтальная прямая – n₂, нижняя – m₂. Проекции m₁/n₁ сохранены. Исходные точки D и A совпадают с листом.</p>'
                 : '')+
-              (sourceCorrectionMax(knownScheme)>5
+              (sourceCorrectionMax(knownScheme)>5&&!knownScheme.adaptedSource
                 ? '<p><b>Требуется сверка:</b> исходная трассировка и математически выправленная схема отличаются до '+
                   fmt(sourceCorrectionMax(knownScheme),1)+
                   ' условных единиц. Точное совпадение чертежа с листком не подтверждено.</p>'
                 : '')+
-              (sourceIntersectionProjectorGap(knownScheme)>30
+              (sourceIntersectionProjectorGap(knownScheme)>30&&!knownScheme.adaptedSource
                 ? '<p><b>Требуется проверка пересечения:</b> в исходной трассировке проекции пересекающихся прямых не определяют одну общую линию связи. Автоматически выправленный чертёж необходимо сверить с листком.</p>'
                 : '')+
               (roleSummary?'<p><b>На листе дано:</b> '+esc(roleSummary.given||'графическая схема')+'</p>'+
@@ -3461,7 +3472,12 @@
       measure:['Сохраняй парные проекции с индексами 1 и 2.','Линии связи проводи между проекциями одной пространственной точки.'],
       check:'По исходному листу проверь символ плоскости, обозначение прямой и индексы её проекций. Заданные линии связи остаются на своих местах.'
     },starter);
-    if(scheme.sourceGeometry)steps[0].sourceEntities=starterEntitiesFromScheme(scheme.sourceGeometry,0,true);
+    if(scheme.sourceGeometry && !scheme.adaptedSource)
+      steps[0].sourceEntities=starterEntitiesFromScheme(scheme.sourceGeometry,0,true);
+    if(scheme.adaptedSource){
+      steps[0].action='Перенеси адаптированную учебную схему с экрана. Сохрани центральный узел пересечения a и b, обе проекции прямой ℓ и все обозначения.';
+      steps[0].why+=' Этот учебный рисунок намеренно отличается по наклонам от университетского скана; построения далее относятся только к изображённой реконструкции.';
+    }
     if(scanSensitive){
       steps[0].why+=' Здесь исходная прямая почти параллельна плоскости. По растровому листу можно проверить способ построения, но не точное положение далёкого пересечения.';
     }
@@ -4311,8 +4327,14 @@
       point(i,sourceK2,throughLabel+'₂'),
       point(i,sourceK1,throughLabel+'₁')
     ]);
-    if(scheme.sourceGeometry)steps[0].sourceEntities=rawTask6StarterEntities(scheme,0,throughLabel);
-    if(scheme.sourceId==='source-photos/scans/variant-12.jpg'){
+    if(scheme.sourceGeometry && !scheme.adaptedSource)
+      steps[0].sourceEntities=rawTask6StarterEntities(scheme,0,throughLabel);
+    if(scheme.adaptedSource){
+      steps[0].action='Перенеси адаптированную учебную схему: параллельные a, b, пересекающиеся h, f и точку '+throughLabel+'. Сохрани общий проектор узла h∩f и подписи.';
+      steps[0].why='На экране показана близкая к оригиналу реконструкция. Плоскости отличаются наклонами от архивного листа, чтобы их линия пересечения была доступна для построения.';
+      steps[0].check='Сверь на адаптированной схеме параллельность a и b, общий узел h∩f и проекторы точки '+throughLabel+'.';
+    }
+    if(scheme.sourceId==='source-photos/scans/variant-12.jpg'&&!scheme.adaptedSource){
       steps[0].why+=' На этом листе плоскости пересекаются далеко за пределами исходной схемы. Свободно выбрать можно вспомогательные сечения, но не положение самой линии пересечения.';
     }
 
@@ -5077,9 +5099,12 @@
       const isRemote12=state.variant==='12'&&state.task===6;
       const isRemote13=state.variant==='13'&&state.task===5;
       remoteHint.hidden=!(isRemote12||isRemote13);
-      if(isRemote12||isRemote13) remoteHint.querySelector('span').textContent=isRemote13
-        ? 'Точка ℓ∩Σ далека от рисунка. Её положение по скану ненадёжно: небольшое изменение наклона может перенести точку на другую сторону.'
-        : 'Линия Σ∩Θ далека от рисунка. По скану можно проверить способ построения, но не точное место пересечения почти параллельных плоскостей.';
+      if(isRemote12||isRemote13) remoteHint.querySelector('span').textContent=
+        window.SITEMATH_SCHEMES?.[state.variant]?.['task'+state.task]?.adaptedSource
+          ? 'Показана учебная реконструкция с сохранёнными узлами и общим силуэтом. Она отличается от архивного рисунка; решение относится к этой схеме.'
+          : isRemote13
+            ? 'Точка ℓ∩Σ далека от рисунка. Её положение по скану ненадёжно: небольшое изменение наклона может перенести точку на другую сторону.'
+            : 'Линия Σ∩Θ далека от рисунка. По скану можно проверить способ построения, но не точное место пересечения почти параллельных плоскостей.';
     }
     fitStepTitle();
     renderProblemBrief();
