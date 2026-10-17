@@ -480,7 +480,7 @@ for (const vp of viewports) {
         if(previous.zoom<=fit.zoom)
           failures.push(''+variant+'/'+task+': local focus lost after switching to previous construction');
         await page.evaluate(()=>document.querySelector('#nextBtn').click());
-        await page.locator('#mobileFitBtn').click();
+        await page.locator('#zoomFitBtn').click();
         await page.waitForTimeout(180);
         const restored=await inspect();
         if(Math.abs(restored.zoom-fit.zoom)>.2)
@@ -559,7 +559,7 @@ for (const vp of viewports) {
       document.querySelector('#firstBtn')?.click();
       for(let n=0;n<index;n++)document.querySelector('#nextBtn')?.click();
     },{variant,task,index});
-    await page.locator('#mobileFitBtn').click();
+    await page.locator('#zoomFitBtn').click();
     await page.waitForTimeout(100);
     const before=await page.locator('#drawing').getAttribute('viewBox');
     await page.locator('#mobileFocusBtn').click();
@@ -751,7 +751,7 @@ for (const vp of viewports) {
       document.querySelector('#firstBtn')?.click();
       for(let n=0;n<index;n++)document.querySelector('#nextBtn')?.click();
     },{variant,task,index});
-    await page.locator('#mobileFitBtn').click();
+    await page.locator('#zoomFitBtn').click();
     const originalViewBox=await page.locator('#drawing').getAttribute('viewBox');
     await page.locator('#mobileFocusBtn').click();
     await page.waitForTimeout(140);
