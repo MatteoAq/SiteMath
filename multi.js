@@ -4863,7 +4863,7 @@
             pointNames[0]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[0].name+pIdx,
             pointNames[1]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[1].name+pIdx
           ],
-          check:'Обе новые точки лежат на '+planeName+pIdx+' и на соответствующих исходных линиях '+planeSymbol+'.'
+          check:'Проверь оба пересечения: '+pointNames[0]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[0].name+pIdx+'; '+pointNames[1]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[1].name+pIdx+'. Опорные прямые могут быть заданы в условии или построены на предыдущих этапах.'
         },[
           ...segmentExtensionEntities(i,sec.refs[0].rec[primary],primarySeg[0]),
           ...segmentExtensionEntities(i,sec.refs[1].rec[primary],primarySeg[1]),
