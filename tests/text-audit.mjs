@@ -41,6 +41,14 @@ for(let vi=1;vi<=20;vi++){
       };
       stages.push(entry);
       if(task===1&&/^Дострой профильную проекцию/u.test(entry.title)&&
+         !/от вертикальной оси профильного вида через O/u.test(entry.check))
+        issues.push({variant,task,step:step+1,type:'profile-zero-axis-reference-ambiguous',
+          title:entry.title,check:entry.check});
+      if(task===6&&/^Выбери вспомогательную плоскость /u.test(entry.title)&&
+         !/^Вспомогательная (?:горизонтальная|фронтальная) плоскость /u.test(entry.why))
+        issues.push({variant,task,step:step+1,type:'wrong-auxiliary-plane-declension',
+          title:entry.title,why:entry.why});
+      if(task===1&&/^Дострой профильную проекцию/u.test(entry.title)&&
          (!/вертикал/u.test(entry.action)||!/горизонтал/u.test(entry.action)))
         issues.push({variant,task,step:step+1,type:'profile-construction-not-reproducible',
           title:entry.title,action:entry.action});
