@@ -79,6 +79,8 @@ jobs:
         run: node tests/line-conventions.mjs
       - name: Verify course projection and right-triangle methods
         run: node tests/lecture-projections.mjs
+      - name: Check multi-assignment catalogue and mobile navigation
+        run: node tests/assignment-catalog.mjs
       - name: Upload mobile screenshots
         if: always()
         uses: actions/upload-artifact@v4
