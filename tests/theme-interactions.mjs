@@ -15,6 +15,17 @@ try {
     assert.equal(await root.getAttribute('data-theme'),'dark','Catalog theme switch failed '+vp.width);
     assert.equal(await catalog.getAttribute('aria-pressed'),'true');
     assert.equal(await page.evaluate(()=>localStorage.getItem('sitemath-theme')),'dark');
+    await page.locator('#courseCatalog .course-card').click();
+    await page.locator('#assignmentCatalog button.assignment-card').click();
+    await page.locator('.first-run-variant[data-variant="12"]').click();
+    const selected=await page.locator('.first-run-variant[data-variant="12"]').evaluate(el=>{
+      const cs=getComputedStyle(el), bg=cs.backgroundColor, rgb=bg.match(/\d+/g)?.map(Number)||[];
+      return {bg,contrast:rgb.length>=3 && rgb[0]>145 && rgb[1]>110 && rgb[2]>150,
+        text:cs.color,border:cs.borderColor};
+    });
+    assert(selected.contrast,'Selected variant lacks solid contrast in dark mode: '+JSON.stringify(selected));
+    await page.locator('#catalogListBackBtn').click();
+    await page.locator('#catalogListBackBtn').click();
     const background=await page.locator('body').evaluate(el=>getComputedStyle(el).background);
     assert(background.includes('23, 18, 31'),'Dark CSS is not applied '+vp.width+': '+background);
     await page.reload({waitUntil:'networkidle'});
@@ -38,6 +49,10 @@ try {
     if(vp.width>760){
       await page.locator('#desktopThemeToggle').click();
       assert.equal(await root.getAttribute('data-theme'),'dark','Desktop switch failed');
+      const paperBg=await paper.evaluate(el=>getComputedStyle(el).backgroundColor);
+      assert.equal(paperBg,'rgb(34, 33, 43)','Drawing paper remained bright: '+paperBg);
+      const gridStroke=await paper.locator('.grid-minor').first().evaluate(el=>getComputedStyle(el).stroke);
+      assert.notEqual(gridStroke,'rgb(234, 223, 237)','Bright grid persisted');
       for(let i=0;i<7;i++)await page.locator('#zoomInBtn').click();
       await wrap.evaluate(el=>{el.scrollLeft=180;el.scrollTop=120;});
       const before=await wrap.evaluate(el=>({x:el.scrollLeft,y:el.scrollTop}));
@@ -52,6 +67,14 @@ try {
       assert(await page.locator('#mobileThemeToggle').isVisible(),'Mobile switch missing');
       await page.locator('#mobileThemeToggle').click();
       assert.equal(await root.getAttribute('data-theme'),'dark','Mobile switch failed');
+      const paperBg=await paper.evaluate(el=>getComputedStyle(el).backgroundColor);
+      assert.equal(paperBg,'rgb(34, 33, 43)','Mobile paper remained bright: '+paperBg);
+      await page.locator('#mobileSetupClose').click();
+      await page.locator('#mobileSetupBtn').click();
+      const darkChosen=page.locator('.variant-chip.is-selected');
+      assert(await darkChosen.count(),'Mobile selected variant missing');
+      const bg=await darkChosen.first().evaluate(el=>getComputedStyle(el).backgroundColor);
+      assert.equal(bg,'rgb(211, 172, 235)','Mobile chosen variant is not readable: '+bg);
       assert(await page.locator('#mobileContactLink svg').isVisible(),'Telegram icon missing');
       await page.locator('#mobileSetupClose').click();
     }
