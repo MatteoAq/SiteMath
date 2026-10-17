@@ -72,13 +72,14 @@ try {
       'A returning visitor must see the growing assignment library');
     assert.equal(await page.locator('#firstRunVariantSummary').textContent(),'Вариант 12',
       'Returning visitor lost the selected variant');
-    assert(!(await page.locator('#offerOverlay').isVisible()),
-      'Welcome dialog should not reappear on reload in the same tab');
+    assert(await page.locator('#offerOverlay').isVisible(),
+      'Welcome dialog should reopen on a new page load');
+    await page.locator('#offerCloseBtn').click();
     await page.locator('#courseCatalog button.course-card').click();
     await page.locator('#assignmentCatalog button.assignment-card').click();
     assert(!(await page.locator('#firstRunStart').isDisabled()),
       'Saved variant and task should enable reopening the solver');
     await page.close();
   }
-  console.log('Course catalogue, concise student title, one-time welcome offer and solver navigation OK');
+  console.log('Course catalogue, concise student title, welcome offer per load and solver navigation OK');
 }finally { await browser.close(); }
