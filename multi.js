@@ -3335,7 +3335,15 @@
         if(x<lo) outside+=lo-x;
         if(x>hi) outside+=x-hi;
       });
-      const score=separation-outside*.8;
+      // A barely visible extension at a source-line endpoint makes an
+      // otherwise correct horizontal/frontal difficult to copy to paper.
+      // Prefer an interior level with the same defining lines.
+      let endpointPenalty=0;
+      for(let k=0;k<2;k++){
+        const near=Math.min(...segs[k].map(p=>Math.hypot(x0===null?0:([x0,x1][k]-p[0]),y-p[1])));
+        endpointPenalty+=Math.max(0,14-near)*3;
+      }
+      const score=separation-outside*.8-endpointPenalty;
       if(!best || score>best.score) best={y:y,xs:[x0,x1],score:score};
     }
     return best;
@@ -4298,7 +4306,17 @@
       const otherLo=other==='p1'?bounds.minY1:bounds.minY2;
       const otherHi=other==='p1'?bounds.maxY1:bounds.maxY2;
       const spreadPenalty=outsideAmount(oa.y,otherLo-50,otherHi+50)+outsideAmount(ob.y,otherLo-50,otherHi+50);
-      const score=ext*25+spreadPenalty*.25;
+      // Levels crossing too close to a printed endpoint create tiny
+      // 0.3–3 mm pencil extensions at A4 scale. Prefer a well-separated
+      // crossing when it is geometrically equivalent.
+      const endpointGap=(rec,t)=>{
+        const seg=rec[primary];
+        const size=Math.hypot(seg[1][0]-seg[0][0],seg[1][1]-seg[0][1]);
+        return Math.min(Math.abs(t),Math.abs(1-t))*size;
+      };
+      const nearPenalty=[endpointGap(ra,ia.t),endpointGap(rb,ib.t)]
+        .reduce((sum,d)=>sum+Math.max(0,15-d)*2,0);
+      const score=ext*25+spreadPenalty*.25+nearPenalty;
       if(!best||score<best.score)best={p1,p2,refs:[refs[a],refs[b]],score};
     }
     return best;
