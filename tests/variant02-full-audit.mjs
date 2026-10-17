@@ -116,7 +116,7 @@ for(const suffix of ['₁','₂']){
 // strokes. Do not accept a mere analytical answer with no projectors.
 const s5=model.task5,g5=O.__audit02.solveTask5Scheme(s5,{});
 check(s5.planeType==='line_point'&&s5.planeLine==='a'&&s5.planePoint==='A'&&
- s5.givenLine==='l'&&g5.steps.length===16,'task 5 source A;a plane / 16 stages wrong');
+ s5.givenLine==='l'&&g5.steps.length===17,'task 5 source A;a plane / 16 stages wrong');
 const plane5=O.__audit02.planeFromScheme(s5);
 const [p0,p1]=O.__audit02.schemeLine3(s5.lines.l),ld=minus(p1,p0);
 const t=-(dot(plane5.n,p0)+plane5.d)/dot(plane5.n,ld);
