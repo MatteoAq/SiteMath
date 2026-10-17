@@ -428,10 +428,19 @@
     saveSelection();
     $('firstRunPicker').hidden=true;
     document.body.classList.remove('first-run-open');
+    // The catalogue may be several screens tall. Never inherit its scroll
+    // position inside the drawing workspace on a phone or narrow laptop.
+    window.scrollTo(0,0);
+    const paper=document.querySelector('.paper-wrap');
+    if(paper){paper.scrollLeft=0;paper.scrollTop=0;}
     renderInputs();
     rebuild(true);
     setDrawingZoom('fit');
     updateMobileSummary();
+    requestAnimationFrame(()=>{
+      window.scrollTo(0,0);
+      if(paper)focusVisibleDrawing();
+    });
   }
 
   function initSelectors(){
@@ -888,13 +897,13 @@
                 knownScheme.adaptedSource
                   ? 'учебная реконструкция оригинала. Сохраняет характерные элементы рисунка, но намеренно отличается наклонами прямых.'
                   : knownScheme.sourceVerified && knownScheme.sourceId
-                  ? 'повторно сверено с доступным оригиналом '+esc(knownScheme.sourceId)+'.'
+                  ? 'повторно сверено с доступным исходным листом.'
                   : rasterPrecisionLimit && knownScheme.sourceId && knownScheme.sourceAvailable
                     ? 'исходный лист и метод построения проверены; далёкое пересечение чувствительно к погрешности графического оригинала.'
                     : knownScheme.sourceId && knownScheme.sourceAvailable
-                    ? 'исходный лист восстановлен: '+esc(knownScheme.sourceId)+'. Точная геометрия и методика пошагового решения ещё проходят сверку.'
+                    ? 'исходный лист восстановлен. Точная геометрия и методика пошагового решения ещё проходят сверку.'
                     : knownScheme.sourceId
-                      ? 'сохранена трассировка с исходника '+esc(knownScheme.sourceId)+', но сам файл сейчас недоступен для повторной визуальной сверки.'
+                      ? 'сохранена трассировка исходного рисунка, но сам лист сейчас недоступен для повторной визуальной сверки.'
                     : knownScheme.sourceVerified
                       ? 'перенесено с фото ранее; исходный файл сейчас недоступен для повторной точной сверки.'
                       : 'Исходный скан пока недоступен; условие и решение требуют проверки по оригиналу.'
@@ -5596,6 +5605,34 @@
     if(!wrap)return;
     const pointers=state.canvasPointers;
     let gesture=null;
+    let mouseDrag=null;
+    // Maps-style drag: left mouse button or middle mouse button moves the
+    // drawing without changing scale or construction coordinates.
+    wrap.addEventListener('pointerdown',ev=>{
+      if(ev.pointerType==='touch'||(ev.button!==0&&ev.button!==1)||!state.geometry)return;
+      mouseDrag={id:ev.pointerId,x:ev.clientX,y:ev.clientY,
+        left:wrap.scrollLeft,top:wrap.scrollTop};
+      wrap.classList.add('is-panning');
+      if(wrap.setPointerCapture)wrap.setPointerCapture(ev.pointerId);
+      ev.preventDefault();
+    });
+    wrap.addEventListener('pointermove',ev=>{
+      if(!mouseDrag||ev.pointerId!==mouseDrag.id)return;
+      wrap.scrollLeft=mouseDrag.left-(ev.clientX-mouseDrag.x);
+      wrap.scrollTop=mouseDrag.top-(ev.clientY-mouseDrag.y);
+      ev.preventDefault();
+    });
+    const stopMouseDrag=ev=>{
+      if(!mouseDrag||ev.pointerId!==mouseDrag.id)return;
+      mouseDrag=null;
+      wrap.classList.remove('is-panning');
+      if(wrap.hasPointerCapture?.(ev.pointerId))wrap.releasePointerCapture(ev.pointerId);
+    };
+    wrap.addEventListener('pointerup',stopMouseDrag);
+    wrap.addEventListener('pointercancel',stopMouseDrag);
+    wrap.addEventListener('lostpointercapture',ev=>{
+      if(mouseDrag?.id===ev.pointerId){mouseDrag=null;wrap.classList.remove('is-panning');}
+    });
 
     const pointOf=ev=>{
       const r=wrap.getBoundingClientRect();
