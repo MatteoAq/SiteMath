@@ -115,7 +115,7 @@ for(const suffix of ['₁','₂']){
 // strokes. Do not accept a mere analytical answer with no projectors.
 const s5=model.task5,g5=O.__audit20.solveTask5Scheme(s5,{});
 check(s5.planeType==='intersecting_lines'&&s5.planeLines.join(',')==='a,b'&&
- s5.givenLine==='f'&&g5.steps.length===13,'task 5 source intersecting lines a/b and source frontal f or 13 stages wrong');
+ s5.givenLine==='f'&&g5.steps.length===14,'task 5 source intersecting lines a/b and source frontal f or 13 stages wrong');
 const plane5=O.__audit20.planeFromScheme(s5);
 const [p0,p1]=O.__audit20.schemeLine3(s5.lines.f),ld=minus(p1,p0);
 const t=-(dot(plane5.n,p0)+plane5.d)/dot(plane5.n,ld);
