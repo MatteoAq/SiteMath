@@ -15,7 +15,7 @@ try {
     assert.equal((await page.locator('#assignmentCatalog button.assignment-card').count()),1,
       'Only one available album should be actionable');
     const title=(await page.locator('#assignmentCatalog .assignment-card h3').textContent())?.trim();
-    assert.equal(title,'Задание № 1. Альбом из 6 задач (для очников)');
+    assert.equal(title,'Задание № 1 Альбом из 6 задач (для очников)');
     assert(await page.locator('#assignmentCatalog .assignment-future').isVisible(),
       'Non-actionable future slot missing');
     assert.equal(await page.locator('#firstRunVariants .first-run-variant').count(),21);

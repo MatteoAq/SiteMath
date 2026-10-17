@@ -239,7 +239,7 @@
   // six independent exercises within that album.
   const ASSIGNMENTS=Array.isArray(window.SITEMATH_ASSIGNMENTS)&&window.SITEMATH_ASSIGNMENTS.length
     ? window.SITEMATH_ASSIGNMENTS
-    : [{id:'album-1',title:'Задание № 1. Альбом из 6 задач (для очников)',
+    : [{id:'album-1',title:'Задание № 1 Альбом из 6 задач (для очников)',
         subject:'Начертательная геометрия',description:'Шесть задач на построение.',
         variantCount:20,taskCount:6,status:'available',solver:'legacy-album-1'}];
   const ACTIVE_ASSIGNMENT=ASSIGNMENTS.find(a=>a.status==='available'&&a.solver==='legacy-album-1');
