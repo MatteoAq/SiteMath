@@ -60,6 +60,23 @@ for(let vi=1;vi<=20;vi++){
          (!/лежит на /u.test(entry.check) || /не появляется до/u.test(entry.check)))
         issues.push({variant,task,step:step+1,type:'unhelpful-first-projection-check',
           title:entry.title,check:entry.check});
+      if(task===6&&/^Построй сечение [αβ] с проецирующей плоскостью /u.test(entry.title)){
+        const parts=entry.title.match(/^Построй сечение ([αβ]) с проецирующей плоскостью (\S+)/u);
+        const aux=parts?.[1],name=parts?.[2];
+        const scheme=w.SITEMATH_SCHEMES[variant].task6;
+        const def=[scheme.planeA,scheme.planeB].find(p=>p.name===name);
+        const pIndex=def?.type==='frontal_projecting'?'₂':'₁';
+        const lIndex=def?.type==='frontal_projecting'?'₁':'₂';
+        const sectionSymbol=(def?.type==='frontal_projecting'?'f':'h')+name;
+        if(!def||!/(?:frontal|horizontal)_projecting/.test(def.type)||
+           !entry.action.includes(sectionSymbol+pIndex+' совпадает с заданной '+name+pIndex)||
+           !entry.action.includes(sectionSymbol+lIndex+' лежит на уровне '+aux+lIndex)||
+           !entry.check.includes(sectionSymbol+pIndex+' совпадает с '+name+pIndex)||
+           !entry.measure.includes(sectionSymbol+pIndex+' = '+name+pIndex)||
+           !entry.measure.includes(sectionSymbol+lIndex+' = '+aux+lIndex))
+          issues.push({variant,task,step:step+1,type:'projecting-section-projection-not-explained',
+            title:entry.title,action:entry.action,check:entry.check});
+      }
       if(task===6&&/^Выбери вспомогательную плоскость /u.test(entry.title)){
         const scheme=w.SITEMATH_SCHEMES[variant].task6;
         const hasProjecting=[scheme.planeA,scheme.planeB].some(p=>
