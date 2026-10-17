@@ -3337,6 +3337,11 @@
     catch(err){ return {error:err.message}; }
     const lrec=scheme.lines[scheme.givenLine||'l'];
     if(!lrec) return {error:'В оцифрованной схеме не найдена прямая ℓ.'};
+    // Extensions of the given line are necessary while locating K and the
+    // visibility competitors, but must not paint continuous guide strokes
+    // underneath the final hidden segments.
+    const givenExtension=(step,segment,P)=>segmentExtensionEntities(step,segment,P)
+      .map(e=>({...e,visibilityScaffold:true}));
     const givenRefs=planeReferenceLines(scheme);
     if(givenRefs.length<2) return {error:'Для плоскости не хватает двух опорных линий.'};
     let refs=givenRefs,bridge=null;
@@ -3607,8 +3612,8 @@
       measure:['1'+pIdx+' = Ω'+pIdx+' ∩ '+refs[0].name+pIdx,'2'+pIdx+' = Ω'+pIdx+' ∩ '+refs[1].name+pIdx],
       check:'Обе точки лежат на продолжении ℓ'+pIdx+'/Ω'+pIdx+'.'
     },[
-      ...segmentExtensionEntities(i,lrec[primary],I1),
-      ...segmentExtensionEntities(i,lrec[primary],I2),
+      ...givenExtension(i,lrec[primary],I1),
+      ...givenExtension(i,lrec[primary],I2),
       ...segmentExtensionEntities(i,refs[0].rec[primary],I1),
       ...segmentExtensionEntities(i,refs[1].rec[primary],I2),
       point(i,I1,'1'+pIdx,'construction-dot'),
@@ -3651,7 +3656,7 @@
         (scanSensitive?' Это геометрическая экстраполяция, а не точное измерение по фотографии; проверь оригинальный чертёж.':'')
     },[
       ...segmentExtensionEntities(i,[[J1.x,J1.y],[J2.x,J2.y]],KOther),
-      ...segmentExtensionEntities(i,lrec[other],KOther),
+      ...givenExtension(i,lrec[other],KOther),
       point(i,KOther,'K'+oIdx,'answer-dot')
     ]);
 
@@ -3664,7 +3669,7 @@
       measure:['K₁K₂ – линия связи',sourceLineDisplayName(scheme.givenLine||'l')+pIdx+' – продление при необходимости'],
       check:'K'+pIdx+' лежит на исходной или продолженной '+sourceLineDisplayName(scheme.givenLine||'l')+pIdx+'.'
     },[
-      ...segmentExtensionEntities(i,lrec[primary],KPrimary),
+      ...givenExtension(i,lrec[primary],KPrimary),
       line(i,KOther,KPrimary,'construction-line'),point(i,KPrimary,'K'+pIdx,'answer-dot')
     ],{kind:'line',a:KOther,b:KPrimary});
 
@@ -3757,7 +3762,7 @@
         measure:['3₁≡4₁ = ℓ₁ ∩ '+witness1.ref.name+'₁'],
         check:'Совпадающие 3₁≡4₁ находятся на пересечении ℓ₁ с линией плоскости. Их высоты сравниваются на Π₂.'
       },[
-        ...segmentExtensionEntities(i,lrec.p1,witness1.X),
+        ...givenExtension(i,lrec.p1,witness1.X),
         ...segmentExtensionEntities(i,witness1.ref.rec.p1,witness1.X),
         point(i,witness1.X,'3₁≡4₁','construction-dot')
       ]);
@@ -3773,7 +3778,7 @@
         measure:['3₂ ∈ ℓ₂','4₂ ∈ '+witness1.ref.name+'₂','3₁≡4₁'],
         check:'3₂ и 4₂ должны лежать на одном проекторе. Для видимости на Π₁ сравни высоты z: выше расположенная точка видна сверху.'
       },[
-        ...segmentExtensionEntities(i,lrec.p2,witness1.lineOther),
+        ...givenExtension(i,lrec.p2,witness1.lineOther),
         ...segmentExtensionEntities(i,witness1.ref.rec.p2,witness1.planeOther),
         line(i,witness1.X,witness1.lineOther,'construction-line'),
         line(i,witness1.X,witness1.planeOther,'construction-line'),
@@ -3791,7 +3796,7 @@
         measure:['5₂≡6₂ = ℓ₂ ∩ '+witness2.ref.name+'₂'],
         check:'5₂≡6₂ находится на пересечении ℓ₂ с линией плоскости. Их различие по глубине видно на Π₁.'
       },[
-        ...segmentExtensionEntities(i,lrec.p2,witness2.X),
+        ...givenExtension(i,lrec.p2,witness2.X),
         ...segmentExtensionEntities(i,witness2.ref.rec.p2,witness2.X),
         point(i,witness2.X,'5₂≡6₂','construction-dot')
       ]);
@@ -3807,7 +3812,7 @@
         measure:['5₁ ∈ ℓ₁','6₁ ∈ '+witness2.ref.name+'₁','5₂≡6₂'],
         check:'5₁ и 6₁ находятся на одном проекторе. На Π₂ видна точка с большим удалением в направлении положительного y.'
       },[
-        ...segmentExtensionEntities(i,lrec.p1,witness2.lineOther),
+        ...givenExtension(i,lrec.p1,witness2.lineOther),
         ...segmentExtensionEntities(i,witness2.ref.rec.p1,witness2.planeOther),
         line(i,witness2.X,witness2.lineOther,'construction-line'),
         line(i,witness2.X,witness2.planeOther,'construction-line'),
