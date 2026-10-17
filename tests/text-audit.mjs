@@ -81,6 +81,11 @@ for(let vi=1;vi<=20;vi++){
           !/вертикальной линии связи из U₁/u.test(entry.check)))
         issues.push({variant,task,step:step+1,type:'paired-U-projections-misdescribed',
           title:entry.title,why:entry.why,check:entry.check});
+      if(task===5&&/^Продли ℓ и раздели обе проекции точкой K/u.test(entry.title) &&
+         (!/сравнением конкурирующих точек 3\/4 и 5\/6/u.test(entry.action) ||
+          /видимость определим следующим шагом/u.test(entry.action)))
+        issues.push({variant,task,step:step+1,type:'visibility-instruction-procedural-instead-of-geometric',
+          title:entry.title,action:entry.action});
       if(task===5&&/^Перенеси 1[₁₂] и 2[₁₂] на /u.test(entry.title) &&
          (!/Точки 1 и 2 переносят по отдельности/u.test(entry.why) ||
           !/проекторе из 1/u.test(entry.check)))
