@@ -3849,3 +3849,28 @@ html[data-theme="dark"] .first-run-variant.is-selected:focus-visible {
 /* Arrowheads follow the drawing palette, including dark mode. */
 .axis-arrow {fill:#352a3c;}
 html[data-theme="dark"] .axis-arrow {fill:#decfe7;}
+
+/* Physical A4 ink correction. Original construction coordinates remain fixed:
+   type and pencil widths are scaled back up when the entire diagram is
+   reduced to an A4 viewBox. The 5 mm grid keeps its physical spacing. */
+#drawing .svg-label {
+  font-size:calc(3.4px * var(--paper-ink-scale,1));
+  stroke-width:calc(.63px * var(--paper-ink-scale,1));
+}
+#drawing .svg-note {
+  font-size:calc(2.8px * var(--paper-ink-scale,1));
+  stroke-width:calc(.55px * var(--paper-ink-scale,1));
+}
+#drawing .svg-big-note {font-size:calc(6px * var(--paper-ink-scale,1));}
+#drawing .dimension-text {
+  font-size:calc(2.8px * var(--paper-ink-scale,1));
+  stroke-width:calc(.55px * var(--paper-ink-scale,1));
+}
+#drawing .object-line {stroke-width:calc(.72px * var(--paper-ink-scale,1));}
+#drawing .answer-line {stroke-width:calc(.72px * var(--paper-ink-scale,1));}
+#drawing .construction-line {stroke-width:calc(.30px * var(--paper-ink-scale,1));}
+#drawing .source-guide-line {stroke-width:calc(.28px * var(--paper-ink-scale,1));}
+#drawing .aux-line {stroke-width:calc(.32px * var(--paper-ink-scale,1));}
+#drawing .hidden-line {stroke-width:calc(.30px * var(--paper-ink-scale,1));}
+#drawing .axis {stroke-width:calc(.30px * var(--paper-ink-scale,1));}
+#drawing .dimension {stroke-width:calc(.28px * var(--paper-ink-scale,1));}
