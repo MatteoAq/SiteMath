@@ -98,6 +98,8 @@ try{
     await page.locator('#firstRunStart').click();
     await inspect(page,id+':solver');
     if(vp.width<=760){
+      if(await page.locator('#mobileFitBtn').isVisible())failures.push({label:id,issues:['Duplicate mobile Fit action visible']});
+      if(!(await page.locator('#zoomFitBtn').isVisible()))failures.push({label:id,issues:['Drawing Fit action missing']});
       await page.locator('#mobileSetupBtn').click();
       await inspect(page,id+':mobile-settings');
       if([320,393].includes(vp.width))

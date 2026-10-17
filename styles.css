@@ -4234,3 +4234,32 @@ html[data-theme="dark"] .mobile-contact-link {
   .first-run-picker .catalog-nav-actions .catalog-list-back {padding:7px 6px;font-size:10px;}
   .first-run-picker .catalog-nav-actions .catalog-nav-link {font-size:10px;padding:7px 5px;}
 }
+
+/* Final source-dialog action: the ID-based light rule previously defeated
+   the shared dark button palette, even though every other modal surface was dark. */
+html[data-theme="dark"] #offerLaterBtn {
+  background:#3a2a45;
+  color:#f2e5f8;
+  border:1px solid #735681;
+}
+html[data-theme="dark"] #offerLaterBtn:hover,
+html[data-theme="dark"] #offerLaterBtn:focus-visible {
+  background:#50365d;
+  color:#fff;
+  border-color:#ac80bf;
+}
+/* Mobile app bar contained two separate Fit controls: the canvas toolbar
+   already has Fit, so the duplicated action crowded out the task title. */
+@media(max-width:760px) {
+  .mobile-appbar {
+    grid-template-columns:44px minmax(0,1fr) 38px auto;
+    gap:6px;
+  }
+  #mobileFitBtn {display:none !important;}
+  #mobileFocusBtn {min-height:40px;max-width:74px;white-space:nowrap;}
+  .mobile-title {min-width:0;}
+}
+@media(max-width:360px) {
+  .mobile-appbar {grid-template-columns:40px minmax(0,1fr) 34px auto;gap:5px;}
+  #mobileFocusBtn {max-width:65px;min-height:38px;padding:0 7px;font-size:11px;}
+}
