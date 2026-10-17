@@ -106,7 +106,7 @@ for(const suffix of ['₁','₂']){
 }
 // 5. True ℓ/Σ(ABC) intersection, two competing point pairs, hidden strokes.
 const def5=scheme.task5,g5=W.__18.solveTask5Scheme(def5,{});
-assert(def5.planeType==='ABC'&&g5.steps.length===13);
+assert(def5.planeType==='ABC'&&g5.steps.length===14);
 const pl=W.__18.planeFromScheme(def5);
 const [a,b]=W.__18.schemeLine3(def5.lines.l),dv=minus(b,a);
 const t=-(dot(pl.n,a)+pl.d)/dot(pl.n,dv);
