@@ -12,12 +12,17 @@ try {
     await page.goto(base,{waitUntil:'networkidle'});
     const home=page.locator('#firstRunPicker');
     assert(await home.isVisible(),'Catalogue entry missing at '+size.width);
-    assert(!(await page.locator('#offerOverlay').isVisible()),
-      'Sales dialog should not hide the library on initial load');
+    assert(await page.locator('#offerOverlay').isVisible(),
+      'Welcome dialog should open once on first entry');
+    await page.locator('#offerCloseBtn').click();
+    assert(await page.locator('#catalogCoursesView').isVisible(),
+      'Library must start with course selection');
+    assert.equal(await page.locator('#courseCatalog button.course-card').count(),1);
+    await page.locator('#courseCatalog button.course-card').click();
     assert.equal((await page.locator('#assignmentCatalog button.assignment-card').count()),1,
       'Only one available album should be actionable');
     const title=(await page.locator('#assignmentCatalog .assignment-card h3').textContent())?.trim();
-    assert.equal(title,'Задание № 1 Альбом из 6 задач (для очников)');
+    assert.equal(title,'Задание № 1');
     assert(await page.locator('#assignmentCatalog .assignment-future').isVisible(),
       'Non-actionable future slot missing');
     assert(!(await page.locator('#activeAssignment').isVisible()),
@@ -37,7 +42,11 @@ try {
       'Choosing an album did not show its variants and tasks');
     await page.locator('#catalogListBackBtn').click();
     assert(await page.locator('#catalogListView').isVisible(),
-      'Cannot return to the album list before starting a solver');
+      'Cannot return from setup to assignments');
+    await page.locator('#catalogListBackBtn').click();
+    assert(await page.locator('#catalogCoursesView').isVisible(),
+      'Cannot return from assignments to courses');
+    await page.locator('#courseCatalog button.course-card').click();
     await page.locator('#assignmentCatalog button.assignment-card').click();
     await page.locator('.first-run-variant[data-variant="12"]').click();
     await page.locator('.first-run-task[data-task="6"]').click();
@@ -53,7 +62,9 @@ try {
     assert(await home.isVisible(),'Cannot return to catalogue from solver');
     assert.equal(await page.locator('#firstRunVariantSummary').textContent(),'Вариант 12');
     assert(!(await page.locator('#activeAssignment').isVisible()),
-      'Return from solver should open the whole library');
+      'Return from solver should open the course list');
+    assert(await page.locator('#catalogCoursesView').isVisible(),
+      'Returning from solver did not show courses');
     const saved=await page.evaluate(()=>localStorage.getItem('sitemath-selection'));
     assert(saved&&saved.includes('"variant":"12"'),'Solver did not persist the chosen variant');
     await page.reload({waitUntil:'networkidle'});
@@ -61,10 +72,13 @@ try {
       'A returning visitor must see the growing assignment library');
     assert.equal(await page.locator('#firstRunVariantSummary').textContent(),'Вариант 12',
       'Returning visitor lost the selected variant');
+    assert(!(await page.locator('#offerOverlay').isVisible()),
+      'Welcome dialog should not reappear on reload in the same tab');
+    await page.locator('#courseCatalog button.course-card').click();
     await page.locator('#assignmentCatalog button.assignment-card').click();
     assert(!(await page.locator('#firstRunStart').isDisabled()),
       'Saved variant and task should enable reopening the solver');
     await page.close();
   }
-  console.log('Assignment catalogue, exact university title, mobile layout, solver routing and navigation OK');
+  console.log('Course catalogue, concise student title, one-time welcome offer and solver navigation OK');
 }finally { await browser.close(); }
