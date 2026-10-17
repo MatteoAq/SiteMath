@@ -64,6 +64,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Archive reproducible site sources
+        uses: actions/upload-artifact@v4
+        with:
+          name: sitemath-ui-source
+          path: |
+            index.html
+            styles.css
+            multi.js
+            variants.js
+            data/
+          if-no-files-found: error
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -75,6 +86,17 @@ jobs:
           echo $! > /tmp/sitemath-http.pid
       - name: Verify dark theme, A4 paper, Telegram and drag
         run: node tests/theme-interactions.mjs
+      - name: Audit dark controls and responsive button placement
+        run: node tests/dark-ui-audit.mjs
+      - name: Upload dark interface inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dark-ui-inspection
+          path: |
+            dark-ui-audit.json
+            dark-ui-screenshots/
+          if-no-files-found: ignore
       - name: Upload dark theme screenshots
         if: always()
         uses: actions/upload-artifact@v4
