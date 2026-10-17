@@ -96,6 +96,11 @@ for (const vp of viewports) {
   await page.waitForTimeout(100);
 
   await visibleOverflow(page,vp.name+' drawing');
+  const canvasOperation=await page.locator('#stageCurrentTitle').textContent();
+  const sheetOperation=await page.locator('#stepTitle').textContent();
+  if(!canvasOperation?.trim() || canvasOperation!==sheetOperation ||
+     !(await page.locator('.stage-current-step').isVisible()))
+    failures.push(vp.name+': current construction operation is not visible beside the drawing');
   const screenGrid=await gridState(page);
   if(!screenGrid.minor.ok||!screenGrid.major.ok){
     failures.push(vp.name+': 5 mm grid is not visible '+JSON.stringify(screenGrid));
