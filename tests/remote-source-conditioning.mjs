@@ -135,6 +135,30 @@ for(const [name,raw,adapted] of [
   }
  }
 }
+// Preserve the recognisable upper/lower interior triangles of 13/5.
+// Comparing areas explicitly catches the previous regression in which a
+// small slope edit made a characteristic triangle half its original size.
+function segmentIntersection(a,b){
+ const [p,q]=a,[r,t]=b;
+ const dx=q[0]-p[0],dy=q[1]-p[1],ex=t[0]-r[0],ey=t[1]-r[1];
+ const cross2=(x,y,u,v)=>x*v-y*u,den=cross2(dx,dy,ex,ey);
+ assert(Math.abs(den)>1e-8,'source triangle has parallel edges');
+ const fraction=cross2(r[0]-p[0],r[1]-p[1],ex,ey)/den;
+ return [p[0]+fraction*dx,p[1]+fraction*dy];
+}
+function enclosedArea(s,projection){
+ const A=s.lines.a[projection],B=s.lines.b[projection],
+   L=s.lines.l[projection];
+ const C=segmentIntersection(A,B),P=segmentIntersection(A,L),
+   Q=segmentIntersection(B,L);
+ return Math.abs((P[0]-C[0])*(Q[1]-C[1])-
+   (P[1]-C[1])*(Q[0]-C[0]))/2;
+}
+for(const projection of ['p1','p2']){
+ const ratio=enclosedArea(s13,projection)/enclosedArea(raw13,projection);
+ assert(ratio>.75&&ratio<1.35,
+   '13/5 characteristic '+projection+' interior triangle distorted by '+ratio);
+}
 const rand13=rng(981731),rand12=rng(315);
 let range13=[Infinity,-Infinity],range12=[Infinity,-Infinity];
 for(let i=0;i<12000;i++){
