@@ -52,6 +52,17 @@ for(let vi=1;vi<=20;vi++){
          (!/вертикал/u.test(entry.action)||!/горизонтал/u.test(entry.action)))
         issues.push({variant,task,step:step+1,type:'profile-construction-not-reproducible',
           title:entry.title,action:entry.action});
+      if(task===6&&/^Выбери T₁ на /u.test(entry.title)){
+        const s6=w.SITEMATH_SCHEMES[variant].task6;
+        const p=[s6.planeA,s6.planeB].find(def=>def?.type==='line_point');
+        const baseLine=p?.lineName||Object.keys(p?.lines||{})[0];
+        if(!p||!baseLine||!entry.action.includes('примерно посередине')||
+           !entry.check.includes('T₁ лежит на '+baseLine+'₁')||
+           !entry.check.includes('половине горизонтального расстояния')||
+           /ещё не построены/u.test(entry.check))
+          issues.push({variant,task,step:step+1,type:'line-point-free-point-check-not-geometric',
+            title:entry.title,action:entry.action,check:entry.check});
+      }
       if(task===4&&step===0){
         const plane=w.SITEMATH_SCHEMES[variant].task4;
         const required=plane.planeType==='ABC'
