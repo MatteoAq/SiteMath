@@ -4072,3 +4072,165 @@ html[data-theme="dark"] .remote-source-hint .remote-source-message {
     line-height:1.35;
   }
 }
+
+
+/* Unified interface colors for interactive surfaces and nested panels.
+   The previous dark rules did not include the catalogue action footer,
+   calibration editor, or every button in the source controls. */
+html[data-theme="dark"] {
+  --ui-action-bg:#372842;
+  --ui-action-hover:#493456;
+  --ui-action-border:#6e537c;
+  --ui-panel-bg:#291f33;
+  --ui-panel-border:#594466;
+}
+html[data-theme="dark"] .catalog-start-row {
+  background:#2c2037;
+  border-top-color:#594365;
+}
+html[data-theme="dark"] .catalog-start-row p {color:#d7c4e1;}
+html[data-theme="dark"] .catalog-start-row .first-run-start:disabled {
+  opacity:1;
+  background:#47354e;
+  border:1px solid #72587c;
+  color:#dcc9e3;
+  box-shadow:none;
+}
+html[data-theme="dark"] .catalog-start-row .first-run-start:enabled {
+  opacity:1;
+  background:linear-gradient(110deg,#984fe5,#c648b6);
+  color:#fff;
+}
+html[data-theme="dark"] .calibration-wrap,
+html[data-theme="dark"] .crop-controls,
+html[data-theme="dark"] .mark-controls,
+html[data-theme="dark"] .mark-checklist,
+html[data-theme="dark"] .mark-item.current,
+html[data-theme="dark"] .calibrator-actions,
+html[data-theme="dark"] .photo-view-controls,
+html[data-theme="dark"] .picker-note,
+html[data-theme="dark"] .site-contact-note {
+  background:#30243b;
+  border-color:#664d74;
+  color:#e9dcef;
+}
+html[data-theme="dark"] .mark-item.done {color:#b4e5c4;}
+html[data-theme="dark"] .photo-view-controls button,
+html[data-theme="dark"] .calibrator-actions button:not(.primary),
+html[data-theme="dark"] .crop-controls button,
+html[data-theme="dark"] .mark-controls button,
+html[data-theme="dark"] #zoomSourceBtn,
+html[data-theme="dark"] #resetBtn,
+html[data-theme="dark"] #buildBtn,
+html[data-theme="dark"] .step-info-pager button {
+  background:var(--ui-action-bg);
+  border:1px solid var(--ui-action-border);
+  color:#f2e5f8;
+}
+html[data-theme="dark"] .photo-view-controls button:hover,
+html[data-theme="dark"] .calibrator-actions button:not(.primary):hover,
+html[data-theme="dark"] .crop-controls button:hover,
+html[data-theme="dark"] #zoomSourceBtn:hover,
+html[data-theme="dark"] #resetBtn:hover,
+html[data-theme="dark"] #buildBtn:hover {
+  background:var(--ui-action-hover);
+  border-color:#a77abc;
+}
+html[data-theme="dark"] :is(button,a,[role="button"]):focus-visible {
+  outline:3px solid #c899e3;
+  outline-offset:2px;
+}
+html[data-theme="dark"] .catalog-nav-link,
+html[data-theme="dark"] .catalog-list-back,
+html[data-theme="dark"] .catalog-back-btn,
+html[data-theme="dark"] .mobile-catalog-back,
+html[data-theme="dark"] .ghost,
+html[data-theme="dark"] .icon-btn,
+html[data-theme="dark"] .mobile-icon-btn:not(.mobile-contact-link) {
+  background:var(--ui-action-bg);
+  border-color:var(--ui-action-border);
+  color:#f1e5f7;
+}
+html[data-theme="dark"] .catalog-nav-link:hover,
+html[data-theme="dark"] .catalog-list-back:hover,
+html[data-theme="dark"] .catalog-back-btn:hover,
+html[data-theme="dark"] .mobile-catalog-back:hover,
+html[data-theme="dark"] .ghost:hover,
+html[data-theme="dark"] .icon-btn:hover:not(:disabled),
+html[data-theme="dark"] .mobile-icon-btn:hover {
+  background:var(--ui-action-hover);
+  border-color:#a67db9;
+}
+html[data-theme="dark"] .theme-toggle,
+html[data-theme="dark"] .catalog-nav-actions .theme-toggle {
+  background:#382948;
+  color:#f2d6ff;
+  border-color:#725184;
+}
+html[data-theme="dark"] .mobile-contact-link {
+  background:#7b49d3 !important;
+  color:#fff !important;
+}
+/* The desktop action bar is a pair of independent control groups.
+   At intermediate widths they wrap instead of squeezing into a single line. */
+@media(min-width:761px) and (max-width:1250px) {
+  .topbar {flex-wrap:wrap;align-items:flex-start;row-gap:10px;}
+  .topbar > div:first-child {flex:1 1 360px;min-width:0;}
+  .topbar-links {
+    flex:1 1 280px;max-width:100%;
+    flex-direction:row;flex-wrap:wrap;
+    justify-content:flex-end;align-items:center;gap:8px;
+  }
+  .stage-toolbar {align-items:flex-start;flex-wrap:wrap;gap:8px 12px;}
+  .toolbar-groups {min-width:0;max-width:100%;justify-items:start;gap:6px;}
+  .transport-controls,.view-controls {justify-content:flex-start;gap:6px;}
+  .icon-btn {min-width:36px;}
+  .icon-btn.wide {min-width:64px;}
+  .zoom-label {min-width:39px;}
+}
+@media(max-width:600px) {
+  /* The brand gets its own line; navigational actions share an ordered row.
+     The commission button must remain available even during assignment setup. */
+  .first-run-picker .catalog-nav {
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    row-gap:10px;
+    padding:12px 0;
+    min-height:0;
+  }
+  .first-run-picker .catalog-nav-actions {
+    display:flex;
+    width:100%;
+    flex-wrap:nowrap;
+    justify-content:flex-start;
+    align-items:stretch;
+    gap:7px;
+    min-width:0;
+  }
+  .first-run-picker[data-view="setup"] .catalog-nav-link {display:inline-flex;}
+  .first-run-picker .catalog-nav-actions .theme-toggle {
+    width:40px;min-width:40px;flex:0 0 40px;
+  }
+  .first-run-picker .catalog-nav-actions .catalog-list-back {
+    flex:0 1 auto;min-width:0;white-space:nowrap;
+    border-radius:11px;min-height:40px;
+    padding:8px 10px;
+  }
+  .first-run-picker .catalog-nav-actions .catalog-nav-link {
+    min-height:40px;
+    flex:1 1 0;
+    display:flex;align-items:center;justify-content:center;gap:3px;
+    min-width:0;
+    text-align:center;
+    padding:8px 8px;
+    border-radius:11px;
+    font-size:11px;
+  }
+  .catalog-start-row {display:grid;grid-template-columns:minmax(0,1fr);gap:12px;}
+  .catalog-start-row .first-run-start {width:100%;min-width:0;}
+}
+@media(max-width:350px) {
+  .first-run-picker .catalog-nav-actions {gap:5px;}
+  .first-run-picker .catalog-nav-actions .catalog-list-back {padding:7px 6px;font-size:10px;}
+  .first-run-picker .catalog-nav-actions .catalog-nav-link {font-size:10px;padding:7px 5px;}
+}
