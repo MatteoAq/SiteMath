@@ -52,6 +52,13 @@ for(let vi=1;vi<=20;vi++){
          (!/вертикал/u.test(entry.action)||!/горизонтал/u.test(entry.action)))
         issues.push({variant,task,step:step+1,type:'profile-construction-not-reproducible',
           title:entry.title,action:entry.action});
+      if(task===6&&/^На [αβ][₁₂] получи /u.test(entry.title)){
+        const m=entry.measure||[];
+        if(m.length<2 || m.slice(0,2).some(eq=>!entry.check.includes(eq)) ||
+           /соответствующих исходных линиях/u.test(entry.check))
+          issues.push({variant,task,step:step+1,type:'section-point-check-not-specific',
+            title:entry.title,measure:m,check:entry.check});
+      }
       if(task===6&&/^Выбери T₁ на /u.test(entry.title)){
         const s6=w.SITEMATH_SCHEMES[variant].task6;
         const p=[s6.planeA,s6.planeB].find(def=>def?.type==='line_point');
