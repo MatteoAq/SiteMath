@@ -933,9 +933,11 @@ for (const vp of [
     });
     if(!(await page.locator('#remoteSourceHint').isVisible()))
       failures.push(variant+'/'+task+': source-focus help is missing');
-    const visibleHint=await page.locator('#remoteSourceHint span').textContent();
-    if(!visibleHint?.includes('учебная реконструкция'))
+    const visibleHint=await page.locator('#remoteSourceHint summary').textContent();
+    if(!visibleHint?.toLowerCase().includes('учебная реконструкция'))
       failures.push(variant+'/'+task+': reconstruction is not disclosed beside steps');
+    if(!(await page.locator('#zoomSourceBtn').isVisible()))
+      failures.push(variant+'/'+task+': source-only focus is hidden behind the warning details');
     if(await page.locator('#remoteSourceDetails').evaluate(el=>el.open))
       failures.push(variant+'/'+task+': adapted source details cover the instruction by default');
     const diagramWarning=await page.locator('#diagramWarning').textContent();
@@ -957,11 +959,11 @@ for (const vp of [
     await page.waitForTimeout(70);
     const before=await page.locator('#drawing').evaluate(el=>el.getBoundingClientRect().width);
     const stepBefore=await page.locator('#stepNumber').textContent();
+    await page.locator('#zoomSourceBtn').click();
+    await page.waitForTimeout(80);
     await page.locator('#remoteSourceDetails > summary').click();
     if(!(await page.locator('.remote-source-message').isVisible()))
       failures.push(variant+'/'+task+': source adaptation details cannot be opened');
-    await page.locator('#zoomSourceBtn').click();
-    await page.waitForTimeout(80);
     const after=await page.locator('#drawing').evaluate(el=>el.getBoundingClientRect().width);
     const stepAfter=await page.locator('#stepNumber').textContent();
     if(!(after>before*1.1) || stepBefore!==stepAfter)

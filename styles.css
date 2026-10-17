@@ -4008,3 +4008,40 @@ html[data-theme="dark"] .remote-source-hint .remote-source-message {
     font-size:10px;
   }
 }
+
+/* Keep the existing source-only camera discoverable without unfolding the
+   explanatory warning. Preserve the compact lower instruction sheet. */
+.remote-source-actions {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:start;
+  column-gap:5px;
+}
+.remote-source-actions details {min-width:0;}
+.remote-source-actions summary {min-height:35px;}
+.remote-source-actions button#zoomSourceBtn {
+  align-self:center;
+  flex:0 0 auto;
+  min-height:29px;
+  margin:3px 6px 3px 0;
+  padding:4px 9px;
+  font-size:11px;
+  line-height:1.2;
+  border-radius:7px;
+  white-space:nowrap;
+}
+.remote-source-actions .remote-source-message {
+  overflow-wrap:anywhere;
+}
+@media(max-width:760px){
+  body:not(.first-run-open) .remote-source-actions summary {
+    min-height:33px;
+    padding:6px 8px;
+  }
+  body:not(.first-run-open) .remote-source-actions button#zoomSourceBtn {
+    min-height:28px;
+    font-size:11px;
+    margin-right:5px;
+    padding:4px 8px;
+  }
+}
