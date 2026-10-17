@@ -46,6 +46,7 @@ jobs:
       - run: node tests/variant20-full-audit.mjs
       - run: node tests/text-audit.mjs
       - run: node tests/runtime.mjs
+      - run: node tests/informativeness-audit.mjs
       - run: node tests/variant12-full-audit.mjs
       - run: node tests/remote-source-conditioning.mjs
       - name: Upload runtime diagnostics
@@ -56,6 +57,7 @@ jobs:
           path: |
             runtime-results.json
             text-audit.json
+            informativeness-report.json
           if-no-files-found: ignore
 
   mobile-layout:
