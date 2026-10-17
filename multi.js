@@ -5318,7 +5318,7 @@
         // not an unreadable 1–2 mm after layout reduction. Its two strokes
         // remain mathematically perpendicular and attached to the same
         // original vertex. Limit its size to the actual supporting segments.
-        const m=Math.max(mark.size,Math.min(4/scale,mark.available*.27));
+        const m=Math.max(mark.size,Math.min(4/scale,mark.available*.45));
         const P=mark.anchor,A=add2(P,mul2(mark.u,m));
         const C=add2(P,mul2(mark.v,m));
         const B=add2(A,mul2(mark.v,m));
