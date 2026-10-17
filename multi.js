@@ -2576,7 +2576,7 @@
     const c=add2(P,mul2(v,s));
     // Keep this paper-only right-angle glyph distinct from the mathematical
     // segments; only its rendered size may change after fitting the A4 sheet.
-    const mark={anchor:P,u,v,size:s,
+    const mark={u,v,size:s,
       available:Math.min(norm2(uRaw),norm2(vRaw))};
     return [
       Object.assign(line(step,a,b,'construction-line'),
@@ -5319,7 +5319,13 @@
         // remain mathematically perpendicular and attached to the same
         // original vertex. Limit its size to the actual supporting segments.
         const m=Math.max(mark.size,Math.min(4/scale,mark.available*.45));
-        const P=mark.anchor,A=add2(P,mul2(mark.u,m));
+        // Derive the vertex from the already normalized line coordinates.
+        // Metadata captured before normalizeSteps must NEVER store absolute
+        // geometry: such a stale anchor moved glyphs outside the A4 sheet.
+        const P=mark.part===0
+          ? add2(e.a,mul2(mark.u,-mark.size))
+          : add2(e.b,mul2(mark.v,-mark.size));
+        const A=add2(P,mul2(mark.u,m));
         const C=add2(P,mul2(mark.v,m));
         const B=add2(A,mul2(mark.v,m));
         if(mark.part===0){start=A;end=B;}
