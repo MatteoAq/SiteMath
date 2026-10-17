@@ -97,6 +97,42 @@ try{
     await inspect(page,id+':setup-selected');
     await page.locator('#firstRunStart').click();
     await inspect(page,id+':solver');
+    // Both adapted graphical tasks expose additional source controls.
+    // Verify the collapsed and expanded disclosure, including its action,
+    // instead of accepting a dark palette based only on a regular task.
+    for(const [variant,task] of [['12','6'],['13','5']]){
+      await page.evaluate(({variant,task})=>{
+        const change=(id,value)=>{
+          const select=document.getElementById(id);
+          select.value=value;
+          select.dispatchEvent(new Event('change'));
+        };
+        change('variantSelect',variant);
+        change('taskSelect',task);
+        document.getElementById('firstBtn').click();
+      },{variant,task});
+      const key=id+':'+variant+'/'+task;
+      if(!(await page.locator('#remoteSourceHint').isVisible())){
+        failures.push({label:key,issues:['Adapted-source disclosure is missing']});
+      }else{
+        if(!(await page.locator('#zoomSourceBtn').isVisible()))
+          failures.push({label:key,issues:['Source zoom action is hidden']});
+        await inspect(page,key+':source-collapsed');
+        await page.locator('#remoteSourceDetails').evaluate(el=>{el.open=true;});
+        await inspect(page,key+':source-expanded');
+        if([393,1440].includes(vp.width))
+          await page.screenshot({path:'dark-ui-screenshots/source-'+variant+'-'+task+'-'+id+'.png',fullPage:false});
+        await page.locator('#remoteSourceDetails').evaluate(el=>{el.open=false;});
+      }
+    }
+    // Restore the ordinary drawing before checking the mobile setup sheet.
+    await page.evaluate(()=>{
+      const v=document.getElementById('variantSelect');
+      const t=document.getElementById('taskSelect');
+      v.value='12';v.dispatchEvent(new Event('change'));
+      t.value='4';t.dispatchEvent(new Event('change'));
+      document.getElementById('firstBtn').click();
+    });
     if(vp.width<=760){
       if(await page.locator('#mobileFitBtn').isVisible())failures.push({label:id,issues:['Duplicate mobile Fit action visible']});
       if(!(await page.locator('#zoomFitBtn').isVisible()))failures.push({label:id,issues:['Drawing Fit action missing']});
