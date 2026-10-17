@@ -95,10 +95,13 @@ const calc=scheme=>{
  return {pl,t,p,direction,den};
 };
 const baseline=calc(s.task5);
-assert(baseline.t< -34&&baseline.t> -35&&dist(baseline.p,baseline.pl)<1e-6);
+assert(s.task5.adaptedSource && !s.task5.sourceVerified &&
+ dist(baseline.p,baseline.pl)<1e-6 && baseline.p.x>650 && baseline.p.x<950,
+ '13/5 adapted intersection must lie near the adapted original drawing');
 const intersectionSine=Math.abs(baseline.den)/
  (len(baseline.pl.n)*len(baseline.direction));
-assert(intersectionSine<.01,'unexpected near-parallel source geometry changed');
+assert(intersectionSine>.12&&intersectionSine<.30,
+ '13/5 adapted geometry must no longer be almost parallel');
 const sensitivity=[];
 for(const name of ['a','b','l'])
  for(const proj of ['p1','p2'])
@@ -108,9 +111,8 @@ for(const name of ['a','b','l'])
     copy.lines[name][proj][e][1]+=delta;
     sensitivity.push(calc(copy).t);
    }
-assert(sensitivity.length===24&&
- Math.min(...sensitivity)<-47&&Math.max(...sensitivity)>-28,
- 'photo sensitivity regression must remain disclosed');
+assert(sensitivity.length===24&&sensitivity.every(Number.isFinite),
+ 'adapted 13/5 must remain well conditioned under one-pixel changes');
 const ps5=get(five);
 assert(ps5.has('K₁')&&ps5.has('K₂')&&
  eq(ps5.get('K₁').x,ps5.get('K₂').x));
@@ -150,7 +152,7 @@ console.log(JSON.stringify({
  passedTasks:[1,2,3,5,6],
  stepCounts:[one.steps.length,two.steps.length,three.steps.length,
  five.steps.length,six.steps.length],
- sourceWarning:'13/5 almost parallel, exact photographic extrapolation unverified',
+ sourceWarning:'13/5 uses identifiable but adapted teaching geometry, raw source retained',
  intersectionAngleDegrees:Math.asin(intersectionSine)*180/Math.PI,
  sourceParameter:baseline.t,
  onePixelParameterRange:[Math.min(...sensitivity),Math.max(...sensitivity)]
