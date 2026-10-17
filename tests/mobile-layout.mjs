@@ -916,6 +916,14 @@ for (const vp of [
     failures.push('welcome offer: dialog not visible on first opening');
   if(!(await page.locator('#offerDialogTitle').isVisible()))
     failures.push('welcome offer: dialog heading not visible');
+  if((await page.locator('#offerDialogTitle').textContent()).trim()!=='Помогу и с другими работами')
+    failures.push('welcome offer: incorrect commission heading');
+  const offerPalette=await page.evaluate(()=>({
+    title:getComputedStyle(document.querySelector('#offerDialogTitle')).backgroundImage,
+    contact:getComputedStyle(document.querySelector('.offer-contact')).backgroundImage
+  }));
+  if(!offerPalette.title.includes('gradient') || !offerPalette.contact.includes('gradient'))
+    failures.push('welcome offer: primary accent must use the pink-violet gradient');
   if(!(await page.locator('#offerCloseBtn').isVisible()))
     failures.push('welcome offer: close button not visible above first-run chooser');
   const tg=await page.locator('.offer-contact').getAttribute('href');
