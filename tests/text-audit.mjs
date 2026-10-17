@@ -108,6 +108,16 @@ for(let vi=1;vi<=20;vi++){
           !/проекторе из 1/u.test(entry.check)))
         issues.push({variant,task,step:step+1,type:'paired-transfers-confused',
           title:entry.title,why:entry.why,check:entry.check});
+      if(task===4&&/^Выбери точку 3₁ на уже построенной h₁/u.test(entry.title)&&
+         (!/около 58% отрезка/u.test(entry.check) ||
+          /точки 2₁ на этом шаге ещё нет/u.test(entry.check)))
+        issues.push({variant,task,step:step+1,type:'non-geometric-point-3-check',
+          title:entry.title,check:entry.check});
+      if(task===4&&/^Через 3₁ проведи f₁/u.test(entry.title)&&
+         (!/f₁ проходит через 3₁ параллельно x₁₂/u.test(entry.check) ||
+          !/точно на пересечении f₁ с /u.test(entry.check)))
+        issues.push({variant,task,step:step+1,type:'non-geometric-point-2-check',
+          title:entry.title,check:entry.check});
       if(task===4&&/^Выбери точку (?:1₂|3₁) на /.test(entry.title)&&
          !/(?:\d+% длины|продолжении штриха|положение в схеме)/.test(entry.action))
         issues.push({variant,task,step:step+1,type:'free-point-placement-not-reproducible',
