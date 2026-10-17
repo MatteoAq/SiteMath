@@ -51,14 +51,14 @@ for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
  // strokes must meet ONLY at K and must not overlap even if the input
  // photograph stops before K.
  const drawing=audit.solveTask5Scheme(s,{});
- // The scanned 13/5 almost-parallel source creates a remote, numerically
- // ill-conditioned K. Preserve the analytic answer but flag its uncertainty
- // explicitly on the FIRST K construction, not only in a private QA report.
+ // Variant 13/5 now uses a user-approved recognisable reconstruction.
+ // Its K is computed for the adapted line and plane, never for the
+ // ill-conditioned archived scan. The site discloses this distinction.
  if(variant==='13'){
    const step=drawing.steps.find(x=>x.title?.startsWith('Найди K'));
-   if(!step?.why?.includes('точности исходного скана')||
-      !step?.check?.includes('геометрическая экстраполяция'))
-     issues.push('13/5: near-parallel scanned K missing uncertainty warning');
+   if(!s.adaptedSource||!step||
+      step.why?.includes('точности исходного скана'))
+     issues.push('13/5: adapted construction incorrectly treated as raw extrapolation');
  } else if(variant==='01'){
    const step=drawing.steps.find(x=>x.title?.startsWith('Найди K'));
    if(step?.why?.includes('точности исходного скана'))
