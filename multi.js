@@ -2763,12 +2763,19 @@
         : scheme.planeType==='parallel_lines'
           ? 'параллельные прямые '+(scheme.planeLines||[]).join(' и ')
           : 'пересекающиеся прямые '+(scheme.planeLines||[]).join(' и ');
+    const sourceCheck=scheme.planeType==='ABC'
+      ?'Точки A₁/A₂, B₁/B₂ и C₁/C₂ соединены попарными вертикальными линиями связи. Три пространственные точки A, B, C не коллинеарны.'
+      :scheme.planeType==='line_point'
+        ?'Проекции '+scheme.planePoint+'₁ и '+scheme.planePoint+'₂ находятся на одной вертикальной линии связи. Заданная точка '+scheme.planePoint+' не принадлежит прямой '+scheme.planeLine+', показанной проекциями '+scheme.planeLine+'₁ и '+scheme.planeLine+'₂.'
+        :scheme.planeType==='parallel_lines'
+          ?scheme.planeLines[0]+'₁ ∥ '+scheme.planeLines[1]+'₁ и '+scheme.planeLines[0]+'₂ ∥ '+scheme.planeLines[1]+'₂. Обе пары прямых соответствуют одной плоскости.'
+          :scheme.planeLines[0]+'₁ ∩ '+scheme.planeLines[1]+'₁ и '+scheme.planeLines[0]+'₂ ∩ '+scheme.planeLines[1]+'₂. Точки пересечения проекций лежат на одном вертикальном проекторе.';
     push({
       title:'Найди заданные элементы плоскости '+planeSymbol,
       action:'На исходном листе найди '+planeBasis+'. Различи проекции с индексами ₁ и ₂ и заданные линии связи. Новые точки и вспомогательные прямые пока не строй.',
       why:'Это графическое условие: положение и наклон элементов плоскости определены исходными проекциями. Перенос по клеткам не заменяет исходную геометрию.',
       measure:['При переносе сохраняй направление и взаимное положение линий.','Не передвигай заданные точки к ближайшим узлам сетки.'],
-      check:'Все названные элементы есть на исходной схеме. Парные проекции относятся к одной пространственной точке или прямой; дополнительных построений пока нет.'
+      check:sourceCheck
     },starterEntitiesFromScheme(scheme,i));
     if(scheme.sourceGeometry)steps[0].sourceEntities=starterEntitiesFromScheme(scheme.sourceGeometry,0,true);
 

@@ -52,6 +52,24 @@ for(let vi=1;vi<=20;vi++){
          (!/вертикал/u.test(entry.action)||!/горизонтал/u.test(entry.action)))
         issues.push({variant,task,step:step+1,type:'profile-construction-not-reproducible',
           title:entry.title,action:entry.action});
+      if(task===4&&step===0){
+        const plane=w.SITEMATH_SCHEMES[variant].task4;
+        const required=plane.planeType==='ABC'
+          ?['A₁/A₂','B₁/B₂','C₁/C₂']
+          :plane.planeType==='line_point'
+            ?[plane.planePoint+'₁ и '+plane.planePoint+'₂',
+              'не принадлежит прямой '+plane.planeLine,
+              plane.planeLine+'₁',plane.planeLine+'₂']
+            :plane.planeType==='parallel_lines'
+              ?[plane.planeLines[0]+'₁ ∥ '+plane.planeLines[1]+'₁',
+                 plane.planeLines[0]+'₂ ∥ '+plane.planeLines[1]+'₂']
+              :[plane.planeLines[0]+'₁ ∩ '+plane.planeLines[1]+'₁',
+                 plane.planeLines[0]+'₂ ∩ '+plane.planeLines[1]+'₂'];
+        if(required.some(token=>!entry.check.includes(token)) ||
+           /Все названные элементы есть на исходной схеме/u.test(entry.check))
+          issues.push({variant,task,step:1,type:'generic-initial-plane-check',
+            title:entry.title,check:entry.check,required});
+      }
       if(task===4&&/^Выбери T₁ на фронтали f₁/u.test(entry.title)&&
          (!/T₁ лежит на f₁/u.test(entry.check) || /опорной линии/u.test(entry.check)))
         issues.push({variant,task,step:step+1,type:'frontale-point-check-not-specific',
