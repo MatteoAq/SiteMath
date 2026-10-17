@@ -68,6 +68,11 @@ for(let vi=1;vi<=20;vi++){
           /На опорной линии/u.test(entry.action)))
         issues.push({variant,task,step:step+1,type:'generic-n-point-instruction',
           title:entry.title,action:entry.action,measure:entry.measure});
+      if(task===5&&/^По линии связи перенеси U₁ на /u.test(entry.title) &&
+         (!/проекции одной пространственной точки U/u.test(entry.why) ||
+          !/вертикальной линии связи из U₁/u.test(entry.check)))
+        issues.push({variant,task,step:step+1,type:'paired-U-projections-misdescribed',
+          title:entry.title,why:entry.why,check:entry.check});
       if(task===5&&/^Перенеси 1[₁₂] и 2[₁₂] на /u.test(entry.title) &&
          (!/Точки 1 и 2 переносят по отдельности/u.test(entry.why) ||
           !/проекторе из 1/u.test(entry.check)))
