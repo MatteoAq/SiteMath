@@ -2766,7 +2766,7 @@
     const sourceCheck=scheme.planeType==='ABC'
       ?'Точки A₁/A₂, B₁/B₂ и C₁/C₂ соединены попарными вертикальными линиями связи. Три пространственные точки A, B, C не коллинеарны.'
       :scheme.planeType==='line_point'
-        ?'Точка '+scheme.planePoint+'₁/₍₂₎'.replace('₍₂₎','₂')+' имеет общую линию связи. Прямая '+scheme.planeLine+' представлена проекциями '+scheme.planeLine+'₁ и '+scheme.planeLine+'₂; заданная точка находится вне неё.'
+        ?'Проекции '+scheme.planePoint+'₁ и '+scheme.planePoint+'₂ находятся на одной вертикальной линии связи. Заданная точка '+scheme.planePoint+' не принадлежит прямой '+scheme.planeLine+', показанной проекциями '+scheme.planeLine+'₁ и '+scheme.planeLine+'₂.'
         :scheme.planeType==='parallel_lines'
           ?scheme.planeLines[0]+'₁ ∥ '+scheme.planeLines[1]+'₁ и '+scheme.planeLines[0]+'₂ ∥ '+scheme.planeLines[1]+'₂. Обе пары прямых соответствуют одной плоскости.'
           :scheme.planeLines[0]+'₁ ∩ '+scheme.planeLines[1]+'₁ и '+scheme.planeLines[0]+'₂ ∩ '+scheme.planeLines[1]+'₂. Точки пересечения проекций лежат на одном вертикальном проекторе.';
