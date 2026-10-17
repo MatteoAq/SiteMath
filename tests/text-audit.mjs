@@ -40,6 +40,10 @@ for(let vi=1;vi<=20;vi++){
         measure:[...$('stepMeasure').querySelectorAll('li')].map(x=>x.textContent.trim())
       };
       stages.push(entry);
+      if(task===4&&/^Выбери точку (?:1₂|3₁) на /.test(entry.title)&&
+         !/(?:\\d+% длины|продолжении штриха|положение в схеме)/.test(entry.action))
+        issues.push({variant,task,step:step+1,type:'free-point-placement-not-reproducible',
+          title:entry.title,action:entry.action});
       for(const phrase of [entry.title,entry.action,entry.why,entry.check,...entry.measure]){
         for(const match of phrase.matchAll(/(\d+(?:[.,]\d+)?)\s+клеток\b/g)){
           const count=Number(match[1].replace(',','.'));
