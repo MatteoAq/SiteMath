@@ -5425,7 +5425,7 @@
       const isRemote12=state.variant==='12'&&state.task===6;
       const isRemote13=state.variant==='13'&&state.task===5;
       remoteHint.hidden=!(isRemote12||isRemote13);
-      if(isRemote12||isRemote13) remoteHint.querySelector('span').textContent=
+      if(isRemote12||isRemote13) remoteHint.querySelector('.remote-source-message').textContent=
         window.SITEMATH_SCHEMES?.[state.variant]?.['task'+state.task]?.adaptedSource
           ? 'Показана учебная реконструкция с сохранёнными узлами и общим силуэтом. Она отличается от архивного рисунка; решение относится к этой схеме.'
           : isRemote13
