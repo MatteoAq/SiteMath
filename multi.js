@@ -1841,7 +1841,8 @@
       const path=axGuides[name];
       for(let j=0;j<3;j++)
         if(dist2(path[j],path[j+1])>EPS)
-          axEntities.push(line(i,path[j],path[j+1],'construction-line'));
+          axEntities.push(line(i,path[j],path[j+1],'construction-line',
+            {axonometricGuide:true}));
     });
     if(pyramid){
       const eye={x:1,y:1,z:1};
@@ -1861,7 +1862,7 @@
       why:pyramid
         ? 'По трём координатным составляющим можно построить каждую вершину пирамиды. Соединение этих вершин даёт её шесть пространственных рёбер.'
         : 'Три последовательных перемещения вдоль направлений x, y, z приводят к той же пространственной точке, координаты которой даны в условии.',
-      measure:['Наглядный вид выполнен в условном аксонометрическом масштабе, а не в миллиметрах исходных осей.','Сохраняй направления и пропорции составляющих, показанные на рисунке.'],
+      measure:['Наглядный вид выполнен в условном аксонометрическом масштабе, а не в миллиметрах исходных осей.','Сохраняй направления и пропорции составляющих, показанные на рисунке. Короткие тонкие штрихи могут немного выходить за точки перегиба.'],
       check:pyramid
         ? 'У каждой вершины построены составляющие x, y, z; основание имеет рёбра AB, BC, CA, а боковые рёбра – SA, SB, SC. Скрытые части показаны штриховой линией.'
         : 'Для каждой точки все три направляющих отрезка параллельны соответствующим осям. Конечная отметка совпадает с подписью этой пространственной точки.'
@@ -5359,13 +5360,15 @@
   function drawEntity(e,active){
     if(e.type==='line'){
       let start=e.a,end=e.b;
-      if(e.sourceContinuation){
+      if(e.sourceContinuation||e.axonometricGuide){
         const scale=state.paperFrame?.scale||1;
         const v=vec2(start,end),length=norm2(v);
         // A light construction line may run slightly PAST its intersection.
         // Never move the intersection, the original printed segment, or
         // any other construction object. On the physical A4 sheet extend
         // only a near-invisible source-line continuation to 2.7 mm.
+        // The same minimal overrun makes a very small axonometric
+        // coordinate component readable without moving its exact bend.
         if(length>EPS && length*scale<2.1)
           end=add2(end,mul2(v,(2.7/scale-length)/length));
       }
@@ -5397,6 +5400,7 @@
         'data-right-angle-mark':e.rightAngleMark?'1':null,
         'data-source-given-line':e.sourceGivenLine?'1':null,
         'data-source-continuation':e.sourceContinuation?'1':null,
+        'data-axonometric-guide':e.axonometricGuide?'1':null,
         'data-source-coincident-aux':e.sourceCoincidentAux?'1':null
       });
       if(e.arrow) n.setAttribute('marker-end','url(#axisArrow)');
