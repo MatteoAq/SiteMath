@@ -221,6 +221,33 @@ for(let vi=1;vi<=20;vi++){
             issues.push({variant,task,step:1,type:'original-K-label-reversal-lost'});
         }
       }
+      if(task===5&&step===0){
+        const model=w.SITEMATH_SCHEMES[variant].task5;
+        if(!model.adaptedSource){
+          const name=model.givenLine==='l'?'ℓ':(model.givenLine||'ℓ');
+          const required=[name+'₁',name+'₂','на двух видах'];
+          if(model.planeType==='ABC')
+            required.push(...Object.keys(model.points||{}).slice(0,3).map(x=>x+'₁/'+x+'₂'),'вертикальной линии связи');
+          else if(model.planeType==='parallel_lines'){
+            const [a,b]=model.planeLines||[];
+            required.push(a+'₁ ∥ '+b+'₁',a+'₂ ∥ '+b+'₂','две разные линии');
+          }else if(model.planeType==='intersecting_lines'){
+            const [a,b]=model.planeLines||[];
+            required.push(a+'₁ ∩ '+b+'₁',a+'₂ ∩ '+b+'₂','общей вертикальной линии связи');
+          }else if(model.planeType==='line_point'){
+            const a=model.planeLine||Object.keys(model.lines||{}).find(x=>x!==model.givenLine);
+            const P=model.planePoint||Object.keys(model.points||{})[0];
+            required.push(a+'₁/'+a+'₂',P+'₁/'+P+'₂','не принадлежит прямой '+a);
+          }
+          if(!entry.action.includes('Вспомогательную плоскость пока не вводи')||
+             required.some(token=>!entry.check.includes(token))||
+             /По исходному листу проверь символ плоскости/u.test(entry.check))
+            issues.push({variant,task,step:1,type:'task5-first-source-check-not-geometric',
+              required,action:entry.action,check:entry.check});
+          if(model.givenLine==='f'&&/исходные проекции плоскости и ℓ/u.test(entry.title))
+            issues.push({variant,task,step:1,type:'task5-given-line-misnamed'});
+        }
+      }
       if(task===4&&step===0){
         const plane=w.SITEMATH_SCHEMES[variant].task4;
         const required=plane.planeType==='ABC'
