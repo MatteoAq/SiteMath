@@ -240,3 +240,38 @@ jobs:
             mobile-layout-results.json
             mobile-screenshots/
           if-no-files-found: ignore
+
+  visual-remaining:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install playwright@1.55.0 --no-save
+      - run: npx playwright install --with-deps chromium
+      - name: Start local site
+        run: |
+          python3 -m http.server 4173 >/tmp/sitemath-rest-http.log 2>&1 &
+          echo $! > /tmp/sitemath-rest-http.pid
+      - name: Audit remaining variants in strict order
+        run: |
+          set -e
+          for n in 14 15 16 17 18 19 20; do
+            echo "AUDIT VARIANT $n"
+            node tests/variant${n}-visual.mjs
+          done
+      - name: Upload sequential evidence for variants 14 to 20
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: variant14-20-sequential-visual-evidence
+          path: |
+            variant14-screens/
+            variant15-screens/
+            variant16-screens/
+            variant17-screens/
+            variant18-screens/
+            variant19-screens/
+            variant20-screens/
+          if-no-files-found: warn
