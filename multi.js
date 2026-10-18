@@ -5538,7 +5538,8 @@
     // annotation. The actual measured endpoints and dimension strokes
     // must stay exactly where the construction placed them.
     const peers=[...svg.querySelectorAll('text')].filter(t=>t!==label);
-    if(peers.length){
+    if(peers.length && typeof label.getBBox==='function' &&
+       peers.every(peer=>typeof peer.getBBox==='function')){
       const ink=paperInkScale();
       const shifts=[
         [0,0],[n.x*4,n.y*4],[-n.x*4,-n.y*4],
