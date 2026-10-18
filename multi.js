@@ -5530,8 +5530,43 @@
     g.append(E('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:cls}));
     g.append(E('line',{x1:a.x-n.x*1.4,y1:a.y-n.y*1.4,x2:a.x+n.x*1.4,y2:a.y+n.y*1.4,class:'dimension'}));
     g.append(E('line',{x1:b.x-n.x*1.4,y1:b.y-n.y*1.4,x2:b.x+n.x*1.4,y2:b.y+n.y*1.4,class:'dimension'}));
-    g.append(E('text',{x:(a.x+b.x)/2+n.x*2,y:(a.y+b.y)/2+n.y*2,class:'dimension-text','text-anchor':'middle'},e.label));
+    const tx=(a.x+b.x)/2+n.x*2,ty=(a.y+b.y)/2+n.y*2;
+    const label=E('text',{x:tx,y:ty,class:'dimension-text','text-anchor':'middle'},e.label);
+    g.append(label);
     svg.append(g);
+    // Reposition only the measurement text if it covers an existing
+    // annotation. The actual measured endpoints and dimension strokes
+    // must stay exactly where the construction placed them.
+    const peers=[...svg.querySelectorAll('text')].filter(t=>t!==label);
+    if(peers.length){
+      const ink=paperInkScale();
+      const shifts=[
+        [0,0],[n.x*4,n.y*4],[-n.x*4,-n.y*4],
+        [n.x*8,n.y*8],[-n.x*8,-n.y*8],
+        [u.x*6,u.y*6],[-u.x*6,-u.y*6],
+        [n.x*4+u.x*6,n.y*4+u.y*6],
+        [n.x*4-u.x*6,n.y*4-u.y*6]
+      ];
+      let best=Infinity,chosen=shifts[0];
+      for(let i=0;i<shifts.length;i++){
+        const [dx,dy]=shifts[i];
+        label.setAttribute('x',tx+dx*ink);
+        label.setAttribute('y',ty+dy*ink);
+        const box=label.getBBox();
+        let overlap=0;
+        for(const peer of peers){
+          const p=peer.getBBox();
+          const w=Math.max(0,Math.min(box.x+box.width,p.x+p.width)-Math.max(box.x,p.x));
+          const h=Math.max(0,Math.min(box.y+box.height,p.y+p.height)-Math.max(box.y,p.y));
+          overlap+=w*h/Math.max(1,Math.min(box.width*box.height,p.width*p.height));
+        }
+        const score=overlap+i*.012;
+        if(score<best){best=score;chosen=shifts[i];}
+        if(overlap<.03)break;
+      }
+      label.setAttribute('x',tx+chosen[0]*ink);
+      label.setAttribute('y',ty+chosen[1]*ink);
+    }
   }
 
   function drawArc(e,active){
