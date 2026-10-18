@@ -217,7 +217,7 @@ for(let vi=1;vi<=20;vi++){
              !entry.action.includes('Отметь заданные '+label+'₁ и '+label+'₂'))
             issues.push({variant,task,step:1,type:'source-geometry-check-incomplete',
               action:entry.action,check:entry.check});
-          if(source.paperReversedKLabels&&!entry.check.includes('верхняя K₂, нижняя K₁'))
+          if(source.paperReversedKLabels&&!entry.check.includes('переобозначь верхнюю как K₂, нижнюю как K₁'))
             issues.push({variant,task,step:1,type:'original-K-label-reversal-lost'});
         }
       }
