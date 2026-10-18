@@ -205,6 +205,22 @@ for(let vi=1;vi<=20;vi++){
               required,action:entry.action,why:entry.why,check:entry.check});
         }
       }
+      if(task===6&&step===0){
+        if(/^Сверь обозначения обеих исходных плоскостей/u.test(entry.check))
+          issues.push({variant,task,step:1,type:'generic-source-check-remains',check:entry.check});
+        if(/^Проверь исходные элементы/u.test(entry.title)){
+          const source=w.SITEMATH_SCHEMES[variant].task6;
+          const label=source.pointLabel||'K';
+          const checks=['Парные проекции '+label+'₁ и '+label+'₂',
+            'общую вертикальную линию связи'];
+          if(checks.some(s=>!entry.check.includes(s))||
+             !entry.action.includes('Отметь заданные '+label+'₁ и '+label+'₂'))
+            issues.push({variant,task,step:1,type:'source-geometry-check-incomplete',
+              action:entry.action,check:entry.check});
+          if(source.paperReversedKLabels&&!entry.check.includes('переобозначь верхнюю как K₂, нижнюю как K₁'))
+            issues.push({variant,task,step:1,type:'original-K-label-reversal-lost'});
+        }
+      }
       if(task===4&&step===0){
         const plane=w.SITEMATH_SCHEMES[variant].task4;
         const required=plane.planeType==='ABC'
