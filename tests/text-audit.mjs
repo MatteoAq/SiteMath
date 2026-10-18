@@ -83,6 +83,11 @@ for(let vi=1;vi<=20;vi++){
           issues.push({variant,task,step:step+1,type:'duplicate-source-transfer-at-axes-stage',
             title:entry.title,action:entry.action,check:entry.check});
       }
+      if(task===3&&entry.title==='Проведи ℓ₁'&&
+         (!entry.why.includes('Точка K лежит на AB')||
+          /при K=C направление остаётся свободным/u.test(entry.why)))
+        issues.push({variant,task,step:step+1,type:'task3-irrelevant-coincident-point-caveat',
+          why:entry.why});
       if(task===1&&/^Дострой профильную проекцию/u.test(entry.title)&&
          !/от вертикальной оси профильного вида через O/u.test(entry.check))
         issues.push({variant,task,step:step+1,type:'profile-zero-axis-reference-ambiguous',
