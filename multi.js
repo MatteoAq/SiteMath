@@ -4813,7 +4813,7 @@
       const b=givenPlane(scheme.planeB,planeBSymbol);
       if(a&&b){
         const labelCorrection=scheme.paperReversedKLabels
-          ?' На оригинальном листе верхняя проекция K ошибочно подписана K₁, нижняя K₂. Исправь только подписи: верхняя K₂, нижняя K₁; не перемещай точки.'
+          ?' На оригинальном листе верхняя проекция K ошибочно подписана K₁, нижняя K₂. переобозначь верхнюю как K₂, нижнюю как K₁, не перемещая точки.'
           :'';
         steps[0].title='Проверь исходные элементы '+planeASymbol+', '+planeBSymbol+' и точки '+throughLabel;
         steps[0].action=a.action+' '+b.action+' Отметь заданные '+throughLabel+'₁ и '+throughLabel+'₂ без дополнительных сечений.'+labelCorrection;
