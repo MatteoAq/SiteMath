@@ -153,6 +153,24 @@ for(let vi=1;vi<=20;vi++){
               required,check:entry.check});
         }
       }
+      if(task===6&&step===0){
+        const s6=w.SITEMATH_SCHEMES[variant].task6;
+        if(s6.planeA?.type==='intersecting_lines'&&s6.planeB?.type==='intersecting_lines'){
+          const [a,b]=Object.keys(s6.planeA.lines||{});
+          const [c,d]=Object.keys(s6.planeB.lines||{});
+          const label=s6.pointLabel||'K';
+          const required=[a+'₁ ∩ '+b+'₁',a+'₂ ∩ '+b+'₂',
+            c+'₁ ∩ '+d+'₁',c+'₂ ∩ '+d+'₂',
+            'У каждой плоскости пара проекций узла',
+            'вертикальной линии связи',label+'₁ и '+label+'₂',
+            'отдельным проектором'];
+          if(required.some(x=>!entry.check.includes(x))||
+             !entry.action.includes('Для каждого из двух узлов')||
+             !entry.why.includes('Пересекающиеся пространственные прямые определяют плоскость'))
+            issues.push({variant,task,step:1,type:'two-intersecting-planes-source-check-vague',
+              required,action:entry.action,why:entry.why,check:entry.check});
+        }
+      }
       if(task===4&&step===0){
         const plane=w.SITEMATH_SCHEMES[variant].task4;
         const required=plane.planeType==='ABC'
