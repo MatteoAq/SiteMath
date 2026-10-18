@@ -14,6 +14,10 @@ const page=await browser.newPage({
 });
 await page.addInitScript(()=>localStorage.clear());
 await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
+if(await page.locator('#offerOverlay').isVisible())
+  await page.locator('#offerCloseBtn').click();
+await page.locator('#courseCatalog button.course-card').click();
+await page.locator('#assignmentCatalog button.assignment-card').click();
 await page.locator('.first-run-variant[data-variant="01"]').click();
 await page.locator('.first-run-task[data-task="1"]').click();
 await page.locator('#firstRunStart').click();
