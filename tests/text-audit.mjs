@@ -344,7 +344,7 @@ for(let vi=1;vi<=20;vi++){
         const def=[scheme.planeA,scheme.planeB].find(p=>p.name===name);
         const pIndex=def?.type==='frontal_projecting'?'₂':'₁';
         const lIndex=def?.type==='frontal_projecting'?'₁':'₂';
-        const sectionSymbol=(def?.type==='frontal_projecting'?'f':'h')+name;
+        const sectionSymbol=(def?.type==='frontal_projecting'?'f':'h')+name+aux;
         if(!def||!/(?:frontal|horizontal)_projecting/.test(def.type)||
            !entry.action.includes(sectionSymbol+pIndex+' совпадает с заданной '+name+pIndex)||
            !entry.action.includes(sectionSymbol+lIndex+' лежит на уровне '+aux+lIndex)||
