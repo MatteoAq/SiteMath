@@ -48,6 +48,25 @@ for(const part of ['task1','task2','task3'])check(
  JSON.stringify(raw[part])===JSON.stringify(values[part]),
  part+': source table differs from paper');
 
+// The paper tracing has small offsets between the first and second
+// projection of some given points. Preserve the original image coordinates,
+// but require vertically aligned projectors throughout the working model.
+for(const [part,current,archived] of [
+ ['4',model.task4.points,model.task4.sourceGeometry.points],
+ ['5',model.task5.points,model.task5.sourceGeometry.points],
+ ['6',Object.assign({},model.task6.planeA.points,{K:model.task6.pointK}),
+      Object.assign({},model.task6.sourceGeometry.planeA.points,
+         {K:model.task6.sourceGeometry.pointK})]
+])for(const [name,p] of Object.entries(current)){
+ const source=archived[name];
+ check(source,'task '+part+' missing archived point '+name);
+ check(near(p.p1[0],p.p2[0],1e-9),'task '+part+' '+name+' source projector is not vertical');
+ check(near(p.p1[0],(source.p1[0]+source.p2[0])/2,1e-9)&&
+       near(p.p1[1],source.p1[1],1e-9)&&
+       near(p.p2[1],source.p2[1],1e-9),
+       'task '+part+' '+name+' must retain its source heights and depths');
+}
+
 // 1. All three orthographic projections of A,B,C,D,E (including zero x/y/z).
 const g1=O.__audit02.solveTask1(table(raw.task1)),q1=points(g1);
 check(g1.steps.length===17,'task 1 has lost individual construction states');
