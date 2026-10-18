@@ -4727,6 +4727,15 @@
         steps[0].check='Для '+planeASymbol+' проверь '+a+'₁ ∥ '+b+'₁ и '+a+'₂ ∥ '+b+'₂. Для '+planeBSymbol+' проверь '+c+'₁ ∥ '+d+'₁ и '+c+'₂ ∥ '+d+'₂. Даже когда '+a+'₁ и '+b+'₁ проходят близко, это две разные заданные прямые. Проекции '+throughLabel+'₁ и '+throughLabel+'₂ относятся к одной точке '+throughLabel+' и соединены линией связи.';
       }
     }
+    if(scheme.planeA?.type==='parallel_lines' &&
+       scheme.planeB?.type==='intersecting_lines' && !scheme.adaptedSource){
+      const namesA=Object.keys(scheme.planeA.lines||{});
+      const namesB=Object.keys(scheme.planeB.lines||{});
+      if(namesA.length===2&&namesB.length===2){
+        const [a,b]=namesA,[c,d]=namesB;
+        steps[0].check='В плоскости '+planeASymbol+' проверь '+a+'₁ ∥ '+b+'₁ и '+a+'₂ ∥ '+b+'₂. В плоскости '+planeBSymbol+' прямые '+c+'₁ и '+d+'₁ пересекаются в одном узле, а '+c+'₂ и '+d+'₂ – в его парной проекции; эти два узла соединены общей вертикальной линией связи. Заданные проекции '+throughLabel+'₁ и '+throughLabel+'₂ принадлежат одной точке '+throughLabel+' и тоже соединены линией связи.';
+      }
+    }
     if(scheme.sourceId==='source-photos/scans/variant-12.jpg'&&!scheme.adaptedSource){
       steps[0].why+=' На этом листе плоскости пересекаются далеко за пределами исходной схемы. Свободно выбрать можно вспомогательные сечения, но не положение самой линии пересечения.';
     }

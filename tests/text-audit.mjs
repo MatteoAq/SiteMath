@@ -135,6 +135,24 @@ for(let vi=1;vi<=20;vi++){
               required,action:entry.action,why:entry.why,check:entry.check});
         }
       }
+      if(task===6&&step===0){
+        const s6=w.SITEMATH_SCHEMES[variant].task6;
+        if(s6.planeA?.type==='parallel_lines'&&
+           s6.planeB?.type==='intersecting_lines'&&!s6.adaptedSource){
+          const [a,b]=Object.keys(s6.planeA.lines||{});
+          const [c,d]=Object.keys(s6.planeB.lines||{});
+          const label=s6.pointLabel||'K';
+          const required=[a+'₁ ∥ '+b+'₁',a+'₂ ∥ '+b+'₂',
+            c+'₁ и '+d+'₁',c+'₂ и '+d+'₂',
+            'общей вертикальной линией связи',
+            'проекции '+label+'₁ и '+label+'₂',
+            'одной точке '+label];
+          if(required.some(token=>!entry.check.includes(token)) ||
+             /Сверь обозначения обеих исходных плоскостей/u.test(entry.check))
+            issues.push({variant,task,step:1,type:'parallel-intersecting-source-check-vague',
+              required,check:entry.check});
+        }
+      }
       if(task===4&&step===0){
         const plane=w.SITEMATH_SCHEMES[variant].task4;
         const required=plane.planeType==='ABC'
