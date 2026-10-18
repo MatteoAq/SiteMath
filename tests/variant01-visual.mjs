@@ -144,6 +144,9 @@ report.visualDiagnostics={
   pairs:overlaps.slice(0,150),
   fittedLabelClipping:clipped.slice(0,40)
 };
+if(overlaps.length)
+  report.errors.push('Overlapping labels remain across rendered variant 01 stages: '+
+    JSON.stringify(overlaps.slice(0,12)));
 fs.writeFileSync(path.join(dir,'evidence.json'),JSON.stringify(report,null,2));
 console.log('Variant 01 total frames: '+
   report.tasks.reduce((n,t)=>n+t.total,0)+
