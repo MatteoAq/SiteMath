@@ -2609,14 +2609,19 @@
     ];
   }
 
-  function diagramReferenceAxisStep(push,steps,scheme){
+  function diagramReferenceAxisStep(push,steps,scheme,task){
+    const whyByTask={
+      4:'Оси показывают, где находятся горизонтальная и фронтальная проекции. Для дальнейшего построения горизонтали h₂ будет параллельна x₁₂, а фронталь f₁ – параллельна x₁₂. Проекции одной точки соединяются вертикальной линией связи.',
+      5:'Для построения пересечения прямой с плоскостью точки переносят между проекциями по вертикальным линиям связи. При определении видимости на Π₁ сравнивают высоты z на Π₂, а для видимости на Π₂ – глубины y на Π₁.',
+      6:'Оси нужны, чтобы провести вспомогательные секущие плоскости и перенести полученные общие точки P и Q между проекциями по вертикальным линиям связи. Затем через P и Q строят линию пересечения двух исходных плоскостей.'
+    };
     const frame=diagramAxisFromScheme(scheme);
     if(!frame)return null;
     const i=steps.length;
     push({
       title:'Добавь оси к исходной схеме',
       action:'Исходные линии уже перенесены на предыдущем этапе. Теперь проведи x₁₂ горизонтально между видами и вертикальную ось слева от рисунка. Подпиши z выше x₁₂, y ниже неё, верхний вид Π₂ и нижний Π₁. Не сдвигай исходные линии и точки.',
-      why:'Оси показывают, где находятся горизонтальная и фронтальная проекции. Для дальнейшего построения горизонтали h₂ будет параллельна x₁₂, а фронталь f₁ – параллельна x₁₂. Проекции одной точки соединяются вертикальной линией связи.',
+      why:whyByTask[task]||whyByTask[4],
       measure:['x₁₂ – горизонтально','вертикальная ось – слева от схемы','z – вверх, y – вниз'],
       check:'x₁₂ горизонтальна, вертикальная ось слева от схемы перпендикулярна x₁₂. Верхние проекции остаются в Π₂, нижние – в Π₁. Парные исходные проекции не смещены.'
     },diagramReferenceAxisEntities(i,frame),{kind:'line',a:frame.a,b:frame.b});
@@ -2824,7 +2829,7 @@
 
     const base=plane.P;
 
-    const xAxis=diagramReferenceAxisStep(push,steps,scheme);
+    const xAxis=diagramReferenceAxisStep(push,steps,scheme,4);
 
     // Some original sheets specify a plane by three INDIVIDUAL given point
     // projectors, with no edges pre-drawn. Connect those vertices as distinct
@@ -3894,7 +3899,7 @@
       steps[0].why+=' Здесь исходная прямая почти параллельна плоскости. По растровому листу можно проверить способ построения, но не точное положение далёкого пересечения.';
     }
 
-    diagramReferenceAxisStep(push,steps,scheme);
+    diagramReferenceAxisStep(push,steps,scheme,5);
 
     // A plane defined by A and a cannot use the computed auxiliary g=AT
     // until the student has actually selected T on a, transferred its paired
@@ -4904,7 +4909,7 @@
       steps[0].why+=' На этом листе плоскости пересекаются далеко за пределами исходной схемы. Свободно выбрать можно вспомогательные сечения, но не положение самой линии пересечения.';
     }
 
-    diagramReferenceAxisStep(push,steps,scheme);
+    diagramReferenceAxisStep(push,steps,scheme,6);
 
     // A plane defined by a point and a line has only one source line. Before
     // using two-line section constructions, explicitly create a second line
@@ -5061,13 +5066,13 @@
         i=steps.length;
         push({
           title:'На '+planeName+pIdx+' получи '+pointNames[0]+pIdx+' и '+pointNames[1]+pIdx+' в '+planeSymbol,
-          action:'Пересеки '+planeName+pIdx+' с двумя уже существующими опорными линиями плоскости '+planeSymbol+'. Первое пересечение обозначь '+pointNames[0]+pIdx+', второе – '+pointNames[1]+pIdx+'.',
+          action:'Пересеки '+planeName+pIdx+' с двумя уже существующими опорными линиями плоскости '+planeSymbol+'. Первое пересечение обозначь '+pointNames[0]+pIdx+', второе – '+pointNames[1]+pIdx+'. Соедини эти две точки – получишь '+sectionSymbol+pIdx+'.',
           why:'Эти точки не выбираются произвольно: обе задаются пересечениями вспомогательной плоскости '+planeName+' с линиями, принадлежащими '+planeSymbol+'.',
           measure:[
             pointNames[0]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[0].name+pIdx,
             pointNames[1]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[1].name+pIdx
           ],
-          check:'Проверь оба пересечения: '+pointNames[0]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[0].name+pIdx+'; '+pointNames[1]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[1].name+pIdx+'. Опорные прямые могут быть заданы в условии или построены на предыдущих этапах.'
+          check:'Проверь оба пересечения: '+pointNames[0]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[0].name+pIdx+'; '+pointNames[1]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[1].name+pIdx+'. Проекция '+sectionSymbol+pIdx+' проходит через обе отмеченные точки. Опорные прямые могут быть заданы в условии или построены на предыдущих этапах.'
         },[
           ...segmentExtensionEntities(i,sec.refs[0].rec[primary],primarySeg[0]),
           ...segmentExtensionEntities(i,sec.refs[1].rec[primary],primarySeg[1]),
@@ -5331,7 +5336,7 @@
     },starter);
     if(scheme.sourceGeometry)steps[0].sourceEntities=rawTask6StarterEntities(scheme,0,throughLabel);
 
-    diagramReferenceAxisStep(push,steps,scheme);
+    diagramReferenceAxisStep(push,steps,scheme,6);
 
     const linePA=planeLineAtPoint(A,P,levelType), linePB=planeLineAtPoint(B,P,levelType);
     const lineQA=planeLineAtPoint(A,Q,levelType), lineQB=planeLineAtPoint(B,Q,levelType);

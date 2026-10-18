@@ -52,6 +52,19 @@ for(let vi=1;vi<=20;vi++){
           issues.push({variant,task,step:1,type:'given-through-point-not-introduced',
             through,action:entry.action,check:entry.check});
       }
+      // The common axis step must explain the ACTUAL operation of this
+      // task. Task 5 does not construct h/f, while task 6 uses sections.
+      if(task>=4&&step===1){
+        const expected=task===4
+          ? ['горизонтали h₂','фронталь f₁']
+          : task===5
+            ? ['видимости на Π₁','высоты z на Π₂','видимости на Π₂','глубины y на Π₁']
+            : ['вспомогательные секущие плоскости','точки P и Q','линию пересечения'];
+        if(expected.some(text=>!entry.why.includes(text)) ||
+           (task!==4&&/горизонтали h₂|фронталь f₁/u.test(entry.why)))
+          issues.push({variant,task,step:2,type:'axis-explanation-from-other-task',
+            why:entry.why});
+      }
       // The source scheme is copied in the first graphical stage.
       // The following stage must add axes, not ask the student to copy it again.
       if(task>=4&&step===1){
@@ -77,6 +90,15 @@ for(let vi=1;vi<=20;vi++){
         issues.push({variant,task,step:step+1,type:'profile-construction-not-reproducible',
           title:entry.title,action:entry.action});
       if(task===6&&/^На [αβ][₁₂] получи /u.test(entry.title)){
+        const match=/^На [αβ]([₁₂]) получи .* в (\S+)$/u.exec(entry.title);
+        if(!match)issues.push({variant,task,step:step+1,type:'section-step-title-unparseable'});
+        else{
+          const section=(match[1]==='₂'?'h':'f')+match[2]+match[1];
+          if(!entry.action.includes('Соедини эти две точки – получишь '+section)||
+             !entry.check.includes('Проекция '+section+' проходит через обе отмеченные точки'))
+            issues.push({variant,task,step:step+1,type:'section-stroke-before-instruction',
+              label:section,action:entry.action,check:entry.check});
+        }
         const m=entry.measure||[];
         if(m.length<2 || m.slice(0,2).some(eq=>!entry.check.includes(eq)) ||
            /соответствующих исходных линиях/u.test(entry.check))
