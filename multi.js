@@ -3806,6 +3806,42 @@
     },starter);
     if(scheme.sourceGeometry && !scheme.adaptedSource)
       steps[0].sourceEntities=starterEntitiesFromScheme(scheme.sourceGeometry,0,true);
+    if(!scheme.adaptedSource){
+      const sourceName=scheme.givenLine||'l';
+      const shownName=sourceName==='l'?'ℓ':sourceName;
+      const otherLine='Отдельно нанеси '+shownName+'₁ и '+shownName+'₂ из условия, не соединяя их с плоскостью без построения.';
+      const otherCheck='Заданная прямая '+shownName+' показана на двух видах как '+shownName+'₁ и '+shownName+'₂: это проекции одной пространственной прямой.';
+      let planeAction='',planeCheck='';
+      if(scheme.planeType==='ABC'){
+        const names=Object.keys(scheme.points||{}).slice(0,3);
+        if(names.length===3){
+          planeAction='Отметь на П₁ и П₂ вершины '+names.join(', ')+' и соедини их в треугольники.';
+          planeCheck='Для плоскости проверь пары '+names.map(name=>name+'₁/'+name+'₂').join(', ')+': у каждой вершины две проекции на одной вертикальной линии связи.';
+        }
+      }else if(scheme.planeType==='parallel_lines'){
+        const [a,b]=scheme.planeLines||[];
+        if(a&&b){
+          planeAction='Перенеси заданные параллельные прямые '+a+' и '+b+' на П₁ и П₂.';
+          planeCheck='Плоскость задана параллельными прямыми: '+a+'₁ ∥ '+b+'₁ и '+a+'₂ ∥ '+b+'₂; на каждом виде это две разные линии.';
+        }
+      }else if(scheme.planeType==='intersecting_lines'){
+        const [a,b]=scheme.planeLines||[];
+        if(a&&b){
+          planeAction='Перенеси на П₁ и П₂ заданные пересекающиеся прямые '+a+' и '+b+'; отметь их узел на каждом виде.';
+          planeCheck='Узел '+a+'₁ ∩ '+b+'₁ на П₁ и узел '+a+'₂ ∩ '+b+'₂ на П₂ принадлежат одной пространственной точке, поэтому расположены на общей вертикальной линии связи.';
+        }
+      }else if(scheme.planeType==='line_point'){
+        const a=scheme.planeLine||Object.keys(scheme.lines||{}).find(name=>name!==sourceName)||'a';
+        const P=scheme.planePoint||Object.keys(scheme.points||{})[0]||'A';
+        planeAction='Перенеси прямую '+a+'₁/'+a+'₂ и отдельно точку '+P+'₁/'+P+'₂: вместе они задают плоскость.';
+        planeCheck='У прямой есть проекции '+a+'₁/'+a+'₂, у точки – '+P+'₁/'+P+'₂ на вертикальном проекторе. Точка '+P+' не принадлежит прямой '+a+' в пространстве.';
+      }
+      if(planeAction&&planeCheck){
+        steps[0].title='Проверь исходные элементы плоскости и прямой '+shownName;
+        steps[0].action=planeAction+' '+otherLine+' Вспомогательную плоскость пока не вводи.';
+        steps[0].check=planeCheck+' '+otherCheck;
+      }
+    }
     if(scheme.adaptedSource){
       steps[0].action='Перенеси учебную реконструкцию с экрана: на каждом виде начерти пересекающиеся прямые a и b, отдельно – прямую ℓ. Отметь общий узел a∩b на двух проекциях и проведи через него линию связи. Сохрани индексы ₁ и ₂ у всех трёх прямых.';
       steps[0].why+=' Наклоны штрихов здесь намеренно отличаются от университетского скана. Последующие построения относятся к этой реконструкции.';
