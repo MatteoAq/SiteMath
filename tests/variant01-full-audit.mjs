@@ -76,6 +76,21 @@ for(const [name,[x,y,z]] of Object.entries(values.task1)){
  }
 }
 
+// The original coordinates do not require repeated coincident foot labels.
+// Keep the geometry, but suppress redundant labels at zero ordinates / origin.
+const allPointAnnotations=g1.steps.flatMap(step=>step.entities||[])
+  .filter(e=>e.type==='point').map(e=>e.label);
+for(const redundant of ['z=0','y₁=0','y₃=0','z=10','z=35','y₃=40']){
+ check(!allPointAnnotations.includes(redundant),
+   'task 1 has an annotation collision at zero or coincident coordinate '+redundant);
+}
+const xDimensionSteps=g1.steps.filter(step=>/зaдай линию связи по x/u.test(step.title)||
+  /задай линию связи по x/u.test(step.title));
+const xDimensions=xDimensionSteps.flatMap(step=>(step.entities||[])
+  .filter(e=>e.type==='dim').map(e=>e.label));
+check(JSON.stringify(xDimensions)===JSON.stringify(['25 мм','40 мм','20 мм']),
+  'task 1 must not repeat already established x dimensions: '+JSON.stringify(xDimensions));
+
 // 2. Natural magnitude and two true plane-inclination angles; no rounded
 // intermediate distances. Reported values must use final independent arithmetic.
 const g2=O.__audit01.solveTask2(table(raw.task2));
