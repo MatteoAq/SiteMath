@@ -135,9 +135,25 @@ check(final5.some(e=>e.cls==='hidden-line')&&
  final5.some(e=>e.cls==='answer-line'),
  'task 5 visible and hidden straight-line parts not distinguished');
 
-// 6. Σ(a∥b) and intersecting-lines Θ(c∩h). Construct P and Q
+// 6. Σ(ABC) and Θ(DEF). Construct P and Q
 // with genuinely drawn auxiliary sections, then a parallel line through K.
 const s6=model.task6,g6=O.__audit20.solveTask6Scheme(s6,{});
+// Correct the working projection pairs without modifying the archived raster
+// tracing. All heights, depths and source point identities remain unchanged.
+for(const [name,p] of Object.entries({
+ ...s6.planeA.points,...s6.planeB.points,K:s6.pointK
+})){
+ check(near(p.p1[0],p.p2[0],1e-9),
+  'task 6 working '+name+' projections lack a common vertical projector');
+ const rawPoint=s6.sourceGeometry.planeA.points[name]||
+   s6.sourceGeometry.planeB.points[name]||
+   (name==='K'?s6.sourceGeometry.pointK:null);
+ check(rawPoint&&
+   near(p.p1[0],(rawPoint.p1[0]+rawPoint.p2[0])/2,1e-9)&&
+   near(p.p1[1],rawPoint.p1[1],1e-9)&&
+   near(p.p2[1],rawPoint.p2[1],1e-9),
+   'task 6 '+name+' averaged projector must preserve source heights and depths');
+}
 const section=O.__section20;
 check(s6.planeA.type==='ABC'&&
  s6.planeB.type==='ABC'&&
