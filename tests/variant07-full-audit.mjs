@@ -48,6 +48,22 @@ for(const part of ['task1','task2','task3'])check(
  JSON.stringify(raw[part])===JSON.stringify(values[part]),
  part+': source table differs from paper');
 
+// 07/6 source tracing gives A, B, C and K small x discrepancies
+// between views. Working pairs must share a vertical projector.
+for(const [name,p] of Object.entries({
+ ...model.task6.planeA.points,K:model.task6.pointK
+})){
+ const original=model.task6.sourceGeometry.planeA.points[name]||
+   (name==='K'?model.task6.sourceGeometry.pointK:null);
+ check(original,'task 6 original '+name+' point missing');
+ check(near(p.p1[0],p.p2[0],1e-9),
+   'task 6 working '+name+' projector is not vertical');
+ check(near(p.p1[0],(original.p1[0]+original.p2[0])/2,1e-9)&&
+       near(p.p1[1],original.p1[1],1e-9)&&
+       near(p.p2[1],original.p2[1],1e-9),
+   'task 6 '+name+' must preserve original heights and depths');
+}
+
 // 1. All three orthographic projections of A,B,C,D,E (including zero x/y/z).
 const g1=O.__audit07.solveTask1(table(raw.task1)),q1=points(g1);
 check(g1.steps.length===17,'task 1 has lost individual construction states');
