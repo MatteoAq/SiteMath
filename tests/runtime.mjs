@@ -2309,12 +2309,762 @@ if (!onlyVariant && !onlyTask) try {
     const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
     for(const [side,def,fallback] of [['A',scheme?.planeA,'Σ'],['B',scheme?.planeB,'Θ']]){
       const symbol=def?.name||fallback;
-      const hasSectionLabel=labels.some(x=>
-        x==='h'+symbol+'₁'||x==='h'+symbol+'₂'||
-        x==='f'+symbol+'₁'||x==='f'+symbol+'₂'
-      );
-      if(!hasSectionLabel){
-        failures.push('task6 plane symbol '+variant+'/'+side+': section label for '+symbol+' missing');
+      // The two distinct α/β auxiliary levels must BOTH identify the
+      // actual plane of this variant, not reuse a generic section label.
+      for(const level of ['α','β']){
+        const namePattern=new RegExp('^[hf]'+symbol+level+'[₁₂]
+  }
+
+  const expectedBriefs={
+    '11':['Σ(a∥b)','Γ(Γ₂)'],
+    '14':['Σ(a∩b)','Ω(Ω₁)'],
+    '15':['Σ(Σ₂)','Θ(ABC)']
+  };
+  for(const [variant,parts] of Object.entries(expectedBriefs)){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value='6';
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    const text=($('problemGiven')?.textContent||'')+' '+($('problemFind')?.textContent||'');
+    for(const part of parts){
+      if(!text.includes(part)) failures.push('task6 plane notation '+variant+': missing '+part);
+    }
+  }
+} catch(e) {
+  failures.push('task6 plane-symbol regression: '+e.stack);
+}
+
+// Auxiliary construction is part of the answer, not disposable UI decoration.
+ // Step 1 must stay source-only; by the final step each graphical task must
+ // retain the projectors/auxiliary sections that explain how the result was built.
+if (!onlyVariant && !onlyTask) try {
+  const photographed=variants;
+  for(const variant of photographed){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    for(const task of [4,5,6]){
+      $('taskSelect').value=String(task);
+      $('taskSelect').dispatchEvent(new window.Event('change'));
+      $('firstBtn').click();
+
+      const sourceConstruction=window.document.querySelectorAll('#drawing line.construction-line').length;
+      const sourceAux=window.document.querySelectorAll('#drawing line.aux-line').length;
+      if(sourceConstruction!==0 || sourceAux!==0){
+        failures.push('auxiliary construction '+variant+'/'+task+': solution helpers leaked into source frame');
+      }
+
+      $('lastBtn').click();
+      const construction=window.document.querySelectorAll('#drawing line.construction-line').length;
+      const aux=window.document.querySelectorAll('#drawing line.aux-line').length;
+      const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+
+      if(task===4){
+        if(construction<6) failures.push('auxiliary construction '+variant+'/4: too few projector/helper lines ('+construction+')');
+      } else if(task===5){
+        if(construction<3) failures.push('auxiliary construction '+variant+'/5: too few projection-transfer lines ('+construction+')');
+        if(aux<1) failures.push('auxiliary construction '+variant+'/5: section line m missing ('+aux+')');
+        const given=window.SITEMATH_SCHEMES?.[variant]?.task5?.givenLine==='f'?'f':'ℓ';
+        const hasPrimary1=labels.includes('Ω₁≡'+given+'₁')&&labels.includes('m₂');
+        const hasPrimary2=labels.includes('Ω₂≡'+given+'₂')&&labels.includes('m₁');
+        if(!hasPrimary1&&!hasPrimary2){
+          failures.push('auxiliary construction '+variant+'/5: neither valid Ω/m auxiliary projection pair is present');
+        }
+        for(const label of ['K₁','K₂']){
+          if(!labels.includes(label)) failures.push('auxiliary construction '+variant+'/5: missing '+label);
+        }
+      } else {
+        const task6=window.SITEMATH_SCHEMES?.[variant]?.task6;
+        const hasProjecting=[task6?.planeA?.type,task6?.planeB?.type].some(type=>type==='frontal_projecting'||type==='horizontal_projecting');
+        const minProjectors=hasProjecting?4:8;
+        if(construction<minProjectors) failures.push('auxiliary construction '+variant+'/6: too few projector/helper lines ('+construction+')');
+        if(aux<4) failures.push('auxiliary construction '+variant+'/6: two auxiliary section constructions are incomplete ('+aux+')');
+      }
+    }
+  }
+} catch(e) {
+  failures.push('auxiliary construction regression: '+e.stack);
+}
+
+// Tasks 4-6 expose the source statement as a compact Given/Find block.
+if (!onlyVariant && !onlyTask) try {
+  for(const variant of ['03','08','12','18']){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    for(const task of [4,5,6]){
+      $('taskSelect').value=String(task);
+      $('taskSelect').dispatchEvent(new window.Event('change'));
+      if($('problemBrief').hidden) failures.push('problem brief '+variant+'/'+task+': hidden');
+      if(!$('problemGiven').textContent.trim()) failures.push('problem brief '+variant+'/'+task+': Given empty');
+      if(!$('problemFind').textContent.trim()) failures.push('problem brief '+variant+'/'+task+': Find empty');
+    }
+  }
+  $('variantSelect').value='08';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='4';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  if(!$('problemFind').textContent.includes('ЛС')) failures.push('problem brief task4: greatest-slope line missing');
+} catch(e) {
+  failures.push('problem brief regression: '+e.stack);
+}
+
+// Tasks 4-6 must carry an explicit warning to compare the construction with the original sheet.
+if (!onlyVariant && !onlyTask) try {
+  $('variantSelect').value='12';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  for(const task of [1,2,3]){
+    $('taskSelect').value=String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    if(!$('diagramWarning').hidden) failures.push('diagram warning: unexpectedly visible for task '+task);
+  }
+  for(const task of [4,5,6]){
+    $('taskSelect').value=String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    if($('diagramWarning').hidden) failures.push('diagram warning: hidden for task '+task);
+    const text=$('diagramWarning').textContent;
+    const sourceVerified=window.SITEMATH_SCHEMES['12']['task'+task].sourceVerified===true;
+    if(window.SITEMATH_SCHEMES['12']['task'+task].adaptedSource){
+      if(!text.includes('Учебная реконструкция')||!text.includes('адаптированная схема'))
+        failures.push('diagram warning '+task+': adapted teaching drawing status not stated');
+    }else if(sourceVerified){
+      if(!text.includes('оригинал') || !text.includes('проверены'))
+        failures.push('diagram warning '+task+': reviewed construction still presented as unverified');
+    }else{
+      if(!text.includes('скан'))
+        failures.push('diagram warning '+task+': recovered source scan not mentioned');
+      if(!text.includes('провер'))
+        failures.push('diagram warning '+task+': pending method verification not mentioned');
+    }
+  }
+} catch(e) {
+  failures.push('diagram warning regression: '+e.stack);
+}
+
+// Source-role text must not turn a one-projection plane into a fictitious pair,
+// and source verification status must reflect what can actually be rechecked now.
+if (!onlyVariant && !onlyTask) try {
+  $('variantSelect').value='11';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='6';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  let sourceText=$('dynamicInputs').textContent;
+  if(!sourceText.includes('Γ₂')) failures.push('source roles 11/6: Γ₂ missing');
+  if(sourceText.includes('Γ₁/Γ₂')) failures.push('source roles 11/6: frontal-projecting plane falsely shown as two projections');
+
+  $('variantSelect').value='08';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='6';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  sourceText=$('dynamicInputs').textContent;
+  if(!sourceText.includes('Δ₁')) failures.push('source roles 08/6: Δ₁ missing');
+  if(sourceText.includes('Δ₁/Δ₂')) failures.push('source roles 08/6: horizontal-projecting plane falsely shown as two projections');
+
+  $('variantSelect').value='12';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='4';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  if(!$('dynamicInputs').querySelector('a[href="./source-photos/scans/variant-12.jpg"]'))
+    failures.push('source status 12: original scan link missing');
+
+  $('variantSelect').value='03';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value='4';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  if(!$('dynamicInputs').textContent.includes('повторно сверено с доступным исходным листом'))
+    failures.push('source status 03: verified task4 source not reflected in UI');
+} catch(e) {
+  failures.push('source role/status regression: '+e.stack);
+}
+
+// Intermediate geometry must stay visually/semantically auxiliary.
+if (!onlyVariant && !onlyTask) try {
+  $('variantSelect').value='12';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+
+  $('taskSelect').value='5';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('lastBtn').click();
+  for(const label of ['1₁','1₂','2₁','2₂']){
+    const p=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
+    if(!p || p.dataset.role!=='construction') failures.push('task5 roles: '+label+' is not construction');
+  }
+  for(const label of ['K₁','K₂']){
+    const p=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
+    if(!p || p.dataset.role!=='result') failures.push('task5 roles: '+label+' is not result');
+  }
+  if(window.document.querySelectorAll('#drawing line.aux-line[data-role="auxiliary"]').length<1){
+    failures.push('task5 roles: section line m is not classified as auxiliary');
+  }
+
+  $('taskSelect').value='6';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('lastBtn').click();
+  for(const label of ['P₁','P₂','Q₁','Q₂']){
+    const p=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
+    if(!p || p.dataset.role!=='construction') failures.push('task6 roles: '+label+' is not construction');
+  }
+} catch(e) {
+  failures.push('intermediate-role regression: '+e.stack);
+}
+
+// Variant 18 is now confirmed by a photographed sheet explicitly labeled "В. 18".
+try {
+  const v18=window.SITEMATH_DATA.variants['18'];
+  if(!v18) failures.push('variant18: confirmed variant missing');
+  if(v18 && v18.provisionalNumber) failures.push('variant18: still incorrectly marked provisional');
+  if(window.SITEMATH_DATA.variants['photo-unknown']) failures.push('variant18: old photo-unknown key still exists');
+} catch(e) {
+  failures.push('variant18 mapping: '+e.stack);
+}
+
+// Audit the provenance AND structural consistency of every programmed
+// task. Solver success does not prove any handwritten assignment was copied
+// correctly. Only readable, independently cross-checked source material
+// may set sourceVerified=true.
+try {
+  const schemes=window.SITEMATH_SCHEMES||{};
+  const originalVariant=window.SITEMATH_DATA.variants||{};
+  const complete=Object.keys(originalVariant).filter(v=>schemes[v] && [4,5,6].every(k=>schemes[v]['task'+k]));
+  if(complete.length!==20)failures.push('assignment audit: expected 20 digitized variants, got '+complete.length);
+  for(const v of complete){
+    for(const task of [4,5,6]){
+      const g=schemes[v]['task'+task];
+      const info=originalVariant[v]['task'+task];
+      if(!info?.statement)failures.push('assignment audit '+v+'/'+task+': no preserved condition text');
+      if(g.sourceVerified!==(task===4 || ((v==='12'&&task===5)||(v==='13'&&task===6)) || ['01','02','03','04','05','06','07','08','09','10','11','14','15','16','17','18','19','20'].includes(v))){
+        failures.push('assignment audit '+v+'/'+task+': source review differs from independently audited original');
+      }
+      if(task===4){
+        if(g.planeType==='line_point' && (!g.lines?.[g.planeLine] || !g.points?.[g.planePoint])){
+          failures.push('assignment audit '+v+'/4: point-and-line plane source is incomplete');
+        }
+        if(g.planeType==='parallel_lines' && !(g.planeLines||[]).every(key=>g.lines?.[key])){
+          failures.push('assignment audit '+v+'/4: parallel defining lines missing');
+        }
+        if(g.planeType==='intersecting_lines' && !(g.planeLines||[]).every(key=>g.lines?.[key])){
+          failures.push('assignment audit '+v+'/4: intersecting defining lines missing');
+        }
+        const op=g.operation;
+        if(op?.through && !g.points?.[op.through]){
+          failures.push('assignment audit '+v+'/4: named source point '+op.through+' is absent');
+        }
+        if(op?.type==='line_intersects_named' && !g.lines?.[op.target]){
+          failures.push('assignment audit '+v+'/4: named target line '+op.target+' is absent');
+        }
+      }else if(task===5){
+        if(g.planeType==='ABC' && !['A','B','C'].every(k=>g.points?.[k])){
+          failures.push('assignment audit '+v+'/5: ABC defining points missing');
+        }
+        if(g.givenLine && !g.lines?.[g.givenLine]){
+          failures.push('assignment audit '+v+'/5: intersecting line '+g.givenLine+' missing');
+        }
+      }else {
+        if(!g.planeA||!g.planeB){
+          failures.push('assignment audit '+v+'/6: two defining planes required');
+        }
+        if(!(g.pointK||g.pointThrough)){
+          failures.push('assignment audit '+v+'/6: given point K/M missing');
+        }
+      }
+    }
+  }
+  if(schemes['06']?.task4?.sourceVerified!==true){
+    failures.push('assignment audit 06/4: corrected scanned m₂/n₂ topology must be source-verified');
+  }
+} catch(e){
+  failures.push('assignment source audit: '+e.stack);
+}
+
+// Regression: coordinate drawings use the visible 5 mm paper grid as the actual metric grid.
+try {
+  $('variantSelect').value = '10';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  $('taskSelect').value = '2';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  $('lastBtn').click();
+
+  const onGrid = value => {
+    const v=Number(value);
+    const r=((v%5)+5)%5;
+    return r<1e-6 || Math.abs(r-5)<1e-6;
+  };
+  for (const label of ['O','A₁','A₂','B₁','B₂']) {
+    const p=window.document.querySelector('circle[data-label="'+label+'"]');
+    if (!p) {
+      failures.push('grid regression: point '+label+' missing');
+      continue;
+    }
+    if (!onGrid(p.getAttribute('cx')) || !onGrid(p.getAttribute('cy'))) {
+      failures.push('grid regression: '+label+' is off 5 mm grid at '+p.getAttribute('cx')+','+p.getAttribute('cy'));
+    }
+  }
+} catch (e) {
+  failures.push('grid regression: '+e.stack);
+}
+
+// The background grid is the only copy guide: its origin follows a given
+// point, while the original drawing remains unchanged.
+try {
+  for(const task of [4,5,6]){
+    $('variantSelect').value='12';
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value=String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+    const svg=$('drawing');
+    const x=Number(svg.getAttribute('data-grid-phase-x'));
+    const y=Number(svg.getAttribute('data-grid-phase-y'));
+    const layers=[...svg.querySelectorAll('rect[fill^="url(#"]')];
+    if(layers.length!==2 ||
+       layers[0].getAttribute('fill')!=='url(#minorGrid)' ||
+       layers[1].getAttribute('fill')!=='url(#majorGrid)'){
+      failures.push('grid alignment 12/'+task+': grid patterns not composed in one coordinate system');
+    }
+    for(const p of [svg.querySelector('#minorGrid'),svg.querySelector('#majorGrid')]){
+      if(!p || Math.abs(Number(p.getAttribute('x'))-x)>1e-6 ||
+        Math.abs(Number(p.getAttribute('y'))-y)>1e-6){
+        failures.push('grid alignment 12/'+task+': minor/major pattern origin mismatch');
+      }
+    }
+    // Any given point may lie between cell crossings. The *reference axes*
+    // must coincide with full, straight grid lines, as in a squared notebook.
+    // The original geometry is never rounded to individual cells.
+    if(!svg.querySelector('line.object-line')){
+      failures.push('grid alignment 12/'+task+': given geometry missing');
+    }
+    if($('notebookTransfer')||svg.querySelector('.notebook-origin,.notebook-endpoint,.notebook-grid-offset')){
+      failures.push('grid alignment 12/'+task+': unnecessary copy overlay remains');
+    }
+    $('nextBtn').click();
+    const axes=[...svg.querySelectorAll('line.axis')];
+    const nearGrid=(value,offset)=>{
+      const cell=Number(svg.getAttribute('data-grid-cell-units'));
+      const k=(value-offset)/cell;
+      return Math.abs(k-Math.round(k))<1e-6;
+    };
+    const v=axes.find(e=>Math.abs(Number(e.getAttribute('x1'))-Number(e.getAttribute('x2')))<1e-6);
+    const h=axes.find(e=>Math.abs(Number(e.getAttribute('y1'))-Number(e.getAttribute('y2')))<1e-6);
+    if(!v||!h)failures.push('grid alignment 12/'+task+': reference axes missing');
+    else if(!nearGrid(Number(v.getAttribute('x1')),x)||!nearGrid(Number(h.getAttribute('y1')),y)){
+      failures.push('grid alignment 12/'+task+': x12 or z axis is between grid lines');
+    }
+    if(Math.abs(Number(svg.getAttribute('data-grid-phase-x'))-x)>1e-8 ||
+       Math.abs(Number(svg.getAttribute('data-grid-phase-y'))-y)>1e-8){
+      failures.push('grid alignment 12/'+task+': background grid jumps between steps');
+    }
+  }
+}catch(e){failures.push('grid alignment regression: '+e.stack);}
+
+// Custom-data UI smoke test, including the profile-line special case in task 3.
+if (!onlyVariant && !onlyTask) try {
+  $('variantSelect').value = 'custom';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+
+  for (let task=1; task<=6; task++) {
+    $('taskSelect').value = String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    if (task <= 3) {
+      const inputs = [...window.document.querySelectorAll('.coord-input')];
+      if (!inputs.length) failures.push('custom/'+task+': coordinate editor missing');
+    } else {
+      for (const id of ['schemeImage','cropControls','autoCrop','manualCrop','wholeCrop','applyCrop','markControls','startMarking','undoMark','finishMarking','photoZoomOut','photoZoomFit','photoZoomIn','calibrationCanvas']) {
+        if (!$(id)) failures.push('custom/'+task+': control missing '+id);
+      }
+    }
+  }
+
+  $('taskSelect').value = '3';
+  $('taskSelect').dispatchEvent(new window.Event('change'));
+  const setCoord = (point,axis,value) => {
+    const el = window.document.querySelector('.coord-input[data-point="'+point+'"][data-axis="'+axis+'"]');
+    el.value = String(value);
+  };
+  setCoord('A','x',20); setCoord('A','y',10); setCoord('A','z',0);
+  setCoord('B','x',20); setCoord('B','y',50); setCoord('B','z',60);
+  setCoord('C','x',55); setCoord('C','y',20); setCoord('C','z',30);
+  $('buildBtn').click();
+  if (!$('validation').hidden) failures.push('custom/3 profile case: '+$('validation').textContent);
+  if (!$('stepTitle').textContent.includes('Проведи') && Number($('stepTotal').textContent) < 8) {
+    failures.push('custom/3 profile case: solver did not build expected steps');
+  }
+  console.log('OK custom editors and task 3 profile-line case');
+} catch (e) {
+  failures.push('custom smoke: '+e.stack);
+}
+
+// Declared source-plane relations are mathematical constraints, not merely
+// captions. Parallel source lines must remain parallel in both projections;
+ // intersecting source lines must meet on one common projector.
+try {
+  const cross2=(u,v)=>u.x*v.y-u.y*v.x;
+  const dir=seg=>({x:+seg[1][0]-+seg[0][0],y:+seg[1][1]-+seg[0][1]});
+  const hit=(A,B)=>{
+    const [a,b]=A,[c,d]=B;
+    const den=(a[0]-b[0])*(c[1]-d[1])-(a[1]-b[1])*(c[0]-d[0]);
+    if(Math.abs(den)<1e-9)return null;
+    return {
+      x:((a[0]*b[1]-a[1]*b[0])*(c[0]-d[0])-(a[0]-b[0])*(c[0]*d[1]-c[1]*d[0]))/den,
+      y:((a[0]*b[1]-a[1]*b[0])*(c[1]-d[1])-(a[1]-b[1])*(c[0]*d[1]-c[1]*d[0]))/den
+    };
+  };
+  for(const [variant,group] of Object.entries(window.SITEMATH_SCHEMES||{})){
+    for(const task of [4,5,6]){
+      const scheme=group?.['task'+task];
+      if(!scheme)continue;
+      const defs=task===6?[scheme.planeA,scheme.planeB]:[scheme];
+      for(const def of defs){
+        const type=def?.planeType||def?.type;
+        if(!['parallel_lines','intersecting_lines'].includes(type)||!def.lines)continue;
+        const names=def.planeLines||Object.keys(def.lines).slice(0,2);
+        const A=def.lines[names[0]],B=def.lines[names[1]];
+        if(!A||!B)continue;
+        if(type==='parallel_lines'){
+          for(const proj of ['p1','p2']){
+            const da=dir(A[proj]),db=dir(B[proj]);
+            const den=Math.hypot(da.x,da.y)*Math.hypot(db.x,db.y)||1;
+            if(Math.abs(cross2(da,db))/den>1e-6){
+              failures.push('declared parallel '+variant+'/'+task+' '+proj+': defining lines are not parallel');
+            }
+          }
+        }else{
+          const p1=hit(A.p1,B.p1),p2=hit(A.p2,B.p2);
+          if(!p1||!p2){
+            failures.push('declared intersection '+variant+'/'+task+': projected lines do not intersect');
+          }else if(Math.abs(p1.x-p2.x)>.5){
+            failures.push('declared intersection '+variant+'/'+task+': projected intersections are not on one projector');
+          }
+        }
+      }
+    }
+  }
+} catch(e) {
+  failures.push('declared plane geometry regression: '+e.stack);
+}
+
+// Explicit source junctions are authoritative: every defining source line
+// must actually pass through the stored junction on both projections.
+try {
+  const pointLineDistance=(p,seg)=>{
+    const [a,b]=seg;
+    const dx=b[0]-a[0],dy=b[1]-a[1];
+    const den=Math.hypot(dx,dy)||1;
+    return Math.abs(dy*p[0]-dx*p[1]+b[0]*a[1]-b[1]*a[0])/den;
+  };
+  for(const [variant,group] of Object.entries(window.SITEMATH_SCHEMES||{})){
+    for(const task of [4,5,6]){
+      const scheme=group?.['task'+task];
+      if(!scheme) continue;
+      const defs=task===6?[scheme.planeA,scheme.planeB]:[scheme];
+      for(const def of defs){
+        if(!def?.junctions?.length || !def.lines) continue;
+        const names=def.planeLines||Object.keys(def.lines).slice(0,2);
+        const lines=names.map(name=>def.lines[name]).filter(Boolean);
+        for(const j of def.junctions){
+          // Working projections must share ONE projector exactly. The
+          // original photo trace (sourceGeometry) may differ by subpixel
+          // tracing error, but that discrepancy cannot leak into the solver.
+          if(j.p1 && j.p2 && Math.abs(+j.p1[0]-+j.p2[0])>1e-4){
+            failures.push('source junction '+variant+'/'+task+': p1/p2 are not on one projector');
+          }
+          for(const L of lines){
+            if(j.p1 && pointLineDistance(j.p1,L.p1)>1.1){
+              failures.push('source junction '+variant+'/'+task+': p1 does not lie on defining line');
+            }
+            if(j.p2 && pointLineDistance(j.p2,L.p2)>1.1){
+              failures.push('source junction '+variant+'/'+task+': p2 does not lie on defining line');
+            }
+          }
+        }
+      }
+    }
+  }
+} catch(e) {
+  failures.push('explicit source junction geometry: '+e.stack);
+}
+
+// A historical trace is not source verification. At this checkpoint only
+// variant 12 has an exact original image that is still addressable and was
+// rechecked directly. Do not let metadata drift turn other traces into PASS.
+try {
+  for(const [variant,group] of Object.entries(window.SITEMATH_SCHEMES||{})){
+    for(const task of [4,5,6]){
+      const scheme=group?.['task'+task];
+      if(!scheme) continue;
+      const expected=task===4 || ((variant==='12'&&task===5)||(variant==='13'&&task===6)) || ['01','02','03','04','05','06','07','08','09','10','11','14','15','16','17','18','19','20'].includes(variant);
+      if(scheme.adaptedSource){
+        if(scheme.sourceVerified!==false || scheme.sourceRecheckRequired!==false || !scheme.sourceGeometry)
+          failures.push('source verification '+variant+'/'+task+': adaptation must preserve the archive without claiming photo equivalence');
+      }else if(scheme.sourceVerified!==expected ||
+         scheme.sourceRecheckRequired===expected)
+        failures.push('source verification '+variant+'/'+task+': status differs from independent source review');
+    }
+  }
+} catch(e) {
+  failures.push('source verification state: '+e.stack);
+}
+
+// Exact photographed-source invariants for variant 12 after re-tracing.
+try {
+  const s12=window.SITEMATH_SCHEMES?.['12'];
+  if(!s12?.task4?.junctions?.length) failures.push('variant12/task4: explicit source junction missing');
+  if(!s12?.task6?.planeB?.junctions?.length) failures.push('variant12/task6: explicit source junction missing');
+  for(const task of [4,5,6]){
+    if(window.SITEMATH_SCHEMES?.['12']?.['task'+task]?.sourceId!=='source-photos/scans/variant-12.jpg'){
+      failures.push('variant12/task'+task+': canonical scan id missing');
+    }
+  }
+  // The printed variant 19 K₁/K₂ was separately traced at x=589.470/589.906.
+  // Verify the immutable source photo data AND the normalized, exact 3D
+  // intersection of its defining lines on both orthogonal projections.
+  const v19=window.SITEMATH_SCHEMES?.['19']?.task4;
+  const raw=v19?.sourceGeometry?.junctions?.[0],work=v19?.junctions?.[0];
+  const distance=(p,seg)=>{
+    const dx=seg[1][0]-seg[0][0],dy=seg[1][1]-seg[0][1];
+    return Math.abs(dx*(p[1]-seg[0][1])-dy*(p[0]-seg[0][0]))/Math.hypot(dx,dy);
+  };
+  if(!raw||!work||Math.abs(raw.p1[0]-589.470)>1e-5||
+     Math.abs(raw.p2[0]-589.906)>1e-5||
+     Math.abs(work.p1[0]-work.p2[0])>1e-5)
+    failures.push('19/4: source K trace overwritten or working K projections not aligned');
+  else for(const side of ['p1','p2']){
+    if(distance(work[side],v19.lines.a[side])>1e-4||
+       distance(work[side],v19.lines.b[side])>1e-4)
+      failures.push('19/4: working K not exactly on both defining '+side+' lines');
+  }
+  const v03=window.SITEMATH_SCHEMES?.['03']?.task5;
+  const raw03=v03?.sourceGeometry?.junctions?.[0];
+  const work03=v03?.junctions?.[0];
+  if(!raw03||!work03||
+     Math.abs(raw03.p1[0]-249.09391049156272)>1e-5||
+     Math.abs(raw03.p2[0]-263.0653950953678)>1e-5||
+     Math.abs(work03.p1[0]-work03.p2[0])>1e-5)
+    failures.push('03/5: original source junction changed or working pair misaligned');
+  else for(const side of ['p1','p2']){
+    if(distance(work03[side],v03.lines.a[side])>1e-4||
+       distance(work03[side],v03.lines.f[side])>1e-4)
+      failures.push('03/5: working junction not precisely on a and f '+side);
+  }
+} catch(e) {
+  failures.push('variant12/19 source geometry metadata: '+e.stack);
+}
+
+// Full staged-construction dependency regression for the same 20 scanned
+// originals. Unlike an isolated final image, this checks the ORDER of every
+// pencil operation. Do not assert that this substitutes manual visual proof.
+// All 60 graphical tasks are replayed within the existing runtime test;
+// no separate STEPWISE_AUDIT screenshot workflow is triggered.
+if (!onlyVariant && !onlyTask) try {
+  const missing=(variant,task,what)=>failures.push(
+    'stepwise sequence '+variant+'/'+task+': '+what);
+  let checked=0,checkedTasks=0,explainedNewLabels=0;
+  for(const variant of variants){
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    for(const task of [4,5,6]){
+      $('taskSelect').value=String(task);
+      $('taskSelect').dispatchEvent(new window.Event('change'));
+      $('firstBtn').click();
+      const total=Number($('stepTotal').textContent);
+      if(!(total>=10&&total<=40)){
+        missing(variant,task,'implausible step count '+total);continue;
+      }
+      const titles=[];
+      let former=null;
+      const previouslyIntroduced=new Set();
+      for(let i=0;i<total;i++){
+        const title=$('stepTitle').textContent.trim();
+        titles.push(title);
+        if(!title || !$('stepAction').textContent.trim() ||
+           !$('stepWhy').textContent.trim() ||
+           !$('stepCheck').textContent.trim()){
+          missing(variant,task,'incomplete explanation at step '+(i+1));
+        }
+        if(!window.document.querySelector('#drawing line, #drawing circle')){
+          missing(variant,task,'empty drawing at step '+(i+1));
+        }
+        if(i>=2){
+          checked++;
+          // Whenever a new point appears, the student must be told exactly
+          // which indexed projection is being marked. Distinguish FIRST
+          // introduction from legitimate repeated K₁/K₂ result highlighting.
+          const described=[
+            $('stepTitle').textContent,$('stepAction').textContent,
+            $('stepWhy').textContent,$('stepCheck').textContent,
+            $('stepMeasure').textContent
+          ].join(' ');
+          const active=[...window.document.querySelectorAll(
+            '#drawing circle[data-active="1"][data-label]')];
+          for(const dot of active){
+            const label=dot.getAttribute('data-label');
+            const role=dot.getAttribute('data-role');
+            if(!label||!['construction','result'].includes(role)||
+               previouslyIntroduced.has(label))continue;
+            previouslyIntroduced.add(label);
+            explainedNewLabels++;
+            if(!described.includes(label)){
+              missing(variant,task,'introduced point '+label+
+                ' is absent from step '+(i+1)+' explanation');
+            }
+          }
+          const labels=new Set([...window.document.querySelectorAll('#drawing circle[data-label]')]
+            .map(e=>e.getAttribute('data-label')).filter(Boolean));
+          if(former){
+            for(const label of former)if(!labels.has(label)){
+              missing(variant,task,'previously drawn point '+label+
+                ' vanished at step '+(i+1));
+            }
+          }
+          former=labels;
+        }
+        if(i+1<total)$('nextBtn').click();
+      }
+      checkedTasks++;
+      const find=cue=>titles.findIndex(s=>s.includes(cue));
+      const order=(cues,kind)=>{
+        const positions=cues.map(find);
+        if(positions.some(i=>i<0) ||
+           positions.some((p,i)=>i>0 && p<=positions[i-1])){
+          missing(variant,task,kind+' incorrect or incomplete: '+
+            cues.map((c,i)=>c+'='+positions[i]).join(', '));
+        }
+      };
+      if(task===4){
+        order(['h₂','h₁','f₁','f₂','ЛС₁','ЛС₂'],
+          'horizontal/frontal/greatest-slope');
+        if(!titles[total-2].startsWith('Построй '))
+          missing(variant,task,'terminal positioned point missing');
+      }else if(task===5){
+        order(['вспомогательную плоскость Ω','Найди 1','Перенеси 1','Построй m',
+          'Найди K','Перенеси K','Видимость на Π₁',
+          'Перенеси 3','Видимость на Π₂','Перенеси 5'],
+          'section/intersection/competing-point visibility');
+        if(variant==='20' && titles.some(t=>t.includes('ℓ')))
+          missing(variant,task,'the given line f was renamed ℓ');
+      }else{
+        order(['плоскость α','получи P','плоскость β','получи Q',
+          'Соедини P и Q','проведи ℓ'],
+          'two sections/common points/parallel result');
+        const point=variant==='04'?'M':'K';
+        if(!titles[total-2].startsWith('Через '+point+' '))
+          missing(variant,task,'wrong through-point '+point);
+      }
+    }
+  }
+  if(checkedTasks!==60 || checked<890||explainedNewLabels<900)
+    failures.push('stepwise sequence coverage: '+checkedTasks+
+      ' tasks, '+checked+' post-introduction stages, '+
+      explainedNewLabels+' newly explained labeled points');
+  else console.log('Stepwise dependencies:',checkedTasks,
+    'tasks,',checked,'post-introduction stages and',
+    explainedNewLabels,'first-introduced point labels checked');
+} catch(e){
+  failures.push('all-variant staged method regression: '+e.stack);
+}
+
+// Coordinate tasks must expose x/y/z reference axes and visible construction guides.
+try {
+  $('variantSelect').value='10';
+  $('variantSelect').dispatchEvent(new window.Event('change'));
+  for(const task of [1,2,3]){
+    $('taskSelect').value=String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('firstBtn').click();
+    const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
+    if(!labels.some(x=>x==='x' || x==='x₁₂')) failures.push('axes '+task+': x missing');
+    if(!labels.some(x=>x==='y' || x==='y₁' || x==='y₃')) failures.push('axes '+task+': y missing');
+    if(!labels.some(x=>x==='z')) failures.push('axes '+task+': z missing');
+    if(window.document.querySelectorAll('#drawing .construction-line').length===0 && task>1){
+      // Step 1 is axes only; move one step forward and require guides there.
+      $('nextBtn').click();
+    }
+    if(task>1 && window.document.querySelectorAll('#drawing .construction-line').length===0){
+      failures.push('axes '+task+': construction guides missing');
+    }
+  }
+} catch(e) {
+  failures.push('axis/construction guide regression: '+e.stack);
+}
+
+// Full independent numeric geometry audit for all digitized variants,
+// including archival-only 07/13. This checks the actual drawn points and
+// displayed 3D lengths/angles, not merely that the page rendered.
+if (!onlyVariant && !onlyTask) try {
+  const data=window.SITEMATH_DATA.variants;
+  const tolerance=(actual,expected,context,eps=.025)=>{
+    if(!Number.isFinite(actual)||Math.abs(actual-expected)>eps)
+      failures.push('numeric Monge '+context+': drawn '+actual+', required '+expected);
+  };
+  const dot=label=>{
+    const el=window.document.querySelector('#drawing circle[data-label="'+label+'"]');
+    return el?{x:Number(el.getAttribute('cx')),y:Number(el.getAttribute('cy'))}:null;
+  };
+  const choose=(variant,task)=>{
+    $('variantSelect').value=variant;
+    $('variantSelect').dispatchEvent(new window.Event('change'));
+    $('taskSelect').value=String(task);
+    $('taskSelect').dispatchEvent(new window.Event('change'));
+    $('lastBtn').click();
+  };
+  for(const variant of variants){
+    for(const task of [1,2,3]){
+      choose(variant,task);
+      const O=dot('O'),n=task===1?(variant==='18'?'SABC':'ABCDE'):task===2?'AB':'ABC';
+      const values=data[variant]['task'+task];
+      if(!O){failures.push('numeric Monge '+variant+'/'+task+': origin missing');continue;}
+      for(const label of n){
+        const p=values[label];
+        const q1=dot(label+'₁'),q2=dot(label+'₂');
+        if(!q1||!q2){failures.push('numeric Monge '+variant+'/'+task+'/'+label+': projection missing');continue;}
+        tolerance(q1.x,q2.x,variant+'/'+task+'/'+label+' same projector x');
+        tolerance(q1.x-O.x,-p[0],variant+'/'+task+'/'+label+' x₁');
+        tolerance(q1.y-O.y,p[1],variant+'/'+task+'/'+label+' y₁');
+        tolerance(q2.y-O.y,-p[2],variant+'/'+task+'/'+label+' z₂');
+        if(task===1){
+          const q3=dot(label+'₃');
+          if(!q3){failures.push('numeric Monge '+variant+'/1/'+label+': profile projection missing');continue;}
+          tolerance(q3.x-O.x,p[1],variant+'/1/'+label+' y₃');
+          tolerance(q3.y-O.y,-p[2],variant+'/1/'+label+' z₃');
+        }
+      }
+      if(task===2){
+        const A=values.A,B=values.B,d=B.map((x,i)=>x-A[i]);
+        const length=Math.hypot(...d),alpha=Math.asin(Math.abs(d[2])/length)*180/Math.PI;
+        const beta=Math.asin(Math.abs(d[1])/length)*180/Math.PI;
+        const displayed=$('stepMeasure').textContent;
+        const expected=[['AB =',length],['α(AB,Π₁) =',alpha],['β(AB,Π₂) =',beta]];
+        for(const [prefix,value] of expected){
+          const q=displayed.indexOf(prefix);
+          const match=q<0?null:displayed.slice(q+prefix.length).match(/^\s*([0-9]+(?:[,.][0-9]+)?)/);
+          if(!match){failures.push('numeric Monge '+variant+'/2: '+prefix+' missing');continue;}
+          tolerance(Number(match[1].replace(',','.')),value,variant+'/2 '+prefix,.055);
+        }
+      }
+      if(task===3){
+        const a1=dot('A₁'),b1=dot('B₁'),a2=dot('A₂'),b2=dot('B₂');
+        const k1=dot('K₁'),k2=dot('K₂');
+        if(!k1||!k2){failures.push('numeric Monge '+variant+'/3: chosen intersection missing');continue;}
+        const k=Number($('kSlider').value)/100;
+        const check=(q,a,b,key)=>{
+          tolerance(q.x,a.x+(b.x-a.x)*k,variant+'/3/K '+key+' x');
+          tolerance(q.y,a.y+(b.y-a.y)*k,variant+'/3/K '+key+' y');
+        };
+        check(k1,a1,b1,'Π₁');
+        check(k2,a2,b2,'Π₂');
+      }
+    }
+  }
+} catch(e){failures.push('independent all-variant Monge drawing audit: '+e.stack);}
+
+fs.writeFileSync('runtime-results.json', JSON.stringify({failures}, null, 2));
+if (failures.length) {
+  console.error('\nFAILURES\n'+failures.join('\n'));
+  process.exit(1);
+}
+console.log('\nAll photographed variant/task combinations rendered without runtime exceptions.');
+,'u');
+        if(!labels.some(x=>namePattern.test(x))){
+          failures.push('task6 plane symbol '+variant+'/'+side+
+            ': section of '+symbol+' at level '+level+' missing');
+        }
       }
     }
   }
