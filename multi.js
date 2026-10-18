@@ -3815,7 +3815,7 @@
       if(scheme.planeType==='ABC'){
         const names=Object.keys(scheme.points||{}).slice(0,3);
         if(names.length===3){
-          planeAction='Отметь на П₁ и П₂ вершины '+names.join(', ')+' и соедини их в треугольники.';
+          planeAction='Отметь на П₁ и П₂ вершины '+names.join(', ')+' и построй обе проекции треугольника ABC.';
           planeCheck='Для плоскости проверь пары '+names.map(name=>name+'₁/'+name+'₂').join(', ')+': у каждой вершины две проекции на одной вертикальной линии связи.';
         }
       }else if(scheme.planeType==='parallel_lines'){
