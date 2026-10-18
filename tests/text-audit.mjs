@@ -119,6 +119,22 @@ for(let vi=1;vi<=20;vi++){
               required,check:entry.check});
         }
       }
+      if(task===6&&step===0){
+        const s6=w.SITEMATH_SCHEMES[variant].task6;
+        if(s6.planeA?.type==='parallel_lines'&&s6.planeB?.type==='parallel_lines'){
+          const [a,b]=Object.keys(s6.planeA.lines||{});
+          const [c,d]=Object.keys(s6.planeB.lines||{});
+          const label=s6.pointLabel||'K';
+          const required=[a+'₁ ∥ '+b+'₁',a+'₂ ∥ '+b+'₂',
+            c+'₁ ∥ '+d+'₁',c+'₂ ∥ '+d+'₂',
+            'две разные заданные прямые',label+'₁ и '+label+'₂','линией связи'];
+          if(required.some(token=>!entry.check.includes(token))||
+             !entry.action.includes('четыре заданные прямые')||
+             !entry.why.includes('двумя пространственно параллельными прямыми'))
+            issues.push({variant,task,step:1,type:'two-parallel-planes-source-check-vague',
+              required,action:entry.action,why:entry.why,check:entry.check});
+        }
+      }
       if(task===4&&step===0){
         const plane=w.SITEMATH_SCHEMES[variant].task4;
         const required=plane.planeType==='ABC'
