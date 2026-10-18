@@ -3837,7 +3837,7 @@
         planeCheck='У прямой есть проекции '+a+'₁/'+a+'₂, у точки – '+P+'₁/'+P+'₂ на вертикальном проекторе. Точка '+P+' не принадлежит прямой '+a+' в пространстве.';
       }
       if(planeAction&&planeCheck){
-        steps[0].title='Проверь исходные элементы плоскости и прямой '+shownName;
+        steps[0].title='Сверь исходные проекции плоскости и прямой '+shownName;
         steps[0].action=planeAction+' '+otherLine+' Вспомогательную плоскость пока не вводи.';
         steps[0].check=planeCheck+' '+otherCheck;
       }
