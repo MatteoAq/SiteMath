@@ -36,6 +36,23 @@ for(const key of Object.keys(original))
  assert.deepEqual(v[key],original[key],'paper coordinate transcription '+key);
 const conv=q=>Object.fromEntries(Object.entries(q).map(([n,p])=>
  [n,{x:p[0],y:p[1],z:p[2]}]));
+// Source trace 13/4 D and 13/6 A,K: align working projection x only.
+// Explicitly retain the independent 13/5 educational adaptation.
+for(const [name,working,original] of [
+ ['13/4 D',s.task4.points.D,s.task4.sourceGeometry.points.D],
+ ['13/6 A',s.task6.planeB.points.A,s.task6.sourceGeometry.planeB.points.A],
+ ['13/6 K',s.task6.pointK,s.task6.sourceGeometry.pointK]
+]){
+ assert(eq(working.p1[0],working.p2[0],1e-9),
+   name+' must use one vertical projector');
+ assert(eq(working.p1[0],(original.p1[0]+original.p2[0])/2,1e-9)&&
+        eq(working.p1[1],original.p1[1],1e-9)&&
+        eq(working.p2[1],original.p2[1],1e-9),
+   name+' must preserve source heights/depths and trace');
+}
+assert(s.task5.adaptedSource===true,
+  '13/5 original near-parallel source adaptation must remain identified');
+
 // 1. All 15 Monge projections.
 const one=W.__v13.solveTask1(conv(v.task1)),pts=get(one);
 assert.equal(one.steps.length,17);
