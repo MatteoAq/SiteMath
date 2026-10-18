@@ -102,6 +102,23 @@ for(let vi=1;vi<=20;vi++){
               required,check:entry.check});
         }
       }
+      if(task===6&&step===0){
+        const s6=w.SITEMATH_SCHEMES[variant].task6;
+        if(s6.planeA?.type==='frontal_projecting'&&s6.planeB?.type==='ABC'){
+          const names=Object.keys(s6.planeB.points||{});
+          const symbol=s6.planeA.name||'Σ';
+          const label=s6.pointLabel||'K';
+          const required=[
+            'фронтально-проецирующая','на П₂','на П₁',
+            symbol+'₂','отдельной исходной линии',
+            ...names.map(name=>name+'₁/'+name+'₂'),
+            label+'₁ и '+label+'₂','общей вертикальной линии связи'
+          ];
+          if(names.length!==3 || required.some(token=>!entry.check.includes(token)))
+            issues.push({variant,task,step:1,type:'frontal-projecting-abc-source-check-vague',
+              required,check:entry.check});
+        }
+      }
       if(task===4&&step===0){
         const plane=w.SITEMATH_SCHEMES[variant].task4;
         const required=plane.planeType==='ABC'
