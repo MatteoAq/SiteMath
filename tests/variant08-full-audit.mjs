@@ -40,7 +40,7 @@ const model=O.SITEMATH_SCHEMES['08'];
 const table=t=>Object.fromEntries(Object.entries(t).map(([name,v])=>
  [name,{x:v[0],y:v[1],z:v[2]}]));
 const values={
- task1:{A:[30,60,30],B:[70,-25,-60],C:[40,-50,15],D:[40,0,50],E:[30,10,0]},
+ task1:{A:[30,60,30],B:[70,-25,-60],C:[40,-50,75],D:[40,0,50],E:[30,10,0]},
  task2:{A:[10,40,55],B:[70,55,-25]},
  task3:{A:[30,30,60],B:[70,-25,-60],C:[40,50,50]}
 };
