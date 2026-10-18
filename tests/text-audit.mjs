@@ -40,6 +40,18 @@ for(let vi=1;vi<=20;vi++){
         measure:[...$('stepMeasure').querySelectorAll('li')].map(x=>x.textContent.trim())
       };
       stages.push(entry);
+      // The source scheme is copied in the first graphical stage.
+      // The following stage must add axes, not ask the student to copy it again.
+      if(task>=4&&step===1){
+        const required=['x₁₂','вертикальную ось','Π₂','Π₁','z','y'];
+        if(entry.title!=='Добавь оси к исходной схеме' ||
+           !entry.action.includes('уже перенесены') ||
+           required.some(token=>!entry.action.includes(token)) ||
+           !entry.check.includes('Парные исходные проекции не смещены') ||
+           /Перенеси схему по клеткам/u.test(entry.title))
+          issues.push({variant,task,step:step+1,type:'duplicate-source-transfer-at-axes-stage',
+            title:entry.title,action:entry.action,check:entry.check});
+      }
       if(task===1&&/^Дострой профильную проекцию/u.test(entry.title)&&
          !/от вертикальной оси профильного вида через O/u.test(entry.check))
         issues.push({variant,task,step:step+1,type:'profile-zero-axis-reference-ambiguous',
@@ -217,7 +229,7 @@ for(let vi=1;vi<=20;vi++){
              !entry.action.includes('Отметь заданные '+label+'₁ и '+label+'₂'))
             issues.push({variant,task,step:1,type:'source-geometry-check-incomplete',
               action:entry.action,check:entry.check});
-          if(source.paperReversedKLabels&&!entry.check.includes('переобозначь верхнюю как K₂, нижнюю как K₁'))
+          if(source.paperReversedKLabels&&!/переобозначь верхнюю как K₂, нижнюю как K₁/iu.test(entry.check))
             issues.push({variant,task,step:1,type:'original-K-label-reversal-lost'});
         }
       }

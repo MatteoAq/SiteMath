@@ -1375,7 +1375,7 @@ if (!onlyVariant && !onlyTask) try {
     return node?Number(node.getAttribute('cy')):NaN;
   };
   if(!(height('K₁')<height('K₂'))) failures.push('11/6 original paper K₁/K₂ labels are not faithfully restored');
-  if(!$('stepAction').textContent.includes('переобозначь')) failures.push('11/6 paper typo has no construction explanation');
+  if(!/переобозначь/iu.test($('stepAction').textContent)) failures.push('11/6 paper typo has no construction explanation');
   $('nextBtn').click();
   if(!(height('K₂')<height('K₁'))) failures.push('11/6 corrected K projections are not properly indexed');
 } catch(e){failures.push('11/6 source labeling correction: '+e.stack);}
