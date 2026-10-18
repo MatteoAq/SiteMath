@@ -48,6 +48,16 @@ for(const part of ['task1','task2','task3'])check(
  JSON.stringify(raw[part])===JSON.stringify(values[part]),
  part+': source table differs from paper');
 
+// 20/4 source D has a one-unit horizontal mismatch in the raw scan.
+// Preserve its original trace while using a vertical working projector.
+const workingD=model.task4.points.D,archivedD=model.task4.sourceGeometry.points.D;
+check(near(archivedD.p1[0],910)&&near(archivedD.p2[0],911),
+ 'task 4 original D projectors must remain available');
+check(near(workingD.p1[0],910.5)&&near(workingD.p2[0],910.5)&&
+      near(workingD.p1[1],archivedD.p1[1])&&
+      near(workingD.p2[1],archivedD.p2[1]),
+ 'task 4 working D projector or original heights are incorrect');
+
 // 1. All three orthographic projections of A,B,C,D,E (including zero x/y/z).
 const g1=O.__audit20.solveTask1(table(raw.task1)),q1=points(g1);
 check(g1.steps.length===17,'task 1 has lost individual construction states');
