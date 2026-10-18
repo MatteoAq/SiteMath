@@ -81,6 +81,13 @@ for(let vi=1;vi<=20;vi++){
          !/от вертикальной оси профильного вида через O/u.test(entry.check))
         issues.push({variant,task,step:step+1,type:'profile-zero-axis-reference-ambiguous',
           title:entry.title,check:entry.check});
+      if(task===6&&/^По линии связи получи [TM]₂ на /u.test(entry.title)&&
+         (!entry.check.includes('одной вертикальной линии связи')||
+          /должны совпадать в одной точке/u.test(entry.check)))
+        issues.push({variant,task,step:step+1,type:'separate-projections-must-not-coincide',
+          action:entry.action,check:entry.check});
+      if(task===6&&entry.measure.some(x=>/или её продолжению/u.test(x)))
+        issues.push({variant,task,step:step+1,type:'ungrammatical-extended-line-instruction'});
       if(task===6&&/^Выбери вспомогательную плоскость /u.test(entry.title)&&
          !/^Вспомогательная (?:горизонтальная|фронтальная) плоскость /u.test(entry.why))
         issues.push({variant,task,step:step+1,type:'wrong-auxiliary-plane-declension',
