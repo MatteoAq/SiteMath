@@ -90,6 +90,15 @@ for(let vi=1;vi<=20;vi++){
         issues.push({variant,task,step:step+1,type:'profile-construction-not-reproducible',
           title:entry.title,action:entry.action});
       if(task===6&&/^На [αβ][₁₂] получи /u.test(entry.title)){
+        const match=/^На [αβ]([₁₂]) получи .* в (\\S+)$/u.exec(entry.title);
+        if(!match)issues.push({variant,task,step:step+1,type:'section-step-title-unparseable'});
+        else{
+          const section=(match[1]==='₂'?'h':'f')+match[2]+match[1];
+          if(!entry.action.includes('Соедини эти две точки – получишь '+section)||
+             !entry.check.includes('Проекция '+section+' проходит через обе отмеченные точки'))
+            issues.push({variant,task,step:step+1,type:'section-stroke-before-instruction',
+              label:section,action:entry.action,check:entry.check});
+        }
         const m=entry.measure||[];
         if(m.length<2 || m.slice(0,2).some(eq=>!entry.check.includes(eq)) ||
            /соответствующих исходных линиях/u.test(entry.check))
