@@ -114,6 +114,15 @@ jobs:
         run: node tests/lecture-projections.mjs
       - name: Check multi-assignment catalogue and mobile navigation
         run: node tests/assignment-catalog.mjs
+      - name: Capture every step of variant 01 and audit rendered annotations
+        run: node tests/variant01-visual.mjs
+      - name: Upload sequential variant 01 visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: variant01-sequential-visual-evidence
+          path: variant01-screens/
+          if-no-files-found: error
       - name: Upload mobile screenshots
         if: always()
         uses: actions/upload-artifact@v4
