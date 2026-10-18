@@ -62,6 +62,8 @@ for(const [label,working,archived] of [
    label+' source geometry must remain untouched');
 }
 
+// Topic 3, section 3.1: the profile ordinate is transferred along a
+// 45-degree guide from the vertical axis to the horizontal profile axis.
 // 1. All three orthographic projections of A,B,C,D,E (including zero x/y/z).
 const g1=O.__audit01.solveTask1(table(raw.task1)),q1=points(g1);
 check(g1.steps.length===17,'task 1 has lost individual construction states');
@@ -74,6 +76,23 @@ for(const [name,[x,y,z]] of Object.entries(values.task1)){
   check(p&&near(p.x,q.x)&&near(p.y,q.y),
    'task 1 incorrect coordinate of '+name+suffix);
  }
+}
+
+for(const [name,[x,y,z]] of Object.entries(values.task1)){
+  const stage=g1.steps.find(st=>st.title==='Дострой профильную проекцию '+name+'₃');
+  check(stage,'task 1 profile step missing for '+name);
+  if(y===0){
+    check(stage.action.includes('Диагональный перенос не нужен'),
+      name+': do not teach a 45-degree guide for y=0');
+  }else{
+    check(stage.action.includes('45°')&&stage.action.includes('координаты y'),
+      name+': description omits the demonstrated 45-degree ordinate transfer');
+    const a={x:g1.O.x,y:g1.O.y+y},b={x:g1.O.x+y,y:g1.O.y};
+    check(stage.entities.some(e=>e.type==='line'&&
+      near(e.a.x,a.x)&&near(e.a.y,a.y)&&
+      near(e.b.x,b.x)&&near(e.b.y,b.y)),
+      name+': the illustrated diagonal coordinate transfer is missing');
+  }
 }
 
 // The original coordinates do not require repeated coincident foot labels.
