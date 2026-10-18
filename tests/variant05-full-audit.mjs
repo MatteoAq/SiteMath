@@ -48,7 +48,7 @@ for(const part of ['task1','task2','task3'])check(
  JSON.stringify(raw[part])===JSON.stringify(values[part]),
  part+': source table differs from paper');
 
-// Working B/A source labels may have minor raster x offsets. For 05/4,
+// Working source points may have small tracing offsets. For 05/4,
 // the given A must still have one vertical projector on both views.
 const sourceA=model.task4.sourceGeometry.points.A;
 const workingA=model.task4.points.A;
