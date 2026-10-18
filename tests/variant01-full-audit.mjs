@@ -80,7 +80,7 @@ for(const [name,[x,y,z]] of Object.entries(values.task1)){
 // Keep the geometry, but suppress redundant labels at zero ordinates / origin.
 const allPointAnnotations=g1.steps.flatMap(step=>step.entities||[])
   .filter(e=>e.type==='point').map(e=>e.label);
-for(const redundant of ['z=0','y₁=0','y₃=0','z=10','z=35','y₃=40']){
+for(const redundant of ['z=0','y₁=0','y₃=0','z=10','z=35','y₃=40','y₁=40','y₃=−25']){
  check(!allPointAnnotations.includes(redundant),
    'task 1 has an annotation collision at zero or coincident coordinate '+redundant);
 }
@@ -111,6 +111,8 @@ check(points(g2).has('A₀')&&points(g2).has('B₀'),
 // 3. K is INSIDE AB; both projected parallels a through C and crossing
 // straight line ℓ(C,K) must be drawn, not only named in step text.
 const g3=O.__audit01.solveTask3(table(raw.task3)),q3=points(g3);
+check(!q3.has('A𝓏')&&!q3.has('Aₓ'),
+  'task 3 A has z=0: do not print origin or point A₂ twice');
 const K=raw.task3.A.map((v,i)=>v+.45*(raw.task3.B[i]-v));
 check(near(K[0],56.5)&&near(K[1],54.5)&&near(K[2],-9),
  'task 3 analytic AB intermediate point wrong');
