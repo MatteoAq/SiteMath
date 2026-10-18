@@ -48,6 +48,17 @@ for(const part of ['task1','task2','task3'])check(
  JSON.stringify(raw[part])===JSON.stringify(values[part]),
  part+': source table differs from paper');
 
+// Working source points may have small tracing offsets. For 05/4,
+// the given A must still have one vertical projector on both views.
+const sourceA=model.task4.sourceGeometry.points.A;
+const workingA=model.task4.points.A;
+check(near(sourceA.p1[0],92)&&near(sourceA.p2[0],90),
+  'task 4 original raster point A must be preserved');
+check(near(workingA.p1[0],91)&&near(workingA.p2[0],91)&&
+      near(workingA.p1[1],sourceA.p1[1])&&
+      near(workingA.p2[1],sourceA.p2[1]),
+  'task 4 A projector must be vertical without modifying source depths');
+
 // 1. All three orthographic projections of A,B,C,D,E (including zero x/y/z).
 const g1=O.__audit05.solveTask1(table(raw.task1)),q1=points(g1);
 check(g1.steps.length===17,'task 1 has lost individual construction states');
