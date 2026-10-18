@@ -116,7 +116,7 @@ for(let task=1;task<=6;task++){
     await page.screenshot({
       path:path.join(dir,filename),type:'jpeg',quality:72,fullPage:false
     });
-    taskReport.steps.push({step:index+1,file:filename,...meta});
+    taskReport.steps.push({step:index+1,file:filename,fitted:!(task===6&&index>1),...meta});
     if(task===6 && index===prep-1){
       await page.locator('#zoomFitBtn').click();
       await page.screenshot({
@@ -140,7 +140,7 @@ for(const task of report.tasks)for(const step of task.steps){
   }
   // Focus mode intentionally crops distant geometry. Assess clipping only
   // when the entire source drawing is fitted to the viewport.
-  if(step.zoom&&/впис|fit/i.test(step.zoom)&&step.clippedLabels.length)
+  if(step.fitted&&step.clippedLabels.length)
     clipped.push({task:task.task,step:step.step,labels:step.clippedLabels});
 }
 report.visualDiagnostics={
@@ -151,6 +151,9 @@ report.visualDiagnostics={
 if(overlaps.length)
   report.errors.push('Overlapping labels remain across rendered variant 09 stages: '+
     JSON.stringify(overlaps.slice(0,12)));
+if(clipped.length)
+  report.errors.push('SVG labels outside fitted drawing in variant 09: '+
+    JSON.stringify(clipped.slice(0,12)));
 fs.writeFileSync(path.join(dir,'evidence.json'),JSON.stringify(report,null,2));
 console.log('Variant 09 total frames: '+
   report.tasks.reduce((n,t)=>n+t.total,0)+
