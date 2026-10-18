@@ -81,6 +81,14 @@ for(let vi=1;vi<=20;vi++){
          !/от вертикальной оси профильного вида через O/u.test(entry.check))
         issues.push({variant,task,step:step+1,type:'profile-zero-axis-reference-ambiguous',
           title:entry.title,check:entry.check});
+      if(task===6&&/^По линии связи получи [TM]₂ на /u.test(entry.title)&&
+         ((!entry.check.includes('одной вертикальной линии связи')&&
+           !/пересечении проектора из [TM]₁/u.test(entry.check))||
+          /должны совпадать в одной точке/u.test(entry.check)))
+        issues.push({variant,task,step:step+1,type:'separate-projections-must-not-coincide',
+          action:entry.action,check:entry.check});
+      if(task===6&&entry.measure.some(x=>/или её продолжению/u.test(x)))
+        issues.push({variant,task,step:step+1,type:'ungrammatical-extended-line-instruction'});
       if(task===6&&/^Выбери вспомогательную плоскость /u.test(entry.title)&&
          !/^Вспомогательная (?:горизонтальная|фронтальная) плоскость /u.test(entry.why))
         issues.push({variant,task,step:step+1,type:'wrong-auxiliary-plane-declension',
@@ -90,10 +98,10 @@ for(let vi=1;vi<=20;vi++){
         issues.push({variant,task,step:step+1,type:'profile-construction-not-reproducible',
           title:entry.title,action:entry.action});
       if(task===6&&/^На [αβ][₁₂] получи /u.test(entry.title)){
-        const match=/^На [αβ]([₁₂]) получи .* в (\S+)$/u.exec(entry.title);
+        const match=/^На ([αβ])([₁₂]) получи .* в (\S+)$/u.exec(entry.title);
         if(!match)issues.push({variant,task,step:step+1,type:'section-step-title-unparseable'});
         else{
-          const section=(match[1]==='₂'?'h':'f')+match[2]+match[1];
+          const section=(match[2]==='₂'?'h':'f')+match[3]+match[1]+match[2];
           if(!entry.action.includes('Соедини эти две точки – получишь '+section)||
              !entry.check.includes('Проекция '+section+' проходит через обе отмеченные точки'))
             issues.push({variant,task,step:step+1,type:'section-stroke-before-instruction',
@@ -344,7 +352,7 @@ for(let vi=1;vi<=20;vi++){
         const def=[scheme.planeA,scheme.planeB].find(p=>p.name===name);
         const pIndex=def?.type==='frontal_projecting'?'₂':'₁';
         const lIndex=def?.type==='frontal_projecting'?'₁':'₂';
-        const sectionSymbol=(def?.type==='frontal_projecting'?'f':'h')+name;
+        const sectionSymbol=(def?.type==='frontal_projecting'?'f':'h')+name+aux;
         if(!def||!/(?:frontal|horizontal)_projecting/.test(def.type)||
            !entry.action.includes(sectionSymbol+pIndex+' совпадает с заданной '+name+pIndex)||
            !entry.action.includes(sectionSymbol+lIndex+' лежит на уровне '+aux+lIndex)||

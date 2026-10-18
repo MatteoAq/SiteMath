@@ -3966,7 +3966,7 @@
         title:'По линии связи перенеси T₁ на '+A.name+'₂ и получи T₂',
         action:'Из T₁ проведи проектор, при необходимости продли '+A.name+'₂ до встречи с ним и отметь T₂.',
         why:'Парная проекция T₂ не выбирается произвольно; она принадлежит исходной прямой и её продолжению.',
-        measure:['T₁T₂ – линия связи','T₂ ∈ '+A.name+'₂ или её продолжению'],
+        measure:['T₁T₂ – линия связи','T₂ ∈ '+A.name+'₂ (при необходимости – на продолжении)'],
         check:'Обе проекции T имеют один x, а исходная линия действительно доведена до T₂.'
       },[
         ...segmentExtensionEntities(i,A.rec.p2,T2),
@@ -3985,7 +3985,7 @@
         title:'По линии связи перенеси U₁ на '+B.name+'₂ и получи U₂',
         action:'Проведи линию связи из U₁, при необходимости продли '+B.name+'₂ до неё и обозначь U₂.',
         why:'U₁ и U₂ – проекции одной пространственной точки U на прямой '+B.name+'. Обе точки на чертеже имеют одну абсциссу.',
-        measure:['U₁U₂ – линия связи','U₂ ∈ '+B.name+'₂ или её продолжению'],
+        measure:['U₁U₂ – линия связи','U₂ ∈ '+B.name+'₂ (при необходимости – на продолжении)'],
         check:'U₂ лежит на '+B.name+'₂ и вертикальной линии связи из U₁. Эти две проекции соответствуют одной точке U.'
       },[
         ...segmentExtensionEntities(i,B.rec.p2,U2),
@@ -4997,8 +4997,8 @@
         title:'По линии связи получи T₂ на '+lineA+'₂',
         action:'Из T₁ проведи проектор; если '+lineA+'₂ короче, продли исходный штрих до T₂.',
         why:'T₁ и T₂ – проекции одной точки заданной прямой '+lineA+'.',
-        measure:['T₁T₂ – линия связи','T₂ ∈ '+lineA+'₂ или её продолжению'],
-        check:'T₂ лежит на линии связи из T₁ и на '+lineA+'₂. Обе отметки должны совпадать в одной точке.'
+        measure:['T₁T₂ – линия связи','T₂ ∈ '+lineA+'₂ (при необходимости – на продолжении)'],
+        check:'T₂ находится на пересечении проектора из T₁ с '+lineA+'₂. Точки T₁ и T₂ лежат на одной вертикальной линии связи.'
       },[
         ...segmentExtensionEntities(i,item.def.lines[lineA].p2,T2),
         line(i,T1,T2,'construction-line'),point(i,T2,'T₂','construction-dot')
@@ -5018,7 +5018,7 @@
         title:'По линии связи получи U₂ на '+lineB+'₂',
         action:'Из U₁ проведи проектор и при необходимости продли '+lineB+'₂ до пересечения U₂.',
         why:'Обе проекции U определяются одной точкой заданной прямой '+lineB+'.',
-        measure:['U₁U₂ – линия связи','U₂ ∈ '+lineB+'₂ или её продолжению'],
+        measure:['U₁U₂ – линия связи','U₂ ∈ '+lineB+'₂ (при необходимости – на продолжении)'],
         check:'U₂ получена пересечением реально нарисованных проектора и '+lineB+'₂.'
       },[
         ...segmentExtensionEntities(i,item.def.lines[lineB].p2,U2),
@@ -5058,7 +5058,7 @@
       const oIdx=other==='p2'?'₂':'₁';
       const pPlane=primary==='p2'?'Π₂':'Π₁';
       const oPlane=other==='p2'?'Π₂':'Π₁';
-      const sectionSymbol=(levelType==='horizontal'?'h':'f')+planeSymbol;
+      const sectionSymbol=(levelType==='horizontal'?'h':'f')+planeSymbol+planeName;
 
       if(sec?.refs?.length===2){
         const primarySeg=sec[primary],otherSeg=sec[other];
@@ -5605,7 +5605,7 @@
   // Identify labels of projected straight lines, rather than named points.
   // Point labels are emitted by point() and keep their own end-point offset.
   function isProjectedLineLabel(label){
-    return /^(?:[a-wа-яёℓβΒΩ][a-zа-яёA-ZА-ЯΣΔΘΓΒΩ′']*|ЛС)[₁₂]$/u.test(label||'');
+    return /^(?:[a-wа-яёℓβΒΩ][a-zа-яёA-ZА-ЯΣΔΘΓΒΩαβ′']*|ЛС)[₁₂]$/u.test(label||'');
   }
 
   // Every labelled stroke is already a line entity in the CURRENT construction

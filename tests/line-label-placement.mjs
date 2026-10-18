@@ -19,6 +19,23 @@ assert.equal(audit.isProjectedLineLabel('A₁'),false,'point A₁ is not a line 
 assert.equal(audit.isProjectedLineLabel('h₁'),true,'horizontal label');
 assert.equal(audit.isProjectedLineLabel('ЛС₂'),true,'greatest slope label');
 assert.equal(audit.isProjectedLineLabel('fΣ₁'),true,'auxiliary line label');
+assert.equal(audit.isProjectedLineLabel('hΣα₂'),true,'first auxiliary level section');
+assert.equal(audit.isProjectedLineLabel('hΣβ₂'),true,'second auxiliary level section');
+assert.equal(audit.isProjectedLineLabel('fΒβ₁'),true,'section of plane Β at second level');
+
+// Section names must identify the auxiliary level. Two different
+// α/β sections of the same original plane cannot share one label.
+for(const [variant,scheme] of Object.entries(W.SITEMATH_SCHEMES)){
+  const generated=audit.solveTask6Scheme(scheme.task6,{});
+  assert(!generated.error,variant+'/6: construction unavailable');
+  const sections=new Map();
+  for(const stage of generated.steps)for(const entity of stage.entities||[]){
+    if(entity.type!=='text'||!/^[hf][ΣΘΓΔΩΒ][αβ][₁₂]$/u.test(entity.label||''))continue;
+    assert(!sections.has(entity.label),variant+'/6: section label reused: '+entity.label);
+    sections.set(entity.label,entity.p);
+  }
+  assert(sections.size>=4,variant+'/6: expected labelled distinct sections');
+}
 let checked=0,sourceChecked=0;
 for(const [variant,scheme] of Object.entries(W.SITEMATH_SCHEMES)){
   for(const task of [4,5,6]){

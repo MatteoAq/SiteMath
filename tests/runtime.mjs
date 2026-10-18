@@ -2309,12 +2309,16 @@ if (!onlyVariant && !onlyTask) try {
     const labels=[...window.document.querySelectorAll('#drawing text')].map(n=>n.textContent);
     for(const [side,def,fallback] of [['A',scheme?.planeA,'Σ'],['B',scheme?.planeB,'Θ']]){
       const symbol=def?.name||fallback;
-      const hasSectionLabel=labels.some(x=>
-        x==='h'+symbol+'₁'||x==='h'+symbol+'₂'||
-        x==='f'+symbol+'₁'||x==='f'+symbol+'₂'
-      );
-      if(!hasSectionLabel){
-        failures.push('task6 plane symbol '+variant+'/'+side+': section label for '+symbol+' missing');
+      // Every section must identify both the original plane and
+      // the auxiliary level α or β. Projections differ by index.
+      for(const level of ['α','β']){
+        const hasSectionLabel=labels.some(x=>
+          x==='h'+symbol+level+'₁'||x==='h'+symbol+level+'₂'||
+          x==='f'+symbol+level+'₁'||x==='f'+symbol+level+'₂'
+        );
+        if(!hasSectionLabel)
+          failures.push('task6 plane symbol '+variant+'/'+side+
+            ': section at level '+level+' missing for '+symbol);
       }
     }
   }
