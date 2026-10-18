@@ -48,6 +48,22 @@ for(const part of ['task1','task2','task3'])check(
  JSON.stringify(raw[part])===JSON.stringify(values[part]),
  part+': source table differs from paper');
 
+// Source raster projectors have small x offsets in 08/5 and 08/6.
+// Preserve the original traced positions separately from working coordinates.
+for(const [name,p,archived] of [
+ ...Object.entries(model.task5.points).map(([name,p])=>[
+   '5/'+name,p,model.task5.sourceGeometry.points[name]]),
+ ['6/K',model.task6.pointK,model.task6.sourceGeometry.pointK]
+]){
+ check(archived,'source trace missing for point '+name);
+ check(near(p.p1[0],p.p2[0],1e-9),
+   'working '+name+' projector must have a single abscissa');
+ check(near(p.p1[0],(archived.p1[0]+archived.p2[0])/2,1e-9)&&
+       near(p.p1[1],archived.p1[1],1e-9)&&
+       near(p.p2[1],archived.p2[1],1e-9),
+   'working '+name+' changed original depth or height');
+}
+
 // 1. All three orthographic projections of A,B,C,D,E (including zero x/y/z).
 const g1=O.__audit08.solveTask1(table(raw.task1)),q1=points(g1);
 check(g1.steps.length===17,'task 1 has lost individual construction states');
