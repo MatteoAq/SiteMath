@@ -84,6 +84,15 @@ jobs:
         run: |
           python3 -m http.server 4173 >/tmp/sitemath-http.log 2>&1 &
           echo $! > /tmp/sitemath-http.pid
+      - name: Capture every step of variant 13 and audit rendered annotations
+        run: node tests/variant13-visual.mjs
+      - name: Upload sequential variant 13 visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: variant13-sequential-visual-evidence
+          path: variant13-screens/
+          if-no-files-found: error
       - name: Capture every step of variant 12 and audit rendered annotations
         run: node tests/variant12-visual.mjs
       - name: Upload sequential variant 12 visual evidence
