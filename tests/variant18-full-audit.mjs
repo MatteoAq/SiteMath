@@ -30,6 +30,22 @@ const source={
 };
 for(const [key,expectation] of Object.entries(source))
  assert.deepEqual(raw[key],expectation,'university paper must match '+key);
+// The scanned two-view coordinates of A/B in 18/5 and K in 18/6
+// differ slightly in x. Keep original raster tracing, use vertical
+// projectors for working construction and preserve each depth/height.
+for(const [part,work,original] of [
+ ['5',scheme.task5.points,scheme.task5.sourceGeometry.points],
+ ['6',{K:scheme.task6.pointK},{K:scheme.task6.sourceGeometry.pointK}]
+])for(const [name,p] of Object.entries(work)){
+ const q=original[name];
+ assert(q,'task '+part+' archival '+name+' is absent');
+ assertNear(p.p1[0],p.p2[0],'task '+part+' '+name+' projector x',1e-9);
+ assertNear(p.p1[0],(q.p1[0]+q.p2[0])/2,
+   'task '+part+' '+name+' midpoint x',1e-9);
+ assertNear(p.p1[1],q.p1[1],'task '+part+' '+name+' p1 y',1e-9);
+ assertNear(p.p2[1],q.p2[1],'task '+part+' '+name+' p2 y',1e-9);
+}
+
 // 1. Four pyramid vertices in THREE Monge planes, six physical edges,
 // construction in three views and axonometry. Check label coordinates.
 const g1=W.__18.solveTask1(coords(raw.task1)),p1=points(g1);
