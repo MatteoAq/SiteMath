@@ -1751,13 +1751,20 @@
       const p=coords[name], q=project[name];
       const xDimNeeded=Math.abs(p.x)>EPS&&!labelledXDimensions.has(p.x);
       labelledXDimensions.add(p.x);
-      const yFootNeeded=Math.abs(p.y)>EPS&&Math.abs(p.x)>EPS&&!labelledYFeet.has(p.y);
+      // A coordinate foot that lands on ANY prescribed projection is
+      // already identified by that point's actual label. Keep the guide,
+      // but omit its duplicate foot annotation (e.g. 01/1 D₁ or A₂).
+      const coincidesWithProjection=foot=>names.some(other=>
+        ['p1','p2','p3'].some(key=>dist2(foot,project[other][key])<1e-5));
+      const yFootNeeded=Math.abs(p.y)>EPS&&Math.abs(p.x)>EPS&&
+        !labelledYFeet.has(p.y)&&!coincidesWithProjection(q.yFoot);
       if(yFootNeeded)labelledYFeet.add(p.y);
       const zFootNeeded=Math.abs(p.z)>EPS&&Math.abs(p.x)>EPS&&
-        Math.abs(p.y)>EPS&&!labelledZFeet.has(p.z);
+        Math.abs(p.y)>EPS&&!labelledZFeet.has(p.z)&&
+        !coincidesWithProjection(q.zFoot);
       if(zFootNeeded)labelledZFeet.add(p.z);
       const profileFootNeeded=Math.abs(p.y)>EPS&&Math.abs(p.z)>EPS&&
-        !occupiedProfileFeet.has(p.y);
+        !occupiedProfileFeet.has(p.y)&&!coincidesWithProjection(q.y3Foot);
       occupiedProfileFeet.add(p.y);
       let i=steps.length;
       push({
@@ -1910,8 +1917,8 @@
     return [
       line(step,yFoot,p1,'construction-line'),
       line(step,zFoot,p2,'construction-line'),
-      point(step,yFoot,name+'ᵧ','construction-dot'),
-      point(step,zFoot,name+'𝓏','construction-dot')
+      ...(Math.abs(p1.y-O.y)>EPS?[point(step,yFoot,name+'ᵧ','construction-dot')]:[]),
+      ...(Math.abs(p2.y-O.y)>EPS?[point(step,zFoot,name+'𝓏','construction-dot')]:[])
     ];
   }
 
@@ -2145,7 +2152,8 @@
         line(j,px,p1,'construction-line'),
         line(j,px,p2,'construction-line'),
         ...coordinateGuideEntities(j,O,name,p1,p2),
-        point(j,px,name+'ₓ','construction-dot'),
+        ...(dist2(px,p1)>EPS&&dist2(px,p2)>EPS
+          ?[point(j,px,name+'ₓ','construction-dot')]:[]),
         point(j,p1,name+'₁'),
         point(j,p2,name+'₂')
       ],{kind:'line',a:px,b:p1});
