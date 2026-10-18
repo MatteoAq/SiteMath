@@ -189,6 +189,22 @@ for(let vi=1;vi<=20;vi++){
               required,action:entry.action,why:entry.why,check:entry.check});
         }
       }
+      if(task===6&&step===0){
+        const s6=w.SITEMATH_SCHEMES[variant].task6;
+        if(s6.planeA?.type==='ABC'&&s6.planeB?.type==='ABC'){
+          const first=Object.keys(s6.planeA.points||{});
+          const second=Object.keys(s6.planeB.points||{});
+          const label=s6.pointLabel||'K';
+          const required=[...first.map(n=>n+'₁/'+n+'₂'),...second.map(n=>n+'₁/'+n+'₂'),
+            'общий вертикальный проектор',label+'₁ и '+label+'₂',
+            'каждой плоскости образуют свой треугольник'];
+          if(required.some(token=>!entry.check.includes(token))||
+             !entry.action.includes('две разные плоскости')||
+             !entry.why.includes('Три неколлинеарные пространственные точки задают плоскость'))
+            issues.push({variant,task,step:1,type:'two-triangle-source-check-vague',
+              required,action:entry.action,why:entry.why,check:entry.check});
+        }
+      }
       if(task===4&&step===0){
         const plane=w.SITEMATH_SCHEMES[variant].task4;
         const required=plane.planeType==='ABC'
