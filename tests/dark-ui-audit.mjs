@@ -39,9 +39,19 @@ async function inspect(page,label){
           rect:{x:r.x,y:r.y,width:r.width,height:r.height}
         };
       });
+    const nativeFileButtons=[...document.querySelectorAll('input[type="file"]')]
+      .filter(visible).map(el=>{
+        const style=getComputedStyle(el,'::file-selector-button');
+        return {id:el.id,background:style.backgroundColor,
+          image:style.backgroundImage,
+          bright:isBright(style.backgroundColor)||
+            /#fff(?:fff)?\b/i.test(style.backgroundImage)};
+      }).filter(x=>x.bright);
     const groupSelectors=[
       '.catalog-nav-actions','.topbar-links','.stage-toolbar .toolbar-groups',
-      '.mobile-appbar','.mobile-sheet-actions'
+      '.mobile-appbar','.mobile-sheet-actions',
+      '.crop-controls .calibrator-actions','.mark-controls .calibrator-actions',
+      '.photo-view-controls'
     ];
     const overlap=[];
     for(const selector of groupSelectors){
@@ -64,12 +74,14 @@ async function inspect(page,label){
       return {selector,background:s.backgroundColor,image:s.backgroundImage.slice(0,75),bright:isBright(s.backgroundColor)};
     }).filter(Boolean);
     return {theme:document.documentElement.dataset.theme,buttons:buttons.filter(x=>x.light),
-      overlap,highlights,overflow:document.documentElement.scrollWidth-viewportWidth,
+      nativeFileButtons,overlap,highlights,
+      overflow:document.documentElement.scrollWidth-viewportWidth,
       buttonCount:buttons.length,viewportWidth};
   });
   const issues=[];
   if(data.theme!=='dark')issues.push('wrong theme');
   if(data.buttons.length)issues.push('bright unselected controls: '+JSON.stringify(data.buttons));
+  if(data.nativeFileButtons.length)issues.push('bright native file buttons: '+JSON.stringify(data.nativeFileButtons));
   if(data.overlap.length)issues.push('overlapping action buttons: '+JSON.stringify(data.overlap));
   if(data.highlights.some(s=>s.bright))issues.push('bright interface surfaces: '+JSON.stringify(data.highlights.filter(s=>s.bright)));
   if(data.overflow>3)issues.push('horizontal document overflow '+data.overflow);
@@ -147,6 +159,32 @@ try{
     }
     if([320,393,1024,1440].includes(vp.width))
       await page.screenshot({path:'dark-ui-screenshots/solver-'+id+'.png',fullPage:false});
+
+    // User-reported white controls can live inside the custom photo workflow.
+    // Include the native file chooser pseudo-element, the crop controls and
+    // the marking toolbar instead of auditing only regular construction steps.
+    await page.evaluate(()=>{
+      const variant=document.getElementById('variantSelect');
+      const task=document.getElementById('taskSelect');
+      variant.value='custom';variant.dispatchEvent(new Event('change'));
+      task.value='4';task.dispatchEvent(new Event('change'));
+    });
+    if(vp.width<=760)await page.locator('#mobileSetupBtn').click();
+    if(!(await page.locator('#schemeImage').isVisible())){
+      failures.push({label:id+':custom',issues:['Custom photo input is hidden']});
+    }else{
+      await inspect(page,id+':custom-picker');
+      await page.locator('#schemeImage').setInputFiles('source-photos/scans/variant-12.jpg');
+      await page.locator('#cropControls').waitFor({state:'visible'});
+      await inspect(page,id+':custom-crop');
+      await page.locator('#wholeCrop').click();
+      await page.locator('#applyCrop').click();
+      await page.locator('#markControls').waitFor({state:'visible'});
+      await inspect(page,id+':custom-marking');
+      if([393,1440].includes(vp.width))
+        await page.screenshot({path:'dark-ui-screenshots/custom-photo-'+id+'.png',fullPage:false});
+    }
+    if(vp.width<=760)await page.locator('#mobileSetupClose').click();
     await context.close();
   }
 }finally{
