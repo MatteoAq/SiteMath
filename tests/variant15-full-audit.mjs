@@ -138,6 +138,16 @@ check(final5.some(e=>e.cls==='hidden-line')&&
 // 6. Σ(Σ₂) and plane Θ(ABC). Construct P and Q
 // with genuinely drawn auxiliary sections, then a parallel line through K.
 const s6=model.task6,g6=O.__audit15.solveTask6Scheme(s6,{});
+// Keep original raster points, but use coherent vertical projectors for the
+// working 15/6 geometry. Heights and depths are not adjusted.
+for(const [name,p] of Object.entries({...s6.planeB.points,K:s6.pointK}))
+  check(near(p.p1[0],p.p2[0],1e-9),
+    'task 6 '+name+' projections are not on a common vertical projector');
+check(s6.sourceGeometry.planeB.points.B.p2[0]===440&&
+ s6.sourceGeometry.planeB.points.B.p1[0]===451&&
+ s6.sourceGeometry.pointK.p2[0]===211&&
+ s6.sourceGeometry.pointK.p1[0]===217,
+ 'task 6 original source tracing must be preserved separately');
 const section=O.__section15;
 check(s6.planeA.type==='frontal_projecting'&&
  s6.planeB.type==='ABC'&&
