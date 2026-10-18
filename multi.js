@@ -5066,13 +5066,13 @@
         i=steps.length;
         push({
           title:'На '+planeName+pIdx+' получи '+pointNames[0]+pIdx+' и '+pointNames[1]+pIdx+' в '+planeSymbol,
-          action:'Пересеки '+planeName+pIdx+' с двумя уже существующими опорными линиями плоскости '+planeSymbol+'. Первое пересечение обозначь '+pointNames[0]+pIdx+', второе – '+pointNames[1]+pIdx+'.',
+          action:'Пересеки '+planeName+pIdx+' с двумя уже существующими опорными линиями плоскости '+planeSymbol+'. Первое пересечение обозначь '+pointNames[0]+pIdx+', второе – '+pointNames[1]+pIdx+'. Соедини эти две точки – получишь '+sectionSymbol+pIdx+'.',
           why:'Эти точки не выбираются произвольно: обе задаются пересечениями вспомогательной плоскости '+planeName+' с линиями, принадлежащими '+planeSymbol+'.',
           measure:[
             pointNames[0]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[0].name+pIdx,
             pointNames[1]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[1].name+pIdx
           ],
-          check:'Проверь оба пересечения: '+pointNames[0]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[0].name+pIdx+'; '+pointNames[1]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[1].name+pIdx+'. Опорные прямые могут быть заданы в условии или построены на предыдущих этапах.'
+          check:'Проверь оба пересечения: '+pointNames[0]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[0].name+pIdx+'; '+pointNames[1]+pIdx+' = '+planeName+pIdx+' ∩ '+sec.refs[1].name+pIdx+'. Проекция '+sectionSymbol+pIdx+' проходит через обе отмеченные точки. Опорные прямые могут быть заданы в условии или построены на предыдущих этапах.'
         },[
           ...segmentExtensionEntities(i,sec.refs[0].rec[primary],primarySeg[0]),
           ...segmentExtensionEntities(i,sec.refs[1].rec[primary],primarySeg[1]),
