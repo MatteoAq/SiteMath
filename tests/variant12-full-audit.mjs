@@ -173,6 +173,23 @@ assert(lines4.length===2&&
 record(4,'Horizontal, frontal, LS perpendicularity, ℓ(D,T), A behind ℓ',
   '18/18 algorithm states present; source lines stored separately');
 
+// Paired projections must be vertically aligned on the WORKING schematic.
+// Source pixels remain available separately for comparison with the scan.
+for(const [name,p] of Object.entries({
+ ...scheme.task5.points,K:scheme.task6.pointK
+})){
+ const original=name==='K'
+   ?scheme.task6.sourceGeometry.pointK
+   :scheme.task5.sourceGeometry.points[name];
+ assert(original,'task 5/6 archived source point '+name+' absent');
+ assert(close(p.p1[0],p.p2[0],1e-9),
+   'task 5/6 '+name+' projector is not vertical');
+ assert(close(p.p1[0],(original.p1[0]+original.p2[0])/2,1e-9)&&
+        close(p.p1[1],original.p1[1],1e-9)&&
+        close(p.p2[1],original.p2[1],1e-9),
+   'task 5/6 '+name+' must use midpoint x and preserve both source heights');
+}
+
 // 5. Independent analytic line-plane K and all visibility witness stages.
 assert(scheme.task5.planeType==='ABC' &&
        scheme.task5.sourceGeometry?.points?.A?.p1?.[0]===264,
