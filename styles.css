@@ -4115,6 +4115,29 @@ html[data-theme="dark"] .site-contact-note {
   color:#e9dcef;
 }
 html[data-theme="dark"] .mark-item.done {color:#b4e5c4;}
+/* Chromium's native file-picker button is a separate painted control.
+   The file input can be dark while this button remains system-white. */
+html[data-theme="dark"] .custom-form input[type="file"]::file-selector-button {
+  appearance:none;
+  background:var(--ui-action-bg);
+  color:#f2e5f8;
+  border:1px solid var(--ui-action-border);
+  border-radius:9px;
+  padding:9px 11px;
+  margin-right:10px;
+  font:inherit;
+  font-weight:750;
+  cursor:pointer;
+}
+html[data-theme="dark"] .custom-form input[type="file"]:hover::file-selector-button {
+  background:var(--ui-action-hover);
+  border-color:#a77abc;
+}
+html[data-theme="dark"] .custom-form input[type="file"]:focus-visible::file-selector-button {
+  outline:2px solid #c899e3;
+  outline-offset:1px;
+}
+
 html[data-theme="dark"] .photo-view-controls button,
 html[data-theme="dark"] .calibrator-actions button:not(.primary),
 html[data-theme="dark"] .crop-controls button,
