@@ -85,6 +85,23 @@ for(let vi=1;vi<=20;vi++){
               required,check:entry.check});
         }
       }
+      if(task===6&&step===0){
+        const s6=w.SITEMATH_SCHEMES[variant].task6;
+        if(s6.planeA?.type==='intersecting_lines'&&s6.planeB?.type==='horizontal_projecting'){
+          const lines=Object.keys(s6.planeA.lines||{});
+          const label=s6.pointLabel||'K';
+          const required=[
+            lines[0]+'₁ ∩ '+lines[1]+'₁',lines[0]+'₂ ∩ '+lines[1]+'₂',
+            'общей вертикальной линии связи',s6.planeB.name||'Θ',
+            'горизонтально-проецирующая','на П₁','на П₂',
+            'Проекции '+label+'₁ и '+label+'₂'
+          ];
+          if(required.some(token=>!entry.check.includes(token)) ||
+             /Сверь обозначения обеих исходных плоскостей/u.test(entry.check))
+            issues.push({variant,task,step:1,type:'horizontal-projecting-source-check-vague',
+              required,check:entry.check});
+        }
+      }
       if(task===4&&step===0){
         const plane=w.SITEMATH_SCHEMES[variant].task4;
         const required=plane.planeType==='ABC'
