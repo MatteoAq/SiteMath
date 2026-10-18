@@ -171,6 +171,24 @@ for(let vi=1;vi<=20;vi++){
               required,action:entry.action,why:entry.why,check:entry.check});
         }
       }
+      if(task===6&&step===0){
+        const s6=w.SITEMATH_SCHEMES[variant].task6;
+        if(s6.planeA?.type==='intersecting_lines'&&s6.planeB?.type==='ABC'){
+          const [a,b]=Object.keys(s6.planeA.lines||{});
+          const names=Object.keys(s6.planeB.points||{});
+          const label=s6.pointLabel||'K';
+          const required=[a+'₁ ∩ '+b+'₁',a+'₂ ∩ '+b+'₂',
+            ...names.map(n=>n+'₁/'+n+'₂'),
+            'парные узлы лежат на одной линии связи',
+            'образуют треугольники','одноимённые точки соединяются проектором',
+            label+'₁ и '+label+'₂'];
+          if(required.some(x=>!entry.check.includes(x))||
+             !entry.action.includes('общий узел')||
+             !entry.why.includes('определяют три пространственные точки'))
+            issues.push({variant,task,step:1,type:'intersecting-abc-source-check-vague',
+              required,action:entry.action,why:entry.why,check:entry.check});
+        }
+      }
       if(task===4&&step===0){
         const plane=w.SITEMATH_SCHEMES[variant].task4;
         const required=plane.planeType==='ABC'
