@@ -4710,6 +4710,12 @@
       if(lineNames.length===2)
         steps[0].check='Проверь исходные элементы: '+lineNames[0]+'₁ ∩ '+lineNames[1]+'₁ и '+lineNames[0]+'₂ ∩ '+lineNames[1]+'₂ задают один узел плоскости '+planeASymbol+'; две проекции этого узла лежат на общей вертикальной линии связи. Плоскость '+planeBSymbol+' горизонтально-проецирующая: на П₁ она изображена одной заданной прямой, на П₂ отдельной исходной прямой для неё нет. Проекции '+throughLabel+'₁ и '+throughLabel+'₂ тоже находятся на одной вертикальной линии связи.';
     }
+    if(scheme.planeA?.type==='frontal_projecting' &&
+       scheme.planeB?.type==='ABC'){
+      const names=Object.keys(scheme.planeB.points||{});
+      if(names.length===3)
+        steps[0].check='Плоскость '+planeASymbol+' фронтально-проецирующая: на П₂ она показана одной заданной прямой '+planeASymbol+'₂, а на П₁ отдельной исходной линии этой плоскости нет. В '+planeBSymbol+' проверь три пары вершин '+names.map(name=>name+'₁/'+name+'₂').join(', ')+' и линии связи между парными проекциями. '+throughLabel+'₁ и '+throughLabel+'₂ тоже относятся к одной пространственной точке и стоят на общей вертикальной линии связи.';
+    }
     if(scheme.sourceId==='source-photos/scans/variant-12.jpg'&&!scheme.adaptedSource){
       steps[0].why+=' На этом листе плоскости пересекаются далеко за пределами исходной схемы. Свободно выбрать можно вспомогательные сечения, но не положение самой линии пересечения.';
     }
