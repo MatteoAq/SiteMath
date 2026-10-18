@@ -1742,8 +1742,23 @@
       return item;
     };
 
-    names.forEach(name=>{
+    // Do not print the same coordinate at an already labelled projection.
+    // These are annotation-only choices: all point and projector geometry stays.
+    const labelledXDimensions=new Set();
+    const labelledYFeet=new Set(),labelledZFeet=new Set();
+    const occupiedProfileFeet=new Set();
+    names.forEach((name,nameIndex)=>{
       const p=coords[name], q=project[name];
+      const xDimNeeded=Math.abs(p.x)>EPS&&!labelledXDimensions.has(p.x);
+      labelledXDimensions.add(p.x);
+      const yFootNeeded=Math.abs(p.y)>EPS&&Math.abs(p.x)>EPS&&!labelledYFeet.has(p.y);
+      if(yFootNeeded)labelledYFeet.add(p.y);
+      const zFootNeeded=Math.abs(p.z)>EPS&&Math.abs(p.x)>EPS&&
+        Math.abs(p.y)>EPS&&!labelledZFeet.has(p.z);
+      if(zFootNeeded)labelledZFeet.add(p.z);
+      const profileFootNeeded=Math.abs(p.y)>EPS&&Math.abs(p.z)>EPS&&
+        !occupiedProfileFeet.has(p.y);
+      occupiedProfileFeet.add(p.y);
       let i=steps.length;
       push({
         title:'Точка '+name+': задай линию связи по x',
@@ -1754,7 +1769,8 @@
         measure:['|x| = '+Math.abs(p.x)+' мм = '+cellCount(Math.abs(p.x))],
         check:'Линия связи перпендикулярна оси x₁₂ и проходит через отметку '+fmt(Math.abs(p.x))+' мм от O.',
       },[
-        dim(i,O,q.xFoot,Math.abs(p.x)+' мм',{x:0,y:-4}),
+        ...(xDimNeeded?[dim(i,O,q.xFoot,Math.abs(p.x)+' мм',
+          {x:0,y:-4-8*(nameIndex%3)})]:[]),
         line(i,{x:q.xFoot.x,y:Math.min(q.p1.y,q.p2.y)-5},{x:q.xFoot.x,y:Math.max(q.p1.y,q.p2.y)+5},'construction-line')
       ],{kind:'line',a:O,b:q.xFoot});
 
@@ -1771,8 +1787,8 @@
       },[
         line(i,q.yFoot,q.p1,'construction-line'),
         line(i,q.zFoot,q.p2,'construction-line'),
-        point(i,q.yFoot,'y₁='+signedCoord(p.y),'construction-dot'),
-        point(i,q.zFoot,'z='+signedCoord(p.z),'construction-dot'),
+        ...(yFootNeeded?[point(i,q.yFoot,'y₁='+signedCoord(p.y),'construction-dot')]:[]),
+        ...(zFootNeeded?[point(i,q.zFoot,'z='+signedCoord(p.z),'construction-dot')]:[]),
         pyramidProjectedPoint(i,q.p1,name,'₁'),
         pyramidProjectedPoint(i,q.p2,name,'₂'),
         dim(i,q.xFoot,q.p1,Math.abs(p.y)+' мм',{x:3,y:0}),
@@ -1793,7 +1809,7 @@
         line(i,q.yFoot,q.y3Foot,'construction-line'),
         line(i,q.y3Foot,q.p3,'construction-line'),
         line(i,q.zFoot,q.p3,'construction-line'),
-        point(i,q.y3Foot,'y₃='+signedCoord(p.y),'construction-dot'),
+        ...(profileFootNeeded?[point(i,q.y3Foot,'y₃='+signedCoord(p.y),'construction-dot')]:[]),
         pyramidProjectedPoint(i,q.p3,name,'₃','answer-dot')
       ],{kind:'line',a:q.zFoot,b:q.p3});
     });
