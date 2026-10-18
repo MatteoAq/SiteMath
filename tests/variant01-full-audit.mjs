@@ -48,6 +48,20 @@ for(const part of ['task1','task2','task3'])check(
  JSON.stringify(raw[part])===JSON.stringify(values[part]),
  part+': source table differs from paper');
 
+// The scanned B (01/4) and K (01/6) have small tracing offsets between
+// views. Keep source coordinates intact but use vertical working projectors.
+for(const [label,working,archived] of [
+ ['B (01/4)',model.task4.points.B,model.task4.sourceGeometry.points.B],
+ ['K (01/6)',model.task6.pointK,model.task6.sourceGeometry.pointK]
+]){
+ check(near(working.p1[0],working.p2[0],1e-9),
+   label+' has an inconsistent working projection pair');
+ check(near(working.p1[0],(archived.p1[0]+archived.p2[0])/2,1e-9)&&
+       near(working.p1[1],archived.p1[1],1e-9)&&
+       near(working.p2[1],archived.p2[1],1e-9),
+   label+' source geometry must remain untouched');
+}
+
 // 1. All three orthographic projections of A,B,C,D,E (including zero x/y/z).
 const g1=O.__audit01.solveTask1(table(raw.task1)),q1=points(g1);
 check(g1.steps.length===17,'task 1 has lost individual construction states');
