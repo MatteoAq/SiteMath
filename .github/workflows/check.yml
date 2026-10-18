@@ -84,15 +84,6 @@ jobs:
         run: |
           python3 -m http.server 4173 >/tmp/sitemath-http.log 2>&1 &
           echo $! > /tmp/sitemath-http.pid
-      - name: Capture every step of variant 08 and audit rendered annotations
-        run: node tests/variant08-visual.mjs
-      - name: Upload sequential variant 08 visual evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: variant08-sequential-visual-evidence
-          path: variant08-screens/
-          if-no-files-found: error
       - name: Capture every step of variant 07 and audit rendered annotations
         run: node tests/variant07-visual.mjs
       - name: Upload sequential variant 07 visual evidence
@@ -101,6 +92,24 @@ jobs:
         with:
           name: variant07-sequential-visual-evidence
           path: variant07-screens/
+          if-no-files-found: error
+      - name: Capture every step of variant 09 and audit rendered annotations
+        run: node tests/variant09-visual.mjs
+      - name: Upload sequential variant 09 visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: variant09-sequential-visual-evidence
+          path: variant09-screens/
+          if-no-files-found: error
+      - name: Capture every step of variant 08 and audit rendered annotations
+        run: node tests/variant08-visual.mjs
+      - name: Upload sequential variant 08 visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: variant08-sequential-visual-evidence
+          path: variant08-screens/
           if-no-files-found: error
       - name: Capture every step of variant 01 and audit rendered annotations
         run: node tests/variant01-visual.mjs
