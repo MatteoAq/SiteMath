@@ -4747,6 +4747,17 @@
         steps[0].check='В '+planeASymbol+' проверь узел '+a+'₁ ∩ '+b+'₁ и его парный узел '+a+'₂ ∩ '+b+'₂. В '+planeBSymbol+' проверь узел '+c+'₁ ∩ '+d+'₁ и его парный узел '+c+'₂ ∩ '+d+'₂. У каждой плоскости пара проекций узла лежит на своей вертикальной линии связи. Проекции '+throughLabel+'₁ и '+throughLabel+'₂ принадлежат одной заданной точке '+throughLabel+' и связаны отдельным проектором.';
       }
     }
+    if(scheme.planeA?.type==='intersecting_lines' &&
+       scheme.planeB?.type==='ABC'){
+      const names=Object.keys(scheme.planeA.lines||{});
+      const vertices=Object.keys(scheme.planeB.points||{});
+      if(names.length===2&&vertices.length===3){
+        const [a,b]=names,[A,B,C]=vertices;
+        steps[0].action='Из условия перенеси проекции пересекающихся прямых '+a+' и '+b+' плоскости '+planeASymbol+', отметь на обеих проекциях общий узел. Для плоскости '+planeBSymbol+' нанеси вершины '+vertices.join(', ')+' и соедини '+A+'₁'+B+'₁'+C+'₁, а также '+A+'₂'+B+'₂'+C+'₂. Отметь '+throughLabel+'₁ и '+throughLabel+'₂. Вспомогательных сечений пока не добавляй.';
+        steps[0].why='Пересечение '+a+' и '+b+' задаёт исходный узел плоскости '+planeASymbol+'. Плоскость '+planeBSymbol+' определяют три пространственные точки '+vertices.join(', ')+'. Их проекции соответствуют тем же вершинам на двух видах.';
+        steps[0].check='В '+planeASymbol+' проверь '+a+'₁ ∩ '+b+'₁ и '+a+'₂ ∩ '+b+'₂: парные узлы лежат на одной линии связи. В '+planeBSymbol+' сверяй вершины '+vertices.map(n=>n+'₁/'+n+'₂').join(', ')+'; обе проекции '+A+B+C+' образуют треугольники, а одноимённые точки соединяются проектором. Заданные '+throughLabel+'₁ и '+throughLabel+'₂ являются парой проекций одной точки '+throughLabel+'.';
+      }
+    }
     if(scheme.sourceId==='source-photos/scans/variant-12.jpg'&&!scheme.adaptedSource){
       steps[0].why+=' На этом листе плоскости пересекаются далеко за пределами исходной схемы. Свободно выбрать можно вспомогательные сечения, но не положение самой линии пересечения.';
     }
