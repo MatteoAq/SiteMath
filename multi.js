@@ -5605,7 +5605,7 @@
   // Identify labels of projected straight lines, rather than named points.
   // Point labels are emitted by point() and keep their own end-point offset.
   function isProjectedLineLabel(label){
-    return /^(?:[a-wа-яёℓβΒ][a-zа-яёA-ZА-ЯΣΔΘΓΒ′']*|ЛС)[₁₂]$/u.test(label||'');
+    return /^(?:[a-wа-яёℓβΒΩ][a-zа-яёA-ZА-ЯΣΔΘΓΒΩ′']*|ЛС)[₁₂]$/u.test(label||'');
   }
 
   // Every labelled stroke is already a line entity in the CURRENT construction
@@ -5785,8 +5785,27 @@
                 if(score<bestScore){bestScore=score;bestT=t;}
                 if(overlap<.03)break;
               }
-              label.setAttribute('x',e.p.x+along.x*bestT);
-              label.setAttribute('y',e.p.y+along.y*bestT);
+              // A very short projected segment may not leave enough
+              // room for its label beside a labelled endpoint (20/4 S₂).
+              // Try the opposite side of the SAME segment only after all
+              // along-stroke shifts fail. Move ink, never the line or point.
+              let bestX=e.p.x+along.x*bestT;
+              let bestY=e.p.y+along.y*bestT;
+              if(bestScore>.2){
+                const normal={x:-along.y,y:along.x};
+                const gap=4.1*paperInkScale();
+                for(const t of shifts){
+                  const cx=e.p.x-2*normal.x*gap+along.x*t;
+                  const cy=e.p.y-2*normal.y*gap+along.y*t;
+                  label.setAttribute('x',cx);
+                  label.setAttribute('y',cy);
+                  const score=clash(label.getBBox())+.02+Math.abs(t)*.001;
+                  if(score<bestScore){bestScore=score;bestX=cx;bestY=cy;}
+                  if(score<.03)break;
+                }
+              }
+              label.setAttribute('x',bestX);
+              label.setAttribute('y',bestY);
             }
           }
         }
