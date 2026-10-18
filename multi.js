@@ -5735,7 +5735,10 @@
         // not toward a point or a detached free-floating position.
         const along=e.lineLabel&&e.p.along;
         if(along&&typeof label.getBBox==='function'){
-          const peers=[...svg.querySelectorAll('text[data-line-label="1"]')]
+          // Include already rendered point names and dimensions as well
+          // as other line labels: a line name must not cover B₁ (04/6)
+          // even when it does not overlap another line name.
+          const peers=[...svg.querySelectorAll('text')]
             .filter(t=>t!==label&&typeof t.getBBox==='function');
           if(peers.length){
             const original=label.getBBox();
