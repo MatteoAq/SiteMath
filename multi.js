@@ -2798,12 +2798,27 @@
         :scheme.planeType==='parallel_lines'
           ?scheme.planeLines[0]+'₁ ∥ '+scheme.planeLines[1]+'₁ и '+scheme.planeLines[0]+'₂ ∥ '+scheme.planeLines[1]+'₂. Обе пары прямых соответствуют одной плоскости.'
           :scheme.planeLines[0]+'₁ ∩ '+scheme.planeLines[1]+'₁ и '+scheme.planeLines[0]+'₂ ∩ '+scheme.planeLines[1]+'₂. Точки пересечения проекций лежат на одном вертикальном проекторе.';
+    // The given point used by the additional task-4 condition belongs to
+    // the INITIAL drawing too, not only to the later construction step.
+    const givenThrough=scheme.operation?.through;
+    const throughIsGiven=typeof givenThrough==='string'&&
+      Boolean(scheme.points?.[givenThrough]);
+    const throughAction=throughIsGiven
+      ? ' Отдельно отметь заданную точку '+givenThrough+
+        ' по проекциям '+givenThrough+'₁ и '+givenThrough+
+        '₂. Через неё далее построим искомую прямую.'
+      : '';
+    const throughCheck=throughIsGiven
+      ? ' Проекции '+givenThrough+'₁ и '+givenThrough+
+        '₂ лежат на одной вертикальной линии связи; исходную точку не перемещай.'
+      : '';
     push({
       title:'Найди заданные элементы плоскости '+planeSymbol,
-      action:'На исходном листе найди '+planeBasis+'. Различи проекции с индексами ₁ и ₂ и заданные линии связи. Новые точки и вспомогательные прямые пока не строй.',
+      action:'На исходном листе найди '+planeBasis+'.'+throughAction+
+        ' Различи проекции с индексами ₁ и ₂ и заданные линии связи. Новые точки и вспомогательные прямые пока не строй.',
       why:'Это графическое условие: положение и наклон элементов плоскости определены исходными проекциями. Перенос по клеткам не заменяет исходную геометрию.',
       measure:['При переносе сохраняй направление и взаимное положение линий.','Не передвигай заданные точки к ближайшим узлам сетки.'],
-      check:sourceCheck
+      check:sourceCheck+throughCheck
     },starterEntitiesFromScheme(scheme,i));
     if(scheme.sourceGeometry)steps[0].sourceEntities=starterEntitiesFromScheme(scheme.sourceGeometry,0,true);
 
