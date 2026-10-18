@@ -48,6 +48,19 @@ for(const part of ['task1','task2','task3'])check(
  JSON.stringify(raw[part])===JSON.stringify(values[part]),
  part+': source table differs from paper');
 
+// The variant 11 source mistakenly reverses the handwritten labels
+// K₁/K₂. That annotation issue is retained separately from geometry.
+// Both working projections must share an x coordinate without changing y.
+const inputK=model.task6.pointK,sourceK=model.task6.sourceGeometry.pointK;
+check(model.task6.paperReversedKLabels===true,
+ 'task 6 original sheet annotation reversal flag must remain explicit');
+check(near(sourceK.p2[0],289)&&near(sourceK.p1[0],295),
+ 'task 6 original K tracing must survive projector cleanup');
+check(near(inputK.p2[0],292)&&near(inputK.p1[0],292)&&
+ near(inputK.p1[1],sourceK.p1[1])&&
+ near(inputK.p2[1],sourceK.p2[1]),
+ 'task 6 working K must share a vertical projector and preserve depths');
+
 // 1. All three orthographic projections of A,B,C,D,E (including zero x/y/z).
 const g1=O.__audit11.solveTask1(table(raw.task1)),q1=points(g1);
 check(g1.steps.length===17,'task 1 has lost individual construction states');
