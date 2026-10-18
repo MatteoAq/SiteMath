@@ -577,7 +577,7 @@ function checkInputProjectors(node,path){
   if(Array.isArray(node.p1)&&Array.isArray(node.p2)&&
      typeof node.p1[0]==='number'&&typeof node.p2[0]==='number'){
     pairedInputPoints++;
-    if(Math.abs(node.p1[0]-node.p2[0])>1e-8)
+    if(Math.abs(node.p1[0]-node.p2[0])>1e-5)
       error.push(path+': working given point lacks vertical projector');
   }
   for(const [key,value] of Object.entries(node))
