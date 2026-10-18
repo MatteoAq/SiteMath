@@ -120,6 +120,15 @@ jobs:
           name: variant04-sequential-visual-evidence
           path: variant04-screens/
           if-no-files-found: error
+      - name: Capture every step of variant 05 and audit rendered annotations
+        run: node tests/variant05-visual.mjs
+      - name: Upload sequential variant 05 visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: variant05-sequential-visual-evidence
+          path: variant05-screens/
+          if-no-files-found: error
       - name: Verify dark theme, A4 paper, Telegram and drag
         run: node tests/theme-interactions.mjs
       - name: Audit dark controls and responsive button placement
