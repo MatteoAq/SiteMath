@@ -90,7 +90,7 @@ for(let vi=1;vi<=20;vi++){
         issues.push({variant,task,step:step+1,type:'profile-construction-not-reproducible',
           title:entry.title,action:entry.action});
       if(task===6&&/^На [αβ][₁₂] получи /u.test(entry.title)){
-        const match=/^На [αβ]([₁₂]) получи .* в (\\S+)$/u.exec(entry.title);
+        const match=/^На [αβ]([₁₂]) получи .* в (\S+)$/u.exec(entry.title);
         if(!match)issues.push({variant,task,step:step+1,type:'section-step-title-unparseable'});
         else{
           const section=(match[1]==='₂'?'h':'f')+match[2]+match[1];
