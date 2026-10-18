@@ -22,7 +22,7 @@ assert.equal(audit.isProjectedLineLabel('fΣ₁'),true,'auxiliary line label');
 assert.equal(audit.isProjectedLineLabel('hΣα₂'),true,'first auxiliary level section');
 assert.equal(audit.isProjectedLineLabel('hΣβ₂'),true,'second auxiliary level section');
 assert.equal(audit.isProjectedLineLabel('fΒβ₁'),true,'section of plane Β at second level');
-let checked=0,sourceChecked=0;
+
 // Section names must identify the auxiliary level. Two different
 // α/β sections of the same original plane cannot share one label.
 for(const [variant,scheme] of Object.entries(W.SITEMATH_SCHEMES)){
