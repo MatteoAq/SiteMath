@@ -5581,7 +5581,7 @@
   // Identify labels of projected straight lines, rather than named points.
   // Point labels are emitted by point() and keep their own end-point offset.
   function isProjectedLineLabel(label){
-    return /^(?:[a-wа-яёℓ][a-zа-яёA-ZА-ЯΣΔΘΓ′']*|ЛС)[₁₂]$/u.test(label||'');
+    return /^(?:[a-wа-яёℓβΒ][a-zа-яёA-ZА-ЯΣΔΘΓΒ′']*|ЛС)[₁₂]$/u.test(label||'');
   }
 
   // Every labelled stroke is already a line entity in the CURRENT construction
