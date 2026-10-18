@@ -1756,8 +1756,12 @@
       // but omit its duplicate foot annotation (e.g. 01/1 D₁ or A₂).
       const coincidesWithProjection=foot=>names.some(other=>
         ['p1','p2','p3'].some(key=>dist2(foot,project[other][key])<1e-5));
+      // The first y-axis coordinate is part of the student's construction.
+      // Do not erase it because some as-yet-unbuilt point will eventually
+      // share the same position. Suppress only later duplicate foot labels.
       const yFootNeeded=Math.abs(p.y)>EPS&&Math.abs(p.x)>EPS&&
-        !labelledYFeet.has(p.y)&&!coincidesWithProjection(q.yFoot);
+        !labelledYFeet.has(p.y)&&
+        (nameIndex===0||!coincidesWithProjection(q.yFoot));
       if(yFootNeeded)labelledYFeet.add(p.y);
       const zFootNeeded=Math.abs(p.z)>EPS&&Math.abs(p.x)>EPS&&
         Math.abs(p.y)>EPS&&!labelledZFeet.has(p.z)&&
