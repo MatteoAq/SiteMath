@@ -1,4 +1,4 @@
-// Independently transcribed paper originals and university album scans, 14 Oct 2026.
+// Independently transcribed paper originals, rechecked against original DOCX 19 Oct 2026.
 // Check 60 numeric assignments (199 spatial vertices/points), 60 graphical assignment
 // definitions, and SHA-256 bytes of all 20 current album scans.
 // CI success proves source data shape/recording, not the geometry of solved steps.
@@ -91,12 +91,12 @@ const originalCoordinates={
     "40,30,-15;25,30,-60;0,65,40"
   ],
   "06": [
-    "10,20,45;25,20,0;20,-25,-35;45,0,55;40,30,15",
+    "10,20,45;25,20,0;20,-25,-35;45,0,55;40,30,-15",
     "15,-40,-50;55,-30,30",
     "10,20,-45;45,20,0;20,-25,-10"
   ],
   "08": [
-    "30,60,30;70,-25,-60;40,-50,15;40,0,50;30,10,0",
+    "30,60,30;70,-25,-60;40,-50,75;40,0,50;30,10,0",
     "10,40,55;70,55,-25",
     "30,30,60;70,-25,-60;40,50,50"
   ],
