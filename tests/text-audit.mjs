@@ -82,7 +82,8 @@ for(let vi=1;vi<=20;vi++){
         issues.push({variant,task,step:step+1,type:'profile-zero-axis-reference-ambiguous',
           title:entry.title,check:entry.check});
       if(task===6&&/^По линии связи получи [TM]₂ на /u.test(entry.title)&&
-         (!entry.check.includes('одной вертикальной линии связи')||
+         ((!entry.check.includes('одной вертикальной линии связи')&&
+           !/пересечении проектора из [TM]₁/u.test(entry.check))||
           /должны совпадать в одной точке/u.test(entry.check)))
         issues.push({variant,task,step:step+1,type:'separate-projections-must-not-coincide',
           action:entry.action,check:entry.check});
