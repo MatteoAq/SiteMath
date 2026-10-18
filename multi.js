@@ -1742,8 +1742,30 @@
       return item;
     };
 
-    names.forEach(name=>{
+    // Do not print the same coordinate at an already labelled projection.
+    // These are annotation-only choices: all point and projector geometry stays.
+    const labelledXDimensions=new Set();
+    const labelledYFeet=new Set(),labelledZFeet=new Set();
+    const occupiedProfileFeet=new Set();
+    names.forEach((name,nameIndex)=>{
       const p=coords[name], q=project[name];
+      const xDimNeeded=Math.abs(p.x)>EPS&&!labelledXDimensions.has(p.x);
+      labelledXDimensions.add(p.x);
+      // A coordinate foot that lands on ANY prescribed projection is
+      // already identified by that point's actual label. Keep the guide,
+      // but omit its duplicate foot annotation (e.g. 01/1 D₁ or A₂).
+      const coincidesWithProjection=foot=>names.some(other=>
+        ['p1','p2','p3'].some(key=>dist2(foot,project[other][key])<1e-5));
+      const yFootNeeded=Math.abs(p.y)>EPS&&Math.abs(p.x)>EPS&&
+        !labelledYFeet.has(p.y)&&!coincidesWithProjection(q.yFoot);
+      if(yFootNeeded)labelledYFeet.add(p.y);
+      const zFootNeeded=Math.abs(p.z)>EPS&&Math.abs(p.x)>EPS&&
+        Math.abs(p.y)>EPS&&!labelledZFeet.has(p.z)&&
+        !coincidesWithProjection(q.zFoot);
+      if(zFootNeeded)labelledZFeet.add(p.z);
+      const profileFootNeeded=Math.abs(p.y)>EPS&&Math.abs(p.z)>EPS&&
+        !occupiedProfileFeet.has(p.y)&&!coincidesWithProjection(q.y3Foot);
+      occupiedProfileFeet.add(p.y);
       let i=steps.length;
       push({
         title:'Точка '+name+': задай линию связи по x',
@@ -1754,7 +1776,8 @@
         measure:['|x| = '+Math.abs(p.x)+' мм = '+cellCount(Math.abs(p.x))],
         check:'Линия связи перпендикулярна оси x₁₂ и проходит через отметку '+fmt(Math.abs(p.x))+' мм от O.',
       },[
-        dim(i,O,q.xFoot,Math.abs(p.x)+' мм',{x:0,y:-4}),
+        ...(xDimNeeded?[dim(i,O,q.xFoot,Math.abs(p.x)+' мм',
+          {x:0,y:-4-8*(nameIndex%3)})]:[]),
         line(i,{x:q.xFoot.x,y:Math.min(q.p1.y,q.p2.y)-5},{x:q.xFoot.x,y:Math.max(q.p1.y,q.p2.y)+5},'construction-line')
       ],{kind:'line',a:O,b:q.xFoot});
 
@@ -1771,8 +1794,8 @@
       },[
         line(i,q.yFoot,q.p1,'construction-line'),
         line(i,q.zFoot,q.p2,'construction-line'),
-        point(i,q.yFoot,'y₁='+signedCoord(p.y),'construction-dot'),
-        point(i,q.zFoot,'z='+signedCoord(p.z),'construction-dot'),
+        ...(yFootNeeded?[point(i,q.yFoot,'y₁='+signedCoord(p.y),'construction-dot')]:[]),
+        ...(zFootNeeded?[point(i,q.zFoot,'z='+signedCoord(p.z),'construction-dot')]:[]),
         pyramidProjectedPoint(i,q.p1,name,'₁'),
         pyramidProjectedPoint(i,q.p2,name,'₂'),
         dim(i,q.xFoot,q.p1,Math.abs(p.y)+' мм',{x:3,y:0}),
@@ -1793,7 +1816,7 @@
         line(i,q.yFoot,q.y3Foot,'construction-line'),
         line(i,q.y3Foot,q.p3,'construction-line'),
         line(i,q.zFoot,q.p3,'construction-line'),
-        point(i,q.y3Foot,'y₃='+signedCoord(p.y),'construction-dot'),
+        ...(profileFootNeeded?[point(i,q.y3Foot,'y₃='+signedCoord(p.y),'construction-dot')]:[]),
         pyramidProjectedPoint(i,q.p3,name,'₃','answer-dot')
       ],{kind:'line',a:q.zFoot,b:q.p3});
     });
@@ -1894,8 +1917,8 @@
     return [
       line(step,yFoot,p1,'construction-line'),
       line(step,zFoot,p2,'construction-line'),
-      point(step,yFoot,name+'ᵧ','construction-dot'),
-      point(step,zFoot,name+'𝓏','construction-dot')
+      ...(Math.abs(p1.y-O.y)>EPS?[point(step,yFoot,name+'ᵧ','construction-dot')]:[]),
+      ...(Math.abs(p2.y-O.y)>EPS?[point(step,zFoot,name+'𝓏','construction-dot')]:[])
     ];
   }
 
@@ -2129,7 +2152,8 @@
         line(j,px,p1,'construction-line'),
         line(j,px,p2,'construction-line'),
         ...coordinateGuideEntities(j,O,name,p1,p2),
-        point(j,px,name+'ₓ','construction-dot'),
+        ...(dist2(px,p1)>EPS&&dist2(px,p2)>EPS
+          ?[point(j,px,name+'ₓ','construction-dot')]:[]),
         point(j,p1,name+'₁'),
         point(j,p2,name+'₂')
       ],{kind:'line',a:px,b:p1});
@@ -5610,10 +5634,59 @@
         r:(e.cls.includes('answer')?1.05:.88)*ink,
         class:e.cls+(active?' active-dot':''),'data-active':active?'1':'0','data-label':e.label||'','data-role':e.role||pointRole(e.cls)});
       svg.append(n);
-      if(e.label)svg.append(E('text',{x:e.p.x+2.1*ink,y:e.p.y-2*ink,
-        class:'svg-label','data-active':active?'1':'0'},e.visualLabel||e.label));
+      if(e.label){
+        // A later step may re-highlight exactly the same named point. Keep
+        // the active dot but never print that name twice at the same spot.
+        const alreadyDrawn=[...svg.querySelectorAll('circle[data-label]')]
+          .some(prev=>prev!==n && prev.getAttribute('data-label')===e.label &&
+            Math.abs(Number(prev.getAttribute('cx'))-e.p.x)<1e-5 &&
+            Math.abs(Number(prev.getAttribute('cy'))-e.p.y)<1e-5);
+        if(!alreadyDrawn){
+          const label=E('text',{x:e.p.x+2.1*ink,y:e.p.y-2*ink,
+            class:'svg-label','data-active':active?'1':'0'},e.visualLabel||e.label);
+          svg.append(label);
+          // Only move the ink of a point name, not its dot or its
+          // projector. Reposition only when it covers another text label.
+          if(typeof label.getBBox==='function'){
+            const others=[...svg.querySelectorAll('text')].filter(t=>t!==label);
+            const candidates=[
+              [2.1,-2,'start'],[-2.1,-2,'end'],
+              [2.1,5,'start'],[-2.1,5,'end'],
+              [2.1,-7,'start'],[-2.1,-7,'end'],
+              [6,-2,'start'],[-6,-2,'end']
+            ];
+            let best=Infinity,bestCandidate=candidates[0];
+            for(const [i,candidate] of candidates.entries()){
+              const [dx,dy,anchor]=candidate;
+              label.setAttribute('x',e.p.x+dx*ink);
+              label.setAttribute('y',e.p.y+dy*ink);
+              label.setAttribute('text-anchor',anchor);
+              const a=label.getBBox();
+              let overlap=0;
+              for(const t of others){
+                const b=t.getBBox();
+                const w=Math.max(0,Math.min(a.x+a.width,b.x+b.width)-Math.max(a.x,b.x));
+                const h=Math.max(0,Math.min(a.y+a.height,b.y+b.height)-Math.max(a.y,b.y));
+                overlap+=w*h/Math.max(1,Math.min(a.width*a.height,b.width*b.height));
+              }
+              const score=overlap+i*.012;
+              if(score<best){best=score;bestCandidate=candidate;}
+              if(overlap<.03)break;
+            }
+            label.setAttribute('x',e.p.x+bestCandidate[0]*ink);
+            label.setAttribute('y',e.p.y+bestCandidate[1]*ink);
+            label.setAttribute('text-anchor',bestCandidate[2]);
+          }
+        }
+      }
     } else if(e.type==='text'){
-      svg.append(E('text',{x:e.p.x,y:e.p.y,class:e.cls,
+      // Sections can be restated on later steps; the first visible
+      // annotation already identifies the same segment.
+      const duplicate=[...svg.querySelectorAll('text[data-label]')].some(el=>
+        el.getAttribute('data-label')===e.label &&
+        Math.abs(Number(el.getAttribute('x'))-e.p.x)<.1 &&
+        Math.abs(Number(el.getAttribute('y'))-e.p.y)<.1);
+      if(!duplicate)svg.append(E('text',{x:e.p.x,y:e.p.y,class:e.cls,
         'text-anchor':e.lineLabel?'middle':null,
         'data-line-label':e.lineLabel?'1':null,
         'data-label':e.label||'',
