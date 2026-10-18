@@ -5634,10 +5634,59 @@
         r:(e.cls.includes('answer')?1.05:.88)*ink,
         class:e.cls+(active?' active-dot':''),'data-active':active?'1':'0','data-label':e.label||'','data-role':e.role||pointRole(e.cls)});
       svg.append(n);
-      if(e.label)svg.append(E('text',{x:e.p.x+2.1*ink,y:e.p.y-2*ink,
-        class:'svg-label','data-active':active?'1':'0'},e.visualLabel||e.label));
+      if(e.label){
+        // A later step may re-highlight exactly the same named point. Keep
+        // the active dot but never print that name twice at the same spot.
+        const alreadyDrawn=[...svg.querySelectorAll('circle[data-label]')]
+          .some(prev=>prev!==n && prev.getAttribute('data-label')===e.label &&
+            Math.abs(Number(prev.getAttribute('cx'))-e.p.x)<1e-5 &&
+            Math.abs(Number(prev.getAttribute('cy'))-e.p.y)<1e-5);
+        if(!alreadyDrawn){
+          const label=E('text',{x:e.p.x+2.1*ink,y:e.p.y-2*ink,
+            class:'svg-label','data-active':active?'1':'0'},e.visualLabel||e.label);
+          svg.append(label);
+          // Only move the ink of a point name, not its dot or its
+          // projector. Reposition only when it covers another text label.
+          if(typeof label.getBBox==='function'){
+            const others=[...svg.querySelectorAll('text')].filter(t=>t!==label);
+            const candidates=[
+              [2.1,-2,'start'],[-2.1,-2,'end'],
+              [2.1,5,'start'],[-2.1,5,'end'],
+              [2.1,-7,'start'],[-2.1,-7,'end'],
+              [6,-2,'start'],[-6,-2,'end']
+            ];
+            let best=Infinity,bestCandidate=candidates[0];
+            for(const [i,candidate] of candidates.entries()){
+              const [dx,dy,anchor]=candidate;
+              label.setAttribute('x',e.p.x+dx*ink);
+              label.setAttribute('y',e.p.y+dy*ink);
+              label.setAttribute('text-anchor',anchor);
+              const a=label.getBBox();
+              let overlap=0;
+              for(const t of others){
+                const b=t.getBBox();
+                const w=Math.max(0,Math.min(a.x+a.width,b.x+b.width)-Math.max(a.x,b.x));
+                const h=Math.max(0,Math.min(a.y+a.height,b.y+b.height)-Math.max(a.y,b.y));
+                overlap+=w*h/Math.max(1,Math.min(a.width*a.height,b.width*b.height));
+              }
+              const score=overlap+i*.012;
+              if(score<best){best=score;bestCandidate=candidate;}
+              if(overlap<.03)break;
+            }
+            label.setAttribute('x',e.p.x+bestCandidate[0]*ink);
+            label.setAttribute('y',e.p.y+bestCandidate[1]*ink);
+            label.setAttribute('text-anchor',bestCandidate[2]);
+          }
+        }
+      }
     } else if(e.type==='text'){
-      svg.append(E('text',{x:e.p.x,y:e.p.y,class:e.cls,
+      // Sections can be restated on later steps; the first visible
+      // annotation already identifies the same segment.
+      const duplicate=[...svg.querySelectorAll('text[data-label]')].some(el=>
+        el.getAttribute('data-label')===e.label &&
+        Math.abs(Number(el.getAttribute('x'))-e.p.x)<.1 &&
+        Math.abs(Number(el.getAttribute('y'))-e.p.y)<.1);
+      if(!duplicate)svg.append(E('text',{x:e.p.x,y:e.p.y,class:e.cls,
         'text-anchor':e.lineLabel?'middle':null,
         'data-line-label':e.lineLabel?'1':null,
         'data-label':e.label||'',
