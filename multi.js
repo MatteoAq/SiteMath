@@ -5058,7 +5058,7 @@
       const oIdx=other==='p2'?'₂':'₁';
       const pPlane=primary==='p2'?'Π₂':'Π₁';
       const oPlane=other==='p2'?'Π₂':'Π₁';
-      const sectionSymbol=(levelType==='horizontal'?'h':'f')+planeSymbol;
+      const sectionSymbol=(levelType==='horizontal'?'h':'f')+planeSymbol+planeName;
 
       if(sec?.refs?.length===2){
         const primarySeg=sec[primary],otherSeg=sec[other];
@@ -5605,7 +5605,7 @@
   // Identify labels of projected straight lines, rather than named points.
   // Point labels are emitted by point() and keep their own end-point offset.
   function isProjectedLineLabel(label){
-    return /^(?:[a-wа-яёℓβΒΩ][a-zа-яёA-ZА-ЯΣΔΘΓΒΩ′']*|ЛС)[₁₂]$/u.test(label||'');
+    return /^(?:[a-wа-яёℓβΒΩ][a-zа-яёA-ZА-ЯΣΔΘΓΒΩαβ′']*|ЛС)[₁₂]$/u.test(label||'');
   }
 
   // Every labelled stroke is already a line entity in the CURRENT construction
