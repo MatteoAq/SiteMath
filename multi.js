@@ -5785,8 +5785,27 @@
                 if(score<bestScore){bestScore=score;bestT=t;}
                 if(overlap<.03)break;
               }
-              label.setAttribute('x',e.p.x+along.x*bestT);
-              label.setAttribute('y',e.p.y+along.y*bestT);
+              // A very short projected segment may not leave enough
+              // room for its label beside a labelled endpoint (20/4 S₂).
+              // Try the opposite side of the SAME segment only after all
+              // along-stroke shifts fail. Move ink, never the line or point.
+              let bestX=e.p.x+along.x*bestT;
+              let bestY=e.p.y+along.y*bestT;
+              if(bestScore>.2){
+                const normal={x:-along.y,y:along.x};
+                const gap=4.1*paperInkScale();
+                for(const t of shifts){
+                  const cx=e.p.x-2*normal.x*gap+along.x*t;
+                  const cy=e.p.y-2*normal.y*gap+along.y*t;
+                  label.setAttribute('x',cx);
+                  label.setAttribute('y',cy);
+                  const score=clash(label.getBBox())+.02+Math.abs(t)*.001;
+                  if(score<bestScore){bestScore=score;bestX=cx;bestY=cy;}
+                  if(score<.03)break;
+                }
+              }
+              label.setAttribute('x',bestX);
+              label.setAttribute('y',bestY);
             }
           }
         }
