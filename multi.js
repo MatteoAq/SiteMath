@@ -4767,6 +4767,60 @@
         steps[0].check='В '+planeASymbol+' проверь пары '+aNames.map(n=>n+'₁/'+n+'₂').join(', ')+'. В '+planeBSymbol+' проверь пары '+bNames.map(n=>n+'₁/'+n+'₂').join(', ')+'. У каждой пары одноимённых точек совпадает положение по горизонтали (общий вертикальный проектор); на каждом виде вершины каждой плоскости образуют свой треугольник. Проекции '+throughLabel+'₁ и '+throughLabel+'₂ также имеют общий вертикальный проектор.';
       }
     }
+    // The remaining photographed sheets also deserve a concrete input check.
+    // Reuse the defined source objects, not generic advice to compare symbols.
+    if(/^Сверь обозначения обеих исходных плоскостей/u.test(steps[0].check)){
+      const givenPlane=(def,symbol)=>{
+        const names=Object.keys(def.lines||{});
+        if(def.type==='ABC'){
+          const pts=Object.keys(def.points||{});
+          if(pts.length!==3)return null;
+          return {
+            action:'Плоскость '+symbol+' задай вершинами '+pts.join(', ')+': отметь каждую на П₁ и П₂ и соедини вершины в двух проекциях.',
+            why:'Три не лежащие на одной прямой пространственные вершины задают плоскость '+symbol+'.',
+            check:'Для '+symbol+' проверь пары '+pts.map(n=>n+'₁/'+n+'₂').join(', ')+'; одноимённые вершины соединены вертикальными линиями связи.'
+          };
+        }
+        if(def.type==='parallel_lines'&&names.length===2){
+          const [a,b]=names;
+          return {
+            action:'Для '+symbol+' перенеси прямые '+a+' и '+b+' на оба вида, сохрани их направления и подписи.',
+            why:'Две различные параллельные пространственные прямые задают плоскость '+symbol+'.',
+            check:'Для '+symbol+' проверь '+a+'₁ ∥ '+b+'₁ и '+a+'₂ ∥ '+b+'₂; это две разные исходные прямые.'
+          };
+        }
+        if(def.type==='intersecting_lines'&&names.length===2){
+          const [a,b]=names;
+          return {
+            action:'Для '+symbol+' перенеси пересекающиеся прямые '+a+' и '+b+' в обе проекции и отметь их общий узел.',
+            why:'Пересекающиеся пространственные прямые '+a+' и '+b+' определяют плоскость '+symbol+'.',
+            check:'Для '+symbol+' найди '+a+'₁ ∩ '+b+'₁ и '+a+'₂ ∩ '+b+'₂; эти два изображения общего узла лежат на одном вертикальном проекторе.'
+          };
+        }
+        if(def.type==='frontal_projecting')return {
+          action:'Фронтально-проецирующую '+symbol+' нанеси по одной заданной прямой '+symbol+'₂ на П₂.',
+          why:'Фронтально-проецирующая плоскость '+symbol+' изображается одной линией на П₂.',
+          check:'Для '+symbol+' задана только линия '+symbol+'₂ на П₂. Самостоятельной исходной '+symbol+'₁ на П₁ нет.'
+        };
+        if(def.type==='horizontal_projecting')return {
+          action:'Горизонтально-проецирующую '+symbol+' нанеси по одной заданной прямой '+symbol+'₁ на П₁.',
+          why:'Горизонтально-проецирующая плоскость '+symbol+' изображается одной линией на П₁.',
+          check:'Для '+symbol+' задана только линия '+symbol+'₁ на П₁. Самостоятельной исходной '+symbol+'₂ на П₂ нет.'
+        };
+        return null;
+      };
+      const a=givenPlane(scheme.planeA,planeASymbol);
+      const b=givenPlane(scheme.planeB,planeBSymbol);
+      if(a&&b){
+        const labelCorrection=scheme.paperReversedKLabels
+          ?' На оригинальном листе верхняя проекция K ошибочно подписана K₁, нижняя K₂. Исправь только подписи: верхняя K₂, нижняя K₁; не перемещай точки.'
+          :'';
+        steps[0].title='Проверь исходные элементы '+planeASymbol+', '+planeBSymbol+' и точки '+throughLabel;
+        steps[0].action=a.action+' '+b.action+' Отметь заданные '+throughLabel+'₁ и '+throughLabel+'₂ без дополнительных сечений.'+labelCorrection;
+        steps[0].why=a.why+' '+b.why+' Вспомогательные сечения появятся на следующих этапах.';
+        steps[0].check=a.check+' '+b.check+' Парные проекции '+throughLabel+'₁ и '+throughLabel+'₂ имеют общую вертикальную линию связи.'+labelCorrection;
+      }
+    }
     if(scheme.sourceId==='source-photos/scans/variant-12.jpg'&&!scheme.adaptedSource){
       steps[0].why+=' На этом листе плоскости пересекаются далеко за пределами исходной схемы. Свободно выбрать можно вспомогательные сечения, но не положение самой линии пересечения.';
     }
