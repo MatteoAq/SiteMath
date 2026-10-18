@@ -40,6 +40,18 @@ for(let vi=1;vi<=20;vi++){
         measure:[...$('stepMeasure').querySelectorAll('li')].map(x=>x.textContent.trim())
       };
       stages.push(entry);
+      // A given point from the additional condition of task 4 must appear
+      // in the first instruction, not unexpectedly in a later construction.
+      if(task===4&&step===0){
+        const scheme=w.SITEMATH_SCHEMES[variant].task4;
+        const through=scheme.operation?.through;
+        if(through&&scheme.points?.[through]&&
+           (!entry.action.includes(through+'₁ и '+through+'₂')||
+            !entry.action.includes('Через неё далее построим искомую прямую')||
+            !entry.check.includes('Проекции '+through+'₁ и '+through+'₂ лежат на одной вертикальной линии связи')))
+          issues.push({variant,task,step:1,type:'given-through-point-not-introduced',
+            through,action:entry.action,check:entry.check});
+      }
       // The source scheme is copied in the first graphical stage.
       // The following stage must add axes, not ask the student to copy it again.
       if(task>=4&&step===1){
