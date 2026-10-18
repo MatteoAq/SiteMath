@@ -568,6 +568,28 @@ for(const [variant,examples] of Object.entries(photoLineDirections)){
     }
   });
 }
+// Regression for a previously missed geometric invariant: a given
+// source point on two Monge views must have one vertical projector.
+// Do not validate archival raster tracing or movable line labels here.
+let pairedInputPoints=0;
+function checkInputProjectors(node,path){
+  if(!node||typeof node!=='object')return;
+  if(Array.isArray(node.p1)&&Array.isArray(node.p2)&&
+     typeof node.p1[0]==='number'&&typeof node.p2[0]==='number'){
+    pairedInputPoints++;
+    if(Math.abs(node.p1[0]-node.p2[0])>1e-8)
+      error.push(path+': working given point lacks vertical projector');
+  }
+  for(const [key,value] of Object.entries(node))
+    if(key!=='sourceGeometry'&&key!=='sourceEntities'&&key!=='lineLabels')
+      checkInputProjectors(value,path+'.'+key);
+}
+for(const [variant,tasks]of Object.entries(win.SITEMATH_SCHEMES))
+  for(const [task,obj]of Object.entries(tasks))
+    checkInputProjectors(obj,variant+'/'+task);
+if(pairedInputPoints!==134)
+  error.push('Working given point inventory changed: expected 134, got '+pairedInputPoints);
+
 if(error.length){console.error(error.join('\n'));process.exitCode=1;}
 else console.log('Paper source audit OK: '+Object.keys(originalCoordinates).length+
   ' variants, '+(Object.keys(originalCoordinates).length*3)+' coordinate tasks / '+checkedCoord+' point records, '+
