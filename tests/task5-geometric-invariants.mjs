@@ -162,6 +162,12 @@ for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
    issues.push(variant+': unnecessary additional competitor g');
  const givenDisplay=s.givenLine==='f'?'f':'ℓ';
  const finish=drawing.steps.find(st=>st.title?.startsWith('Нанеси видимость '+givenDisplay));
+ // Topic 5, section 5.5.1: horizontal view visibility compares z
+ // using frontal competitors (3₂/4₂), frontal view compares y using
+ // horizontal competitors (5₁/6₁). Do not invert height and depth.
+ if(!finish?.measure?.[0]?.includes('Π₁: высота z по 3₂/4₂')||
+    !finish?.measure?.[1]?.includes('Π₂: глубина y по 5₁/6₁'))
+   issues.push(variant+': task 5 confuses vertical z with depth y in visibility');
  const splitIndex=drawing.steps.findIndex(st=>st.title?.startsWith('Продли '+givenDisplay+' и раздели'));
  const finalIndex=drawing.steps.indexOf(finish);
  if(splitIndex<0||finalIndex!==splitIndex+1){
