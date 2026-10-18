@@ -5603,7 +5603,8 @@
       const off=4.1*paperInkScale();
       return {
         x:(stroke.a.x+stroke.b.x)/2+(-vy/length)*off,
-        y:(stroke.a.y+stroke.b.y)/2+(vx/length)*off
+        y:(stroke.a.y+stroke.b.y)/2+(vx/length)*off,
+        along:{x:vx/length,y:vy/length,length}
       };
     }
     return null;
@@ -5722,11 +5723,47 @@
         el.getAttribute('data-label')===e.label &&
         Math.abs(Number(el.getAttribute('x'))-e.p.x)<.1 &&
         Math.abs(Number(el.getAttribute('y'))-e.p.y)<.1);
-      if(!duplicate)svg.append(E('text',{x:e.p.x,y:e.p.y,class:e.cls,
-        'text-anchor':e.lineLabel?'middle':null,
-        'data-line-label':e.lineLabel?'1':null,
-        'data-label':e.label||'',
-        'data-active':active?'1':'0'},e.label));
+      if(!duplicate){
+        const label=E('text',{x:e.p.x,y:e.p.y,class:e.cls,
+          'text-anchor':e.lineLabel?'middle':null,
+          'data-line-label':e.lineLabel?'1':null,
+          'data-label':e.label||'',
+          'data-active':active?'1':'0'},e.label);
+        svg.append(label);
+        // If two projected line names meet near the crossing of their
+        // source strokes, slide the newer label ALONG its own stroke,
+        // not toward a point or a detached free-floating position.
+        const along=e.lineLabel&&e.p.along;
+        if(along&&typeof label.getBBox==='function'){
+          const peers=[...svg.querySelectorAll('text[data-line-label="1"]')]
+            .filter(t=>t!==label&&typeof t.getBBox==='function');
+          if(peers.length){
+            const original=label.getBBox();
+            const clash=box=>peers.reduce((sum,t)=>{
+              const p=t.getBBox();
+              const w=Math.max(0,Math.min(box.x+box.width,p.x+p.width)-Math.max(box.x,p.x));
+              const h=Math.max(0,Math.min(box.y+box.height,p.y+p.height)-Math.max(box.y,p.y));
+              return sum+w*h/Math.max(1,Math.min(box.width*box.height,p.width*p.height));
+            },0);
+            if(clash(original)>.2){
+              const slide=Math.min(9*paperInkScale(),along.length*.17);
+              const shifts=[0,-slide,slide,-2*slide,2*slide];
+              let bestScore=Infinity,bestT=0;
+              for(let i=0;i<shifts.length;i++){
+                const t=shifts[i];
+                label.setAttribute('x',e.p.x+along.x*t);
+                label.setAttribute('y',e.p.y+along.y*t);
+                const overlap=clash(label.getBBox());
+                const score=overlap+i*.012;
+                if(score<bestScore){bestScore=score;bestT=t;}
+                if(overlap<.03)break;
+              }
+              label.setAttribute('x',e.p.x+along.x*bestT);
+              label.setAttribute('y',e.p.y+along.y*bestT);
+            }
+          }
+        }
+      }
     } else if(e.type==='dim'){
       drawDimension(e,active);
     } else if(e.type==='arc'){
