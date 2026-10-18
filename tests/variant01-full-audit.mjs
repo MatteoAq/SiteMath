@@ -80,10 +80,19 @@ for(const [name,[x,y,z]] of Object.entries(values.task1)){
 // Keep the geometry, but suppress redundant labels at zero ordinates / origin.
 const allPointAnnotations=g1.steps.flatMap(step=>step.entities||[])
   .filter(e=>e.type==='point').map(e=>e.label);
-for(const redundant of ['z=0','y₁=0','y₃=0','z=10','z=35','y₃=40','y₁=40','y₃=−25']){
+for(const redundant of ['z=0','y₁=0','y₃=0','z=10','z=35','y₃=40','y₃=−25']){
  check(!allPointAnnotations.includes(redundant),
    'task 1 has an annotation collision at zero or coincident coordinate '+redundant);
 }
+// The first marked ordinate must remain visible at the moment the learner
+// actually transfers point A from x₁₂, rather than disappearing because
+// a later point D shares its y coordinate.
+const firstYStep=g1.steps.find(step=>step.title==='Построй A₁ и A₂');
+check(firstYStep?.entities.some(e=>e.type==='point'&&e.label==='y₁=40'),
+  'the first y-axis ordinate is missing from the construction');
+check(allPointAnnotations.filter(label=>label==='y₁=40').length===1,
+  'the common ordinate must not be printed repeatedly');
+
 const xDimensionSteps=g1.steps.filter(step=>/зaдай линию связи по x/u.test(step.title)||
   /задай линию связи по x/u.test(step.title));
 const xDimensions=xDimensionSteps.flatMap(step=>(step.entities||[])
