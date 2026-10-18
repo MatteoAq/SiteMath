@@ -48,6 +48,22 @@ for(const part of ['task1','task2','task3'])check(
  JSON.stringify(raw[part])===JSON.stringify(values[part]),
  part+': source table differs from paper');
 
+// The raster 16 contains six slightly offset original projection pairs.
+// Test both the corrected working projector and the unchanged source trace.
+for(const [part,work,original] of [
+ ['4',model.task4.points,model.task4.sourceGeometry.points],
+ ['5',model.task5.points,model.task5.sourceGeometry.points],
+ ['6',{K:model.task6.pointK},{K:model.task6.sourceGeometry.pointK}]
+])for(const [name,p] of Object.entries(work)){
+ const s=original[name];
+ check(!!s,'task '+part+' original point '+name+' missing');
+ check(near(p.p1[0],p.p2[0],1e-9),
+  'task '+part+' working point '+name+' projector is not vertical');
+ check(near(p.p1[0],(s.p1[0]+s.p2[0])/2,1e-9)&&
+       near(p.p1[1],s.p1[1],1e-9)&&near(p.p2[1],s.p2[1],1e-9),
+  'task '+part+' original '+name+' trace must be preserved');
+}
+
 // 1. All three orthographic projections of A,B,C,D,E (including zero x/y/z).
 const g1=O.__audit16.solveTask1(table(raw.task1)),q1=points(g1);
 check(g1.steps.length===17,'task 1 has lost individual construction states');
