@@ -43,6 +43,12 @@ for(let vi=1;vi<=20;vi++){
       // A given point from the additional condition of task 4 must appear
       // in the first instruction, not unexpectedly in a later construction.
       if(task===4&&step===0){
+        if(!entry.action.includes('Перенеси на свой лист обе проекции заданных элементов')||
+           !entry.action.includes('Сохрани взаимное положение исходных точек и штрихов'))
+          issues.push({variant,task,step:1,type:'source-copy-not-instructed',
+            title:entry.title,action:entry.action});
+      }
+      if(task===4&&step===0){
         const scheme=w.SITEMATH_SCHEMES[variant].task4;
         const through=scheme.operation?.through;
         if(through&&scheme.points?.[through]&&
