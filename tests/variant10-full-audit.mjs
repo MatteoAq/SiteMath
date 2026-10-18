@@ -48,6 +48,17 @@ for(const part of ['task1','task2','task3'])check(
  JSON.stringify(raw[part])===JSON.stringify(values[part]),
  part+': source table differs from paper');
 
+// 10/6 given K projector is slightly displaced in the archived scan.
+// Use one mean working abscissa, while preserving both source y coordinates.
+const rawK=model.task6.sourceGeometry.pointK;
+const workK=model.task6.pointK;
+check(near(rawK.p2[0],370)&&near(rawK.p1[0],384),
+ 'task 6 original K abscissae must remain independently available');
+check(near(workK.p1[0],377)&&near(workK.p2[0],377)&&
+      near(workK.p1[1],rawK.p1[1])&&
+      near(workK.p2[1],rawK.p2[1]),
+ 'task 6 K working projector must be vertical without changing depth');
+
 // 1. All three orthographic projections of A,B,C,D,E (including zero x/y/z).
 const g1=O.__audit10.solveTask1(table(raw.task1)),q1=points(g1);
 check(g1.steps.length===17,'task 1 has lost individual construction states');
