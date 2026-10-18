@@ -991,6 +991,14 @@ for (const vp of [
     failures.push('welcome offer: dialog heading not visible');
   if((await page.locator('#offerDialogTitle').textContent()).trim()!=='Помогу и с другими работами')
     failures.push('welcome offer: incorrect commission heading');
+  const offerPrices=await page.locator('.offer-price-grid').innerText();
+  if(!/≈ 500 ₽/.test(offerPrices) ||
+     !/Задания № 1/.test(offerPrices) ||
+     !/всеми шестью задачами/.test(offerPrices) ||
+     !/за всю работу/.test(offerPrices) ||
+     !/Чем больше задач и сложнее построения, тем выше стоимость/.test(offerPrices) ||
+     /200 ₽|Одно задание/.test(offerPrices))
+    failures.push('welcome offer: price must be approximately 500 RUB for full six-task variant, higher for larger works: '+offerPrices);
   const offerPalette=await page.evaluate(()=>({
     title:getComputedStyle(document.querySelector('#offerDialogTitle')).backgroundImage,
     contact:getComputedStyle(document.querySelector('.offer-contact')).backgroundImage
