@@ -113,6 +113,31 @@ for(let task=1;task<=6;task++){
       path:path.join(dir,filename),type:'jpeg',quality:72,fullPage:false
     });
     taskReport.steps.push({step:index+1,file:filename,...meta});
+    // The final 08/1 instruction is longer than the mobile sheet preview.
+    // Check it remains fully reachable by scrolling above sticky navigation.
+    if(task===1&&index===prep-1){
+      const readability=await page.evaluate(()=>{
+        const pageEl=document.querySelector('.step-info-page');
+        const textEl=document.querySelector('#stepInfoText');
+        const navEl=document.querySelector('.mobile-step-nav');
+        const fullText=textEl?.textContent||'';
+        const canScroll=pageEl.scrollHeight>pageEl.clientHeight+3;
+        pageEl.scrollTop=pageEl.scrollHeight;
+        const viewport=pageEl.getBoundingClientRect();
+        const lastLine=textEl.getBoundingClientRect();
+        const nav=navEl.getBoundingClientRect();
+        const out={canScroll,scrolled:pageEl.scrollTop>3,
+          lastLineVisible:lastLine.bottom<=viewport.bottom+3&&
+            lastLine.bottom<=nav.top+3,
+          hasEnding:fullText.includes('Конец последнего отрезка обозначь именем точки.')};
+        pageEl.scrollTop=0;
+        return out;
+      });
+      if(!readability.canScroll||!readability.scrolled||
+         !readability.lastLineVisible||!readability.hasEnding)
+        report.errors.push('08/1 final instruction scroll/readability: '+
+          JSON.stringify(readability));
+    }
     if(task===6 && index===prep-1){
       await page.locator('#zoomFitBtn').click();
       await page.screenshot({
