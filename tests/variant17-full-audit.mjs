@@ -33,7 +33,7 @@ check(cutoff>0,'browser boundary moved');
 source=source.slice(0,cutoff)+
  "window.__audit17={solveTask1,solveTask2,solveTask3,solveTask5Scheme,solveTask6Scheme,planeFromScheme,planeFromDef,schemeLine3};})();";
 new Function('window','document',source)(O,{
- getElementById(){return {value:'45'}}
+ getElementById(){return {value:'50'}}
 });
 const raw=O.SITEMATH_DATA.variants['17'];
 const model=O.SITEMATH_SCHEMES['17'];
@@ -82,8 +82,8 @@ check(points(g2).has('A₀')&&points(g2).has('B₀'),
 // 3. K is INSIDE AB; both projected parallels a through C and crossing
 // straight line ℓ(C,K) must be drawn, not only named in step text.
 const g3=O.__audit17.solveTask3(table(raw.task3)),q3=points(g3);
-const K=raw.task3.A.map((v,i)=>v+.45*(raw.task3.B[i]-v));
-check(near(K[0],18)&&near(K[1],9.5)&&near(K[2],16.5),
+const K=raw.task3.A.map((v,i)=>v+.50*(raw.task3.B[i]-v));
+check(near(K[0],20)&&near(K[1],5)&&near(K[2],15),
  'task 3 analytic AB intermediate point wrong');
 for(const suffix of ['₁','₂']){
  const p=q3.get('K'+suffix);
@@ -121,7 +121,7 @@ const [p0,p1]=O.__audit17.schemeLine3(s5.lines.l),ld=minus(p1,p0);
 const t=-(dot(plane5.n,p0)+plane5.d)/dot(plane5.n,ld);
 const crossing={x:p0.x+t*ld.x,y:p0.y+t*ld.y,z:p0.z+t*ld.z};
 check(t>.87&&t<.89&&dist(crossing,plane5)<1e-6,
- 'task 5 infinite source line must intersect plane on its extension');
+ 'task 5 intersection must occur within the expected source line segment');
 const q5=points(g5);
 check(q5.has('K₁')&&q5.has('K₂')&&
  near(q5.get('K₁').x,q5.get('K₂').x),
