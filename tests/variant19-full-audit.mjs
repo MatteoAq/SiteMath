@@ -28,12 +28,18 @@ let source=fs.readFileSync('multi.js','utf8');
 const marker='    const norm=normalizeSteps(steps,210,170);';
 check(source.split(marker).length===3,'section-plane probe position moved');
 source=source.replace(marker,"    window.__section19={P,Q,pair,levelType};\n"+marker);
+const probe4='    const norm=normalizeSteps(steps,200,155);';
+check(source.split(probe4).length===2,'task 4 probe position moved');
+source=source.replace(probe4,"    window.__task4P19={plane,h3,f3,L3,through3,target3};\n"+probe4);
+const relationAnchor="      if(R3){\n        const R=project3(R3),Ref=ref3?project3(ref3):null;";
+check(source.split(relationAnchor).length===2,'task 4 relation probe moved');
+source=source.replace(relationAnchor,"      if(R3){\n        window.__relationP19={R3,ref3};\n        const R=project3(R3),Ref=ref3?project3(ref3):null;");
 const cutoff=source.indexOf("  $('variantSelect').addEventListener");
 check(cutoff>0,'browser boundary moved');
 source=source.slice(0,cutoff)+
- "window.__audit19={solveTask1,solveTask2,solveTask3,solveTask5Scheme,solveTask6Scheme,planeFromScheme,planeFromDef,schemeLine3};})();";
+ "window.__audit19={solveTask1,solveTask2,solveTask3,solveTask4Scheme,solveTask5Scheme,solveTask6Scheme,planeFromScheme,planeFromDef,schemeLine3};})();";
 new Function('window','document',source)(O,{
- getElementById(){return {value:'45'}}
+ getElementById(){return {value:'80'}}
 });
 const raw=O.SITEMATH_DATA.variants['19'];
 const model=O.SITEMATH_SCHEMES['19'];
@@ -82,9 +88,11 @@ check(points(g2).has('A₀')&&points(g2).has('B₀'),
 // 3. K is INSIDE AB; both projected parallels a through C and crossing
 // straight line ℓ(C,K) must be drawn, not only named in step text.
 const g3=O.__audit19.solveTask3(table(raw.task3)),q3=points(g3);
-const K=raw.task3.A.map((v,i)=>v+.45*(raw.task3.B[i]-v));
-check(near(K[0],24.25)&&near(K[1],34)&&near(K[2],12),
+const K=raw.task3.A.map((v,i)=>v+.80*(raw.task3.B[i]-v));
+check(near(K[0],12)&&near(K[1],41)&&near(K[2],-2),
  'task 3 analytic AB intermediate point wrong');
+check(g3.steps[7].measure?.some(x=>x.includes('80%')),
+ 'task 3 K should match the real default screenshot at 80 percent');
 for(const suffix of ['₁','₂']){
  const p=q3.get('K'+suffix);
  check(p&&near(p.x,g3.O.x-K[0])&&
@@ -110,6 +118,23 @@ for(const suffix of ['₁','₂']){
  }
 }
 
+// 4. Σ(a∩b), ℓ from source B truly parallel to Σ,
+// result point A in front of the plane, not only offset in one view.
+const g4=O.__audit19.solveTask4Scheme(model.task4,{});
+const g4info=O.__task4P19,relation19=O.__relationP19;
+check(g4.steps?.length===16,'task 4 stage sequence changed');
+check(model.task4.planeType==='intersecting_lines'&&
+ model.task4.operation.type==='line_parallel_plane','task 4 paper condition changed');
+check(g4info?.L3&&g4info?.through3&&relation19?.R3&&relation19?.ref3,
+ 'task 4 missing source line or final point');
+const dir4=minus(g4info.L3[1],g4info.L3[0]);
+check(norm(cross(minus(g4info.through3,g4info.L3[0]),dir4))/norm(dir4)<1e-5,
+ 'task 4 parallel line does not pass through original B');
+check(Math.abs(dot(dir4,g4info.plane.n))/(norm(dir4)*norm(g4info.plane.n))<1e-5,
+ 'task 4 ℓ is not spatially parallel to Σ');
+const offset4=minus(relation19.R3,relation19.ref3);
+check(near(offset4.x,0)&&near(offset4.z,0)&&offset4.y>0,
+ 'task 4 result A is not in front of its reference point in Σ');
 // 5. Σ(a∥b) and ℓ: intersection on the extension of the source line.
 // Verify constructive auxiliary g, two competition tests, and visible/hidden
 // strokes. Do not accept a mere analytical answer with no projectors.
@@ -168,9 +193,10 @@ check(drawn.length>=2&&
 console.log(JSON.stringify({
  variant:'19',
  tasks:['1: 15 coordinate projections','2: length/angles/2 triangles',
- '3: ℓ(C,K) and a(C)∥AB','5: K in ℓ∩Σ and visibility',
+ '3: ℓ(C,K) and a(C)∥AB','4: ℓ(B)∥Σ, A in front of Σ',
+ '5: K in ℓ∩Σ and visibility',
  '6: Σ(a∩b)∩Ω(ABC), sections, ℓ(K)∥both'],
  stageCounts:[g1.steps.length,g2.steps.length,g3.steps.length,
-  g5.steps.length,g6.steps.length],
+  g4.steps.length,g5.steps.length,g6.steps.length],
  limit:'No manual mobile screenshot certification'
 },null,2));
