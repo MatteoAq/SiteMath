@@ -28,12 +28,18 @@ let source=fs.readFileSync('multi.js','utf8');
 const marker='    const norm=normalizeSteps(steps,210,170);';
 check(source.split(marker).length===3,'section-plane probe position moved');
 source=source.replace(marker,"    window.__section20={P,Q,pair,levelType};\n"+marker);
+const probe4='    const norm=normalizeSteps(steps,200,155);';
+check(source.split(probe4).length===2,'task 4 probe position changed');
+source=source.replace(probe4,"    window.__task4P20={plane,h3,f3,L3,through3,target3};\n"+probe4);
+const relationAnchor="      if(R3){\n        const R=project3(R3),Ref=ref3?project3(ref3):null;";
+check(source.split(relationAnchor).length===2,'task 4 point relation position changed');
+source=source.replace(relationAnchor,"      if(R3){\n        window.__relationP20={R3,ref3};\n        const R=project3(R3),Ref=ref3?project3(ref3):null;");
 const cutoff=source.indexOf("  $('variantSelect').addEventListener");
 check(cutoff>0,'browser boundary moved');
 source=source.slice(0,cutoff)+
- "window.__audit20={solveTask1,solveTask2,solveTask3,solveTask5Scheme,solveTask6Scheme,planeFromScheme,planeFromDef,schemeLine3};})();";
+ "window.__audit20={solveTask1,solveTask2,solveTask3,solveTask4Scheme,solveTask5Scheme,solveTask6Scheme,planeFromScheme,planeFromDef,schemeLine3};})();";
 new Function('window','document',source)(O,{
- getElementById(){return {value:'45'}}
+ getElementById(){return {value:'50'}}
 });
 const raw=O.SITEMATH_DATA.variants['20'];
 const model=O.SITEMATH_SCHEMES['20'];
@@ -92,9 +98,11 @@ check(points(g2).has('A₀')&&points(g2).has('B₀'),
 // 3. K is INSIDE AB; both projected parallels a through C and crossing
 // straight line ℓ(C,K) must be drawn, not only named in step text.
 const g3=O.__audit20.solveTask3(table(raw.task3)),q3=points(g3);
-const K=raw.task3.A.map((v,i)=>v+.45*(raw.task3.B[i]-v));
-check(near(K[0],54.25)&&near(K[1],-1.5)&&near(K[2],33.75),
+const K=raw.task3.A.map((v,i)=>v+.50*(raw.task3.B[i]-v));
+check(near(K[0],52.5)&&near(K[1],-5)&&near(K[2],32.5),
  'task 3 analytic AB intermediate point wrong');
+check(g3.steps[7].measure?.some(x=>x.includes('50%')),
+ 'task 3 K should match the default 50-percent browser screenshot');
 for(const suffix of ['₁','₂']){
  const p=q3.get('K'+suffix);
  check(p&&near(p.x,g3.O.x-K[0])&&
@@ -120,6 +128,24 @@ for(const suffix of ['₁','₂']){
  }
 }
 
+// 4. On the original Σ(ABC), ℓ passes through given D parallel to Σ
+// and the final point E is below ℓ, never just displaced in one view.
+const g4=O.__audit20.solveTask4Scheme(model.task4,{});
+const q4=O.__task4P20,rel20=O.__relationP20;
+check(g4.steps?.length===18&&
+ model.task4.planeType==='ABC'&&
+ model.task4.operation.type==='line_parallel_plane'&&
+ model.task4.operation.relation==='below_line','task 4 condition or stages changed');
+check(q4?.L3&&q4?.through3&&rel20?.R3&&rel20?.ref3,
+ 'task 4 working geometry missing');
+const v4=minus(q4.L3[1],q4.L3[0]);
+check(norm(cross(minus(q4.through3,q4.L3[0]),v4))/norm(v4)<1e-5,
+ 'task 4 ℓ does not pass through D');
+check(Math.abs(dot(v4,q4.plane.n))/(norm(v4)*norm(q4.plane.n))<1e-5,
+ 'task 4 ℓ not spatially parallel to Σ');
+const eOffset=minus(rel20.R3,rel20.ref3);
+check(near(eOffset.x,0)&&near(eOffset.y,0)&&eOffset.z<0,
+ 'task 4 E must lie BELOW line ℓ');
 // 5. Σ(a∩b) and f: intersection on the extension of the source frontal line.
 // Verify constructive auxiliary g, two competition tests, and visible/hidden
 // strokes. Do not accept a mere analytical answer with no projectors.
@@ -194,9 +220,10 @@ check(drawn.length>=2&&
 console.log(JSON.stringify({
  variant:'20',
  tasks:['1: 15 coordinate projections','2: length/angles/2 triangles',
- '3: ℓ(C,K) and a(C)∥AB','5: K in f∩Σ and visibility',
+ '3: ℓ(C,K) and a(C)∥AB','4: ℓ(D)∥Σ and E below ℓ',
+ '5: K in f∩Σ and visibility',
  '6: Σ(ABC)∩Θ(DEF), sections, ℓ(K)∥both'],
  stageCounts:[g1.steps.length,g2.steps.length,g3.steps.length,
-  g5.steps.length,g6.steps.length],
+  g4.steps.length,g5.steps.length,g6.steps.length],
  limit:'No manual mobile screenshot certification'
 },null,2));
