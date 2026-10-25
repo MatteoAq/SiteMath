@@ -19,7 +19,7 @@ code=code.replace(probe,"    window.__p18={P,Q,pair,levelType};\n"+probe);
 const cut=code.indexOf("  $('variantSelect').addEventListener");
 assert(cut>0);
 code=code.slice(0,cut)+"window.__18={solveTask1,solveTask2,solveTask3,solveTask5Scheme,solveTask6Scheme,planeFromScheme,planeFromDef,schemeLine3};})();";
-new Function('window','document',code)(W,{getElementById(){return {value:'45'}}});
+new Function('window','document',code)(W,{getElementById(){return {value:'20'}}});
 const raw=W.SITEMATH_DATA.variants['18'];
 const scheme=W.SITEMATH_SCHEMES['18'];
 assert.equal(raw.task1Mode,'pyramid');
@@ -101,8 +101,8 @@ for(const val of ['113,8 мм','15,3°','56,6°'])assert(vals.includes(val),'mis
 // 3. Source C,AB: K at 45% (inside AB), a through C parallel to AB.
 const g3=W.__18.solveTask3(coords(raw.task3)),p3=points(g3);
 assert.equal(g3.steps.length,11);
-const K=raw.task3.A.map((x,i)=>x+0.45*(raw.task3.B[i]-x));
-assert.deepEqual(K,[18,55.5,16.5]);
+const K=raw.task3.A.map((x,i)=>x+0.20*(raw.task3.B[i]-x));
+assert.deepEqual(K,[8,58,24]);
 for(const suffix of ['₁','₂']){
  const k=p3.get('K'+suffix);
  assert(k,'missing K'+suffix);
