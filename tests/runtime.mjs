@@ -1892,7 +1892,8 @@ if (!onlyVariant && !onlyTask) try {
           if(!labels.includes(x))failures.push('task5 sequence '+variant+': missing '+x);
         saw56=true;
       }
-      if(title.startsWith('Нанеси видимость '+givenSymbol)){
+      if(title.startsWith('Нанеси видимость '+givenSymbol)||
+         (variant==='12'&&title==='Готовый чертёж 12/5: пересечение и видимость')){
         if(!saw34||!saw56)failures.push('task5 sequence '+variant+': visibility before competing points');
         sawVisibility=true;
       }
