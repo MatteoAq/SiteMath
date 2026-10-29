@@ -4241,7 +4241,8 @@
     // Do not bury the continuation and the division at K in the prose of
     // the completed drawing. Temporary guide strokes disappear as soon as
     // the solid/dashed answer replaces them, including behind dash gaps.
-    const isVariant12Task5=state.variant==='12' && scheme.planeType==='ABC';
+    const isVariant12Task5=scheme.sourceId==='source-photos/scans/variant-12.jpg' &&
+      scheme.planeType==='ABC';
     const p1a=l1[0],p1b=l1[1],p2a=l2[0],p2b=l2[1];
     i=steps.length;
     push({
