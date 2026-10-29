@@ -61,7 +61,7 @@ jobs:
           if-no-files-found: ignore
 
   mobile-layout:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Archive reproducible site sources
@@ -242,7 +242,7 @@ jobs:
           if-no-files-found: ignore
 
   visual-remaining:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
