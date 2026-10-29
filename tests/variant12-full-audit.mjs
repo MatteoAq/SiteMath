@@ -209,6 +209,12 @@ assert(K1&&K2&&close(K1.x,K2.x),'task5 K pair missing/alignment');
 const same=label=>g5.steps.find(st=>st.title.includes(label));
 for(const fragment of ['3₁≡4₁','5₂≡6₂','3₂ и 4₂','5₁ и 6₁'])
   assert(same(fragment),'task5 visibility construction stage '+fragment+' absent');
+const division5=g5.steps.at(-2);
+assert(division5.title==='Раздели уже заданную ℓ точкой K' &&
+       division5.action.includes('дана на исходном чертеже') &&
+       division5.action.includes('не построение новой ℓ') &&
+       division5.why.includes('продлевать или строить ℓ повторно не нужно'),
+       'task5 must not imply the given line ℓ is constructed after K');
 const complete5=g5.steps.at(-1),final5=complete5.entities;
 assert(complete5.title==='Готовый чертёж 12/5: пересечение и видимость' &&
        complete5.action.includes('чертёж завершён') &&
