@@ -170,7 +170,7 @@ for(const variant of Object.keys(W.SITEMATH_SCHEMES).sort()){
     !finish?.measure?.[1]?.includes('Π₂: глубина y по 5₁/6₁'))
    issues.push(variant+': task 5 confuses vertical z with depth y in visibility');
  const splitIndex=drawing.steps.findIndex(st=>st.title?.startsWith('Продли '+givenDisplay+' и раздели')||
-   (variant==='12'&&st.title==='Проведены обе проекции ℓ через точку K'));
+   (variant==='12'&&st.title==='Раздели уже заданную ℓ точкой K'));
  const finalIndex=drawing.steps.indexOf(finish);
  if(splitIndex<0||finalIndex!==splitIndex+1){
    issues.push(variant+': line continuation and K division must precede the visibility result as a drawing step');
