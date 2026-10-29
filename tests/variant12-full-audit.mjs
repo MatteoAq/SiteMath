@@ -209,10 +209,28 @@ assert(K1&&K2&&close(K1.x,K2.x),'task5 K pair missing/alignment');
 const same=label=>g5.steps.find(st=>st.title.includes(label));
 for(const fragment of ['3₁≡4₁','5₂≡6₂','3₂ и 4₂','5₁ и 6₁'])
   assert(same(fragment),'task5 visibility construction stage '+fragment+' absent');
-const final5=g5.steps.at(-1).entities;
-assert(final5.some(e=>e.type==='line'&&e.cls==='hidden-line') &&
-       final5.some(e=>e.type==='line'&&e.cls==='answer-line'),
-       'task5 visibility not drawn using hidden/visible strokes');
+const complete5=g5.steps.at(-1),final5=complete5.entities;
+assert(complete5.title==='Готовый чертёж 12/5: пересечение и видимость' &&
+       complete5.action.includes('чертёж завершён') &&
+       !/додела|дострой|заверши вручную/u.test(complete5.action),
+       'task5 last step must be a completed result, not a request to finish');
+const strokes5=final5.filter(e=>e.type==='line'&&
+  ['hidden-line','answer-line'].includes(e.cls));
+assert(strokes5.length===4 &&
+       strokes5.map(e=>e.cls).join('|')===
+       'hidden-line|answer-line|hidden-line|answer-line',
+       'task5 must show hidden line to the left and visible line to the right on both views');
+for(const [first,second,K] of [[strokes5[0],strokes5[1],K1],
+                                [strokes5[2],strokes5[3],K2]]){
+ assert(close(first.b.x,K.x)&&close(first.b.y,K.y)&&
+        close(second.a.x,K.x)&&close(second.a.y,K.y),
+        'task5 each final stroke must meet K without a gap or overlap');
+ assert(first.a.x<K.x && K.x<second.b.x,
+        'task5 final left/right stroke order is incorrect');
+}
+assert(final5.filter(e=>e.type==='point'&&
+  (e.label==='K₁'||e.label==='K₂')).length===2,
+  'task5 completed diagram omits result points K₁/K₂');
 record(5,'K=('+expectedK.x.toFixed(3)+'; '+
   expectedK.y.toFixed(3)+'; '+expectedK.z.toFixed(3)+'); K∈ℓ∩Σ',
   'All four competition/projection stages and two stroke styles present');

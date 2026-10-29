@@ -134,6 +134,20 @@ for(let task=1;task<=6;task++){
         clippedLabels:clipped
       };
     });
+    if(task===5&&index===prep-1){
+      const finished=await page.evaluate(()=>({
+        solid:document.querySelectorAll('#drawing line.answer-line').length,
+        dashed:document.querySelectorAll('#drawing line.hidden-line').length,
+        originalGiven:document.querySelectorAll(
+          '#drawing line[data-source-given-line="1"]').length,
+        title:document.querySelector('#stepTitle')?.textContent.trim()
+      }));
+      if(finished.solid!==2||finished.dashed!==2||
+         finished.originalGiven!==0||
+         finished.title!=='Готовый чертёж 12/5: пересечение и видимость')
+        report.errors.push('12/5 final SVG is not a finished visible/hidden drawing: '+
+          JSON.stringify(finished));
+    }
     const filename='v12-t'+task+'-s'+String(index+1).padStart(2,'0')+'.jpg';
     await page.screenshot({
       path:path.join(dir,filename),type:'jpeg',quality:72,fullPage:false
